@@ -11,7 +11,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, Upload, Eye, SquarePen, Download, History, Layers, FolderPlus, Folder } from "lucide-react";
+import { Search, Upload, Eye, SquarePen, Download, History, Layers, FolderPlus, Folder, Copy } from "lucide-react";
 import { KagePreview } from "@/components/dashboard/kage-preview";
 import { ShareMenu } from "@/components/dashboard/share-menu";
 import { Input } from "@/components/ui/input";
@@ -48,8 +48,9 @@ function ArtifactsInner() {
 
   // Preview straight from a list card — fetch the document, then open the
   // fullscreen overlay. No need to select/open the detail pane first.
-  const previewByName = useCallback(async (name: string, ref: string) => {
-    try { setPreview({ doc: await op<KageDoc>("get_kage", { name }), ref }); }
+  // Identify the Kage to preview by its opaque uuid, never the name/title.
+  const previewByUuid = useCallback(async (uuid: string, ref: string) => {
+    try { setPreview({ doc: await op<KageDoc>("get_kage", { uuid }), ref }); }
     catch (e) { toast.error(String((e as Error).message)); }
   }, []);
 
@@ -117,6 +118,14 @@ function ArtifactsInner() {
     const repo = proj === "all" ? "kages" : proj; // import into the selected project
     try { await op("create_kage", { doc: JSON.parse(await file.text()), repo }); toast.success(`Imported ${file.name} into ${repo}`); await refresh(); }
     catch (e) { toast.error(`Import failed: ${(e as Error).message}`); }
+  }
+  async function cloneKage(name: string) {
+    try {
+      const r = await op<{ version?: { name: string } }>("clone_kage", { name });
+      toast.success("Cloned");
+      await refresh();
+      if (r?.version?.name) await openCard(r.version.name);
+    } catch (e) { toast.error(String((e as Error).message)); }
   }
 
   return (
@@ -188,7 +197,7 @@ function ArtifactsInner() {
                       <span className="ml-auto">{relTime(c.createdAt)}</span>
                     </div>
                     <Button size="icon" variant="outline" aria-label={`Preview ${c.title}`}
-                      onClick={(e) => { e.stopPropagation(); previewByName(c.name, c.ref); }}
+                      onClick={(e) => { e.stopPropagation(); previewByUuid(c.uuid, c.ref); }}
                       className="absolute right-2 top-2 size-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
                       <Eye className="size-4" />
                     </Button>
@@ -213,6 +222,7 @@ function ArtifactsInner() {
               <div className="ml-auto flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" disabled={!doc} onClick={() => doc && setPreview({ doc, ref: current.ref })}><Eye className="size-4" /> Preview</Button>
                 <Button render={<Link href={`/studio?kage=${current.name}`} />} nativeButton={false} size="sm" variant="outline"><SquarePen className="size-4" /> Studio</Button>
+                <Button size="sm" variant="outline" onClick={() => cloneKage(current.name)}><Copy className="size-4" /> Clone</Button>
                 <Button size="sm" variant="outline" onClick={() => exportJson(current.name)}><Download className="size-4" /> Export</Button>
                 <ShareMenu name={current.name} uuid={current.uuid} state={current.state} visibility={current.visibility}
                   onChanged={async () => { await refresh(); await openCard(current.name); }} />

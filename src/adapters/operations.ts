@@ -83,8 +83,12 @@ export const OPERATIONS: OpSpec[] = [
   { name: "search_templates", summary: "Rank starter templates for an intent (fork before scratch)", params: ["intent?"], run: (c, p) =>
     ok(c.store.search({ ...p, text: p.intent }).filter((v) => v.ref.includes("/templates/") && c.store.canAccess(v, c.author))) },
 
-  { name: "get_kage", summary: "Fetch a Kage document (latest or a version)", params: ["name", "version?"], run: (c, p) => {
-    const r = c.store.authorizeRead(p.name, c.author, p.version ? Number(p.version) : undefined);
+  { name: "get_kage", summary: "Fetch a Kage document by name or uuid (latest or a version)", params: ["name?", "uuid?", "version?"], run: (c, p) => {
+    // Accept the opaque uuid as well as the name, so preview/links identify a
+    // Kage the same way everywhere (never by title).
+    const name = p.name ? String(p.name) : p.uuid ? c.store.nameByUuid(String(p.uuid)) : undefined;
+    if (!name) return fail("not_found", "no such Kage");
+    const r = c.store.authorizeRead(name, c.author, p.version ? Number(p.version) : undefined);
     // Return a clone: the caller must not hold a reference into the signed,
     // stored document and mutate it out from under its digest.
     return r.ok ? ok(clone(r.record.doc)) : fail(r.code, r.msg);
@@ -120,6 +124,20 @@ export const OPERATIONS: OpSpec[] = [
   // --- write (three tiers) ---
   { name: "create_kage", summary: "Create a Kage from a full document (tier A)", params: ["doc", "repo?"], write: true, run: (c, p) =>
     toResult(c.store.create(p.repo ?? c.repo ?? "kages", p.doc as KageDoc, c.author)) },
+
+  { name: "clone_kage", summary: "Create an independent copy of a Kage (fresh id + uuid)", params: ["name", "title?", "repo?"], write: true, run: (c, p) => {
+    // Every Kage is clonable — there is no separate "template" type, a template
+    // is just a Kage you copy. The copy gets a new id (so a new uuid) and lands
+    // in the same project unless another is named.
+    const r = c.store.authorizeRead(String(p.name), c.author);
+    if (!r.ok) return fail(r.code, r.msg);
+    const src = r.record.doc;
+    const id = uniqueKageId(c.store, String(p.title ?? src.title ?? src.id));
+    const { resolved, ...bare } = clone(src) as KageDoc & { resolved?: unknown };
+    void resolved;
+    const doc = { ...bare, id, title: String(p.title ?? (src.title ? src.title + " copy" : id)) } as KageDoc;
+    return toResult(c.store.create(p.repo ? String(p.repo) : c.store.repoOf(r.record.ref), doc, c.author));
+  } },
 
   { name: "patch_kage", summary: "Edit a Kage with RFC 6902 ops (tier A). Pass baseVersion for optimistic concurrency.", params: ["name", "ops", "baseVersion?"], write: true, run: (c, p) =>
     toResult(c.store.patch(p.name, p.ops, c.author, { baseVersion: p.baseVersion !== undefined ? Number(p.baseVersion) : undefined })) },
@@ -199,6 +217,14 @@ export const OPERATIONS: OpSpec[] = [
   { name: "comment", summary: "Anchor a comment to a block, optionally with a suggested patch", params: ["kage", "block", "text", "suggestedPatch?"], write: true, run: (c, p) =>
     ok(c.store.comment(p.kage, p.block, c.author.principal, p.text, p.suggestedPatch)) },
 ];
+
+/** A free Kage id derived from a base string (the source title, usually). */
+function uniqueKageId(store: { exists: (name: string) => boolean }, base: string): string {
+  let slug = base.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "kage";
+  if (!/^[a-z]/.test(slug)) slug = "k-" + slug;
+  if (!store.exists(slug)) return slug;
+  for (let i = 2; ; i++) { const cand = slug.slice(0, 36) + "-" + i; if (!store.exists(cand)) return cand; }
+}
 
 function toResult(w: { ok: boolean; version?: unknown; validation?: unknown; error?: { code: string; msg: string } }): OpResult {
   return w.ok ? ok({ version: w.version, validation: w.validation }) : fail(w.error!.code, w.error!.msg);

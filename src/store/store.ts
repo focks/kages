@@ -141,6 +141,9 @@ export class Store {
     return undefined;
   }
 
+  /** Does a Kage with this name/id exist? Used to pick a free id when cloning. */
+  exists(name: string): boolean { return this.kages.has(name); }
+
   /** The workspace this store namespaces. Workspace → project (repo) → Kage is
    *  the organizing hierarchy, and every ref encodes all three. */
   get workspaceName(): string { return this.workspace; }

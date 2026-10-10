@@ -65,7 +65,7 @@ async function initStore(workspace: string): Promise<Store> {
   // user's own workspace gets the intro templates ("What is Kages", etc.).
   const store = new Store({ workspace });
   if (workspace === "acme") seed(store);
-  else seedTemplates(store, workspace);
+  else seedStarters(store, workspace);
   if (persistenceEnabled()) await saveSnapshot(workspace, store.snapshot());
   stores.set(workspace, store);
   await syncPublicShares(store);
@@ -84,15 +84,16 @@ async function syncPublicShares(store: Store): Promise<void> {
   }
 }
 
-/** Seed a new user's workspace: grant them their starter project and create the
- *  intro template Kages. The workspace is `ws-<userId>`; the owner principal is
- *  `user:<userId>` (derived back from the workspace id). */
-function seedTemplates(store: Store, workspace: string): void {
+/** Seed a new user's workspace with a few intro Kages to start from. These are
+ *  ordinary Kages (not a separate "template" type) in a `getting-started`
+ *  project — the user clones any of them, or just edits in place. The workspace
+ *  is `ws-<userId>`; the owner principal is `user:<userId>`. */
+function seedStarters(store: Store, workspace: string): void {
   const principal = "user:" + workspace.replace(/^ws-/, "");
   const owner: Provenance = { principal, runtime: { framework: "next", adapter: "rest" } };
-  store.grant(principal, "templates", ["write", "publish", "review", "admin"]);
+  store.grant(principal, "getting-started", ["write", "publish", "review", "admin"]);
   try {
-    for (const t of introTemplates()) store.create("templates", t, owner);
+    for (const t of introTemplates()) store.create("getting-started", t, owner);
   } catch {
     /* best-effort: an empty workspace is still valid */
   }

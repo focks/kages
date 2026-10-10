@@ -55,10 +55,7 @@ export default function SettingsPage() {
       </div>
 
       {!authEnabled ? (
-        <Card className="p-5 text-sm text-muted-foreground">
-          Running locally with no authentication — the shared <span className="font-mono">acme</span> workspace is in use.
-          Set <span className="font-mono">NEXT_PUBLIC_SUPABASE_URL</span> and <span className="font-mono">NEXT_PUBLIC_SUPABASE_ANON_KEY</span> to enable sign-in and per-user workspaces.
-        </Card>
+        <Card className="p-5 text-sm text-muted-foreground">Sign-in isn’t enabled on this instance.</Card>
       ) : (
         <>
           <Card className="space-y-4 p-5">
