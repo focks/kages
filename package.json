@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.3",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "lucide-react": "^1.55.0",

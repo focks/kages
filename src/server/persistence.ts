@@ -19,7 +19,6 @@ import type { StoreSnapshot } from "../store/store.ts";
 const BASE = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TABLE = "kages_state";
-const ROW = "singleton";
 
 export function persistenceEnabled(): boolean {
   return !!(BASE && KEY);
@@ -29,13 +28,15 @@ function headers(extra: Record<string, string> = {}): Record<string, string> {
   return { apikey: KEY!, Authorization: `Bearer ${KEY!}`, "Content-Type": "application/json", ...extra };
 }
 
-/** The persisted snapshot, or null when persistence is off or the row is empty.
- *  Any failure logs and returns null so the caller falls back to a fresh seed —
- *  a broken database never takes the app down, it just loses durability. */
-export async function loadSnapshot(): Promise<StoreSnapshot | null> {
+/** The persisted snapshot for a workspace, or null when persistence is off or
+ *  the row is empty. The row id is the WORKSPACE, so each user's workspace is an
+ *  isolated row. Any failure logs and returns null so the caller falls back to a
+ *  fresh seed — a broken database never takes the app down, it just loses
+ *  durability. */
+export async function loadSnapshot(workspace: string): Promise<StoreSnapshot | null> {
   if (!persistenceEnabled()) return null;
   try {
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}?id=eq.${ROW}&select=snapshot`, { headers: headers() });
+    const res = await fetch(`${BASE}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(workspace)}&select=snapshot`, { headers: headers() });
     if (!res.ok) { console.error(`loadSnapshot: ${res.status} ${await res.text()}`); return null; }
     const rows = (await res.json()) as { snapshot: StoreSnapshot }[];
     return rows[0]?.snapshot ?? null;
@@ -45,16 +46,16 @@ export async function loadSnapshot(): Promise<StoreSnapshot | null> {
   }
 }
 
-/** Upsert the snapshot (merge-duplicates on the primary key). Best-effort: a
- *  failure logs but doesn't throw, so a write that succeeded in memory still
- *  returns success to the caller even if the durable copy lagged. */
-export async function saveSnapshot(snap: StoreSnapshot): Promise<void> {
+/** Upsert a workspace's snapshot (merge-duplicates on the primary key).
+ *  Best-effort: a failure logs but doesn't throw, so a write that succeeded in
+ *  memory still returns success even if the durable copy lagged. */
+export async function saveSnapshot(workspace: string, snap: StoreSnapshot): Promise<void> {
   if (!persistenceEnabled()) return;
   try {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {
       method: "POST",
       headers: headers({ Prefer: "resolution=merge-duplicates" }),
-      body: JSON.stringify({ id: ROW, snapshot: snap, updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ id: workspace, snapshot: snap, updated_at: new Date().toISOString() }),
     });
     if (!res.ok) console.error(`saveSnapshot: ${res.status} ${await res.text()}`);
   } catch (e) {

@@ -12,6 +12,7 @@ import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { UserMenu } from "@/components/dashboard/user-menu";
 
 const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -68,6 +69,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <UserMenu />
         <div className="px-2 py-1 font-mono text-[11px] text-muted-foreground">Reference implementation</div>
       </SidebarFooter>
     </Sidebar>

@@ -10,6 +10,8 @@ import { join } from "node:path";
 import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
 import { loadSnapshot, saveSnapshot, persistenceEnabled } from "./persistence.ts";
+import { putPublicShare, sharesEnabled } from "./public-shares.ts";
+import { introTemplates } from "./templates.ts";
 import type { Provenance } from "../store/types.ts";
 import type { KageDoc } from "../engine/types.ts";
 
@@ -28,33 +30,72 @@ function fork(base: KageDoc, system: string, id: string, title: string): KageDoc
   return { ...doc, id, title };
 }
 
-let singleton: Store | null = null;
-let initPromise: Promise<Store> | null = null;
+const stores = new Map<string, Store>();
+const initPromises = new Map<string, Promise<Store>>();
 
-/** The process store. With Supabase env vars set, the first call restores the
- *  persisted snapshot (or seeds + saves if the row is empty); otherwise it seeds
- *  a fresh in-memory store, exactly as before. The init promise is cached so
- *  concurrent requests on a cold start share one initialisation. */
-export async function getStore(): Promise<Store> {
-  if (singleton) return singleton;
-  if (!initPromise) initPromise = initStore();
-  return initPromise;
+/** The store for a workspace (default "acme" — the local/anonymous workspace).
+ *  With Supabase set, the first call restores that workspace's persisted snapshot
+ *  (or seeds + saves if its row is empty); otherwise it seeds in-memory. Each
+ *  workspace is cached independently so a signed-in user's data never mixes with
+ *  another's. The init promise is cached so concurrent cold-start requests share
+ *  one initialisation. */
+export async function getStore(workspace = "acme"): Promise<Store> {
+  const cached = stores.get(workspace);
+  if (cached) return cached;
+  if (!initPromises.has(workspace)) initPromises.set(workspace, initStore(workspace));
+  return initPromises.get(workspace)!;
 }
 
-/** Persist the store's current snapshot (no-op without Supabase env). Called by
- *  the API route after a successful write so durability tracks the in-memory
+/** Persist a workspace's current snapshot (no-op without Supabase env). Called
+ *  by the API route after a successful write so durability tracks in-memory
  *  state without the store layer knowing anything about the database. */
-export async function persistStore(store: Store): Promise<void> {
-  if (persistenceEnabled()) await saveSnapshot(store.snapshot());
+export async function persistStore(workspace: string, store: Store): Promise<void> {
+  if (persistenceEnabled()) await saveSnapshot(workspace, store.snapshot());
 }
 
-async function initStore(): Promise<Store> {
-  const snap = await loadSnapshot();
-  if (snap) { singleton = Store.restore(snap); return singleton; }
-  const store = seed(new Store({ workspace: "acme" }));
-  if (persistenceEnabled()) await saveSnapshot(store.snapshot());
-  singleton = store;
+async function initStore(workspace: string): Promise<Store> {
+  const snap = await loadSnapshot(workspace);
+  if (snap) {
+    const s = Store.restore(snap);
+    stores.set(workspace, s);
+    await syncPublicShares(s); // registered shares may predate the public_shares table
+    return s;
+  }
+  // Fresh workspace: the shared "acme" workspace gets the demo content; a new
+  // user's own workspace gets the intro templates ("What is Kages", etc.).
+  const store = new Store({ workspace });
+  if (workspace === "acme") seed(store);
+  else seedTemplates(store, workspace);
+  if (persistenceEnabled()) await saveSnapshot(workspace, store.snapshot());
+  stores.set(workspace, store);
+  await syncPublicShares(store);
   return store;
+}
+
+/** Make sure every currently-public Kage in a workspace is in the global
+ *  public_shares registry, so /k/<uuid> links resolve even for Kages that were
+ *  seeded or published before the registry existed. No-op without Supabase. */
+async function syncPublicShares(store: Store): Promise<void> {
+  if (!sharesEnabled()) return;
+  for (const v of store.list()) {
+    if (v.state === "published" && (v.visibility === "link" || v.visibility === "public")) {
+      await putPublicShare(v.uuid, v.doc);
+    }
+  }
+}
+
+/** Seed a new user's workspace: grant them their starter project and create the
+ *  intro template Kages. The workspace is `ws-<userId>`; the owner principal is
+ *  `user:<userId>` (derived back from the workspace id). */
+function seedTemplates(store: Store, workspace: string): void {
+  const principal = "user:" + workspace.replace(/^ws-/, "");
+  const owner: Provenance = { principal, runtime: { framework: "next", adapter: "rest" } };
+  store.grant(principal, "templates", ["write", "publish", "review", "admin"]);
+  try {
+    for (const t of introTemplates()) store.create("templates", t, owner);
+  } catch {
+    /* best-effort: an empty workspace is still valid */
+  }
 }
 
 function seed(store: Store): Store {

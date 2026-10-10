@@ -8,7 +8,7 @@
 // system — the system is fixed at creation and not swappable here.
 
 import { use, useEffect, useState } from "react";
-import { SystemChip, op } from "@/components/dashboard/kage-ui";
+import { SystemChip } from "@/components/dashboard/kage-ui";
 import { KageRenderer } from "@/runtime/KageRenderer";
 import { MadeWithKages } from "@/components/dashboard/made-with-kages";
 import type { KageDoc } from "@/engine/types";
@@ -18,8 +18,11 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  // Read through the dedicated public route (resolves across workspaces), not the
+  // per-workspace operation dispatcher.
   useEffect(() => {
-    op<KageDoc>("get_shared_kage", { uuid: id })
+    fetch(`/api/shared/${encodeURIComponent(id)}`)
+      .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d?.error?.msg || r.statusText); return d as KageDoc; })
       .then((d) => setDoc(d))
       .catch((e) => setErr(String((e as Error).message || e)));
   }, [id]);

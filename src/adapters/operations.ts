@@ -90,15 +90,6 @@ export const OPERATIONS: OpSpec[] = [
     return r.ok ? ok(clone(r.record.doc)) : fail(r.code, r.msg);
   } },
 
-  { name: "get_shared_kage", summary: "Fetch a publicly shared Kage by its opaque uuid (visibility-gated)", params: ["uuid"], run: (c, p) => {
-    // The /k/<uuid> share route resolves the opaque id → name, then goes through
-    // the SAME visibility gate as get_kage, so a private Kage's link can't leak.
-    const name = c.store.nameByUuid(String(p.uuid));
-    if (!name) return fail("not_found", "no such shared Kage");
-    const r = c.store.authorizeRead(name, c.author);
-    return r.ok ? ok(clone(r.record.doc)) : fail(r.code, r.msg);
-  } },
-
   { name: "list_versions", summary: "Revision history of a Kage: every version with its provenance", params: ["name"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
     if (!r.ok) return fail(r.code, r.msg);
