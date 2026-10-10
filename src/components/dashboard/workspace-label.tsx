@@ -18,7 +18,8 @@ export function WorkspaceLabel() {
       createClient().auth.getUser().then(({ data }) => {
         if (!live) return;
         const u = data.user;
-        setLabel(u ? (u.user_metadata?.name as string) || u.email || "your workspace" : "signed out");
+        const m = u?.user_metadata ?? {};
+        setLabel(u ? (m.workspace_name as string) || (m.name as string) || u.email || "your workspace" : "signed out");
       }),
     );
     return () => { live = false; };

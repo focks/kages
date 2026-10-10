@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Layers, SquarePen, Code2 } from "lucide-react";
+import { LayoutDashboard, Layers, SquarePen, Code2, Settings } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -19,6 +19,7 @@ const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
   { title: "Artifacts", href: "/artifacts", icon: Layers },
   { title: "Studio", href: "/studio", icon: SquarePen },
+  { title: "Settings", href: "/settings", icon: Settings },
 ];
 
 const RESOURCES = [
@@ -71,7 +72,6 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <UserMenu />
-        <div className="px-2 py-1 font-mono text-[11px] text-muted-foreground">Reference implementation</div>
       </SidebarFooter>
     </Sidebar>
   );
