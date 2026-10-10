@@ -1,0 +1,550 @@
+{
+  "title": "Order operations",
+  "root": "app",
+  "state_json": "{\"section\":\"orders\",\"region\":\"all\",\"summary\":null,\"summarising\":false}",
+  "data_json": "{\"orders\":[{\"id\":\"A-1041\",\"customer\":\"Halden Supply\",\"region\":\"north\",\"status\":\"open\",\"total\":1840},{\"id\":\"A-1042\",\"customer\":\"Marisol Foods\",\"region\":\"south\",\"status\":\"shipped\",\"total\":920},{\"id\":\"A-1043\",\"customer\":\"Kestrel Labs\",\"region\":\"west\",\"status\":\"open\",\"total\":4310},{\"id\":\"A-1044\",\"customer\":\"Orchard & Pine\",\"region\":\"north\",\"status\":\"shipped\",\"total\":615},{\"id\":\"A-1045\",\"customer\":\"Tiderun Marine\",\"region\":\"west\",\"status\":\"open\",\"total\":2275},{\"id\":\"A-1046\",\"customer\":\"Basalt Works\",\"region\":\"south\",\"status\":\"held\",\"total\":1390},{\"id\":\"A-1047\",\"customer\":\"Lumen Dental\",\"region\":\"north\",\"status\":\"open\",\"total\":780},{\"id\":\"A-1048\",\"customer\":\"Fernhill Co-op\",\"region\":\"west\",\"status\":\"shipped\",\"total\":3060}]}",
+  "blocks": [
+    {
+      "id": "app",
+      "type": "shell",
+      "props": {},
+      "slots": {
+        "sidebar": [
+          "nav"
+        ],
+        "header": [
+          "topbar"
+        ],
+        "main": [
+          "ordersView",
+          "customersView",
+          "settingsView"
+        ]
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "nav",
+      "type": "sidebar",
+      "props": {
+        "title": "Operations",
+        "items": [
+          {
+            "id": "orders",
+            "label": "Orders",
+            "badge": 8,
+            "group": "Sales",
+            "code": "ORD",
+            "description": "Live order book"
+          },
+          {
+            "id": "customers",
+            "label": "Customers",
+            "badge": null,
+            "group": "Sales",
+            "code": "CUS",
+            "description": "Accounts and notes"
+          },
+          {
+            "id": "settings",
+            "label": "Settings",
+            "badge": null,
+            "group": "Admin",
+            "code": "SET",
+            "description": "Team and alerts"
+          }
+        ],
+        "value": null
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "value",
+          "expr_json": "{\"$state\":\"section\"}"
+        }
+      ],
+      "on": [
+        {
+          "event": "select",
+          "actions_json": "[{\"do\":\"set\",\"path\":\"section\",\"value\":{\"$event\":\"id\"}}]"
+        }
+      ],
+      "visible_json": null
+    },
+    {
+      "id": "topbar",
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 3,
+        "columns": null,
+        "align": null,
+        "justify": "space-between",
+        "wrap": null
+      },
+      "slots": {
+        "children": [
+          "heading",
+          "navToggle"
+        ]
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "heading",
+      "type": "text",
+      "props": {
+        "text": null,
+        "variant": "title"
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "text",
+          "expr_json": "{\"$if\":[{\"$block\":\"nav.collapsed\"},\"Order operations · focus mode\",\"Order operations\"]}"
+        }
+      ],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "navToggle",
+      "type": "button",
+      "props": {
+        "label": "Toggle sidebar",
+        "variant": "quiet",
+        "size": "sm",
+        "disabled": null
+      },
+      "slots": {},
+      "bind": [],
+      "on": [
+        {
+          "event": "click",
+          "actions_json": "[{\"do\":\"call\",\"target\":\"nav\",\"command\":\"toggle\"}]"
+        }
+      ],
+      "visible_json": null
+    },
+    {
+      "id": "ordersView",
+      "type": "stack",
+      "props": {
+        "direction": null,
+        "gap": 6,
+        "columns": null,
+        "align": null,
+        "justify": null,
+        "wrap": null
+      },
+      "slots": {
+        "children": [
+          "filters",
+          "kpis",
+          "ordersCard"
+        ]
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"orders\"]}"
+    },
+    {
+      "id": "filters",
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 4,
+        "columns": null,
+        "align": "flex-end",
+        "justify": null,
+        "wrap": true
+      },
+      "slots": {
+        "children": [
+          "regionPicker",
+          "search"
+        ]
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "regionPicker",
+      "type": "dropdown",
+      "props": {
+        "label": "Region",
+        "options": [
+          {
+            "value": "all",
+            "label": "All",
+            "hint": null
+          },
+          {
+            "value": "north",
+            "label": "North",
+            "hint": null
+          },
+          {
+            "value": "south",
+            "label": "South",
+            "hint": null
+          },
+          {
+            "value": "west",
+            "label": "West",
+            "hint": null
+          }
+        ],
+        "value": null,
+        "placeholder": null,
+        "disabled": null
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "value",
+          "expr_json": "{\"$state\":\"region\"}"
+        }
+      ],
+      "on": [
+        {
+          "event": "change",
+          "actions_json": "[{\"do\":\"set\",\"path\":\"region\",\"value\":{\"$event\":\"value\"}}]"
+        }
+      ],
+      "visible_json": null
+    },
+    {
+      "id": "search",
+      "type": "text-input",
+      "props": {
+        "label": "Customer",
+        "value": null,
+        "placeholder": "Filter by name",
+        "help": null,
+        "inputType": "search",
+        "disabled": null
+      },
+      "slots": {},
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "kpis",
+      "type": "stack",
+      "props": {
+        "direction": null,
+        "gap": 4,
+        "columns": 3,
+        "align": null,
+        "justify": null,
+        "wrap": null
+      },
+      "slots": {
+        "children": [
+          "kpiCount",
+          "kpiRevenue",
+          "kpiOpen"
+        ]
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "kpiCount",
+      "type": "stat",
+      "props": {
+        "label": "Orders shown",
+        "value": null,
+        "format": "number",
+        "delta": null,
+        "caption": null
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "value",
+          "expr_json": "{\"$count\":{\"$block\":\"ordersTable.rows\"}}"
+        }
+      ],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "kpiRevenue",
+      "type": "stat",
+      "props": {
+        "label": "Value",
+        "value": null,
+        "format": "currency",
+        "delta": 0.084,
+        "caption": "Against the previous week"
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "value",
+          "expr_json": "{\"$sum\":[{\"$block\":\"ordersTable.rows\"},\"total\"]}"
+        }
+      ],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "kpiOpen",
+      "type": "stat",
+      "props": {
+        "label": "Still open",
+        "value": null,
+        "format": "number",
+        "delta": null,
+        "caption": null
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "value",
+          "expr_json": "{\"$count\":{\"$filter\":{\"list\":{\"$block\":\"ordersTable.rows\"},\"field\":\"status\",\"equals\":\"open\"}}}"
+        }
+      ],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "ordersCard",
+      "type": "card",
+      "props": {
+        "title": "Orders",
+        "subtitle": null,
+        "tone": null
+      },
+      "slots": {
+        "children": [
+          "summaryText",
+          "ordersTable"
+        ],
+        "actions": [
+          "askBtn",
+          "resetBtn"
+        ]
+      },
+      "bind": [
+        {
+          "prop": "subtitle",
+          "expr_json": "{\"$tpl\":\"Region: {{state.region}}\"}"
+        }
+      ],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "resetBtn",
+      "type": "button",
+      "props": {
+        "label": "Reset filters",
+        "variant": null,
+        "size": "sm",
+        "disabled": null
+      },
+      "slots": {},
+      "bind": [],
+      "on": [
+        {
+          "event": "click",
+          "actions_json": "[{\"do\":\"set\",\"path\":\"region\",\"value\":\"all\"},{\"do\":\"call\",\"target\":\"search\",\"command\":\"clear\"}]"
+        }
+      ],
+      "visible_json": null
+    },
+    {
+      "id": "ordersTable",
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "id",
+            "label": "Order",
+            "align": null,
+            "format": null
+          },
+          {
+            "key": "customer",
+            "label": "Customer",
+            "align": null,
+            "format": null
+          },
+          {
+            "key": "region",
+            "label": "Region",
+            "align": null,
+            "format": null
+          },
+          {
+            "key": "status",
+            "label": "Status",
+            "align": null,
+            "format": null
+          },
+          {
+            "key": "total",
+            "label": "Total",
+            "align": "right",
+            "format": "currency"
+          }
+        ],
+        "rows_json": null,
+        "empty": "No orders match these filters",
+        "dense": true
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "rows",
+          "expr_json": "{\"$filter\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"orders\"},\"field\":\"region\",\"equals\":{\"$state\":\"region\"},\"skipIf\":\"all\"}},\"field\":\"customer\",\"contains\":{\"$block\":\"search.value\"}}}"
+        }
+      ],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "customersView",
+      "type": "card",
+      "props": {
+        "title": "Customers",
+        "subtitle": "Tabs hold their own state; siblings read it with $block.",
+        "tone": null
+      },
+      "slots": {
+        "children": [
+          "custTabs",
+          "custActive",
+          "custDormant"
+        ],
+        "actions": []
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"customers\"]}"
+    },
+    {
+      "id": "custTabs",
+      "type": "tabs",
+      "props": {
+        "tabs": [
+          {
+            "id": "active",
+            "label": "Active",
+            "count": 6
+          },
+          {
+            "id": "dormant",
+            "label": "Dormant",
+            "count": 2
+          }
+        ],
+        "value": "active"
+      },
+      "slots": {},
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "custActive",
+      "type": "text",
+      "props": {
+        "text": "Six accounts ordered in the last 30 days.",
+        "variant": null
+      },
+      "slots": {},
+      "bind": [],
+      "on": [],
+      "visible_json": "{\"$eq\":[{\"$block\":\"custTabs.value\"},\"active\"]}"
+    },
+    {
+      "id": "custDormant",
+      "type": "text",
+      "props": {
+        "text": "Two accounts have been quiet for 90 days.",
+        "variant": "muted"
+      },
+      "slots": {},
+      "bind": [],
+      "on": [],
+      "visible_json": "{\"$eq\":[{\"$block\":\"custTabs.value\"},\"dormant\"]}"
+    },
+    {
+      "id": "settingsView",
+      "type": "card",
+      "props": {
+        "title": "Settings",
+        "subtitle": null,
+        "tone": null
+      },
+      "slots": {
+        "children": [
+          "settingsText"
+        ],
+        "actions": []
+      },
+      "bind": [],
+      "on": [],
+      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"settings\"]}"
+    },
+    {
+      "id": "settingsText",
+      "type": "text",
+      "props": {
+        "text": "Nothing to configure in this demo.",
+        "variant": "muted"
+      },
+      "slots": {},
+      "bind": [],
+      "on": [],
+      "visible_json": null
+    },
+    {
+      "id": "askBtn",
+      "type": "button",
+      "props": {
+        "label": "Summarise",
+        "variant": null,
+        "size": "sm",
+        "disabled": null
+      },
+      "slots": {},
+      "bind": [],
+      "on": [
+        {
+          "event": "click",
+          "actions_json": "[{\"do\":\"ask\",\"prompt\":{\"$tpl\":\"In two sentences, summarise these orders for an operations lead: {{block.ordersTable.rows}}\"},\"model\":\"fast\",\"into\":\"summary\",\"pendingInto\":\"summarising\",\"mock\":\"Four open orders worth $9,205 sit mostly in the west and north. Basalt Works ($1,390) is on hold and needs a decision today.\"}]"
+        }
+      ],
+      "visible_json": null
+    },
+    {
+      "id": "summaryText",
+      "type": "text",
+      "props": {
+        "text": null,
+        "variant": "muted"
+      },
+      "slots": {},
+      "bind": [
+        {
+          "prop": "text",
+          "expr_json": "{\"$state\":\"summary\"}"
+        }
+      ],
+      "on": [],
+      "visible_json": "{\"$neq\":[{\"$state\":\"summary\"},null]}"
+    }
+  ]
+}

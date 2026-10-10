@@ -1,0 +1,1818 @@
+{
+  "core/shell@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/shell",
+    "version": "1.0.0",
+    "ref": "core/shell@1.0.0",
+    "system": "core",
+    "name": "shell",
+    "implements": [
+      "kages/shell@1"
+    ],
+    "role": "shell",
+    "summary": "App frame with sidebar, header and main regions.",
+    "props": {},
+    "slots": {
+      "sidebar": {
+        "max": 1
+      },
+      "header": {},
+      "main": {
+        "required": true
+      }
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "sunken",
+      "line"
+    ],
+    "agent": {
+      "use": "Root block of any multi-region artifact. Put exactly one nav in `sidebar`.",
+      "avoid": "Nesting shells."
+    },
+    "limits": {}
+  },
+  "core/sidebar@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/sidebar",
+    "version": "1.2.0",
+    "ref": "core/sidebar@1.2.0",
+    "system": "core",
+    "name": "sidebar",
+    "implements": [
+      "kages/nav@1"
+    ],
+    "role": "nav",
+    "summary": "Collapsible navigation list; one active item.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "badge": {
+              "type": "string|number"
+            },
+            "group": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "collapsed": {
+        "type": "boolean",
+        "default": false
+      },
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      },
+      "toggle": {
+        "handler": "onToggle",
+        "payload": {}
+      }
+    },
+    "commands": {
+      "toggle": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": {
+            "$not": {
+              "$self": "collapsed"
+            }
+          }
+        }
+      ],
+      "collapse": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": true
+        }
+      ],
+      "expand": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": false
+        }
+      ]
+    },
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "toggle": [
+        {
+          "do": "call",
+          "target": "$self",
+          "command": "toggle"
+        }
+      ]
+    },
+    "outputs": [
+      "value",
+      "collapsed"
+    ],
+    "tokens": [
+      "sunken",
+      "line",
+      "ink",
+      "ink-muted",
+      "accent",
+      "accent-soft"
+    ],
+    "agent": {
+      "use": "Primary navigation between 3–9 sections. Bind `value` to a state key and read it from content blocks with `visible`.",
+      "avoid": "More than 9 items; put nested content in tabs instead."
+    },
+    "limits": {}
+  },
+  "core/dropdown@1.3.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/dropdown",
+    "version": "1.3.0",
+    "ref": "core/dropdown@1.3.0",
+    "system": "core",
+    "name": "dropdown",
+    "implements": [
+      "kages/select@1"
+    ],
+    "role": "select",
+    "summary": "Pick exactly one value from a short list.",
+    "props": {
+      "label": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "hint": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string",
+          "label": "string"
+        }
+      }
+    },
+    "commands": {
+      "clear": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": null
+        }
+      ]
+    },
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "surface",
+      "line-control",
+      "ink",
+      "accent-soft",
+      "shadow-pop"
+    ],
+    "agent": {
+      "use": "Any single choice; scales to long option lists.",
+      "avoid": "Two options — use a button pair."
+    },
+    "limits": {}
+  },
+  "core/tabs@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/tabs",
+    "version": "1.0.0",
+    "ref": "core/tabs@1.0.0",
+    "system": "core",
+    "name": "tabs",
+    "implements": [
+      "kages/tabs@1"
+    ],
+    "role": "tabs",
+    "summary": "Switch between sibling views.",
+    "props": {
+      "tabs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "line",
+      "ink",
+      "ink-muted",
+      "accent"
+    ],
+    "agent": {
+      "use": "2–6 sibling views inside one section.",
+      "avoid": "Top-level navigation (that is the sidebar's job)."
+    },
+    "limits": {}
+  },
+  "core/button@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/button",
+    "version": "1.1.0",
+    "ref": "core/button@1.1.0",
+    "system": "core",
+    "name": "button",
+    "implements": [
+      "kages/button@1"
+    ],
+    "role": "button",
+    "summary": "Trigger one action.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "variant": {
+        "type": "string",
+        "enum": [
+          "primary",
+          "secondary",
+          "quiet",
+          "danger"
+        ],
+        "default": "secondary"
+      },
+      "size": {
+        "type": "string",
+        "enum": [
+          "md",
+          "sm"
+        ],
+        "default": "md"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {
+      "click": {
+        "handler": "onClick",
+        "payload": {}
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "accent",
+      "accent-ink",
+      "surface",
+      "line-control",
+      "danger"
+    ],
+    "agent": {
+      "use": "One primary per region; labels are verbs.",
+      "avoid": "Using a button to show state."
+    },
+    "limits": {}
+  },
+  "core/text-input@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/text-input",
+    "version": "1.0.0",
+    "ref": "core/text-input@1.0.0",
+    "system": "core",
+    "name": "text-input",
+    "implements": [
+      "kages/text-input@1"
+    ],
+    "role": "text-input",
+    "summary": "Single-line free text.",
+    "props": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "help": {
+        "type": "string"
+      },
+      "inputType": {
+        "type": "string",
+        "enum": [
+          "text",
+          "email",
+          "number",
+          "search"
+        ]
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {
+      "clear": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": ""
+        }
+      ]
+    },
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "surface",
+      "line-control",
+      "focus"
+    ],
+    "agent": {
+      "use": "Search boxes, names, short answers.",
+      "avoid": "Choices from a known list — use dropdown."
+    },
+    "limits": {}
+  },
+  "core/card@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/card",
+    "version": "1.0.0",
+    "ref": "core/card@1.0.0",
+    "system": "core",
+    "name": "card",
+    "implements": [
+      "kages/card@1"
+    ],
+    "role": "card",
+    "summary": "Titled container for related content.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "subtitle": {
+        "type": "string"
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "default",
+          "sunken"
+        ]
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "surface",
+      "line",
+      "radius-lg"
+    ],
+    "agent": {
+      "use": "Group one topic's content; header actions go in the `actions` slot.",
+      "avoid": "Cards inside cards."
+    },
+    "limits": {}
+  },
+  "core/stack@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/stack",
+    "version": "1.0.0",
+    "ref": "core/stack@1.0.0",
+    "system": "core",
+    "name": "stack",
+    "implements": [
+      "kages/stack@1"
+    ],
+    "role": "stack",
+    "summary": "Lay children out in a row, column or grid.",
+    "props": {
+      "direction": {
+        "type": "string",
+        "enum": [
+          "row",
+          "column"
+        ],
+        "default": "column"
+      },
+      "gap": {
+        "type": "string|number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      },
+      "columns": {
+        "type": "number"
+      },
+      "align": {
+        "type": "string"
+      },
+      "justify": {
+        "type": "string"
+      },
+      "wrap": {
+        "type": "boolean"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "space-1",
+      "space-2",
+      "space-3",
+      "space-4",
+      "space-6",
+      "space-8"
+    ],
+    "agent": {
+      "use": "All layout. `columns` switches to an even grid.",
+      "avoid": "Pixel values; gap is a spacing step."
+    },
+    "limits": {}
+  },
+  "core/text@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/text",
+    "version": "1.0.0",
+    "ref": "core/text@1.0.0",
+    "system": "core",
+    "name": "text",
+    "implements": [
+      "kages/text@1"
+    ],
+    "role": "text",
+    "summary": "A run of text in one type style.",
+    "props": {
+      "text": {
+        "type": "string",
+        "required": true
+      },
+      "variant": {
+        "type": "string",
+        "enum": [
+          "display",
+          "title",
+          "heading",
+          "body",
+          "muted",
+          "caption",
+          "code"
+        ],
+        "default": "body"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "ink",
+      "ink-muted"
+    ],
+    "agent": {
+      "use": "Headings and prose. Use `$tpl` for text that reads state.",
+      "avoid": "Long documents; that is a Docs artifact."
+    },
+    "limits": {}
+  },
+  "core/badge@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/badge",
+    "version": "1.0.0",
+    "ref": "core/badge@1.0.0",
+    "system": "core",
+    "name": "badge",
+    "implements": [
+      "kages/badge@1"
+    ],
+    "role": "badge",
+    "summary": "Short status label.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "neutral",
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "neutral"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "accent-soft",
+      "wire-soft",
+      "danger-soft",
+      "sunken"
+    ],
+    "agent": {
+      "use": "Status next to a title or row.",
+      "avoid": "Interactive filters."
+    },
+    "limits": {}
+  },
+  "core/stat@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/stat",
+    "version": "1.0.0",
+    "ref": "core/stat@1.0.0",
+    "system": "core",
+    "name": "stat",
+    "implements": [
+      "kages/stat@1"
+    ],
+    "role": "stat",
+    "summary": "One headline number with context.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number|string",
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ]
+      },
+      "delta": {
+        "type": "number|string"
+      },
+      "caption": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "ink",
+      "ink-muted",
+      "success",
+      "danger"
+    ],
+    "agent": {
+      "use": "3–4 KPIs in a stack with `columns`. Feed `value` with `$count`/`$sum` over data.",
+      "avoid": "More than 6 in a row."
+    },
+    "limits": {}
+  },
+  "core/table@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/table",
+    "version": "1.0.0",
+    "ref": "core/table@1.0.0",
+    "system": "core",
+    "name": "table",
+    "implements": [
+      "kages/table@1"
+    ],
+    "role": "table",
+    "summary": "Rows of records under typed columns.",
+    "props": {
+      "columns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "align": {
+              "type": "string",
+              "enum": [
+                "left",
+                "right",
+                "center"
+              ]
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "text",
+                "number",
+                "currency",
+                "percent"
+              ]
+            }
+          },
+          "requiredKeys": [
+            "key",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "rows": {
+        "type": "array",
+        "required": true
+      },
+      "empty": {
+        "type": "string"
+      },
+      "dense": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {
+      "rowSelect": {
+        "handler": "onRowSelect",
+        "payload": {
+          "row": "object",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [
+      "rows"
+    ],
+    "tokens": [
+      "surface",
+      "line",
+      "sunken"
+    ],
+    "agent": {
+      "use": "Records; bind `rows` to `$filter` over a data source for interactive filtering.",
+      "avoid": "Over ~200 rows without paging."
+    },
+    "limits": {}
+  },
+  "ledger/sidebar@2.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "ledger/sidebar",
+    "version": "2.0.0",
+    "ref": "ledger/sidebar@2.0.0",
+    "system": "ledger",
+    "name": "sidebar",
+    "implements": [
+      "kages/nav@1"
+    ],
+    "role": "nav",
+    "summary": "Collapsible navigation list; one active item.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "badge": {
+              "type": "string|number"
+            },
+            "group": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "collapsed": {
+        "type": "boolean",
+        "default": false
+      },
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      },
+      "toggle": {
+        "handler": "onToggle",
+        "payload": {}
+      }
+    },
+    "commands": {
+      "toggle": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": {
+            "$not": {
+              "$self": "collapsed"
+            }
+          }
+        }
+      ],
+      "collapse": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": true
+        }
+      ],
+      "expand": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": false
+        }
+      ]
+    },
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "toggle": [
+        {
+          "do": "call",
+          "target": "$self",
+          "command": "toggle"
+        }
+      ]
+    },
+    "outputs": [
+      "value",
+      "collapsed"
+    ],
+    "tokens": [
+      "ledger-sunken",
+      "ledger-line",
+      "ledger-accent"
+    ],
+    "agent": {
+      "use": "Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers.",
+      "avoid": "Long labels; Ledger truncates at one line."
+    },
+    "limits": {}
+  },
+  "ledger/dropdown@2.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "ledger/dropdown",
+    "version": "2.0.0",
+    "ref": "ledger/dropdown@2.0.0",
+    "system": "ledger",
+    "name": "dropdown",
+    "implements": [
+      "kages/select@1"
+    ],
+    "role": "select",
+    "summary": "Pick exactly one value from a short list.",
+    "props": {
+      "label": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "hint": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string",
+          "label": "string"
+        }
+      }
+    },
+    "commands": {
+      "clear": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": null
+        }
+      ]
+    },
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "ledger-line-control",
+      "ledger-accent",
+      "ledger-accent-ink"
+    ],
+    "agent": {
+      "use": "Segmented control: every option visible, one tap. Up to 6 short options.",
+      "avoid": "Long or dynamic option lists — pin `core/dropdown@1` for those."
+    },
+    "limits": {
+      "maxOptions": 6
+    }
+  },
+  "ledger/tabs@2.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "ledger/tabs",
+    "version": "2.0.0",
+    "ref": "ledger/tabs@2.0.0",
+    "system": "ledger",
+    "name": "tabs",
+    "implements": [
+      "kages/tabs@1"
+    ],
+    "role": "tabs",
+    "summary": "Switch between sibling views.",
+    "props": {
+      "tabs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "ledger-line",
+      "ledger-ink",
+      "ledger-wire"
+    ],
+    "agent": {
+      "use": "Mono uppercase tabs; `count` renders as [n].",
+      "avoid": "Tab labels over 14 characters."
+    },
+    "limits": {}
+  },
+  "ledger/button@2.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "ledger/button",
+    "version": "2.1.0",
+    "ref": "ledger/button@2.1.0",
+    "system": "ledger",
+    "name": "button",
+    "implements": [
+      "kages/button@1"
+    ],
+    "role": "button",
+    "summary": "Trigger one action.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "variant": {
+        "type": "string",
+        "enum": [
+          "primary",
+          "secondary",
+          "quiet",
+          "danger"
+        ],
+        "default": "secondary"
+      },
+      "size": {
+        "type": "string",
+        "enum": [
+          "md",
+          "sm"
+        ],
+        "default": "md"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "kbd": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {
+      "click": {
+        "handler": "onClick",
+        "payload": {}
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "ledger-accent",
+      "ledger-line-control"
+    ],
+    "agent": {
+      "use": "`kbd` shows a keyboard hint (display only).",
+      "avoid": "Sentence-case labels; Ledger uppercases."
+    },
+    "limits": {}
+  },
+  "ledger/card@2.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "ledger/card",
+    "version": "2.0.0",
+    "ref": "ledger/card@2.0.0",
+    "system": "ledger",
+    "name": "card",
+    "implements": [
+      "kages/card@1"
+    ],
+    "role": "card",
+    "summary": "Titled container for related content.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "subtitle": {
+        "type": "string"
+      },
+      "code": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "ledger-surface",
+      "ledger-line",
+      "ledger-sunken"
+    ],
+    "agent": {
+      "use": "Panels in dense grids; `code` is a short panel id like PNL-01.",
+      "avoid": "Padding-heavy content; bodies sit flush."
+    },
+    "limits": {}
+  },
+  "ledger/stat@2.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "ledger/stat",
+    "version": "2.0.0",
+    "ref": "ledger/stat@2.0.0",
+    "system": "ledger",
+    "name": "stat",
+    "implements": [
+      "kages/stat@1"
+    ],
+    "role": "stat",
+    "summary": "One headline number with context.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number|string",
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ]
+      },
+      "delta": {
+        "type": "number|string"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "trend": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "ledger-ink",
+      "ledger-wire"
+    ],
+    "agent": {
+      "use": "`trend` (8–30 numbers) draws a sparkline.",
+      "avoid": "Decorative trends with no data."
+    },
+    "limits": {}
+  },
+  "atelier/sidebar@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "atelier/sidebar",
+    "version": "1.0.0",
+    "ref": "atelier/sidebar@1.0.0",
+    "system": "atelier",
+    "name": "sidebar",
+    "implements": [
+      "kages/nav@1"
+    ],
+    "role": "nav",
+    "summary": "Collapsible navigation list; one active item.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "badge": {
+              "type": "string|number"
+            },
+            "group": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "collapsed": {
+        "type": "boolean",
+        "default": false
+      },
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      },
+      "toggle": {
+        "handler": "onToggle",
+        "payload": {}
+      }
+    },
+    "commands": {
+      "toggle": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": {
+            "$not": {
+              "$self": "collapsed"
+            }
+          }
+        }
+      ],
+      "collapse": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": true
+        }
+      ],
+      "expand": [
+        {
+          "do": "setLocal",
+          "key": "collapsed",
+          "value": false
+        }
+      ]
+    },
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "toggle": [
+        {
+          "do": "call",
+          "target": "$self",
+          "command": "toggle"
+        }
+      ]
+    },
+    "outputs": [
+      "value",
+      "collapsed"
+    ],
+    "tokens": [
+      "atelier-surface",
+      "atelier-accent-soft",
+      "atelier-radius-lg"
+    ],
+    "agent": {
+      "use": "Up to 6 items, each may carry a one-line `description`.",
+      "avoid": "Dense tool navigation — that is Ledger's job."
+    },
+    "limits": {}
+  },
+  "atelier/dropdown@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "atelier/dropdown",
+    "version": "1.0.0",
+    "ref": "atelier/dropdown@1.0.0",
+    "system": "atelier",
+    "name": "dropdown",
+    "implements": [
+      "kages/select@1"
+    ],
+    "role": "select",
+    "summary": "Pick exactly one value from a short list.",
+    "props": {
+      "label": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "hint": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string",
+          "label": "string"
+        }
+      }
+    },
+    "commands": {
+      "clear": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": null
+        }
+      ]
+    },
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "atelier-line-control",
+      "atelier-accent",
+      "atelier-accent-soft"
+    ],
+    "agent": {
+      "use": "Chips that wrap; good for 2–10 friendly choices.",
+      "avoid": "Options over 3 words."
+    },
+    "limits": {
+      "maxOptions": 10
+    }
+  },
+  "atelier/tabs@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "atelier/tabs",
+    "version": "1.0.0",
+    "ref": "atelier/tabs@1.0.0",
+    "system": "atelier",
+    "name": "tabs",
+    "implements": [
+      "kages/tabs@1"
+    ],
+    "role": "tabs",
+    "summary": "Switch between sibling views.",
+    "props": {
+      "tabs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "atelier-sunken",
+      "atelier-surface",
+      "atelier-radius-pill"
+    ],
+    "agent": {
+      "use": "Pill switcher for 2–4 views.",
+      "avoid": "More than 4 tabs."
+    },
+    "limits": {}
+  },
+  "atelier/button@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "atelier/button",
+    "version": "1.0.0",
+    "ref": "atelier/button@1.0.0",
+    "system": "atelier",
+    "name": "button",
+    "implements": [
+      "kages/button@1"
+    ],
+    "role": "button",
+    "summary": "Trigger one action.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "variant": {
+        "type": "string",
+        "enum": [
+          "primary",
+          "secondary",
+          "quiet",
+          "danger"
+        ],
+        "default": "secondary"
+      },
+      "size": {
+        "type": "string",
+        "enum": [
+          "md",
+          "sm"
+        ],
+        "default": "md"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {
+      "click": {
+        "handler": "onClick",
+        "payload": {}
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "atelier-ink",
+      "atelier-accent-soft",
+      "atelier-radius-pill"
+    ],
+    "agent": {
+      "use": "Pill buttons; primary is ink-filled.",
+      "avoid": "More than one primary per card."
+    },
+    "limits": {}
+  },
+  "atelier/card@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "atelier/card",
+    "version": "1.0.0",
+    "ref": "atelier/card@1.0.0",
+    "system": "atelier",
+    "name": "card",
+    "implements": [
+      "kages/card@1"
+    ],
+    "role": "card",
+    "summary": "Titled container for related content.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "subtitle": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "default",
+          "tinted"
+        ]
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "atelier-surface",
+      "atelier-sunken",
+      "atelier-radius-lg",
+      "atelier-shadow-soft"
+    ],
+    "agent": {
+      "use": "`eyebrow` is a short kicker above a serif title; actions sit at the bottom.",
+      "avoid": "Tables inside Atelier cards on narrow screens."
+    },
+    "limits": {}
+  },
+  "atelier/stat@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "atelier/stat",
+    "version": "1.0.0",
+    "ref": "atelier/stat@1.0.0",
+    "system": "atelier",
+    "name": "stat",
+    "implements": [
+      "kages/stat@1"
+    ],
+    "role": "stat",
+    "summary": "One headline number with context.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number|string",
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ]
+      },
+      "delta": {
+        "type": "number|string"
+      },
+      "caption": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "atelier-ink",
+      "atelier-wire"
+    ],
+    "agent": {
+      "use": "Big serif figure with a sentence `caption`.",
+      "avoid": "More than 3 per row."
+    },
+    "limits": {}
+  }
+}

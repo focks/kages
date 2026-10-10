@@ -1,0 +1,592 @@
+{
+  "kages": "1.0",
+  "id": "ops-console",
+  "title": "Order operations",
+  "system": "core@1",
+  "state": {
+    "section": "orders",
+    "region": "all",
+    "summary": null,
+    "summarising": false
+  },
+  "data": {
+    "orders": [
+      {
+        "id": "A-1041",
+        "customer": "Halden Supply",
+        "region": "north",
+        "status": "open",
+        "total": 1840
+      },
+      {
+        "id": "A-1042",
+        "customer": "Marisol Foods",
+        "region": "south",
+        "status": "shipped",
+        "total": 920
+      },
+      {
+        "id": "A-1043",
+        "customer": "Kestrel Labs",
+        "region": "west",
+        "status": "open",
+        "total": 4310
+      },
+      {
+        "id": "A-1044",
+        "customer": "Orchard & Pine",
+        "region": "north",
+        "status": "shipped",
+        "total": 615
+      },
+      {
+        "id": "A-1045",
+        "customer": "Tiderun Marine",
+        "region": "west",
+        "status": "open",
+        "total": 2275
+      },
+      {
+        "id": "A-1046",
+        "customer": "Basalt Works",
+        "region": "south",
+        "status": "held",
+        "total": 1390
+      },
+      {
+        "id": "A-1047",
+        "customer": "Lumen Dental",
+        "region": "north",
+        "status": "open",
+        "total": 780
+      },
+      {
+        "id": "A-1048",
+        "customer": "Fernhill Co-op",
+        "region": "west",
+        "status": "shipped",
+        "total": 3060
+      }
+    ]
+  },
+  "root": "app",
+  "blocks": {
+    "app": {
+      "type": "shell",
+      "slots": {
+        "sidebar": [
+          "nav"
+        ],
+        "header": [
+          "topbar"
+        ],
+        "main": [
+          "ordersView",
+          "customersView",
+          "settingsView"
+        ]
+      }
+    },
+    "nav": {
+      "type": "sidebar",
+      "props": {
+        "title": "Operations",
+        "items": [
+          {
+            "id": "orders",
+            "label": "Orders",
+            "badge": 8,
+            "group": "Sales",
+            "code": "ORD",
+            "description": "Live order book"
+          },
+          {
+            "id": "customers",
+            "label": "Customers",
+            "group": "Sales",
+            "code": "CUS",
+            "description": "Accounts and notes"
+          },
+          {
+            "id": "settings",
+            "label": "Settings",
+            "group": "Admin",
+            "code": "SET",
+            "description": "Team and alerts"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "section"
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "section",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "topbar": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "justify": "space-between",
+        "gap": 3
+      },
+      "slots": {
+        "children": [
+          "heading",
+          "navToggle"
+        ]
+      }
+    },
+    "heading": {
+      "type": "text",
+      "props": {
+        "variant": "title"
+      },
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$block": "nav.collapsed"
+            },
+            "Order operations \u00b7 focus mode",
+            "Order operations"
+          ]
+        }
+      }
+    },
+    "navToggle": {
+      "type": "button",
+      "props": {
+        "label": "Toggle sidebar",
+        "variant": "quiet",
+        "size": "sm",
+        "x": {
+          "ledger": {
+            "kbd": "["
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "call",
+            "target": "nav",
+            "command": "toggle"
+          }
+        ]
+      }
+    },
+    "ordersView": {
+      "type": "stack",
+      "props": {
+        "gap": 6
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "section"
+          },
+          "orders"
+        ]
+      },
+      "slots": {
+        "children": [
+          "filters",
+          "kpis",
+          "ordersCard"
+        ]
+      }
+    },
+    "filters": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 4,
+        "align": "flex-end",
+        "wrap": true
+      },
+      "slots": {
+        "children": [
+          "regionPicker",
+          "search"
+        ]
+      }
+    },
+    "regionPicker": {
+      "type": "dropdown",
+      "props": {
+        "label": "Region",
+        "options": [
+          {
+            "value": "all",
+            "label": "All"
+          },
+          {
+            "value": "north",
+            "label": "North"
+          },
+          {
+            "value": "south",
+            "label": "South"
+          },
+          {
+            "value": "west",
+            "label": "West"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "region"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "region",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "search": {
+      "type": "text-input",
+      "props": {
+        "label": "Customer",
+        "placeholder": "Filter by name",
+        "inputType": "search"
+      }
+    },
+    "kpis": {
+      "type": "stack",
+      "props": {
+        "columns": 3,
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "kpiCount",
+          "kpiRevenue",
+          "kpiOpen"
+        ]
+      }
+    },
+    "kpiCount": {
+      "type": "stat",
+      "props": {
+        "label": "Orders shown",
+        "format": "number",
+        "x": {
+          "ledger": {
+            "trend": [
+              3,
+              5,
+              4,
+              6,
+              7,
+              6,
+              8
+            ]
+          }
+        }
+      },
+      "bind": {
+        "value": {
+          "$count": {
+            "$block": "ordersTable.rows"
+          }
+        }
+      }
+    },
+    "kpiRevenue": {
+      "type": "stat",
+      "props": {
+        "label": "Value",
+        "format": "currency",
+        "delta": 0.084,
+        "caption": "Against the previous week"
+      },
+      "bind": {
+        "value": {
+          "$sum": [
+            {
+              "$block": "ordersTable.rows"
+            },
+            "total"
+          ]
+        }
+      }
+    },
+    "kpiOpen": {
+      "type": "stat",
+      "props": {
+        "label": "Still open",
+        "format": "number"
+      },
+      "bind": {
+        "value": {
+          "$count": {
+            "$filter": {
+              "list": {
+                "$block": "ordersTable.rows"
+              },
+              "field": "status",
+              "equals": "open"
+            }
+          }
+        }
+      }
+    },
+    "ordersCard": {
+      "type": "card",
+      "props": {
+        "title": "Orders",
+        "x": {
+          "ledger": {
+            "code": "ORD-01"
+          },
+          "atelier": {
+            "eyebrow": "This week"
+          }
+        }
+      },
+      "bind": {
+        "subtitle": {
+          "$tpl": "Region: {{state.region}}"
+        }
+      },
+      "slots": {
+        "children": [
+          "summaryText",
+          "ordersTable"
+        ],
+        "actions": [
+          "askBtn",
+          "resetBtn"
+        ]
+      }
+    },
+    "resetBtn": {
+      "type": "button",
+      "props": {
+        "label": "Reset filters",
+        "size": "sm"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "region",
+            "value": "all"
+          },
+          {
+            "do": "call",
+            "target": "search",
+            "command": "clear"
+          }
+        ]
+      }
+    },
+    "ordersTable": {
+      "type": "table",
+      "props": {
+        "dense": true,
+        "empty": "No orders match these filters",
+        "columns": [
+          {
+            "key": "id",
+            "label": "Order"
+          },
+          {
+            "key": "customer",
+            "label": "Customer"
+          },
+          {
+            "key": "region",
+            "label": "Region"
+          },
+          {
+            "key": "status",
+            "label": "Status"
+          },
+          {
+            "key": "total",
+            "label": "Total",
+            "align": "right",
+            "format": "currency"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$filter": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "orders"
+                },
+                "field": "region",
+                "equals": {
+                  "$state": "region"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "customer",
+            "contains": {
+              "$block": "search.value"
+            }
+          }
+        }
+      }
+    },
+    "customersView": {
+      "type": "card",
+      "props": {
+        "title": "Customers",
+        "subtitle": "Tabs hold their own state; siblings read it with $block."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "section"
+          },
+          "customers"
+        ]
+      },
+      "slots": {
+        "children": [
+          "custTabs",
+          "custActive",
+          "custDormant"
+        ]
+      }
+    },
+    "custTabs": {
+      "type": "tabs",
+      "props": {
+        "value": "active",
+        "tabs": [
+          {
+            "id": "active",
+            "label": "Active",
+            "count": 6
+          },
+          {
+            "id": "dormant",
+            "label": "Dormant",
+            "count": 2
+          }
+        ]
+      }
+    },
+    "custActive": {
+      "type": "text",
+      "props": {
+        "text": "Six accounts ordered in the last 30 days."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$block": "custTabs.value"
+          },
+          "active"
+        ]
+      }
+    },
+    "custDormant": {
+      "type": "text",
+      "props": {
+        "text": "Two accounts have been quiet for 90 days.",
+        "variant": "muted"
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$block": "custTabs.value"
+          },
+          "dormant"
+        ]
+      }
+    },
+    "settingsView": {
+      "type": "card",
+      "props": {
+        "title": "Settings"
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "section"
+          },
+          "settings"
+        ]
+      },
+      "slots": {
+        "children": [
+          "settingsText"
+        ]
+      }
+    },
+    "settingsText": {
+      "type": "text",
+      "props": {
+        "text": "Nothing to configure in this demo.",
+        "variant": "muted"
+      }
+    },
+    "askBtn": {
+      "type": "button",
+      "props": {
+        "label": "Summarise",
+        "size": "sm"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "ask",
+            "prompt": {
+              "$tpl": "In two sentences, summarise these orders for an operations lead: {{block.ordersTable.rows}}"
+            },
+            "model": "fast",
+            "into": "summary",
+            "pendingInto": "summarising",
+            "mock": "Four open orders worth $9,205 sit mostly in the west and north. Basalt Works ($1,390) is on hold and needs a decision today."
+          }
+        ]
+      }
+    },
+    "summaryText": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "visible": {
+        "$neq": [
+          {
+            "$state": "summary"
+          },
+          null
+        ]
+      },
+      "bind": {
+        "text": {
+          "$state": "summary"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "ok": false,
+  "errors": [
+    {
+      "at": "/blocks/app/slots/sidebar",
+      "code": "slot-max",
+      "msg": "`sidebar` takes at most 1"
+    },
+    {
+      "at": "/blocks/nav/props/items",
+      "code": "missing-prop",
+      "msg": "ledger/sidebar@2.0.0 requires `items`"
+    },
+    {
+      "at": "/blocks/picker/on/hover",
+      "code": "unknown-event",
+      "msg": "ledger/dropdown@2.0.0 emits no `hover` (emits: change)"
+    },
+    {
+      "at": "/blocks/chart/type",
+      "code": "unresolved-type",
+      "msg": "'chart' is not a component of ledger"
+    },
+    {
+      "at": "/blocks/kpi",
+      "code": "private-output",
+      "msg": "$block 'nav.items': ledger/sidebar@2.0.0 outputs only value, collapsed"
+    },
+    {
+      "at": "/blocks/picker/on/change/0",
+      "code": "unknown-command",
+      "msg": "ledger/sidebar@2.0.0 has no command `open` (has: toggle, collapse, expand)"
+    }
+  ],
+  "warnings": [
+    {
+      "at": "/blocks/picker",
+      "code": "limit",
+      "msg": "ledger/dropdown@2.0.0 shows at most 6 options; pin core/dropdown@1 or trim"
+    }
+  ],
+  "system": "ledger",
+  "portable": true
+}

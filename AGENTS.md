@@ -1,0 +1,64 @@
+# Kages — agent guide
+
+An artifactory for agents: any agent, on any model or protocol, creates
+versioned interactive artifacts by assembling **blocks** from a **design
+system** against published **contracts**. Agents never write HTML.
+
+This repo is **AI-native**: every load-bearing pattern and convention lives as a
+skill under `.claude/skills/`. Read the relevant skill before touching code —
+the pattern is captured so you inherit it instead of rediscovering it. When you
+find a new reusable pattern, add it as a skill.
+
+## Start here
+
+| Skill | When |
+| --- | --- |
+| `kages-architecture` | Before changing engine, store, adapters, or runtime — the layer map, the oracle-as-truth rule, the golden-test pattern, the invariants. |
+| `how-to-extend-kages` | Adding a design system, component/role override, or protocol adapter. |
+| `comment-doctrine` | Writing or editing any code. Comment the *why* and the *failure mode*, never the *what*. |
+| `dashboard-over-adapters` | Building or changing any page that reads/writes Kages — UI talks to the store only through `/api/<op>`. |
+| `testing-conventions` | Adding a test or a testable module (node --test, native TS, injected clocks). |
+| `kages-app-design-system` | Before adding or changing any UI: tokens, type, states, the Kage boundary. |
+
+## Layout
+
+```
+oracle/            functional requirements, BDD/Gherkin — the acceptance criteria
+originals/         the reference implementation (the oracle); gitignored, source of truth
+src/engine/        pure shared engine: resolve · evaluate · validate · describe · catalog · generation · session
+src/engine/data/   registry data extracted from the reference (generated)
+src/engine/__fixtures__/  fixtures + golden outputs captured from the reference
+src/runtime/       React renderer (@kages/runtime) + DS-bundle loader — drives the trusted bundle with the engine
+src/store/         artifactory: immutable signed versions, provenance, lifecycle, RBAC, search, events, quotas
+src/collab/        RFC6902 patch · block-level three-way merge · claims/leases · comments
+src/adapters/      one operation table → REST · CLI · MCP tools · A2A card · OpenAPI (all generated)
+src/packs/         skill packs per system (SKILL.md/AGENTS.md/llms.txt/catalog), generated from the registry
+src/host/          the host bridge: gated capabilities (storage/ask/agent/connector/fetch/viewer/emit)
+src/components/dashboard/  dashboard UI primitives (inline-SVG icons, state badges, system chips)
+src/app/           Next.js app: /artifacts (dashboard), /viewer, /studio, /api/[op], /api/openapi.json, /.well-known/agent-card.json
+public/ds/         served design-system bundle assets (bundle.js/css, tokens, fixture)
+scripts/           extract-data.mjs, golden.mjs — regenerate data + goldens from originals/
+```
+
+## Status
+
+All ten `oracle/*.feature` files are implemented and tested (`npm test` → 63 tests).
+Milestones 1–9 of the build plan are complete: engine (golden-faithful to the
+oracle), runtime (headless + React, System Swap), store + collab, adapters +
+packs, host bridge + viewer + studio.
+
+## Commands
+
+- `npm test` — engine tests (`node --test`, native TS, no framework)
+- `npm run typecheck` — `tsc --noEmit`
+- `npm run dev` / `npm run build` — Next.js
+
+## The two rules that never bend
+
+1. **The oracle wins.** `originals/` is the source of truth; port its behaviour
+   and keep its fixtures passing (`ops-console` → 0/0/portable in all three
+   systems; the broken doc → exactly 6 errors + 1 warning). Add a golden before
+   adding engine behaviour.
+2. **The engine stays pure.** `src/engine/` depends on nothing below it. A Kage
+   is untrusted data: validated, never executed; no expression reaches `window`
+   or prototypes.

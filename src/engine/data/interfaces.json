@@ -1,0 +1,490 @@
+{
+  "kages/shell@1": {
+    "role": "shell",
+    "summary": "App frame with sidebar, header and main regions.",
+    "props": {},
+    "slots": {
+      "sidebar": {
+        "max": 1
+      },
+      "header": {},
+      "main": {
+        "required": true
+      }
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/nav@1": {
+    "role": "nav",
+    "summary": "Collapsible navigation list; one active item.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "badge": {
+              "type": "string|number"
+            },
+            "group": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "collapsed": {
+        "type": "boolean",
+        "default": false
+      },
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string"
+        }
+      },
+      "toggle": {
+        "payload": {}
+      }
+    },
+    "commands": [
+      "toggle",
+      "collapse",
+      "expand"
+    ],
+    "outputs": [
+      "value",
+      "collapsed"
+    ]
+  },
+  "kages/select@1": {
+    "role": "select",
+    "summary": "Pick exactly one value from a short list.",
+    "props": {
+      "label": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "hint": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string",
+          "label": "string"
+        }
+      }
+    },
+    "commands": [
+      "clear"
+    ],
+    "outputs": [
+      "value"
+    ]
+  },
+  "kages/tabs@1": {
+    "role": "tabs",
+    "summary": "Switch between sibling views.",
+    "props": {
+      "tabs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "count": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": [],
+    "outputs": [
+      "value"
+    ]
+  },
+  "kages/button@1": {
+    "role": "button",
+    "summary": "Trigger one action.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "variant": {
+        "type": "string",
+        "enum": [
+          "primary",
+          "secondary",
+          "quiet",
+          "danger"
+        ],
+        "default": "secondary"
+      },
+      "size": {
+        "type": "string",
+        "enum": [
+          "md",
+          "sm"
+        ],
+        "default": "md"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "events": {
+      "click": {
+        "payload": {}
+      }
+    },
+    "commands": [],
+    "outputs": []
+  },
+  "kages/text-input@1": {
+    "role": "text-input",
+    "summary": "Single-line free text.",
+    "props": {
+      "label": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "help": {
+        "type": "string"
+      },
+      "inputType": {
+        "type": "string",
+        "enum": [
+          "text",
+          "email",
+          "number",
+          "search"
+        ]
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": [
+      "clear"
+    ],
+    "outputs": [
+      "value"
+    ]
+  },
+  "kages/card@1": {
+    "role": "card",
+    "summary": "Titled container for related content.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "subtitle": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/stack@1": {
+    "role": "stack",
+    "summary": "Lay children out in a row, column or grid.",
+    "props": {
+      "direction": {
+        "type": "string",
+        "enum": [
+          "row",
+          "column"
+        ],
+        "default": "column"
+      },
+      "gap": {
+        "type": "string|number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      },
+      "columns": {
+        "type": "number"
+      },
+      "align": {
+        "type": "string"
+      },
+      "justify": {
+        "type": "string"
+      },
+      "wrap": {
+        "type": "boolean"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/text@1": {
+    "role": "text",
+    "summary": "A run of text in one type style.",
+    "props": {
+      "text": {
+        "type": "string",
+        "required": true
+      },
+      "variant": {
+        "type": "string",
+        "enum": [
+          "display",
+          "title",
+          "heading",
+          "body",
+          "muted",
+          "caption",
+          "code"
+        ],
+        "default": "body"
+      }
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/badge@1": {
+    "role": "badge",
+    "summary": "Short status label.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "neutral",
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "neutral"
+      }
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/stat@1": {
+    "role": "stat",
+    "summary": "One headline number with context.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number|string",
+        "required": true
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ]
+      },
+      "delta": {
+        "type": "number|string"
+      },
+      "caption": {
+        "type": "string"
+      }
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/table@1": {
+    "role": "table",
+    "summary": "Rows of records under typed columns.",
+    "props": {
+      "columns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "align": {
+              "type": "string",
+              "enum": [
+                "left",
+                "right",
+                "center"
+              ]
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "text",
+                "number",
+                "currency",
+                "percent"
+              ]
+            }
+          },
+          "requiredKeys": [
+            "key",
+            "label"
+          ]
+        },
+        "required": true
+      },
+      "rows": {
+        "type": "array",
+        "required": true
+      },
+      "empty": {
+        "type": "string"
+      },
+      "dense": {
+        "type": "boolean"
+      }
+    },
+    "events": {
+      "rowSelect": {
+        "payload": {
+          "row": "object",
+          "index": "number"
+        }
+      }
+    },
+    "commands": [],
+    "outputs": [
+      "rows"
+    ]
+  }
+}

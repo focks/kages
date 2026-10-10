@@ -1,0 +1,174 @@
+// The Kages expression language: a closed set of 18 operators, pure and
+// synchronous. Ported from the oracle bundle. No string is ever executed as
+// code; getPath reads own enumerable keys only (hasOwnProperty), so prototype
+// keys resolve to undefined and no expression can reach window or prototypes.
+// See oracle/expressions.feature.
+
+import type { Expr, EvalContext, Json } from "./types.ts";
+
+export const OPERATORS = [
+  "$state", "$block", "$self", "$event", "$data", "$item",
+  "$not", "$eq", "$neq", "$and", "$or", "$if", "$tpl",
+  "$filter", "$count", "$sum", "$find", "$map",
+] as const;
+
+export type Operator = (typeof OPERATORS)[number];
+
+const OPS: readonly string[] = OPERATORS;
+const FORBIDDEN = new Set(["__proto__", "constructor", "prototype"]);
+
+type Any = any; // the reference engine is dynamically typed; mirror it internally
+
+/** Read a dot path across own enumerable keys only; undefined on any miss,
+ *  never throws, never walks the prototype chain. This is THE guard that makes
+ *  expressions safe to evaluate on untrusted documents: a Kage is agent- or
+ *  user-authored data, and a crafted path like "__proto__.polluted" or
+ *  "constructor.prototype" must resolve to undefined, not reach Object's
+ *  prototype. The hasOwnProperty check already excludes inherited keys (they
+ *  are never own), so FORBIDDEN is belt-and-suspenders — it makes the intent
+ *  legible and survives a future refactor that loosens the own-key check. */
+export function getPath(obj: Any, path: Any): Any {
+  if (path == null || path === "") return obj;
+  const ps = String(path).split(".");
+  for (let i = 0; i < ps.length; i++) {
+    if (FORBIDDEN.has(ps[i])) return undefined;
+    // Own enumerable keys only: inherited/prototype keys report hasOwnProperty
+    // === false and so resolve to undefined, closing the prototype escape.
+    if (obj == null || typeof obj !== "object" || !Object.prototype.hasOwnProperty.call(obj, ps[i])) return undefined;
+    obj = obj[ps[i]];
+  }
+  return obj;
+}
+
+/** Write a dot path, refusing prototype keys outright. The read guard above is
+ *  passive (a bad key just misses); a write is active and must bail before
+ *  touching anything — a single "__proto__" segment would otherwise pollute
+ *  Object.prototype for the whole process. Mutates obj, so it is only ever
+ *  called on a cloned draft inside an action transaction, never on the doc. */
+export function setPath(obj: Any, path: Any, val: Any): void {
+  const ps = String(path).split(".");
+  if (ps.some((k) => FORBIDDEN.has(k))) return;
+  let o = obj;
+  for (let i = 0; i < ps.length - 1; i++) {
+    if (o[ps[i]] == null || typeof o[ps[i]] !== "object") o[ps[i]] = {};
+    o = o[ps[i]];
+  }
+  o[ps[ps.length - 1]] = val;
+}
+
+export function clone<T>(x: T): T {
+  return x == null ? x : JSON.parse(JSON.stringify(x));
+}
+
+/** Shallow combine, right wins. The reference's `merge`. */
+export function merge<A, B>(a: A, b: B): A & B {
+  return { ...a, ...b };
+}
+
+/** True when a value is an operator expression (first key is an operator). */
+export function isExpr(x: Any): boolean {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return false;
+  const ks = Object.keys(x);
+  return ks.length >= 1 && OPS.indexOf(ks[0]) >= 0;
+}
+
+export function operatorOf(x: Expr): Operator | null {
+  return isExpr(x) ? (Object.keys(x as object)[0] as Operator) : null;
+}
+
+/** Evaluate an expression against a context. Pure. */
+export function evaluate(x: Any, ctx: EvalContext): Any {
+  if (Array.isArray(x)) return x.map((v) => evaluate(v, ctx));
+  if (!x || typeof x !== "object") return x;
+  if (!isExpr(x)) {
+    const o: Record<string, Json> = {};
+    for (const k in x) o[k] = evaluate(x[k], ctx);
+    return o;
+  }
+  const op = Object.keys(x)[0];
+  const a = x[op];
+  switch (op) {
+    case "$state": return getPath(ctx.state, a);
+    case "$block": {
+      const dot = a.indexOf(".");
+      const id = dot < 0 ? a : a.slice(0, dot);
+      const key = dot < 0 ? "" : a.slice(dot + 1);
+      return getPath(ctx.output ? ctx.output(id) : undefined, key);
+    }
+    case "$self": return getPath(ctx.self && ctx.output ? ctx.output(ctx.self) : undefined, a);
+    case "$event": return getPath(ctx.event, a);
+    case "$data": return getPath(ctx.data, a);
+    case "$item": return getPath(ctx.item, a);
+    case "$not": return !evaluate(a, ctx);
+    case "$eq": return evaluate(a[0], ctx) === evaluate(a[1], ctx);
+    case "$neq": return evaluate(a[0], ctx) !== evaluate(a[1], ctx);
+    case "$and": return a.every((v: Any) => !!evaluate(v, ctx));
+    case "$or": return a.some((v: Any) => !!evaluate(v, ctx));
+    case "$if": return evaluate(a[0], ctx) ? evaluate(a[1], ctx) : evaluate(a[2], ctx);
+    case "$tpl":
+      // "Region: {{state.region}}" — each hole is a namespace + dot path that we
+      // rebuild into the matching operator ({{state.x}} -> {$state:"x"}) and
+      // evaluate. The regex REQUIRES the dot (ns.path), so a bare "{{state}}"
+      // is left as literal text, not a lookup. Objects are JSON-stringified so
+      // interpolating a row list into a prompt is well-defined; null/undefined
+      // collapse to "" rather than the string "null".
+      return String(a).replace(/\{\{\s*([a-zA-Z]+)\.([^}\s]+)\s*\}\}/g, (_m, ns, p) => {
+        const e: Record<string, Json> = {};
+        e["$" + ns] = p;
+        const v = evaluate(e, ctx);
+        return v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+      });
+    case "$filter": {
+      // Two independent tests, either optional: an equality on `field` and a
+      // case-insensitive substring over `fields`. The interesting one is
+      // `skipIf`: when the compared value equals skipIf (e.g. region === "all")
+      // the equality test is DISABLED, not evaluated to false — that is how a
+      // "show everything" option bound to $state turns the filter off without
+      // the agent special-casing it. `eq != null` likewise treats an absent
+      // filter value as "no filter", so an uninitialised $state never empties
+      // the table.
+      const list = evaluate(a.list, ctx) || [];
+      const eq = evaluate(a.equals, ctx);
+      const skip = a.skipIf !== undefined ? evaluate(a.skipIf, ctx) : undefined;
+      const q = a.contains !== undefined ? String(evaluate(a.contains, ctx) || "").toLowerCase() : null;
+      return list.filter((r: Any) => {
+        if (a.equals !== undefined && !(skip !== undefined && eq === skip) && eq != null && getPath(r, a.field) !== eq) return false;
+        if (q) {
+          const hay = (a.fields || [a.field]).map((f: Any) => String(getPath(r, f) || "")).join(" ").toLowerCase();
+          if (hay.indexOf(q) < 0) return false;
+        }
+        return true;
+      });
+    }
+    case "$count": {
+      const l = evaluate(a, ctx);
+      return Array.isArray(l) ? l.length : 0;
+    }
+    case "$sum": {
+      const l2 = evaluate(a[0], ctx) || [];
+      return l2.reduce((s: number, r: Any) => s + (Number(getPath(r, a[1])) || 0), 0);
+    }
+    case "$find": {
+      const l3 = evaluate(a.list, ctx) || [];
+      const v3 = evaluate(a.equals, ctx);
+      for (let i = 0; i < l3.length; i++) if (getPath(l3[i], a.field) === v3) return l3[i];
+      return null;
+    }
+    case "$map": {
+      const l4 = evaluate(a.list, ctx) || [];
+      return l4.map((it: Any) => evaluate(a.to, merge(ctx, { item: it })));
+    }
+  }
+  return undefined;
+}
+
+/** Visit every operator expression within a value, calling fn(op, arg). */
+export function walkExpr(x: Any, fn: (op: string, arg: Any) => void): void {
+  if (Array.isArray(x)) {
+    x.forEach((v) => walkExpr(v, fn));
+    return;
+  }
+  if (!x || typeof x !== "object") return;
+  if (isExpr(x)) fn(Object.keys(x)[0], x[Object.keys(x)[0]]);
+  for (const k in x) walkExpr(x[k], fn);
+}

@@ -1,0 +1,102 @@
+{
+  "kages": "1.0",
+  "system": "ledger@2",
+  "state": {
+    "tab": "a"
+  },
+  "root": "app",
+  "blocks": {
+    "app": {
+      "type": "shell",
+      "slots": {
+        "sidebar": [
+          "nav",
+          "nav2"
+        ],
+        "main": [
+          "kpi",
+          "picker",
+          "chart"
+        ]
+      }
+    },
+    "nav": {
+      "type": "sidebar",
+      "props": {
+        "title": "Ops"
+      }
+    },
+    "nav2": {
+      "type": "sidebar",
+      "props": {
+        "items": [
+          {
+            "id": "x",
+            "label": "X"
+          }
+        ]
+      }
+    },
+    "kpi": {
+      "type": "stat",
+      "props": {
+        "label": "Rows"
+      },
+      "bind": {
+        "value": {
+          "$block": "nav.items"
+        }
+      }
+    },
+    "picker": {
+      "type": "dropdown",
+      "props": {
+        "label": "Week",
+        "options": [
+          {
+            "value": "w1",
+            "label": "W1"
+          },
+          {
+            "value": "w2",
+            "label": "W2"
+          },
+          {
+            "value": "w3",
+            "label": "W3"
+          },
+          {
+            "value": "w4",
+            "label": "W4"
+          },
+          {
+            "value": "w5",
+            "label": "W5"
+          },
+          {
+            "value": "w6",
+            "label": "W6"
+          },
+          {
+            "value": "w7",
+            "label": "W7"
+          }
+        ]
+      },
+      "on": {
+        "hover": [],
+        "change": [
+          {
+            "do": "call",
+            "target": "nav",
+            "command": "open"
+          }
+        ]
+      }
+    },
+    "chart": {
+      "type": "chart",
+      "props": {}
+    }
+  }
+}

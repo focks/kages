@@ -1,0 +1,165 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+    --font-heading: var(--font-plex-sans), system-ui, sans-serif;
+    --font-display: var(--font-bricolage), var(--font-plex-sans), system-ui, sans-serif;
+    --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --color-background: var(--background);
+    --color-card: var(--card);
+    --color-popover: var(--popover);
+    --color-muted: var(--muted);
+    --color-secondary: var(--secondary);
+    --color-accent: var(--accent);
+    --color-sidebar: var(--sidebar);
+    --color-foreground: var(--foreground);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary-soft: var(--primary-soft);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-wire: var(--wire);
+    --color-wire-soft: var(--wire-soft);
+    --color-ring: var(--ring);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-destructive: var(--destructive);
+    --color-destructive-soft: var(--destructive-soft);
+    --color-sys-core: var(--sys-core);
+    --color-sys-core-foreground: var(--sys-core-foreground);
+    --color-sys-ledger: var(--sys-ledger);
+    --color-sys-ledger-foreground: var(--sys-ledger-foreground);
+    --color-sys-atelier: var(--sys-atelier);
+    --color-sys-atelier-foreground: var(--sys-atelier-foreground);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    /* Shape. Three radii only: chip 3px, control 5px, panel 8px. The stock shadcn
+       files say rounded-lg for controls, rounded-xl for cards and rounded-4xl for
+       badges, so the scale is mapped onto the three values here and those files
+       stay untouched. */
+    --radius-sm: 3px;
+    --radius-md: 5px;
+    --radius-lg: 5px;
+    --radius-xl: 8px;
+    --radius-2xl: 8px;
+    --radius-3xl: 8px;
+    --radius-4xl: 3px;
+}
+
+:root {
+    --background: #f4f2ec;
+    --card: #fffdf8;
+    --popover: var(--card);
+    --muted: #ebe7de;
+    --secondary: var(--muted);
+    --accent: var(--muted);
+    --sidebar: #ebe7de;
+    --foreground: #1c1d1a;
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --secondary-foreground: var(--foreground);
+    --accent-foreground: var(--foreground);
+    --sidebar-foreground: var(--foreground);
+    --muted-foreground: #595b53;
+    --border: #dcd6ca;
+    --input: #857e6f;
+    --sidebar-border: var(--border);
+    --primary: #9c4a17;
+    --primary-foreground: #fffdf8;
+    --primary-soft: #f3e2d2;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--primary-soft);
+    --sidebar-accent-foreground: var(--foreground);
+    --wire: #1f6a70;
+    --wire-soft: #d9ecec;
+    --ring: var(--wire);
+    --sidebar-ring: var(--wire);
+    --success: #2f6b45;
+    --success-soft: #dcebdf;
+    --warning: #7a4f00;
+    --warning-soft: #f6e8c8;
+    --destructive: #b0281f;
+    --destructive-soft: #f8dcd8;
+    --sys-core: #9c4a17;
+    --sys-core-foreground: #fffdf8;
+    --sys-ledger: #1d3b2a;
+    --sys-ledger-foreground: #f6f7f5;
+    --sys-atelier: #7a2e3b;
+    --sys-atelier-foreground: #fffaf5;
+    --chart-1: var(--primary);
+    --chart-2: var(--wire);
+    --chart-3: var(--sys-atelier);
+    --chart-4: var(--success);
+    --chart-5: var(--muted-foreground);
+    --shadow-pop: 0 6px 20px rgba(28,29,26,0.14), 0 1px 2px rgba(28,29,26,0.10);
+    --radius: 5px;
+}
+
+.dark {
+    --background: #141513;
+    --card: #1c1e1b;
+    --muted: #232521;
+    --sidebar: #1c1e1b;
+    --foreground: #edebe4;
+    --muted-foreground: #a6a89e;
+    --border: #343730;
+    --input: #7f8377;
+    --primary: #e6904f;
+    --primary-foreground: #1c1208;
+    --primary-soft: #3b2818;
+    --wire: #6cc0c4;
+    --wire-soft: #173537;
+    --success: #7cc493;
+    --success-soft: #18301f;
+    --warning: #f0b54a;
+    --warning-soft: #3a2c10;
+    --destructive: #f0857b;
+    --destructive-soft: #3f1d1a;
+    --sys-core: #e6904f;
+    --sys-core-foreground: #1c1208;
+    --sys-ledger: #9fd3ae;
+    --sys-ledger-foreground: #0d1a12;
+    --sys-atelier: #e8a0aa;
+    --sys-atelier-foreground: #2a1216;
+    --shadow-pop: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+
+/* The one shadow. Unlayered so it wins over the stock shadow-md / shadow-lg utilities. */
+[data-slot="select-content"],
+[data-slot="dropdown-menu-content"],
+[data-slot="dropdown-menu-sub-content"] {
+  box-shadow: var(--shadow-pop);
+}
