@@ -23,6 +23,7 @@ import { dispatch, type OpContext, type OpResult } from "../adapters/operations.
 import { openapi, a2aCard, mcpTools } from "../adapters/surfaces.ts";
 import { pack } from "../packs/packs.ts";
 import { loadStore, saveStore, owner, workspaceDir, initWorkspace } from "./workspace.ts";
+import { login, logout, status, remoteCall } from "./auth.ts";
 import { parseArgs, flag, type ParsedArgs } from "./args.ts";
 import { printJson, table, out, err } from "./format.ts";
 import type { KageDoc } from "../engine/types.ts";
@@ -32,6 +33,13 @@ const VERSION = "1.0.0";
 const HELP = `kages ${VERSION} — an artifactory for agents
 
 usage: kages <command> [args] [--flags]
+
+auth & remote  (talk to a deployed Kages; session cached in ~/.kages)
+  auth login [--url <deployment>]   sign in via the browser (Google)
+  auth status | auth logout         show or clear the session
+  whoami                            print the signed-in account
+  remote <op> [json]                run an operation on your cloud workspace
+                                    (e.g. kages remote list_kages)
 
 learn
   systems                       list design systems
@@ -119,6 +127,19 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
   };
 
   switch (cmd) {
+    // --- auth & remote (talk to a deployed Kages over the network) ---
+    case "auth": return authCmd(rest, flags);
+    case "whoami": {
+      const s = status();
+      if (!s) { err("not signed in — run `kages auth login`"); return 1; }
+      out(`${s.email} @ ${s.apiUrl}`); return 0;
+    }
+    case "remote": {
+      need(1, "remote <op> [json-params]  (e.g. kages remote list_kages)");
+      const data = await remoteCall(rest[0], rest[1] ? JSON.parse(rest.slice(1).join(" ")) : {});
+      printJson(data); return 0;
+    }
+
     // --- learn ---
     case "systems": {
       const list = Object.values(systems).map((s) => ({ id: s.id, name: s.name, version: s.version, extends: s.extends ?? "—", summary: s.summary }));
@@ -263,4 +284,12 @@ function writeOut(flags: ParsedArgs["flags"], text: string): void {
   const o = flag<string>(flags, "out");
   if (o) { writeFileSync(o, text.endsWith("\n") ? text : text + "\n"); out(`wrote ${o}`); }
   else out(text);
+}
+
+async function authCmd(rest: string[], flags: ParsedArgs["flags"]): Promise<number> {
+  const sub = rest[0] ?? "status";
+  if (sub === "login") { const email = await login(flag<string>(flags, "url")); out(`signed in as ${email}`); return 0; }
+  if (sub === "logout") { logout(); out("signed out"); return 0; }
+  if (sub === "status") { const s = status(); out(s ? `signed in as ${s.email} @ ${s.apiUrl}` : "not signed in"); return 0; }
+  throw new Error("usage: kages auth <login|logout|status> [--url <deployment>]");
 }

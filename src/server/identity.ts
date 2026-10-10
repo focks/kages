@@ -25,8 +25,20 @@ export function workspaceOf(userId: string): string {
   return "ws-" + userId;
 }
 
-export async function getSessionUser() {
+export async function getSessionUser(req?: Request) {
   if (!authEnabled()) return null;
+  // A Bearer token (from the `kages` CLI after `auth login`) takes precedence
+  // over the browser cookie session — verified against Supabase with the anon
+  // key, so a forged token is rejected.
+  const authz = req?.headers.get("authorization");
+  if (authz?.startsWith("Bearer ")) {
+    try {
+      const { createClient: createJs } = await import("@supabase/supabase-js");
+      const sb = createJs(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data } = await sb.auth.getUser(authz.slice(7));
+      return data.user ?? null;
+    } catch { return null; }
+  }
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -39,9 +51,9 @@ export async function getSessionUser() {
 export interface Identity { author: Provenance; workspace: string; }
 
 /** Resolve the acting identity + workspace for the current request. */
-export async function resolveIdentity(): Promise<Identity> {
+export async function resolveIdentity(req?: Request): Promise<Identity> {
   if (!authEnabled()) return { author: DEMO_PRINCIPAL, workspace: "acme" };
-  const user = await getSessionUser();
+  const user = await getSessionUser(req);
   if (!user) return { author: ANON, workspace: "acme" };
   return {
     author: { principal: `user:${user.id}`, runtime: { framework: "next", adapter: "rest" } },

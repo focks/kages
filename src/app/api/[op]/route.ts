@@ -17,7 +17,7 @@ const SHARE_AFFECTING = new Set(["publish_kage", "share_kage", "patch_kage", "su
 
 async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
   const { op } = await ctx.params;
-  const { author, workspace } = await resolveIdentity();
+  const { author, workspace } = await resolveIdentity(req);
   const store = await getStore(workspace);
 
   // Clone before handleRest consumes the body — needed to recover the Kage name
