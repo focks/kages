@@ -13,6 +13,7 @@ import {
   SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserMenu } from "@/components/dashboard/user-menu";
+import { WorkspaceLabel } from "@/components/dashboard/workspace-label";
 
 const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -34,7 +35,7 @@ export function AppSidebar() {
           <div aria-hidden className="flex size-8 items-center justify-center rounded-md bg-sidebar-primary font-display text-[15px] font-bold tracking-[-0.03em] text-sidebar-primary-foreground">Kg</div>
           <div className="leading-tight">
             <div className="font-display text-[15px] font-[650]">Kages</div>
-            <div className="font-mono text-[11px] text-muted-foreground">workspace acme</div>
+            <WorkspaceLabel />
           </div>
         </div>
       </SidebarHeader>
