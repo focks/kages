@@ -39,8 +39,8 @@ export async function login(apiUrl = DEFAULT_API): Promise<string> {
     const server = http.createServer((req, res) => {
       const u = new URL(req.url ?? "/", CALLBACK);
       const c = u.searchParams.get("code");
-      res.writeHead(200, { "content-type": "text/html" });
-      res.end(`<!doctype html><body style="font:16px system-ui;text-align:center;padding:4rem">${c ? "✓ Signed in to Kages — you can close this tab." : "No code received."}</body>`);
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.end(`<!doctype html><meta charset="utf-8"><body style="font:16px system-ui;text-align:center;padding:4rem">${c ? "✓ Signed in to Kages — you can close this tab." : "No code received."}</body>`);
       if (c) { server.close(); resolve(c); }
     });
     server.listen(CALLBACK_PORT, () => {
