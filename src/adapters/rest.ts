@@ -5,13 +5,19 @@
 // for now a fixed demo principal. No business logic — same as every adapter.
 // See oracle/agent-access.feature.
 
-import { dispatch, type OpContext } from "./operations.ts";
+import { dispatch, isWriteOp, type OpContext } from "./operations.ts";
 
 /** Handle POST /api/<op> (and GET for read-only ops). Returns a Web Response,
- *  so it works in Next route handlers and in tests without any Next import. */
+ *  so it works in Next route handlers and in tests without any Next import. A
+ *  write operation over GET is refused with 405 — a safe method must never
+ *  mutate, regardless of auth. */
 export async function handleRest(ctx: OpContext, op: string, req: Request): Promise<Response> {
+  const method = req.method.toUpperCase();
+  if (method !== "POST" && isWriteOp(op)) {
+    return Response.json({ error: { code: "method_not_allowed", msg: `${op} is a write; use POST` } }, { status: 405, headers: { Allow: "POST" } });
+  }
   let params: Record<string, unknown> = {};
-  if (req.method === "POST") {
+  if (method === "POST") {
     try { params = await req.json(); } catch { params = {}; }
   } else {
     params = Object.fromEntries(new URL(req.url).searchParams.entries());

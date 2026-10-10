@@ -17,6 +17,25 @@ function typeOk(spec: PropSpec, v: Any): boolean {
   );
 }
 
+const isObj = (v: Any) => v != null && typeof v === "object" && !Array.isArray(v);
+
+/** The shape each operator's argument must have. Returns a message for a
+ *  malformed one, or null. Only flags clear violations, so valid documents stay
+ *  clean. */
+function badExprArg(op: string, arg: Any): string | null {
+  switch (op) {
+    case "$and": case "$or": return Array.isArray(arg) ? null : `${op} takes an array of conditions`;
+    case "$eq": case "$neq": return Array.isArray(arg) && arg.length === 2 ? null : `${op} takes [a, b]`;
+    case "$if": return Array.isArray(arg) && (arg.length === 2 || arg.length === 3) ? null : "$if takes [cond, then, else?]";
+    case "$sum": return Array.isArray(arg) && arg.length === 2 ? null : "$sum takes [list, field]";
+    case "$filter": case "$find": case "$map": return isObj(arg) && "list" in arg ? null : `${op} takes { list, … }`;
+    case "$tpl": return typeof arg === "string" ? null : "$tpl takes a template string";
+    case "$state": case "$block": case "$self": case "$event": case "$data": case "$item":
+      return typeof arg === "string" ? null : `${op} takes a path string`;
+    default: return null; // $not, $count accept any value
+  }
+}
+
 export function validate(doc: KageDoc, override?: string): ValidateResult {
   const errors: Finding[] = [];
   const warnings: Finding[] = [];
@@ -102,6 +121,12 @@ export function validate(doc: KageDoc, override?: string): ValidateResult {
     const b = blocks[id];
     const at = "/blocks/" + id;
     walkExpr([b.props, b.bind, b.visible, b.on], (op, arg) => {
+      // Operator argument shape. A malformed expression ({"$and": 1}) would
+      // otherwise pass validation and then throw at render time, breaking the
+      // "a validated doc never throws" invariant. Caught here so the author is
+      // told, with the runtime defensive as a second line.
+      const badShape = badExprArg(op, arg);
+      if (badShape) E(at, "bad-expr", badShape);
       if (op === "$block") {
         const tid = String(arg).split(".")[0];
         const key = String(arg).split(".")[1];
@@ -145,6 +170,20 @@ export function validate(doc: KageDoc, override?: string): ValidateResult {
     color[id] = 2;
   }
   Object.keys(blocks).forEach((id) => dfs(id, []));
+
+  // Slot cycles (a contains b contains a). The renderer has a `seen` guard so it
+  // won't loop, but a slot cycle means the tree isn't a tree — reject it so a
+  // validated document renders as the author intends. Same three-colour DFS.
+  const scolor: Record<string, number> = {};
+  function sdfs(id: string, path: string[]): void {
+    if (scolor[id] === 1) { E("/blocks/" + id, "slot-cycle", "slot cycle: " + path.concat(id).join(" → ")); return; }
+    if (scolor[id] === 2 || !blocks[id]) return;
+    scolor[id] = 1;
+    for (const sl of Object.keys(blocks[id].slots || {})) for (const cid of blocks[id].slots![sl] || []) sdfs(cid, path.concat(id));
+    scolor[id] = 2;
+  }
+  Object.keys(blocks).forEach((id) => sdfs(id, []));
+
   Object.keys(blocks).forEach((id) => { if (id !== doc.root && !parent[id]) Wn("/blocks/" + id, "orphan", "'" + id + "' is never placed in a slot"); });
 
   // Portability: a Kage is portable when it would render in ANY system that

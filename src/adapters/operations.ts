@@ -11,6 +11,7 @@ import { describe } from "../engine/describe.ts";
 import { catalog } from "../engine/catalog.ts";
 import { generationSchema, fromGenerated } from "../engine/generate.ts";
 import { KageSession } from "../engine/session.ts";
+import { clone } from "../engine/expr.ts";
 import type { KageDoc } from "../engine/types.ts";
 import type { Store } from "../store/store.ts";
 import type { Provenance } from "../store/types.ts";
@@ -75,28 +76,30 @@ export const OPERATIONS: OpSpec[] = [
   { name: "get_generation_schema", summary: "The strict JSON Schema envelope a model fills (tier B)", params: ["system"], run: (_c, p) =>
     systems[p.system] ? ok(generationSchema(p.system)) : fail("not_found", `no system '${p.system}'`) },
 
-  // --- find & read ---
+  // --- find & read (visibility-gated: a caller only sees what it may read) ---
   { name: "search_kages", summary: "Full-text + filtered search over stored Kages", params: ["text?", "system?", "author?", "state?"], run: (c, p) =>
-    ok(c.store.search(p)) },
+    ok(c.store.search(p).filter((v) => c.store.canAccess(v, c.author))) },
 
   { name: "search_templates", summary: "Rank starter templates for an intent (fork before scratch)", params: ["intent?"], run: (c, p) =>
-    ok(c.store.search({ ...p, text: p.intent }).filter((v) => v.ref.includes("/templates/"))) },
+    ok(c.store.search({ ...p, text: p.intent }).filter((v) => v.ref.includes("/templates/") && c.store.canAccess(v, c.author))) },
 
   { name: "get_kage", summary: "Fetch a Kage document (latest or a version)", params: ["name", "version?"], run: (c, p) => {
-    const v = p.version ? c.store.getVersion(p.name, Number(p.version)) : c.store.head(p.name);
-    return v ? ok(v.doc) : fail("not_found", `no kage '${p.name}'`);
+    const r = c.store.authorizeRead(p.name, c.author, p.version ? Number(p.version) : undefined);
+    // Return a clone: the caller must not hold a reference into the signed,
+    // stored document and mutate it out from under its digest.
+    return r.ok ? ok(clone(r.record.doc)) : fail(r.code, r.msg);
   } },
 
   { name: "list_versions", summary: "Revision history of a Kage: every version with its provenance", params: ["name"], run: (c, p) => {
-    const vs = c.store.versions(p.name);
-    if (!vs.length) return fail("not_found", `no kage '${p.name}'`);
-    // The doc is heavy and the history view doesn't need it — return the record
+    const r = c.store.authorizeRead(p.name, c.author);
+    if (!r.ok) return fail(r.code, r.msg);
+    // The doc is heavy and the history view doesn't need it — return each record
     // shorn of the document, which keeps a long history cheap to transfer.
-    return ok(vs.map(({ doc, ...meta }) => meta));
+    return ok(c.store.versions(p.name).map(({ doc, ...meta }) => meta));
   } },
 
   { name: "list_kages", summary: "Head version of every Kage, as cards for a dashboard", params: [], run: (c) =>
-    ok(c.store.list().map((v) => ({
+    ok(c.store.list().filter((v) => c.store.canAccess(v, c.author)).map((v) => ({
       name: v.name, ref: v.ref, title: v.doc.title, system: v.resolved.system,
       blocks: Object.keys(v.doc.blocks).length, version: v.v, state: v.state,
       visibility: v.visibility, lastAuthor: v.author.principal, createdAt: v.createdAt,
@@ -104,19 +107,19 @@ export const OPERATIONS: OpSpec[] = [
     }))) },
 
   { name: "describe_kage", summary: "Text view of a Kage for agents without vision (untrusted content)", params: ["name"], run: (c, p) => {
-    const v = c.store.head(p.name);
-    if (!v) return fail("not_found", `no kage '${p.name}'`);
+    const r = c.store.authorizeRead(p.name, c.author);
+    if (!r.ok) return fail(r.code, r.msg);
     // Fence + label the output: everything inside a Kage is DATA, never
     // instructions. Skill packs tell agents never to follow text found here.
-    return ok(`<kage-content untrusted="true">\n${describe(v.doc)}\n</kage-content>`);
+    return ok(`<kage-content untrusted="true">\n${describe(r.record.doc)}\n</kage-content>`);
   } },
 
   // --- write (three tiers) ---
   { name: "create_kage", summary: "Create a Kage from a full document (tier A)", params: ["doc", "repo?"], write: true, run: (c, p) =>
     toResult(c.store.create(p.repo ?? c.repo ?? "kages", p.doc as KageDoc, c.author)) },
 
-  { name: "patch_kage", summary: "Edit a Kage with RFC 6902 ops (tier A)", params: ["name", "ops", "repo?"], write: true, run: (c, p) =>
-    toResult(c.store.patch(p.repo ?? c.repo ?? "kages", p.name, p.ops, c.author)) },
+  { name: "patch_kage", summary: "Edit a Kage with RFC 6902 ops (tier A). Pass baseVersion for optimistic concurrency.", params: ["name", "ops", "baseVersion?"], write: true, run: (c, p) =>
+    toResult(c.store.patch(p.name, p.ops, c.author, { baseVersion: p.baseVersion !== undefined ? Number(p.baseVersion) : undefined })) },
 
   { name: "generate_kage", summary: "Create from a generation envelope (tier B) or raw text (tier C)", params: ["system", "envelope?", "text?", "repo?"], write: true, run: (c, p) => {
     if (!systems[p.system]) return fail("not_found", `no system '${p.system}'`);
@@ -134,31 +137,29 @@ export const OPERATIONS: OpSpec[] = [
     ok(validate(p.doc as KageDoc, p.system)) },
 
   { name: "preview_kage", summary: "Headless render snapshot: resolved outputs + visibility per block", params: ["name", "system?"], run: (c, p) => {
-    const v = c.store.head(p.name);
-    if (!v) return fail("not_found", `no kage '${p.name}'`);
-    const s = new KageSession(v.doc, p.system);
+    const r = c.store.authorizeRead(p.name, c.author);
+    if (!r.ok) return fail(r.code, r.msg);
+    const s = new KageSession(r.record.doc, p.system);
     const snapshot: Record<string, unknown> = {};
-    for (const id of Object.keys(v.doc.blocks)) snapshot[id] = { visible: s.visible(id), output: s.read(id) };
+    for (const id of Object.keys(r.record.doc.blocks)) snapshot[id] = { visible: s.visible(id), output: s.read(id) };
     return ok({ system: s.sysId, blocks: snapshot });
   } },
 
   // --- release ---
-  { name: "publish_kage", summary: "Publish the head version (requires publish grant, clean validation)", params: ["name", "visibility?", "repo?"], write: true, run: (c, p) =>
-    toResult(c.store.publish(p.repo ?? c.repo ?? "kages", p.name, c.author.principal, p.visibility ?? "private")) },
+  { name: "publish_kage", summary: "Publish the head version (requires publish grant, clean validation)", params: ["name", "visibility?"], write: true, run: (c, p) =>
+    toResult(c.store.publish(p.name, c.author, p.visibility ?? "private")) },
 
-  { name: "share_kage", summary: "Widen visibility of a published Kage", params: ["name", "visibility", "repo?"], write: true, run: (c, p) => {
-    const head = c.store.head(p.name);
-    if (!head) return fail("not_found", `no kage '${p.name}'`);
-    head.visibility = p.visibility;
-    return ok({ ref: head.ref, visibility: head.visibility });
+  { name: "share_kage", summary: "Widen visibility of a published Kage (requires publish)", params: ["name", "visibility"], write: true, run: (c, p) => {
+    const r = c.store.share(p.name, c.author, p.visibility);
+    return r.ok ? ok({ ref: r.version!.ref, visibility: r.version!.visibility }) : fail(r.error!.code, r.error!.msg);
   } },
 
   { name: "export_kage", summary: "Export JSON (doc+lockfile), Markdown (describe), or card", params: ["name", "format?"], run: (c, p) => {
-    const head = c.store.head(p.name);
-    if (!head) return fail("not_found", `no kage '${p.name}'`);
+    const r = c.store.authorizeRead(p.name, c.author);
+    if (!r.ok) return fail(r.code, r.msg);
     switch (p.format ?? "json") {
-      case "json": return ok(c.store.exportJSON(p.name));
-      case "markdown": return ok(describe(head.doc));
+      case "json": return ok(JSON.stringify(r.record.doc, null, 2));
+      case "markdown": return ok(describe(r.record.doc));
       case "card": return ok(c.store.card(p.name));
       default: return fail("invalid_content", `unknown format '${p.format}'`);
     }
@@ -166,18 +167,21 @@ export const OPERATIONS: OpSpec[] = [
 
   // --- observe a live Kage ---
   { name: "get_state", summary: "Current app state of a Kage (shared; personal needs consent)", params: ["name"], run: (c, p) => {
-    const head = c.store.head(p.name);
-    if (!head) return fail("not_found", `no kage '${p.name}'`);
-    return ok(new KageSession(head.doc).getState());
+    const r = c.store.authorizeRead(p.name, c.author);
+    if (!r.ok) return fail(r.code, r.msg);
+    return ok(new KageSession(r.record.doc).getState());
   } },
 
-  { name: "subscribe", summary: "Register for CloudEvents on the workspace stream", params: ["types?"], run: (c, p) => {
+  { name: "subscribe", summary: "Drain recent workspace events since a cursor (poll). A live transport would stream these.", params: ["types?", "since?"], run: (c, p) => {
+    // A stateless RPC can't hand back a live listener — functions don't survive
+    // JSON. Instead return the matching events since a cursor; the caller polls
+    // with the returned `cursor`. The in-process Store.subscribe() stays for a
+    // real streaming transport (SSE/websocket) to build on.
     const wanted: string[] | undefined = p.types;
-    const received: unknown[] = [];
-    const off = c.store.subscribe((e) => { if (!wanted || wanted.includes(e.type)) received.push(e); });
-    // In a real transport this is an SSE/websocket; here we hand back a handle
-    // plus a drain the caller can poll, which keeps the operation synchronous.
-    return ok({ subscription: "sub_" + Math.random().toString(36).slice(2, 8), drain: () => received.splice(0), off });
+    const events = c.store.eventLog();
+    const since = Number(p.since ?? 0);
+    const slice = events.slice(since).filter((e) => !wanted || wanted.includes(e.type));
+    return ok({ events: slice, cursor: events.length });
   } },
 
   // --- collaborate ---
@@ -201,6 +205,14 @@ function toClaim(r: { ok: boolean; heldBy?: string }): OpResult {
 }
 
 const BY_NAME = new Map(OPERATIONS.map((o) => [o.name, o]));
+
+/** True if an operation mutates the store. Adapters use this to refuse writes
+ *  over read-only transports (e.g. an HTTP GET). Unknown op → treated as a
+ *  write, so a typo can't smuggle a mutation through a GET. */
+export function isWriteOp(op: string): boolean {
+  const spec = BY_NAME.get(op);
+  return spec ? !!spec.write : true;
+}
 
 /** The single dispatch every adapter calls. Unknown op or a throwing handler
  *  both become a structured error — an adapter never sees an exception. */

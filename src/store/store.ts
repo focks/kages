@@ -10,8 +10,10 @@ import { validate } from "../engine/validate.ts";
 import { resolve, systemOf } from "../engine/resolve.ts";
 import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
+import { clone } from "../engine/expr.ts";
 import { digest, signDigest, newSigningKey, exportKey, importKey, type SigningKey, type SerializedKey } from "./crypto.ts";
 import { applyPatch, type PatchOp } from "../collab/patch.ts";
+import { mergeThreeWay } from "../collab/merge.ts";
 import { ClaimRegistry } from "../collab/claims.ts";
 import { CommentThread, type Comment } from "../collab/comments.ts";
 import type {
@@ -114,7 +116,10 @@ export class Store {
   private has(principal: string, repo: string, grant: Grant): boolean {
     const g = this.grants.get(`${principal}@${repo}`);
     if (!g) return false;
-    return g.has(grant) || g.has("admin");
+    if (g.has("admin") || g.has(grant)) return true;
+    // Anyone who can act on the repo can also read it — write/review/publish
+    // all imply read, so a writer isn't locked out of its own resource.
+    return grant === "read" && (g.has("write") || g.has("review") || g.has("publish"));
   }
 
   /** The effective permission for a possibly-delegated write: the INTERSECTION
@@ -124,6 +129,31 @@ export class Store {
     if (!this.has(author.principal, repo, grant)) return false;
     if (author.onBehalfOf && !this.has(author.onBehalfOf, repo, grant)) return false;
     return true;
+  }
+
+  /** The repo a stored Kage lives in — parsed from its own ref, never trusted
+   *  from the caller. `kages://<ws>/<repo>/<name>@vN`. Permission checks bind to
+   *  THIS, so a grant on repo A can't be used to touch a resource in repo B. */
+  private static repoOfRef(ref: string): string {
+    return ref.replace(/^kages:\/\//, "").split("/")[1] ?? "";
+  }
+
+  /** Can this principal READ this version? Repo readers see everything in the
+   *  repo; everyone else sees only published link/public versions. A private or
+   *  draft Kage is invisible to a principal without a read grant. */
+  canAccess(record: VersionRecord, author: Provenance): boolean {
+    const repo = Store.repoOfRef(record.ref);
+    if (this.allowed(author, repo, "read")) return true;
+    return record.state === "published" && (record.visibility === "link" || record.visibility === "public");
+  }
+
+  /** Resolve a readable version or a structured denial — the gate every read
+   *  operation goes through, so visibility is enforced in the store, not the UI. */
+  authorizeRead(name: string, author: Provenance, version?: number): { ok: true; record: VersionRecord } | { ok: false; code: string; msg: string } {
+    const record = version ? this.getVersion(name, version) : this.head(name);
+    if (!record) return { ok: false, code: "not_found", msg: `no kage '${name}'` };
+    if (!this.canAccess(record, author)) return { ok: false, code: "forbidden", msg: `${author.principal} cannot read '${name}'` };
+    return { ok: true, record };
   }
 
   private signerFor(principal: string): SigningKey {
@@ -174,29 +204,54 @@ export class Store {
   // --- write path ----------------------------------------------------------
 
   /** Create the first version of a Kage. Validates, signs, records provenance,
-   *  emits kage.version.created. Private by default. */
+   *  emits kage.version.created. Private by default. Authorized before any work. */
   create(repo: string, doc: KageDoc, author: Provenance): WriteResult {
+    if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
     if (this.kages.has(doc.id)) return err("conflict", `kage '${doc.id}' already exists`);
     return this.writeVersion(repo, doc, author, null, { summary: "create", ops: Object.keys(doc.blocks).length, blocksTouched: Object.keys(doc.blocks) });
   }
 
-  /** Patch the latest version with RFC 6902 ops. The patched result is
-   *  validated before commit, so an invalid edit is rejected atomically and the
-   *  stored version is untouched. Claimed blocks are honoured. */
-  patch(repo: string, name: string, ops: PatchOp[], author: Provenance, summary = "patch"): WriteResult {
+  /** Patch the latest version with RFC 6902 ops. The repo is the RESOURCE's own
+   *  repo (parsed from its ref), and authorization + claim checks happen BEFORE
+   *  the patch is applied — a forbidden caller never reaches applyPatch, so it
+   *  can't trip a side effect on the way to a denial. With `baseVersion`, an edit
+   *  made against an older version is three-way merged against head and conflicts
+   *  are reported rather than silently overwriting a concurrent save. */
+  patch(name: string, ops: PatchOp[], author: Provenance, opts: { baseVersion?: number; summary?: string } = {}): WriteResult {
     const kage = this.kages.get(name);
     if (!kage) return err("not_found", `no kage '${name}'`);
     const head = kage.versions[kage.versions.length - 1];
+    const repo = Store.repoOfRef(head.ref);
 
-    const touched = blocksTouchedBy(ops);
-    for (const id of touched) {
+    if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
+
+    const { blockIds, structural } = touchedBy(ops, head.doc);
+    // Structural ops (/root, /state, /system, wholesale /blocks) need a claim on
+    // `root`; otherwise a /blocks replace would slip past a block-level claim.
+    if (structural && !this.claims.canWrite(name, "root", author.principal, this.clock()))
+      return err("claimed", `structural edit needs a free claim on 'root' (held by ${this.claims.claimant(name, "root", this.clock())})`);
+    for (const id of blockIds)
       if (!this.claims.canWrite(name, id, author.principal, this.clock()))
         return err("claimed", `block '${id}' is claimed by ${this.claims.claimant(name, id, this.clock())}`);
-    }
 
     let next: KageDoc;
-    try { next = applyPatch(head.doc, ops); } catch (e) { return err("invalid_patch", (e as Error).message); }
-    return this.writeVersion(repo, next, author, head.ref, { summary, ops: ops.length, blocksTouched: touched });
+    try {
+      const base = opts.baseVersion;
+      if (base !== undefined && base !== head.v) {
+        const baseRec = this.getVersion(name, base);
+        if (!baseRec) return err("not_found", `base version v${base} not found`);
+        // Optimistic concurrency: the caller edited from `base`, which is behind
+        // head. Replay their ops on their base, then merge against head by block.
+        const yours = applyPatch(baseRec.doc, ops);
+        const merged = mergeThreeWay(baseRec.doc, head.doc, yours);
+        if (!merged.ok) return err("conflict", `conflicting blocks: ${merged.conflicts.map((c) => c.blockId).join(", ")}`);
+        next = merged.doc!;
+      } else {
+        next = applyPatch(head.doc, ops);
+      }
+    } catch (e) { return err("invalid_patch", (e as Error).message); }
+
+    return this.writeVersion(repo, next, author, head.ref, { summary: opts.summary ?? "patch", ops: ops.length, blocksTouched: blockIds });
   }
 
   private writeVersion(repo: string, doc: KageDoc, author: Provenance, parent: string | null, change: VersionRecord["change"]): WriteResult {
@@ -210,7 +265,10 @@ export class Store {
     const vn = kage.versions.length + 1;
     const ref = `kages://${this.workspace}/${repo}/${doc.id}@v${vn}`;
     const resolved = { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc) };
-    const stored: KageDoc = { ...doc, resolved };
+    // Deep clone at ingress: the stored, signed document must NOT share object
+    // references with the caller's input, or a later mutation of that input
+    // would silently change signed content whose digest no longer matches.
+    const stored: KageDoc = clone({ ...doc, resolved });
     const dgst = digest(stored);
     const signature = signDigest(this.signerFor(author.principal), dgst);
 
@@ -231,31 +289,50 @@ export class Store {
 
   // --- lifecycle -----------------------------------------------------------
 
-  private transition(name: string, to: LifecycleState, principal: string, repo: string, needed: Grant): WriteResult {
+  // The repo and the delegated-permission intersection both come from the
+  // resource + the full author, so a lifecycle change can't be done through a
+  // repo the caller merely names, nor via an onBehalfOf the user can't authorize.
+  private transition(name: string, to: LifecycleState, author: Provenance, needed: Grant): WriteResult {
     const head = this.head(name);
     if (!head) return err("not_found", `no kage '${name}'`);
-    if (!this.has(principal, repo, needed)) return err("forbidden", `${principal} lacks ${needed} on ${repo}`);
+    const repo = Store.repoOfRef(head.ref);
+    if (!this.allowed(author, repo, needed)) return err("forbidden", `${author.principal} lacks ${needed} on ${repo}`);
     if (!LIFECYCLE_NEXT[head.state].includes(to)) return err("bad_state", `cannot go ${head.state} -> ${to}`);
     head.state = to;
-    this.record(principal, to, head.ref);
+    this.record(author.principal, to, head.ref);
     this.emit("kage.state.changed", head.ref, { to });
     return { ok: true, version: head };
   }
 
-  /** Publish the head version: requires `publish`, and the version must be
-   *  validation-clean (an agent may publish only a passing version). */
-  publish(repo: string, name: string, principal: string, visibility: Visibility = "private"): WriteResult {
+  /** Publish the head version: requires `publish` (intersected with onBehalfOf),
+   *  and the version must be validation-clean. */
+  publish(name: string, author: Provenance, visibility: Visibility = "private"): WriteResult {
     const head = this.head(name);
     if (!head) return err("not_found", `no kage '${name}'`);
     if (!head.validation.ok) return err("invalid_content", "cannot publish a version with validation errors");
-    const r = this.transition(name, "published", principal, repo, "publish");
+    const r = this.transition(name, "published", author, "publish");
     if (r.ok && r.version) { r.version.visibility = visibility; this.emit("kage.published", r.version.ref); }
     return r;
   }
 
-  submitForReview(repo: string, name: string, principal: string): WriteResult { return this.transition(name, "review", principal, repo, "write"); }
-  deprecate(repo: string, name: string, principal: string): WriteResult { return this.transition(name, "deprecated", principal, repo, "write"); }
-  archive(repo: string, name: string, principal: string): WriteResult { return this.transition(name, "archived", principal, repo, "admin"); }
+  /** Widen a published Kage's visibility. Needs `publish` on the resource — a
+   *  draft can't be flipped public, and a principal without the grant can't
+   *  change who sees it. */
+  share(name: string, author: Provenance, visibility: Visibility): WriteResult {
+    const head = this.head(name);
+    if (!head) return err("not_found", `no kage '${name}'`);
+    const repo = Store.repoOfRef(head.ref);
+    if (!this.allowed(author, repo, "publish")) return err("forbidden", `${author.principal} lacks publish on ${repo}`);
+    if (head.state !== "published") return err("bad_state", "only a published Kage can be shared");
+    head.visibility = visibility;
+    this.record(author.principal, "share:" + visibility, head.ref);
+    this.emit("kage.state.changed", head.ref, { visibility });
+    return { ok: true, version: head };
+  }
+
+  submitForReview(name: string, author: Provenance): WriteResult { return this.transition(name, "review", author, "write"); }
+  deprecate(name: string, author: Provenance): WriteResult { return this.transition(name, "deprecated", author, "write"); }
+  archive(name: string, author: Provenance): WriteResult { return this.transition(name, "archived", author, "admin"); }
 
   // --- read / search / export ---------------------------------------------
 
@@ -321,15 +398,22 @@ export class Store {
 
 function err(code: string, msg: string): WriteResult { return { ok: false, error: { code, msg } }; }
 
-/** The set of block ids an op list touches (for provenance + claim checks). */
-function blocksTouchedBy(ops: PatchOp[]): string[] {
+/** What an op list touches: the specific block ids, and whether it is a
+ *  STRUCTURAL edit (the doc root, state/system/data, or a wholesale `/blocks`
+ *  rewrite). A `/blocks` replace touches every current block, so it must clear
+ *  every block's claim — not slip past because it names no single id. */
+function touchedBy(ops: PatchOp[], headDoc: KageDoc): { blockIds: string[]; structural: boolean } {
   const ids = new Set<string>();
-  for (const op of ops) {
-    const m = /^\/blocks\/([a-zA-Z0-9_-]+)/.exec(op.path);
-    if (m) ids.add(m[1]);
-    if (op.op === "move" && op.from) { const fm = /^\/blocks\/([a-zA-Z0-9_-]+)/.exec(op.from); if (fm) ids.add(fm[1]); }
-  }
-  return [...ids];
+  let structural = false;
+  const mark = (path: string | undefined) => {
+    if (!path) return;
+    const m = /^\/blocks\/([a-zA-Z0-9_-]+)/.exec(path);
+    if (m) { ids.add(m[1]); return; }
+    if (path === "/blocks") { for (const id of Object.keys(headDoc.blocks ?? {})) ids.add(id); structural = true; return; }
+    if (path === "" || path === "/" || /^\/(root|state|system|data|sources|persist)(\/|$)/.test(path)) structural = true;
+  };
+  for (const op of ops) { mark(op.path); if (op.op === "move") mark(op.from); }
+  return { blockIds: [...ids], structural };
 }
 
 /** The resolved implementation ref for every block — the version's lockfile, so

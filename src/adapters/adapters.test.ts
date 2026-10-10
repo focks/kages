@@ -104,6 +104,27 @@ test("REST maps error codes to HTTP status", async () => {
   assert.equal(res.status, 404);
 });
 
+test("REST refuses a write operation over GET (405)", async () => {
+  const c = ctx();
+  const res = await handleRest(c, "publish_kage", new Request("http://x/api/publish_kage?name=ops-console", { method: "GET" }));
+  assert.equal(res.status, 405);
+  assert.equal(res.headers.get("Allow"), "POST");
+  // read over GET still works
+  dispatch(c, "create_kage", { doc: ops() });
+  const read = await handleRest(c, "get_kage", new Request("http://x/api/get_kage?name=ops-console", { method: "GET" }));
+  assert.equal(read.status, 200);
+});
+
+test("subscribe returns serializable events + a cursor (no functions)", () => {
+  const c = ctx();
+  dispatch(c, "create_kage", { doc: ops() });
+  const r = dispatch(c, "subscribe", {}) as any;
+  assert.ok(Array.isArray(r.data.events));
+  assert.equal(typeof r.data.cursor, "number");
+  // JSON round-trip proves nothing non-serializable leaked.
+  assert.doesNotThrow(() => JSON.parse(JSON.stringify(r.data)));
+});
+
 test("generated surfaces cover every operation exactly once", () => {
   const names = OPERATIONS.map((o) => o.name).sort();
   assert.deepEqual(toolDefs().map((t: any) => t.function.name).sort(), names);

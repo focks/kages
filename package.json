@@ -12,7 +12,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"src/**/*.test.ts\"",
-    "tokens": "node scripts/kage-tokens.mjs"
+    "tokens": "node scripts/kage-tokens.mjs",
+    "ds-integrity": "node scripts/ds-integrity.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

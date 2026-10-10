@@ -82,13 +82,25 @@ export function makeCtx(
 export interface LogEntry { level: "info" | "error"; msg: string; }
 export interface Draft { state: Record<string, Json>; locals: Record<string, Record<string, Json>>; }
 
+/** A host action deferred for after-commit execution: the action plus its
+ *  arguments already evaluated in the committing context. The live renderer runs
+ *  these through the HostBridge; a headless caller (no onHost) gets the mock. */
+export interface HostTask { action: Action; prompt?: Json; input?: Json; args: Json; }
+
+export interface RunOptions {
+  /** When set, ask/agent/fetch/emit are DEFERRED (pendingInto is set true in the
+   *  commit) and handed to onHost to run asynchronously, rather than synchronously
+   *  writing their mock. Omit it for previews/tests, which keep the mock path. */
+  onHost?: (task: HostTask) => void;
+}
+
 /** Run a list of actions against a draft, in order, as one transaction. The
  *  caller clones state+locals into `draft`, we apply every action onto that
  *  draft (so a later action sees an earlier action's writes), and only the
  *  caller commits — a handler that throws halfway leaves the real state
- *  untouched. Host actions (ask/agent/fetch/emit) can't run synchronously here,
- *  so we log them and write their `mock` (for previews/tests); the live runtime
- *  replaces that with the real async result landing via `into`. Mutates draft. */
+ *  untouched. Host actions (ask/agent/fetch/emit) are async: with `onHost` they
+ *  are deferred to run after commit; without it they log + write their `mock`
+ *  (for previews and tests). Mutates draft. */
 export function runActions(
   doc: KageDoc,
   sysId: string,
@@ -98,6 +110,7 @@ export function runActions(
   event: Json,
   log: LogEntry[],
   depth?: number,
+  opts?: RunOptions,
 ): void {
   if (!actions) return;
   // Loop guard: a command can `call` another block's command, which can call
@@ -123,13 +136,20 @@ export function runActions(
         const tr = resolve(sysId, tb.type);
         const cmd = tr.contract && tr.contract.commands[a.command as string];
         if (!cmd) { log.push({ level: "error", msg: "call: " + tid + " has no command '" + a.command + "'" }); break; }
-        runActions(doc, sysId, cmd, draft, tid, evaluate(a.args || {}, ctx), log, (depth || 0) + 1);
+        runActions(doc, sysId, cmd, draft, tid, evaluate(a.args || {}, ctx), log, (depth || 0) + 1, opts);
         break;
       }
       case "log": log.push({ level: "info", msg: String(evaluate(a.message, ctx)) }); break;
       case "ask": case "agent": case "fetch": case "emit":
-        log.push({ level: "info", msg: a.do + " → host (" + JSON.stringify(evaluate(a.args || {}, ctx)) + ")" });
-        if (a.into) setPath(draft.state, a.into, evaluate(a.mock !== undefined ? a.mock : null, ctx));
+        if (opts?.onHost) {
+          // Defer: mark pending now (shows in the commit), run through the bridge
+          // after commit. Evaluate the args here, while this context is live.
+          if (a.pendingInto) setPath(draft.state, a.pendingInto, true);
+          opts.onHost({ action: a, prompt: a.prompt !== undefined ? evaluate(a.prompt, ctx) : undefined, input: a.input !== undefined ? evaluate(a.input, ctx) : undefined, args: evaluate(a.args || {}, ctx) });
+        } else {
+          log.push({ level: "info", msg: a.do + " → host (" + JSON.stringify(evaluate(a.args || {}, ctx)) + ")" });
+          if (a.into) setPath(draft.state, a.into, evaluate(a.mock !== undefined ? a.mock : null, ctx));
+        }
         break;
       default: log.push({ level: "error", msg: "Unknown action '" + a.do + "'" });
     }

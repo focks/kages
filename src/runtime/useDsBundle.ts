@@ -34,26 +34,37 @@ function loadBundle(base: string): Promise<KagesGlobal> {
   window.React = React;
   window.ReactDOM = ReactDOM;
 
-  // tokens.css (scoped to .kg-kage) must load BEFORE bundle.css: the bundle
-  // reads --paper, --space-4, --font-display and the rest, which only this
-  // generated sheet defines. Without it every --kg-* resolves to nothing.
-  for (const file of ["tokens.css", "bundle.css"]) {
-    if (document.querySelector(`link[data-ds-bundle="${file}"]`)) continue;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = `${base}/${file}`;
-    link.setAttribute("data-ds-bundle", file);
-    document.head.appendChild(link);
-  }
-
-  loading = new Promise<KagesGlobal>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = `${base}/bundle.js`;
-    script.async = true;
-    script.onload = () => (window.Kages ? resolve(window.Kages) : reject(new Error("bundle loaded but window.Kages is missing")));
-    script.onerror = () => reject(new Error(`failed to load ${script.src}`));
-    document.head.appendChild(script);
-  });
+  // Pin the assets with Subresource Integrity when a hash manifest is served.
+  // If bundle.js is swapped after a version was signed, the hash won't match and
+  // the browser refuses to execute it — the lockfile's integrity guarantee,
+  // enforced by the platform rather than trusted. Absent manifest → load plain.
+  loading = fetch(`${base}/integrity.json`)
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}))
+    .then((sri: Record<string, string>) => new Promise<KagesGlobal>((resolve, reject) => {
+      const withSri = (el: HTMLLinkElement | HTMLScriptElement, file: string) => {
+        if (sri[file]) { el.integrity = sri[file]; el.crossOrigin = "anonymous"; }
+      };
+      // tokens.css (scoped to .kg-kage) must load BEFORE bundle.css: the bundle
+      // reads --paper, --space-4, --font-display and the rest, which only this
+      // generated sheet defines. Without it every --kg-* resolves to nothing.
+      for (const file of ["tokens.css", "bundle.css"]) {
+        if (document.querySelector(`link[data-ds-bundle="${file}"]`)) continue;
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = `${base}/${file}`;
+        link.setAttribute("data-ds-bundle", file);
+        withSri(link, file);
+        document.head.appendChild(link);
+      }
+      const script = document.createElement("script");
+      script.src = `${base}/bundle.js`;
+      script.async = true;
+      withSri(script, "bundle.js");
+      script.onload = () => (window.Kages ? resolve(window.Kages) : reject(new Error("bundle loaded but window.Kages is missing")));
+      script.onerror = () => reject(new Error(`failed to load ${script.src} (integrity?)`));
+      document.head.appendChild(script);
+    }));
   return loading;
 }
 

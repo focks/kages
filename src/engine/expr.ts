@@ -102,8 +102,11 @@ export function evaluate(x: Any, ctx: EvalContext): Any {
     case "$not": return !evaluate(a, ctx);
     case "$eq": return evaluate(a[0], ctx) === evaluate(a[1], ctx);
     case "$neq": return evaluate(a[0], ctx) !== evaluate(a[1], ctx);
-    case "$and": return a.every((v: Any) => !!evaluate(v, ctx));
-    case "$or": return a.some((v: Any) => !!evaluate(v, ctx));
+    // Defensive: a malformed arg (e.g. {"$and": 1}) must not throw — the
+    // architecture promises a validated doc never crashes a renderer, and we
+    // uphold it even for an invalid one. validate() still reports the mistake.
+    case "$and": return (Array.isArray(a) ? a : []).every((v: Any) => !!evaluate(v, ctx));
+    case "$or": return (Array.isArray(a) ? a : []).some((v: Any) => !!evaluate(v, ctx));
     case "$if": return evaluate(a[0], ctx) ? evaluate(a[1], ctx) : evaluate(a[2], ctx);
     case "$tpl":
       // "Region: {{state.region}}" — each hole is a namespace + dot path that we

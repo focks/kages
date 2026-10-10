@@ -16,24 +16,36 @@ export interface PatchOp {
 
 class PatchError extends Error {}
 
-/** Parse a JSON Pointer ("/blocks/kpi/slots/children/-") into decoded tokens. */
+// Pointer tokens that would reach the prototype chain. A patch like
+// `/__proto__/x` otherwise walks node["__proto__"] to Object.prototype and
+// writes there, polluting every object in the process. Refused outright.
+const FORBIDDEN = new Set(["__proto__", "constructor", "prototype"]);
+
+/** Parse a JSON Pointer ("/blocks/kpi/slots/children/-") into decoded tokens.
+ *  Refuses any token that would traverse the prototype chain. */
 function parsePointer(pointer: string): string[] {
   if (pointer === "") return [];
   if (pointer[0] !== "/") throw new PatchError(`bad pointer '${pointer}'`);
-  return pointer.slice(1).split("/").map((t) => t.replace(/~1/g, "/").replace(/~0/g, "~"));
+  const tokens = pointer.slice(1).split("/").map((t) => t.replace(/~1/g, "/").replace(/~0/g, "~"));
+  for (const t of tokens) if (FORBIDDEN.has(t)) throw new PatchError(`refused prototype key '${t}' in '${pointer}'`);
+  return tokens;
 }
 
 function clone<T>(x: T): T {
   return x == null ? x : JSON.parse(JSON.stringify(x));
 }
 
-/** Resolve the container holding the final token, so an op can read/write it. */
+/** Resolve the container holding the final token, so an op can read/write it.
+ *  Object access is own-property only — an inherited key resolves to "not
+ *  found", never to something on the prototype chain. */
 function locate(root: Json, tokens: string[]): { parent: Json; key: string } {
   let node = root;
   for (let i = 0; i < tokens.length - 1; i++) {
     const t = tokens[i];
     if (node == null || typeof node !== "object") throw new PatchError(`path not found at '${t}'`);
-    node = Array.isArray(node) ? node[Number(t)] : node[t];
+    if (Array.isArray(node)) node = node[Number(t)];
+    else if (Object.prototype.hasOwnProperty.call(node, t)) node = node[t];
+    else throw new PatchError(`path not found at '${t}'`);
   }
   return { parent: node, key: tokens[tokens.length - 1] };
 }

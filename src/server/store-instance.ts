@@ -39,24 +39,24 @@ export function getStore(): Store {
 
     // 1. The reference console: a second version + published to the workspace.
     store.create("kages", base, DEMO_PRINCIPAL);
-    store.patch("kages", "ops-console", [{ op: "add", path: "/blocks/kpiRevenue/props/caption", value: "Against the previous week" }], DEMO_PRINCIPAL, "add revenue caption");
-    store.publish("kages", "ops-console", DEMO_PRINCIPAL.principal, "workspace");
+    store.patch("ops-console", [{ op: "add", path: "/blocks/kpiRevenue/props/caption", value: "Against the previous week" }], DEMO_PRINCIPAL, { summary: "add revenue caption" });
+    store.publish("ops-console", DEMO_PRINCIPAL, "workspace");
 
     // 2. A Ledger revenue board, published public.
     store.create("kages", fork(base, "ledger", "revenue-board", "Revenue board"), ANALYST);
-    store.publish("kages", "revenue-board", ANALYST.principal, "public");
+    store.publish("revenue-board", ANALYST, "public");
 
     // 3. An Atelier weekly story, left in draft.
     store.create("kages", fork(base, "atelier", "weekly-story", "Weekly story"), DEMO_PRINCIPAL);
 
     // 4. A Ledger churn watchlist, submitted for review.
     store.create("kages", fork(base, "ledger", "churn-watchlist", "Churn watchlist"), ANALYST);
-    store.submitForReview("kages", "churn-watchlist", ANALYST.principal);
+    store.submitForReview("churn-watchlist", ANALYST);
 
     // 5. A Core launch checklist, published then deprecated.
     store.create("kages", fork(base, "core", "launch-checklist", "Launch checklist"), DEMO_PRINCIPAL);
-    store.publish("kages", "launch-checklist", DEMO_PRINCIPAL.principal, "workspace");
-    store.deprecate("kages", "launch-checklist", DEMO_PRINCIPAL.principal);
+    store.publish("launch-checklist", DEMO_PRINCIPAL, "workspace");
+    store.deprecate("launch-checklist", DEMO_PRINCIPAL);
   } catch {
     // Seeding is best-effort; an empty store is still a valid store.
   }

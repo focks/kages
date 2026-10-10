@@ -63,7 +63,7 @@ test("write path validates before commit — an invalid doc is rejected atomical
 test("patch: new immutable version; old one is untouched", () => {
   const s = seeded();
   s.create("kages", ops(), agent);
-  const r = s.patch("kages", "ops-console", [{ op: "replace", path: "/title", value: "Ops" }], agent);
+  const r = s.patch("ops-console", [{ op: "replace", path: "/title", value: "Ops" }], agent);
   assert.ok(r.ok, JSON.stringify(r.error));
   assert.equal(r.version!.v, 2);
   assert.equal(r.version!.parent, "kages://acme/kages/ops-console@v1");
@@ -74,7 +74,7 @@ test("patch: new immutable version; old one is untouched", () => {
 test("lifecycle: draft -> published requires publish grant and a clean version; private by default", () => {
   const s = seeded();
   s.create("kages", ops(), agent);
-  const pub = s.publish("kages", "ops-console", agent.principal);
+  const pub = s.publish("ops-console", agent);
   assert.ok(pub.ok);
   assert.equal(s.head("ops-console")!.state, "published");
   assert.equal(s.head("ops-console")!.visibility, "private");
@@ -85,7 +85,7 @@ test("RBAC: a reviewer agent physically cannot patch", () => {
   s.grant("agent:acme/builder", "kages", ["write"]);
   s.grant("agent:acme/reviewer", "kages", ["review"]);
   s.create("kages", ops(), { principal: "agent:acme/builder" });
-  const r = s.patch("kages", "ops-console", [{ op: "replace", path: "/title", value: "X" }], { principal: "agent:acme/reviewer" });
+  const r = s.patch("ops-console", [{ op: "replace", path: "/title", value: "X" }], { principal: "agent:acme/reviewer" });
   assert.equal(r.ok, false);
   assert.equal(r.error?.code, "forbidden");
 });
@@ -103,9 +103,9 @@ test("onBehalfOf gets the intersection of grants", () => {
 test("quota: runaway writer is rate-limited, not billed", () => {
   const s = seeded(); // quota 3/hour
   s.create("kages", ops(), agent);
-  s.patch("kages", "ops-console", [{ op: "replace", path: "/title", value: "a" }], agent);
-  s.patch("kages", "ops-console", [{ op: "replace", path: "/title", value: "b" }], agent);
-  const r = s.patch("kages", "ops-console", [{ op: "replace", path: "/title", value: "c" }], agent);
+  s.patch("ops-console", [{ op: "replace", path: "/title", value: "a" }], agent);
+  s.patch("ops-console", [{ op: "replace", path: "/title", value: "b" }], agent);
+  const r = s.patch("ops-console", [{ op: "replace", path: "/title", value: "c" }], agent);
   assert.equal(r.ok, false);
   assert.equal(r.error?.code, "rate_limited");
 });
@@ -115,7 +115,7 @@ test("events: version.created and published reach subscribers", () => {
   const got: string[] = [];
   s.subscribe((e) => got.push(e.type));
   s.create("kages", ops(), agent);
-  s.publish("kages", "ops-console", agent.principal);
+  s.publish("ops-console", agent);
   assert.ok(got.includes("kage.version.created"));
   assert.ok(got.includes("kage.published"));
 });
@@ -139,10 +139,10 @@ test("claims: another agent's patch to a claimed block is refused; lease expires
   s.grant("agent:b", "kages", ["write"]);
   s.create("kages", ops(), { principal: "agent:a" });
   assert.ok(s.claims.claim("ops-console", ["kpi*"], "agent:a", 300, now).ok);
-  const blocked = s.patch("kages", "ops-console", [{ op: "replace", path: "/blocks/kpiOpen/props/label", value: "X" }], { principal: "agent:b" });
+  const blocked = s.patch("ops-console", [{ op: "replace", path: "/blocks/kpiOpen/props/label", value: "X" }], { principal: "agent:b" });
   assert.equal(blocked.error?.code, "claimed");
   now += 301_000; // lease expires
-  assert.ok(s.patch("kages", "ops-console", [{ op: "replace", path: "/blocks/kpiOpen/props/label", value: "X" }], { principal: "agent:b" }).ok);
+  assert.ok(s.patch("ops-console", [{ op: "replace", path: "/blocks/kpiOpen/props/label", value: "X" }], { principal: "agent:b" }).ok);
 });
 
 test("disjoint-block patches both apply; same-block edits conflict (three-way merge)", () => {
@@ -167,4 +167,85 @@ test("comments anchor to a block and can carry a suggested patch", () => {
   assert.equal(c.block, "kpiRevenue");
   assert.equal(s.comments.forBlock("ops-console", "kpiRevenue").length, 1);
   assert.ok(c.suggestedPatch);
+});
+
+// --- security regressions (from the review) ------------------------------
+
+test("F1: a forbidden patch is rejected without any side effect", () => {
+  const s = freshStore(); // no grants for anyone
+  s.grant("agent:owner", "kages", ["write"]);
+  s.create("kages", ops(), { principal: "agent:owner" });
+  const r = s.patch("ops-console", [{ op: "add", path: "/__proto__/reviewProbe", value: "x" }], { principal: "agent:nobody" });
+  assert.equal(r.ok, false);
+  assert.equal(r.error?.code, "forbidden");
+  assert.equal(({} as Record<string, unknown>).reviewProbe, undefined, "prototype not polluted");
+});
+
+test("F2: permission binds to the resource's repo, not the caller's claim", () => {
+  const s = freshStore();
+  s.grant("agent:x", "secret", ["write"]);
+  s.grant("agent:x", "mine", ["write"]);
+  s.create("secret", ops(), { principal: "agent:x" }); // lives in repo 'secret'
+  // Revoke secret; agent:x now only has write on 'mine'.
+  s.grant("agent:x", "secret", []);
+  const r = s.patch("ops-console", [{ op: "replace", path: "/title", value: "sneak" }], { principal: "agent:x" });
+  assert.equal(r.ok, false, "cannot patch a repo:secret resource with a repo:mine grant");
+  assert.equal(r.error?.code, "forbidden");
+});
+
+test("F2: a private draft is invisible to a principal without read", () => {
+  const s = freshStore();
+  s.grant("agent:owner", "kages", ["write"]);
+  s.create("kages", ops(), { principal: "agent:owner" });
+  const head = s.head("ops-console")!;
+  assert.equal(s.canAccess(head, { principal: "agent:stranger" }), false, "private draft hidden");
+  assert.equal(s.authorizeRead("ops-console", { principal: "agent:stranger" }).ok, false);
+  assert.equal(s.canAccess(head, { principal: "agent:owner" }), true, "owner reads it");
+});
+
+test("F2: share requires publish; publish honours onBehalfOf", () => {
+  const s = freshStore();
+  s.grant("agent:builder", "kages", ["write", "publish"]);
+  s.create("kages", ops(), { principal: "agent:builder" });
+  // publish onBehalfOf a user who lacks publish -> refused (intersection)
+  assert.equal(s.publish("ops-console", { principal: "agent:builder", onBehalfOf: "user:guest" }).ok, false);
+  assert.ok(s.publish("ops-console", { principal: "agent:builder" }).ok);
+  // share by a principal without publish -> refused
+  assert.equal(s.share("ops-console", { principal: "agent:reader" }, "public").ok, false);
+  assert.ok(s.share("ops-console", { principal: "agent:builder" }, "public").ok);
+  assert.equal(s.head("ops-console")!.visibility, "public");
+});
+
+test("F4: mutating the input after create cannot change the signed version", () => {
+  const s = seeded();
+  const doc = ops();
+  s.create("kages", doc, agent);
+  (doc.blocks.heading.props as Record<string, unknown>).variant = "tampered";
+  assert.notEqual(s.head("ops-console")!.doc.blocks.heading.props?.variant, "tampered", "ingress cloned");
+  // egress: a returned doc is a copy, not the internal record
+  const r = s.authorizeRead("ops-console", agent);
+  assert.ok(r.ok);
+});
+
+test("F5: baseVersion detects a conflicting concurrent edit", () => {
+  const s = seeded();
+  s.create("kages", ops(), agent);
+  // two edits to the SAME block, both from v1
+  const a = s.patch("ops-console", [{ op: "replace", path: "/blocks/kpiOpen/props/label", value: "A" }], agent, { baseVersion: 1 });
+  assert.ok(a.ok); // first lands as v2
+  const b = s.patch("ops-console", [{ op: "replace", path: "/blocks/kpiOpen/props/label", value: "B" }], agent, { baseVersion: 1 });
+  assert.equal(b.ok, false, "second edit from the stale base conflicts");
+  assert.equal(b.error?.code, "conflict");
+});
+
+test("F5: a /blocks wholesale replace cannot bypass a block claim", () => {
+  let now = 0;
+  const s = new Store({ clock: () => now });
+  s.grant("agent:a", "kages", ["write"]);
+  s.grant("agent:b", "kages", ["write"]);
+  s.create("kages", ops(), { principal: "agent:a" });
+  s.claims.claim("ops-console", ["kpiOpen"], "agent:a", 300, now);
+  const r = s.patch("ops-console", [{ op: "replace", path: "/blocks", value: { app: { type: "shell" } } }], { principal: "agent:b" });
+  assert.equal(r.ok, false, "replacing /blocks touches the claimed block");
+  assert.equal(r.error?.code, "claimed");
 });
