@@ -113,6 +113,34 @@ export class Store {
     this.grants.set(`${principal}@${repo}`, new Set(grants));
   }
 
+  /** Does anyone hold any grant on this repo? Used to detect an UNCLAIMED
+   *  project, so the first creator can be made its owner (see create). */
+  private hasAnyGrant(repo: string): boolean {
+    for (const key of this.grants.keys()) if (key.endsWith(`@${repo}`)) return true;
+    return false;
+  }
+
+  /** The repo (project) a stored ref lives in — public so adapters can group a
+   *  listing by project without re-parsing the ref themselves. */
+  repoOf(ref: string): string { return Store.repoOfRef(ref); }
+
+  /** The workspace this store namespaces. Workspace → project (repo) → Kage is
+   *  the organizing hierarchy, and every ref encodes all three. */
+  get workspaceName(): string { return this.workspace; }
+
+  /** Projects in this workspace: each repo that holds at least one Kage, with a
+   *  count. Derived from the head of every Kage, so it reflects moves/deletes. */
+  listRepos(): { repo: string; count: number }[] {
+    const counts = new Map<string, number>();
+    for (const kage of this.kages.values()) {
+      const head = kage.versions[kage.versions.length - 1];
+      if (!head) continue;
+      const repo = Store.repoOfRef(head.ref);
+      counts.set(repo, (counts.get(repo) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(([repo, count]) => ({ repo, count })).sort((a, b) => a.repo.localeCompare(b.repo));
+  }
+
   private has(principal: string, repo: string, grant: Grant): boolean {
     const g = this.grants.get(`${principal}@${repo}`);
     if (!g) return false;
@@ -206,6 +234,11 @@ export class Store {
   /** Create the first version of a Kage. Validates, signs, records provenance,
    *  emits kage.version.created. Private by default. Authorized before any work. */
   create(repo: string, doc: KageDoc, author: Provenance): WriteResult {
+    // First-creator-owns-the-project: creating into an UNCLAIMED repo makes you
+    // its admin, the way opening a new namespace works elsewhere. A repo that
+    // already has grants is governed by them — you can't create into someone
+    // else's project. ponytail: open claiming; gate repo creation in production.
+    if (!this.hasAnyGrant(repo)) this.grant(author.principal, repo, ["write", "review", "publish", "admin"]);
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
     if (this.kages.has(doc.id)) return err("conflict", `kage '${doc.id}' already exists`);
     return this.writeVersion(repo, doc, author, null, { summary: "create", ops: Object.keys(doc.blocks).length, blocksTouched: Object.keys(doc.blocks) });

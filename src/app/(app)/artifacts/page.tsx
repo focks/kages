@@ -11,7 +11,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, Upload, Eye, SquarePen, Download, History } from "lucide-react";
+import { Search, Upload, Eye, SquarePen, Download, History, Layers, FolderPlus, Folder } from "lucide-react";
 import { KagePreview } from "@/components/dashboard/kage-preview";
 import { ShareMenu } from "@/components/dashboard/share-menu";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,8 @@ function ArtifactsInner() {
   const [describe, setDescribe] = useState("");
   const [q, setQ] = useState("");
   const [sysFilter, setSysFilter] = useState("all");
+  const [proj, setProj] = useState("all");
+  const [repoInfo, setRepoInfo] = useState<{ workspace: string; projects: { repo: string; count: number }[] } | null>(null);
   const [preview, setPreview] = useState<{ doc: KageDoc; ref: string } | null>(null);
 
   // Preview straight from a list card — fetch the document, then open the
@@ -52,7 +54,13 @@ function ArtifactsInner() {
   }, []);
 
   const refresh = useCallback(async () => {
-    try { setCards(await op<KageCard[]>("list_kages")); } catch (e) { toast.error(String((e as Error).message)); }
+    try {
+      const [k, r] = await Promise.all([
+        op<KageCard[]>("list_kages"),
+        op<{ workspace: string; projects: { repo: string; count: number }[] }>("list_repos"),
+      ]);
+      setCards(k); setRepoInfo(r);
+    } catch (e) { toast.error(String((e as Error).message)); }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -71,9 +79,34 @@ function ArtifactsInner() {
 
   const filtered = useMemo(() => (cards ?? []).filter((c) =>
     (!q || (c.title + c.name).toLowerCase().includes(q.toLowerCase())) &&
-    (sysFilter === "all" || c.system.startsWith(sysFilter))), [cards, q, sysFilter]);
+    (sysFilter === "all" || c.system.startsWith(sysFilter)) &&
+    (proj === "all" || c.repo === proj)), [cards, q, sysFilter, proj]);
+
+  // Projects (repos) in the workspace, from list_repos; include a just-created
+  // empty project so it's selectable before it holds a Kage.
+  const projects = useMemo(() => {
+    const list = repoInfo?.projects ? [...repoInfo.projects] : [];
+    if (proj !== "all" && !list.some((p) => p.repo === proj)) list.push({ repo: proj, count: 0 });
+    return list.sort((a, b) => a.repo.localeCompare(b.repo));
+  }, [repoInfo, proj]);
+
+  // Group the visible cards by project for folder-like section headers.
+  const groups = useMemo(() => {
+    const m = new Map<string, KageCard[]>();
+    for (const c of filtered) (m.get(c.repo) ?? m.set(c.repo, []).get(c.repo)!).push(c);
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [filtered]);
 
   const current = cards?.find((c) => c.name === selected) ?? null;
+
+  function newProject() {
+    const raw = window.prompt("New project name (a–z, 0–9, -):");
+    if (!raw) return;
+    const slug = raw.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+    if (!slug) return;
+    setProj(slug);
+    toast.message(`Project “${slug}” — import or create a Kage to populate it`);
+  }
 
   async function exportJson(name: string) {
     const json = await op<string>("export_kage", { name, format: "json" });
@@ -81,7 +114,8 @@ function ArtifactsInner() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${name}.kage.json`; a.click();
   }
   async function importFile(file: File) {
-    try { await op("create_kage", { doc: JSON.parse(await file.text()) }); toast.success(`Imported ${file.name}`); await refresh(); }
+    const repo = proj === "all" ? "kages" : proj; // import into the selected project
+    try { await op("create_kage", { doc: JSON.parse(await file.text()), repo }); toast.success(`Imported ${file.name} into ${repo}`); await refresh(); }
     catch (e) { toast.error(`Import failed: ${(e as Error).message}`); }
   }
 
@@ -89,48 +123,77 @@ function ArtifactsInner() {
     <div className="grid h-[calc(100svh-3.5rem)] grid-cols-1 md:grid-cols-[360px_1fr]">
       {/* Master */}
       <div className="flex min-h-0 flex-col border-r">
-        <div className="flex items-center gap-2 border-b p-3">
-          <div className="relative flex-1">
+        {/* Workspace → the top of the organizing hierarchy */}
+        <div className="flex items-center gap-2 border-b px-3 py-2">
+          <Layers className="size-4 text-muted-foreground" />
+          <span className="text-sm font-medium">{repoInfo?.workspace ?? "workspace"}</span>
+          <span className="text-xs text-muted-foreground">· {projects.length} project{projects.length === 1 ? "" : "s"}</span>
+        </div>
+        {/* Search + project / system filters + import-into-project */}
+        <div className="space-y-2 border-b p-3">
+          <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Kages" className="pl-8" />
           </div>
-          <Select value={sysFilter} onValueChange={(v) => setSysFilter(v ?? "all")}>
-            <SelectTrigger className="w-[110px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="core">Core</SelectItem>
-              <SelectItem value="ledger">Ledger</SelectItem>
-              <SelectItem value="atelier">Atelier</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button size="icon" variant="outline" aria-label="Import JSON" nativeButton={false} render={<label />}>
-            <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
-            <Upload />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={proj} onValueChange={(v) => (v === "__new__" ? newProject() : setProj(v ?? "all"))}>
+              <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All projects</SelectItem>
+                {projects.map((p) => <SelectItem key={p.repo} value={p.repo}>{p.repo} ({p.count})</SelectItem>)}
+                <SelectItem value="__new__">＋ New project…</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sysFilter} onValueChange={(v) => setSysFilter(v ?? "all")}>
+              <SelectTrigger className="w-[104px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any sys</SelectItem>
+                <SelectItem value="core">Core</SelectItem>
+                <SelectItem value="ledger">Ledger</SelectItem>
+                <SelectItem value="atelier">Atelier</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button size="icon" variant="outline" aria-label={`New project`} onClick={newProject}><FolderPlus /></Button>
+            <Button size="icon" variant="outline" aria-label="Import JSON" nativeButton={false} render={<label />}>
+              <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
+              <Upload />
+            </Button>
+          </div>
         </div>
         <ScrollArea className="flex-1">
-          <div className="flex flex-col gap-2 p-3">
+          <div className="flex flex-col gap-3 p-3">
             {!cards && [0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
-            {cards && filtered.length === 0 && <p className="p-4 text-sm text-muted-foreground">No Kages match.</p>}
-            {filtered.map((c) => (
-              <div key={c.name} onClick={() => openCard(c.name)} role="button" tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(c.name); } }}
-                className={cn("group relative cursor-pointer rounded-xl border bg-card p-3 transition-colors hover:bg-accent", c.name === selected && "border-primary bg-primary-soft hover:bg-primary-soft")}>
-                <div className="flex items-center gap-2">
-                  <span className="flex-1 truncate font-medium">{c.title}</span>
-                  <StateBadge state={c.state} />
+            {cards && filtered.length === 0 && (
+              <p className="p-4 text-sm text-muted-foreground">
+                No Kages {proj === "all" ? "match" : `in “${proj}” yet`}{proj !== "all" && " — import one with the upload button."}
+              </p>
+            )}
+            {groups.map(([repo, items]) => (
+              <div key={repo} className="space-y-2">
+                <div className="flex items-center gap-1.5 px-1 text-xs font-medium text-muted-foreground">
+                  <Folder className="size-3.5" /><span className="font-mono">{repo}</span><span>· {items.length}</span>
                 </div>
-                <div className="mt-1.5"><SystemChip system={c.system} /></div>
-                <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-                  <span>{c.blocks} blocks</span><span className="font-mono">v{c.version}</span>
-                  <ValidationStatus validation={c.validation} short />
-                  <span className="ml-auto">{relTime(c.createdAt)}</span>
-                </div>
-                <Button size="icon" variant="outline" aria-label={`Preview ${c.title}`}
-                  onClick={(e) => { e.stopPropagation(); previewByName(c.name, c.ref); }}
-                  className="absolute right-2 top-2 size-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
-                  <Eye className="size-4" />
-                </Button>
+                {items.map((c) => (
+                  <div key={c.name} onClick={() => openCard(c.name)} role="button" tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(c.name); } }}
+                    className={cn("group relative cursor-pointer rounded-xl border bg-card p-3 transition-colors hover:bg-accent", c.name === selected && "border-primary bg-primary-soft hover:bg-primary-soft")}>
+                    <div className="flex items-center gap-2">
+                      <span className="flex-1 truncate font-medium">{c.title}</span>
+                      <StateBadge state={c.state} />
+                    </div>
+                    <div className="mt-1.5"><SystemChip system={c.system} /></div>
+                    <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{c.blocks} blocks</span><span className="font-mono">v{c.version}</span>
+                      <ValidationStatus validation={c.validation} short />
+                      <span className="ml-auto">{relTime(c.createdAt)}</span>
+                    </div>
+                    <Button size="icon" variant="outline" aria-label={`Preview ${c.title}`}
+                      onClick={(e) => { e.stopPropagation(); previewByName(c.name, c.ref); }}
+                      className="absolute right-2 top-2 size-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
+                      <Eye className="size-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
@@ -166,6 +229,8 @@ function ArtifactsInner() {
 
               <TabsContent value="overview" className="mt-4">
                 <dl className="grid max-w-xl grid-cols-[150px_1fr] gap-y-3 text-sm">
+                  <dt className="text-muted-foreground">Project</dt>
+                  <dd className="inline-flex items-center gap-1.5 font-mono"><Folder className="size-3.5 text-muted-foreground" />{repoInfo?.workspace ?? "acme"} / {current.repo}</dd>
                   <dt className="text-muted-foreground">System</dt><dd><SystemChip system={current.system} /></dd>
                   <dt className="text-muted-foreground">Blocks</dt><dd>{current.blocks}</dd>
                   <dt className="text-muted-foreground">Version</dt><dd className="font-mono">v{current.version}</dd>

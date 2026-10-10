@@ -97,7 +97,7 @@ export function relTime(iso: string): string {
 }
 
 export interface KageCard {
-  name: string; ref: string; title: string; system: string; blocks: number;
+  name: string; ref: string; repo: string; title: string; system: string; blocks: number;
   version: number; state: string; visibility: string; lastAuthor: string; createdAt: string;
   validation: { ok: boolean; errors: number; warnings: number };
 }

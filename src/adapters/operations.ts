@@ -100,11 +100,14 @@ export const OPERATIONS: OpSpec[] = [
 
   { name: "list_kages", summary: "Head version of every Kage, as cards for a dashboard", params: [], run: (c) =>
     ok(c.store.list().filter((v) => c.store.canAccess(v, c.author)).map((v) => ({
-      name: v.name, ref: v.ref, title: v.doc.title, system: v.resolved.system,
+      name: v.name, ref: v.ref, repo: c.store.repoOf(v.ref), title: v.doc.title, system: v.resolved.system,
       blocks: Object.keys(v.doc.blocks).length, version: v.v, state: v.state,
       visibility: v.visibility, lastAuthor: v.author.principal, createdAt: v.createdAt,
       validation: v.validation,
     }))) },
+
+  { name: "list_repos", summary: "Projects in the workspace: each repo with a Kage count", params: [], run: (c) =>
+    ok({ workspace: c.store.workspaceName, projects: c.store.listRepos() }) },
 
   { name: "describe_kage", summary: "Text view of a Kage for agents without vision (untrusted content)", params: ["name"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);

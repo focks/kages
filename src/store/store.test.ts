@@ -43,11 +43,24 @@ test("create: immutable signed version with provenance and lockfile", () => {
   assert.ok(verifyDigest(s.publicKeyOf(agent.principal), v.digest, v.signature), "signature verifies");
 });
 
-test("create: nothing anonymous — a principal without write is refused", () => {
-  const s = freshStore(); // no grants
-  const r = s.create("kages", ops(), agent);
+test("create: can't create into a project someone else owns", () => {
+  const s = freshStore();
+  s.grant("agent:acme/owner", "kages", ["admin"]); // repo already claimed by another principal
+  const r = s.create("kages", ops(), agent);        // agent has no grant here
   assert.equal(r.ok, false);
   assert.equal(r.error?.code, "forbidden");
+});
+
+test("create: first creator claims an unclaimed project and becomes its owner", () => {
+  const s = freshStore(); // no grants anywhere
+  const r = s.create("newproj", ops(), agent);
+  assert.ok(r.ok, JSON.stringify(r.error));
+  assert.match(r.version!.ref, /^kages:\/\/acme\/newproj\/ops-console@v1$/);
+  // and the claim sticks: a different principal can't now create into newproj
+  const other = { ...agent, principal: "agent:acme/intruder" };
+  const intrude = s.create("newproj", { ...ops(), id: "other-kage" }, other);
+  assert.equal(intrude.ok, false);
+  assert.equal(intrude.error?.code, "forbidden");
 });
 
 test("write path validates before commit — an invalid doc is rejected atomically", () => {

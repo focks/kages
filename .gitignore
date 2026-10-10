@@ -8,3 +8,6 @@ play
 verify
 Claude outputs
 .kages
+.vercel
+.env
+.env*.local
