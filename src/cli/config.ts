@@ -6,9 +6,11 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync, statSync } from "node:fs";
 
-export const KAGES_HOME = process.env.KAGES_CONFIG_HOME ?? join(homedir(), ".kages");
-const CONFIG_FILE = join(KAGES_HOME, "config.json");
-const CACHE_DIR = join(KAGES_HOME, "cache");
+// Resolved lazily (not at import) so $KAGES_CONFIG_HOME can be set by tests
+// after this module loads.
+export const kagesHome = () => process.env.KAGES_CONFIG_HOME ?? join(homedir(), ".kages");
+const configFile = () => join(kagesHome(), "config.json");
+const cacheDir = () => join(kagesHome(), "cache");
 
 export interface Session {
   access_token: string;
@@ -25,12 +27,12 @@ export interface CliConfig {
 }
 
 export function readConfig(): CliConfig {
-  try { return JSON.parse(readFileSync(CONFIG_FILE, "utf8")) as CliConfig; } catch { return {}; }
+  try { return JSON.parse(readFileSync(configFile(), "utf8")) as CliConfig; } catch { return {}; }
 }
 
 export function writeConfig(cfg: CliConfig): void {
-  mkdirSync(KAGES_HOME, { recursive: true });
-  writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2) + "\n", { mode: 0o600 });
+  mkdirSync(kagesHome(), { recursive: true });
+  writeFileSync(configFile(), JSON.stringify(cfg, null, 2) + "\n", { mode: 0o600 });
 }
 
 export function clearSession(): void {
@@ -42,7 +44,7 @@ export function clearSession(): void {
 // --- cache (best-effort; a failure never breaks a command) -----------------
 
 function cachePath(key: string): string {
-  return join(CACHE_DIR, key.replace(/[^a-zA-Z0-9_.-]/g, "_") + ".json");
+  return join(cacheDir(), key.replace(/[^a-zA-Z0-9_.-]/g, "_") + ".json");
 }
 
 /** Read a cached value if present and younger than maxAgeMs; else null. */
@@ -56,13 +58,13 @@ export function cacheGet<T>(key: string, maxAgeMs: number): T | null {
 
 export function cacheSet(key: string, value: unknown): void {
   try {
-    mkdirSync(CACHE_DIR, { recursive: true });
+    mkdirSync(cacheDir(), { recursive: true });
     writeFileSync(cachePath(key), JSON.stringify(value));
   } catch { /* cache is best-effort */ }
 }
 
 export function cacheClear(): void {
-  try { rmSync(CACHE_DIR, { recursive: true, force: true }); } catch { /* ignore */ }
+  try { rmSync(cacheDir(), { recursive: true, force: true }); } catch { /* ignore */ }
 }
 
-export function configExists(): boolean { return existsSync(CONFIG_FILE); }
+export function configExists(): boolean { return existsSync(configFile()); }

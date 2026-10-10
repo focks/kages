@@ -53,8 +53,8 @@ author  (operate on a .kage.json file, or a stored name; offline)
   preview  <file|name> [-s sys] headless render snapshot (visibility + outputs)
   convert  <file> --to envelope|doc [-s sys]
 
-manage  (the local workspace artifactory in ./.kages)
-  init                          create the workspace
+manage  (your CLOUD workspace when signed in, else the local ./.kages; --local forces local)
+  init                          create the local workspace
   create <file> [--repo r]      store a new Kage (validated + signed)
   patch  <name> <patch.json>    apply RFC 6902 ops, new version
   ls [-s sys] [--state st]      list stored Kages
@@ -75,7 +75,8 @@ dev
 global flags
   --json            raw JSON output (for scripts and agents)
   -s, --system      design system override
-  -C, --workspace   workspace dir (default ./.kages or $KAGES_HOME)
+  -C, --workspace   local workspace dir (default ./.kages or $KAGES_HOME)
+  --local           use the local workspace even when signed in
   -o, --out         write output to a file
   -h, --help        this help
   -v, --version     on a Kage: pick a version; alone: print kages version`;
@@ -112,8 +113,16 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     throw new Error(`no file or stored Kage '${target}'`);
   };
 
-  // Run an operation against the workspace store; persist if it mutated and succeeded.
-  const op = (name: string, params: Record<string, unknown>, mutates = false): OpResult => {
+  // Run an operation. Signed in (and not --local) → against your CLOUD workspace
+  // over the network; otherwise against the local ./.kages store (persist if it
+  // mutated and succeeded). So after `kages auth login`, `kages ls` lists your
+  // cloud Kages; `--local` always uses the on-disk workspace.
+  const useRemote = !flags.local && !!status();
+  const op = async (name: string, params: Record<string, unknown>, mutates = false): Promise<OpResult> => {
+    if (useRemote) {
+      try { return { ok: true, data: await remoteCall(name, params) }; }
+      catch (e) { return { ok: false, error: { code: "remote", msg: (e as Error).message } }; }
+    }
     const store = loadStore(ctx.dir);
     const opCtx: OpContext = { store, author: owner(), repo: flag(flags, "repo") };
     const r = dispatch(opCtx, name, params);
@@ -194,25 +203,25 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     case "create": {
       need(1, "create <file> [--repo r]");
       const doc = JSON.parse(readFileSync(rest[0], "utf8"));
-      return report(op("create_kage", { doc }, true), (d) => out(`created ${(d as any).version.ref}`));
+      return report(await op("create_kage", { doc }, true), (d) => out(`created ${(d as any).version.ref}`));
     }
     case "patch": {
       need(2, "patch <name> <patch.json>");
       const ops = JSON.parse(readFileSync(rest[1], "utf8"));
-      return report(op("patch_kage", { name: rest[0], ops }, true), (d) => out(`patched → ${(d as any).version.ref}`));
+      return report(await op("patch_kage", { name: rest[0], ops }, true), (d) => out(`patched → ${(d as any).version.ref}`));
     }
     case "ls": case "list":
-      return report(op("list_kages", {}), (d) => out(kageTable(d as KageSummary[])));
+      return report(await op("list_kages", {}), (d) => out(kageTable(d as KageSummary[])));
     case "search": {
       need(1, "search <query> [-s system]");
-      return report(op("search_kages", { text: rest[0], system: sys, state: flag(flags, "state") }), (d) => out(kageTable(((d as any[]).map(fromVersion))))); }
+      return report(await op("search_kages", { text: rest[0], system: sys, state: flag(flags, "state") }), (d) => out(kageTable(((d as any[]).map(fromVersion))))); }
     case "get": {
       need(1, "get <name> [-v n] [-o file]");
-      return report(op("get_kage", { name: rest[0], version: flag(flags, "version") }), (d) => writeOut(flags, JSON.stringify(d, null, 2)));
+      return report(await op("get_kage", { name: rest[0], version: flag(flags, "version") }), (d) => writeOut(flags, JSON.stringify(d, null, 2)));
     }
     case "versions": {
       need(1, "versions <name>");
-      return report(op("list_versions", { name: rest[0] }), (d) => out(table(d as VersionSummary[], [
+      return report(await op("list_versions", { name: rest[0] }), (d) => out(table(d as VersionSummary[], [
         { header: "v", get: (v) => "v" + v.v },
         { header: "state", get: (v) => v.state },
         { header: "change", get: (v) => v.change.summary },
@@ -222,18 +231,18 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     }
     case "publish":
       need(1, "publish <name> [--visibility v]");
-      return report(op("publish_kage", { name: rest[0], visibility: flag(flags, "visibility") }, true), (d) => out(`published ${(d as any).version.ref}`));
+      return report(await op("publish_kage", { name: rest[0], visibility: flag(flags, "visibility") }, true), (d) => out(`published ${(d as any).version.ref}`));
     case "export": {
       need(1, "export <name> [--format json|markdown] [-o file]");
-      return report(op("export_kage", { name: rest[0], format: flag(flags, "format") ?? "json" }), (d) => writeOut(flags, typeof d === "string" ? d : JSON.stringify(d, null, 2)));
+      return report(await op("export_kage", { name: rest[0], format: flag(flags, "format") ?? "json" }), (d) => writeOut(flags, typeof d === "string" ? d : JSON.stringify(d, null, 2)));
     }
     case "state":
       need(1, "state <name>");
-      return report(op("get_state", { name: rest[0] }), (d) => printJson(d));
+      return report(await op("get_state", { name: rest[0] }), (d) => printJson(d));
     case "comment": {
       need(3, "comment <name> <block> <text> [--patch file]");
       const suggestedPatch = flags.patch ? JSON.parse(readFileSync(flag<string>(flags, "patch")!, "utf8")) : undefined;
-      return report(op("comment", { kage: rest[0], block: rest[1], text: rest.slice(2).join(" "), suggestedPatch }, true), (d) => out(`comment ${(d as any).id} on ${(d as any).block}`));
+      return report(await op("comment", { kage: rest[0], block: rest[1], text: rest.slice(2).join(" "), suggestedPatch }, true), (d) => out(`comment ${(d as any).id} on ${(d as any).block}`));
     }
 
     // --- dev ---

@@ -19,6 +19,10 @@ import type { KageDoc } from "../engine/types.ts";
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const FIXTURE = join(repoRoot, "public/ds/ops-console.kage.json");
 
+// Isolate from any real ~/.kages session so the CLI stays in local mode (never
+// hits the network) regardless of whether the test machine is signed in.
+process.env.KAGES_CONFIG_HOME = mkdtempSync(join(tmpdir(), "kages-cfg-"));
+
 /** Run the CLI capturing stdout/stderr and the exit code. */
 async function cli(argv: string[]): Promise<{ code: number; out: string; err: string }> {
   const realOut = process.stdout.write.bind(process.stdout);
