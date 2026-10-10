@@ -63,6 +63,33 @@ test("create: first creator claims an unclaimed project and becomes its owner", 
   assert.equal(intrude.error?.code, "forbidden");
 });
 
+test("uuid: minted once, stable across versions, unique per Kage, resolvable, survives restore", () => {
+  const s = seeded();
+  s.create("kages", ops(), agent);
+  const u = s.head("ops-console")!.uuid;
+  assert.match(u, /^[0-9a-f-]{36}$/);
+  s.patch("ops-console", [{ op: "add", path: "/blocks/kpiRevenue/props/caption", value: "x" }], agent);
+  assert.equal(s.head("ops-console")!.uuid, u, "uuid carried across versions");
+  assert.equal(s.nameByUuid(u), "ops-console");
+
+  s.create("kages", { ...ops(), id: "other-kage" }, agent);
+  assert.notEqual(s.head("other-kage")!.uuid, u, "distinct Kages get distinct uuids");
+
+  const restored = Store.restore(s.snapshot());
+  assert.equal(restored.nameByUuid(u), "ops-console", "uuid survives snapshot/restore");
+});
+
+test("uuid: a pre-uuid snapshot is backfilled on restore", () => {
+  const s = seeded();
+  s.create("kages", ops(), agent);
+  const snap = s.snapshot();
+  for (const k of snap.kages) for (const v of k.versions) delete (v as { uuid?: string }).uuid; // simulate old data
+  const restored = Store.restore(snap);
+  const u = restored.head("ops-console")!.uuid;
+  assert.ok(u, "uuid assigned on restore");
+  assert.equal(restored.nameByUuid(u), "ops-console");
+});
+
 test("write path validates before commit — an invalid doc is rejected atomically", () => {
   const s = seeded();
   const bad = ops();

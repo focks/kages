@@ -11,6 +11,7 @@ import { resolve, systemOf } from "../engine/resolve.ts";
 import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
 import { clone } from "../engine/expr.ts";
+import { randomUUID } from "node:crypto";
 import { digest, signDigest, newSigningKey, exportKey, importKey, type SigningKey, type SerializedKey } from "./crypto.ts";
 import { applyPatch, type PatchOp } from "../collab/patch.ts";
 import { mergeThreeWay } from "../collab/merge.ts";
@@ -96,7 +97,16 @@ export class Store {
 
   static restore(snap: StoreSnapshot, opts: Omit<StoreOptions, "workspace"> = {}): Store {
     const store = new Store({ ...opts, workspace: snap.workspace });
-    for (const k of snap.kages) store.kages.set(k.name, { name: k.name, versions: k.versions });
+    for (const k of snap.kages) {
+      // Backfill uuids for snapshots taken before uuids existed: mint one per
+      // Kage and stamp every version, so old data gets stable share links and
+      // round-trips with the uuid on the next save.
+      if (k.versions.length && !k.versions[0].uuid) {
+        const u = randomUUID();
+        for (const v of k.versions) v.uuid = u;
+      }
+      store.kages.set(k.name, { name: k.name, versions: k.versions });
+    }
     for (const [key, grants] of snap.grants) store.grants.set(key, new Set(grants));
     for (const [p, sk] of snap.keys) store.keys.set(p, importKey(sk));
     store.audit = snap.audit;
@@ -123,6 +133,13 @@ export class Store {
   /** The repo (project) a stored ref lives in — public so adapters can group a
    *  listing by project without re-parsing the ref themselves. */
   repoOf(ref: string): string { return Store.repoOfRef(ref); }
+
+  /** Resolve a Kage's stable uuid to its name. Linear scan — fine at authoring
+   *  scale; add an index only if a store ever holds enough Kages to matter. */
+  nameByUuid(uuid: string): string | undefined {
+    for (const kage of this.kages.values()) if (kage.versions[0]?.uuid === uuid) return kage.name;
+    return undefined;
+  }
 
   /** The workspace this store namespaces. Workspace → project (repo) → Kage is
    *  the organizing hierarchy, and every ref encodes all three. */
@@ -296,6 +313,9 @@ export class Store {
 
     const kage = this.kages.get(doc.id) ?? { name: doc.id, versions: [] };
     const vn = kage.versions.length + 1;
+    // The Kage's uuid is minted once (first version) and carried forward, so the
+    // share link is stable across edits and never reveals the name.
+    const uuid = kage.versions[0]?.uuid ?? randomUUID();
     const ref = `kages://${this.workspace}/${repo}/${doc.id}@v${vn}`;
     const resolved = { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc) };
     // Deep clone at ingress: the stored, signed document must NOT share object
@@ -306,7 +326,7 @@ export class Store {
     const signature = signDigest(this.signerFor(author.principal), dgst);
 
     const record: VersionRecord = {
-      ref, parent, name: doc.id, v: vn, digest: dgst, signature,
+      ref, parent, name: doc.id, uuid, v: vn, digest: dgst, signature,
       createdAt: new Date(this.clock()).toISOString(),
       author, change, resolved,
       validation: { ok: v.ok, errors: v.errors.length, warnings: v.warnings.length },

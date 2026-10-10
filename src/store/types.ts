@@ -36,6 +36,7 @@ export interface VersionRecord {
   ref: string; // kages://<ws>/<repo>/<name>@v<n>
   parent: string | null;
   name: string;
+  uuid: string; // stable opaque id, generated once at create and carried across versions — used for /k/<uuid> share links so they don't leak the name
   v: number;
   digest: string;
   signature: Signature;

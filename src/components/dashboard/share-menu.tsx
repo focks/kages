@@ -29,11 +29,13 @@ const LEVELS: { value: string; label: string; hint: string }[] = [
 
 const LINKABLE = new Set(["link", "public"]);
 
-export function ShareMenu({ name, state, visibility, onChanged }: {
-  name: string; state: string; visibility: string; onChanged: () => void | Promise<void>;
+export function ShareMenu({ name, uuid, state, visibility, onChanged }: {
+  name: string; uuid: string; state: string; visibility: string; onChanged: () => void | Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/k/${encodeURIComponent(name)}` : "";
+  // The link uses the opaque uuid, never the name slug — so it doesn't reveal
+  // the Kage's identity and isn't guessable.
+  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/k/${uuid}` : "";
 
   async function setLevel(level: string) {
     if (level === visibility && state === "published") return;

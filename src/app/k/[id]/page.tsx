@@ -1,0 +1,53 @@
+"use client";
+
+// The shareable published-Kage link: /k/<uuid>. The path is the Kage's opaque
+// uuid (not its name slug), so the link doesn't reveal the identity and isn't
+// guessable. Access is the store's call: get_shared_kage returns the document
+// only if the caller may read it (published link/public, or a repo grant), so a
+// private Kage's link 404s for an outsider. The Kage renders in its OWN design
+// system — the system is fixed at creation and not swappable here.
+
+import { use, useEffect, useState } from "react";
+import { SystemChip, op } from "@/components/dashboard/kage-ui";
+import { KageRenderer } from "@/runtime/KageRenderer";
+import { MadeWithKages } from "@/components/dashboard/made-with-kages";
+import type { KageDoc } from "@/engine/types";
+
+export default function SharedKagePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [doc, setDoc] = useState<KageDoc | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    op<KageDoc>("get_shared_kage", { uuid: id })
+      .then((d) => setDoc(d))
+      .catch((e) => setErr(String((e as Error).message || e)));
+  }, [id]);
+
+  if (err) {
+    return (
+      <div className="grid min-h-svh place-items-center p-6 text-center">
+        <div>
+          <h1 className="font-display text-lg font-[650]">This Kage isn’t available</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{err} — the link may be private or no longer shared.</p>
+        </div>
+      </div>
+    );
+  }
+  if (!doc) return <div className="grid min-h-svh place-items-center p-6 text-sm text-muted-foreground">Loading…</div>;
+
+  return (
+    <div className="relative flex min-h-svh flex-col bg-background">
+      <div className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
+        <span className="font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
+        <SystemChip system={doc.system} />
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto">
+        <KageRenderer doc={doc} />
+      </div>
+      <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
+        <div className="pointer-events-auto"><MadeWithKages /></div>
+      </div>
+    </div>
+  );
+}

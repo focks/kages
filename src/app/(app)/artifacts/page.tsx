@@ -214,7 +214,7 @@ function ArtifactsInner() {
                 <Button size="sm" variant="outline" disabled={!doc} onClick={() => doc && setPreview({ doc, ref: current.ref })}><Eye className="size-4" /> Preview</Button>
                 <Button render={<Link href={`/studio?kage=${current.name}`} />} nativeButton={false} size="sm" variant="outline"><SquarePen className="size-4" /> Studio</Button>
                 <Button size="sm" variant="outline" onClick={() => exportJson(current.name)}><Download className="size-4" /> Export</Button>
-                <ShareMenu name={current.name} state={current.state} visibility={current.visibility}
+                <ShareMenu name={current.name} uuid={current.uuid} state={current.state} visibility={current.visibility}
                   onChanged={async () => { await refresh(); await openCard(current.name); }} />
               </div>
             </div>
