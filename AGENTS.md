@@ -38,7 +38,8 @@ bin/kages.mjs      CLI entry (package.json `bin`)
 src/packs/         skill packs per system (SKILL.md/AGENTS.md/llms.txt/catalog), generated from the registry
 src/host/          the host bridge: gated capabilities (storage/ask/agent/connector/fetch/viewer/emit)
 src/components/dashboard/  dashboard UI primitives (inline-SVG icons, state badges, system chips)
-src/app/           Next.js app: /artifacts (dashboard), /viewer, /studio, /api/[op], /api/openapi.json, /.well-known/agent-card.json
+src/studio/        authoring: pure doc-ops (add/duplicate/move/group/delete/docDiff, tested) + tree/inspector/JSON/problems UI
+src/app/           Next.js app: /artifacts (dashboard + fullscreen preview overlay), /studio, /api/[op], /api/openapi.json, /.well-known/agent-card.json
 public/ds/         served design-system bundle assets (bundle.js/css, tokens, fixture)
 scripts/           extract-data.mjs, golden.mjs — regenerate data + goldens from originals/
 ```

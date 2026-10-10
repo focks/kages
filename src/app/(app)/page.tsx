@@ -107,7 +107,7 @@ export default function DashboardPage() {
               </div>
             ))}
             <div className="flex gap-2 pt-2">
-              <Button render={<Link href="/viewer" />} nativeButton={false} size="sm" variant="outline" className="flex-1"><Eye className="size-4" /> Viewer</Button>
+              <Button render={<Link href="/artifacts" />} nativeButton={false} size="sm" variant="outline" className="flex-1"><Eye className="size-4" /> Preview</Button>
               <Button render={<Link href="/studio" />} nativeButton={false} size="sm" variant="outline" className="flex-1"><SquarePen className="size-4" /> Studio</Button>
             </div>
           </CardContent>

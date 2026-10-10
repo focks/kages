@@ -17,7 +17,9 @@
 // bundle still executes in the app window. The spec's model is a sandboxed
 // iframe on a dedicated `<id>.kages-usercontent.app` origin, which needs
 // deployment infrastructure (a separate origin serving the frame runtime with
-// its own CORS + CSP). The strict CSP on /viewer is the in-app mitigation.
+// its own CORS + CSP). Until then the Kage runs in the dashboard document (the
+// fullscreen preview overlay), with the per-block error boundary as the only
+// in-app containment — see next.config.ts.
 
 import * as React from "react";
 import { resolve } from "@/engine/resolve.ts";

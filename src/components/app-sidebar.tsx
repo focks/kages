@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Layers, Eye, SquarePen, Code2 } from "lucide-react";
+import { LayoutDashboard, Layers, SquarePen, Code2 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -16,7 +16,6 @@ import {
 const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
   { title: "Artifacts", href: "/artifacts", icon: Layers },
-  { title: "Viewer", href: "/viewer", icon: Eye },
   { title: "Studio", href: "/studio", icon: SquarePen },
 ];
 

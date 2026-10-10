@@ -2,14 +2,18 @@
 
 // The Artifacts workbench: a master-detail view over the store, on shadcn.
 // Master (left) lists every Kage; selecting one opens a detail pane with
-// Overview / Versions / Describe / Preview tabs. Every read and write is the one
-// operation set over REST — the dashboard holds no privileged access.
+// Overview / Versions / Describe tabs. Preview is a fullscreen overlay (from a
+// list card or the detail), and Share sets the permission level + hands out the
+// /k/<name> link. Every read and write is the one operation set over REST — the
+// dashboard holds no privileged access.
 // See the dashboard-over-adapters skill.
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, Upload, Eye, SquarePen, Download, History } from "lucide-react";
+import { KagePreview } from "@/components/dashboard/kage-preview";
+import { ShareMenu } from "@/components/dashboard/share-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,8 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { StateBadge, SystemChip, ValidationStatus, KageFrame, relTime, op, type KageCard } from "@/components/dashboard/kage-ui";
-import { KageRenderer } from "@/runtime/KageRenderer";
+import { StateBadge, SystemChip, ValidationStatus, relTime, op, type KageCard } from "@/components/dashboard/kage-ui";
 import type { KageDoc } from "@/engine/types";
 
 interface VersionMeta {
@@ -39,6 +42,14 @@ function ArtifactsInner() {
   const [describe, setDescribe] = useState("");
   const [q, setQ] = useState("");
   const [sysFilter, setSysFilter] = useState("all");
+  const [preview, setPreview] = useState<{ doc: KageDoc; ref: string } | null>(null);
+
+  // Preview straight from a list card — fetch the document, then open the
+  // fullscreen overlay. No need to select/open the detail pane first.
+  const previewByName = useCallback(async (name: string, ref: string) => {
+    try { setPreview({ doc: await op<KageDoc>("get_kage", { name }), ref }); }
+    catch (e) { toast.error(String((e as Error).message)); }
+  }, []);
 
   const refresh = useCallback(async () => {
     try { setCards(await op<KageCard[]>("list_kages")); } catch (e) { toast.error(String((e as Error).message)); }
@@ -64,10 +75,6 @@ function ArtifactsInner() {
 
   const current = cards?.find((c) => c.name === selected) ?? null;
 
-  async function publish(name: string) {
-    try { await op("publish_kage", { name }); toast.success(`Published ${name}`); await refresh(); await openCard(name); }
-    catch (e) { toast.error(String((e as Error).message)); }
-  }
   async function exportJson(name: string) {
     const json = await op<string>("export_kage", { name, format: "json" });
     const blob = new Blob([typeof json === "string" ? json : JSON.stringify(json, null, 2)], { type: "application/json" });
@@ -106,8 +113,9 @@ function ArtifactsInner() {
             {!cards && [0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
             {cards && filtered.length === 0 && <p className="p-4 text-sm text-muted-foreground">No Kages match.</p>}
             {filtered.map((c) => (
-              <button key={c.name} onClick={() => openCard(c.name)}
-                className={cn("rounded-xl border bg-card p-3 text-left transition-colors hover:bg-accent", c.name === selected && "border-primary bg-primary-soft hover:bg-primary-soft")}>
+              <div key={c.name} onClick={() => openCard(c.name)} role="button" tabIndex={0}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(c.name); } }}
+                className={cn("group relative cursor-pointer rounded-xl border bg-card p-3 transition-colors hover:bg-accent", c.name === selected && "border-primary bg-primary-soft hover:bg-primary-soft")}>
                 <div className="flex items-center gap-2">
                   <span className="flex-1 truncate font-medium">{c.title}</span>
                   <StateBadge state={c.state} />
@@ -118,7 +126,12 @@ function ArtifactsInner() {
                   <ValidationStatus validation={c.validation} short />
                   <span className="ml-auto">{relTime(c.createdAt)}</span>
                 </div>
-              </button>
+                <Button size="icon" variant="outline" aria-label={`Preview ${c.title}`}
+                  onClick={(e) => { e.stopPropagation(); previewByName(c.name, c.ref); }}
+                  className="absolute right-2 top-2 size-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
+                  <Eye className="size-4" />
+                </Button>
+              </div>
             ))}
           </div>
         </ScrollArea>
@@ -135,10 +148,11 @@ function ArtifactsInner() {
               <StateBadge state={current.state} />
               <Badge variant="secondary" className="capitalize">{current.visibility}</Badge>
               <div className="ml-auto flex flex-wrap gap-2">
-                <Button render={<Link href={`/viewer?kage=${current.name}`} />} nativeButton={false} size="sm" variant="outline"><Eye className="size-4" /> Viewer</Button>
+                <Button size="sm" variant="outline" disabled={!doc} onClick={() => doc && setPreview({ doc, ref: current.ref })}><Eye className="size-4" /> Preview</Button>
                 <Button render={<Link href={`/studio?kage=${current.name}`} />} nativeButton={false} size="sm" variant="outline"><SquarePen className="size-4" /> Studio</Button>
                 <Button size="sm" variant="outline" onClick={() => exportJson(current.name)}><Download className="size-4" /> Export</Button>
-                {current.state !== "published" && <Button size="sm" variant="default" onClick={() => publish(current.name)}>Publish</Button>}
+                <ShareMenu name={current.name} state={current.state} visibility={current.visibility}
+                  onChanged={async () => { await refresh(); await openCard(current.name); }} />
               </div>
             </div>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{current.ref}</p>
@@ -148,7 +162,6 @@ function ArtifactsInner() {
                 <TabsTrigger value="overview" className="flex-none">Overview</TabsTrigger>
                 <TabsTrigger value="versions" className="flex-none">Versions <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{versions.length}</span></TabsTrigger>
                 <TabsTrigger value="describe" className="flex-none">Describe</TabsTrigger>
-                <TabsTrigger value="preview" className="flex-none">Preview</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="mt-4">
@@ -184,17 +197,11 @@ function ArtifactsInner() {
                 <pre className="overflow-auto rounded-xl border bg-muted p-4 font-mono text-[12.5px] leading-[18px]">{describe || "…"}</pre>
               </TabsContent>
 
-              <TabsContent value="preview" className="mt-4">
-                {doc ? (
-                  <KageFrame system={current.system} kageRef={current.ref} digest={versions.at(-1)?.digest}>
-                    <KageRenderer doc={doc} />
-                  </KageFrame>
-                ) : <Skeleton className="h-64 w-full" />}
-              </TabsContent>
             </Tabs>
           </div>
         )}
       </div>
+      {preview && <KagePreview doc={preview.doc} kageRef={preview.ref} onClose={() => setPreview(null)} />}
     </div>
   );
 }
