@@ -10,7 +10,7 @@ import { validate } from "../engine/validate.ts";
 import { resolve, systemOf } from "../engine/resolve.ts";
 import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
-import { digest, signDigest, newSigningKey, type SigningKey } from "./crypto.ts";
+import { digest, signDigest, newSigningKey, exportKey, importKey, type SigningKey, type SerializedKey } from "./crypto.ts";
 import { applyPatch, type PatchOp } from "../collab/patch.ts";
 import { ClaimRegistry } from "../collab/claims.ts";
 import { CommentThread, type Comment } from "../collab/comments.ts";
@@ -40,6 +40,20 @@ export interface StoreOptions {
   versionQuotaPerHour?: number;
 }
 
+/** The persistable state of a store. Leases (claims) and the quota window are
+ *  deliberately NOT included: they are per-process lifetimes, and a lease that
+ *  survived a reload would be a crashed agent holding a Kage hostage — the exact
+ *  thing TTLs exist to prevent. */
+export interface StoreSnapshot {
+  workspace: string;
+  kages: Array<{ name: string; versions: VersionRecord[] }>;
+  grants: Array<[string, Grant[]]>;
+  keys: Array<[string, SerializedKey]>;
+  audit: AuditEntry[];
+  events: KageEvent[];
+  comments: Comment[];
+}
+
 export class Store {
   readonly workspace: string;
   private clock: Clock;
@@ -58,6 +72,35 @@ export class Store {
     this.workspace = opts.workspace ?? "acme";
     this.clock = opts.clock ?? (() => Date.now());
     this.quota = opts.versionQuotaPerHour ?? 120;
+  }
+
+  // --- persistence --------------------------------------------------------
+
+  /** Serialize everything durable: versions (with provenance + signatures),
+   *  grants, signer keys, audit, events and comments. A persistent backend
+   *  writes this to disk and restores it, keeping digests verifiable across
+   *  runs (the keys travel with it). */
+  snapshot(): StoreSnapshot {
+    return {
+      workspace: this.workspace,
+      kages: [...this.kages.values()].map((k) => ({ name: k.name, versions: k.versions })),
+      grants: [...this.grants.entries()].map(([k, set]) => [k, [...set]]),
+      keys: [...this.keys.entries()].map(([p, key]) => [p, exportKey(key)]),
+      audit: this.audit,
+      events: this.events,
+      comments: this.comments.dump(),
+    };
+  }
+
+  static restore(snap: StoreSnapshot, opts: Omit<StoreOptions, "workspace"> = {}): Store {
+    const store = new Store({ ...opts, workspace: snap.workspace });
+    for (const k of snap.kages) store.kages.set(k.name, { name: k.name, versions: k.versions });
+    for (const [key, grants] of snap.grants) store.grants.set(key, new Set(grants));
+    for (const [p, sk] of snap.keys) store.keys.set(p, importKey(sk));
+    store.audit = snap.audit;
+    store.events = snap.events;
+    store.comments.load(snap.comments);
+    return store;
   }
 
   // --- identity & permissions ---------------------------------------------

@@ -17,6 +17,7 @@ find a new reusable pattern, add it as a skill.
 | `how-to-extend-kages` | Adding a design system, component/role override, or protocol adapter. |
 | `comment-doctrine` | Writing or editing any code. Comment the *why* and the *failure mode*, never the *what*. |
 | `dashboard-over-adapters` | Building or changing any page that reads/writes Kages — UI talks to the store only through `/api/<op>`. |
+| `kages-cli` | Adding or changing a `kages` CLI command, or the file-backed workspace store. |
 | `testing-conventions` | Adding a test or a testable module (node --test, native TS, injected clocks). |
 | `kages-app-design-system` | Before adding or changing any UI: tokens, type, states, the Kage boundary. |
 
@@ -31,7 +32,9 @@ src/engine/__fixtures__/  fixtures + golden outputs captured from the reference
 src/runtime/       React renderer (@kages/runtime) + DS-bundle loader — drives the trusted bundle with the engine
 src/store/         artifactory: immutable signed versions, provenance, lifecycle, RBAC, search, events, quotas
 src/collab/        RFC6902 patch · block-level three-way merge · claims/leases · comments
-src/adapters/      one operation table → REST · CLI · MCP tools · A2A card · OpenAPI (all generated)
+src/adapters/      one operation table → REST · MCP tools · A2A card · OpenAPI (all generated)
+src/cli/           the `kages` CLI: toolsets over the operation table + a file-backed workspace store
+bin/kages.mjs      CLI entry (package.json `bin`)
 src/packs/         skill packs per system (SKILL.md/AGENTS.md/llms.txt/catalog), generated from the registry
 src/host/          the host bridge: gated capabilities (storage/ask/agent/connector/fetch/viewer/emit)
 src/components/dashboard/  dashboard UI primitives (inline-SVG icons, state badges, system chips)
@@ -42,14 +45,16 @@ scripts/           extract-data.mjs, golden.mjs — regenerate data + goldens fr
 
 ## Status
 
-All ten `oracle/*.feature` files are implemented and tested (`npm test` → 63 tests).
+All ten `oracle/*.feature` files are implemented and tested (`npm test` → 70 tests).
 Milestones 1–9 of the build plan are complete: engine (golden-faithful to the
 oracle), runtime (headless + React, System Swap), store + collab, adapters +
-packs, host bridge + viewer + studio.
+packs, host bridge + viewer + studio, plus the `kages` CLI with a persistent
+local workspace.
 
 ## Commands
 
-- `npm test` — engine tests (`node --test`, native TS, no framework)
+- `npm test` — engine + CLI tests (`node --test`, native TS, no framework)
+- `node bin/kages.mjs help` (or `npx kages`) — the CLI; `kages validate <file>` works offline
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run dev` / `npm run build` — Next.js
 

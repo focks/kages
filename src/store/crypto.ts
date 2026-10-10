@@ -5,7 +5,7 @@
 // content, and the signature covers the digest, so tampering with either the
 // bytes or the recorded hash is detectable by anyone holding the public key.
 
-import { createHash, generateKeyPairSync, sign as nodeSign, verify as nodeVerify, type KeyObject } from "node:crypto";
+import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign as nodeSign, verify as nodeVerify, type KeyObject } from "node:crypto";
 
 type Json = unknown;
 
@@ -65,4 +65,26 @@ export function verifyDigest(publicKey: KeyObject, dgst: string, signature: Sign
   } catch {
     return false;
   }
+}
+
+/** A signer serialized as PEM, so a persistent store keeps the SAME identity
+ *  across runs and signatures stay verifiable after a reload. A private key on
+ *  disk is a real trust assumption; acceptable for a local workspace, not for a
+ *  shared server (which would hold keys in a KMS/HSM). */
+export interface SerializedKey {
+  keyId: string;
+  publicPem: string;
+  privatePem: string;
+}
+
+export function exportKey(k: SigningKey): SerializedKey {
+  return {
+    keyId: k.keyId,
+    publicPem: k.publicKey.export({ type: "spki", format: "pem" }) as string,
+    privatePem: k.privateKey.export({ type: "pkcs8", format: "pem" }) as string,
+  };
+}
+
+export function importKey(s: SerializedKey): SigningKey {
+  return { keyId: s.keyId, publicKey: createPublicKey(s.publicPem), privateKey: createPrivateKey(s.privatePem) };
 }

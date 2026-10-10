@@ -1,0 +1,266 @@
+// `kages` — the command-line adapter. Like every adapter it is a thin
+// translation of the one operation set (plus the pure engine for offline work);
+// it holds no business logic. Commands are grouped into toolsets:
+//
+//   learn    systems · catalog · contract · schema
+//   author   validate · describe · preview · convert        (work on files, offline)
+//   manage   init · create · patch · ls · get · versions · search ·
+//            publish · export · state · comment             (the local artifactory)
+//   dev      pack · openapi · agent-card · mcp-tools
+//
+// See the kages-cli skill. Offline commands never touch a store; manage commands
+// load a persistent workspace (./.kages) and save it after a write.
+
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { systems, contracts } from "../engine/data.ts";
+import { catalog } from "../engine/catalog.ts";
+import { validate } from "../engine/validate.ts";
+import { describe } from "../engine/describe.ts";
+import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
+import { KageSession } from "../engine/session.ts";
+import { dispatch, type OpContext, type OpResult } from "../adapters/operations.ts";
+import { openapi, a2aCard, mcpTools } from "../adapters/surfaces.ts";
+import { pack } from "../packs/packs.ts";
+import { loadStore, saveStore, owner, workspaceDir, initWorkspace } from "./workspace.ts";
+import { parseArgs, flag, type ParsedArgs } from "./args.ts";
+import { printJson, table, out, err } from "./format.ts";
+import type { KageDoc } from "../engine/types.ts";
+
+const VERSION = "1.0.0";
+
+const HELP = `kages ${VERSION} — an artifactory for agents
+
+usage: kages <command> [args] [--flags]
+
+learn
+  systems                       list design systems
+  catalog <system>              print the agent catalog for a system
+  contract <ref>                print a component contract (e.g. core/stat@1.0.0)
+  schema <system>               print the generation-envelope JSON Schema (tier B)
+
+author  (operate on a .kage.json file, or a stored name; offline)
+  validate <file|name> [-s sys] validate; exits 1 on errors
+  describe <file|name> [-s sys] text view for agents
+  preview  <file|name> [-s sys] headless render snapshot (visibility + outputs)
+  convert  <file> --to envelope|doc [-s sys]
+
+manage  (the local workspace artifactory in ./.kages)
+  init                          create the workspace
+  create <file> [--repo r]      store a new Kage (validated + signed)
+  patch  <name> <patch.json>    apply RFC 6902 ops, new version
+  ls [-s sys] [--state st]      list stored Kages
+  get <name> [-v n] [-o file]   print a stored Kage document
+  versions <name>               revision history with provenance
+  search <query> [-s sys]       full-text search
+  publish <name> [--visibility private|workspace|link|public]
+  export <name> [--format json|markdown] [-o file]
+  state <name>                  current app state
+  comment <name> <block> <text> [--patch file]
+
+dev
+  pack <system> [-o dir]        skill pack (SKILL.md/AGENTS.md/llms.txt/catalog)
+  openapi                       OpenAPI 3.1 for the REST adapter
+  agent-card                    A2A agent card
+  mcp-tools                     MCP tool definitions
+
+global flags
+  --json            raw JSON output (for scripts and agents)
+  -s, --system      design system override
+  -C, --workspace   workspace dir (default ./.kages or $KAGES_HOME)
+  -o, --out         write output to a file
+  -h, --help        this help
+  -v, --version     on a Kage: pick a version; alone: print kages version`;
+
+export async function main(argv: string[]): Promise<number> {
+  const { positionals, flags } = parseArgs(argv);
+  const json = !!flags.json;
+  const dir = workspaceDir(flag(flags, "workspace"));
+  const cmd = positionals[0];
+  const rest = positionals.slice(1);
+
+  if (!cmd || cmd === "help" || flags.help) { out(HELP); return 0; }
+  if (cmd === "version" || (flags.version === true && !cmd)) { out(`kages ${VERSION}`); return 0; }
+
+  try {
+    return await run(cmd, rest, flags, { json, dir });
+  } catch (e) {
+    err(`error: ${(e as Error).message}`);
+    return 1;
+  }
+}
+
+interface Ctx { json: boolean; dir: string; }
+
+async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx: Ctx): Promise<number> {
+  const sys = flag<string>(flags, "system");
+  const need = (n: number, usage: string) => { if (rest.length < n) throw new Error(`usage: kages ${usage}`); };
+
+  // Resolve a Kage from a file path, or (failing that) a stored name.
+  const resolveDoc = (target: string): KageDoc => {
+    if (target && existsSync(target)) return JSON.parse(readFileSync(target, "utf8")) as KageDoc;
+    const head = loadStore(ctx.dir).head(target);
+    if (head) return head.doc;
+    throw new Error(`no file or stored Kage '${target}'`);
+  };
+
+  // Run an operation against the workspace store; persist if it mutated and succeeded.
+  const op = (name: string, params: Record<string, unknown>, mutates = false): OpResult => {
+    const store = loadStore(ctx.dir);
+    const opCtx: OpContext = { store, author: owner(), repo: flag(flags, "repo") };
+    const r = dispatch(opCtx, name, params);
+    if (r.ok && mutates) saveStore(ctx.dir, store);
+    return r;
+  };
+  const report = (r: OpResult, onOk: (data: unknown) => void): number => {
+    if (!r.ok) { err(`error ${r.error.code}: ${r.error.msg}`); return 1; }
+    if (ctx.json) printJson(r.data); else onOk(r.data);
+    return 0;
+  };
+
+  switch (cmd) {
+    // --- learn ---
+    case "systems": {
+      const list = Object.values(systems).map((s) => ({ id: s.id, name: s.name, version: s.version, extends: s.extends ?? "—", summary: s.summary }));
+      if (ctx.json) { printJson(list); return 0; }
+      out(table(list, [
+        { header: "id", get: (s) => s.id },
+        { header: "name", get: (s) => s.name },
+        { header: "version", get: (s) => s.version },
+        { header: "extends", get: (s) => s.extends },
+      ]));
+      return 0;
+    }
+    case "catalog": { need(1, "catalog <system>"); if (!systems[rest[0]]) throw new Error(`no system '${rest[0]}'`); out(catalog(rest[0])); return 0; }
+    case "contract": { need(1, "contract <ref>"); const c = contracts[rest[0]]; if (!c) throw new Error(`no contract '${rest[0]}' (try: kages catalog <system>)`); printJson(c); return 0; }
+    case "schema": { need(1, "schema <system>"); if (!systems[rest[0]]) throw new Error(`no system '${rest[0]}'`); printJson(generationSchema(rest[0])); return 0; }
+
+    // --- author (offline, file or stored) ---
+    case "validate": {
+      need(1, "validate <file|name> [-s system]");
+      const r = validate(resolveDoc(rest[0]), sys);
+      if (ctx.json) { printJson(r); return r.ok ? 0 : 1; }
+      for (const e of r.errors) out(`  ✗ ${e.at}  ${e.code}  ${e.msg}`);
+      for (const w of r.warnings) out(`  ⚠ ${w.at}  ${w.code}  ${w.msg}`);
+      out(`${r.ok ? "✓ valid" : "✗ invalid"} — ${r.errors.length} errors, ${r.warnings.length} warnings${r.portable !== undefined ? ` · portable: ${r.portable}` : ""}`);
+      return r.ok ? 0 : 1;
+    }
+    case "describe": { need(1, "describe <file|name> [-s system]"); out(describe(resolveDoc(rest[0]), sys)); return 0; }
+    case "preview": {
+      need(1, "preview <file|name> [-s system]");
+      const doc = resolveDoc(rest[0]);
+      const s = new KageSession(doc, sys);
+      const blocks = Object.keys(doc.blocks).map((id) => ({ id, visible: s.visible(id), output: s.read(id) }));
+      if (ctx.json) { printJson({ system: s.sysId, blocks }); return 0; }
+      out(table(blocks, [
+        { header: "block", get: (b) => b.id },
+        { header: "visible", get: (b) => (b.visible ? "yes" : "no") },
+        { header: "outputs", get: (b) => Object.keys(b.output ?? {}).join(", ") },
+      ]));
+      return 0;
+    }
+    case "convert": {
+      need(1, "convert <file> --to envelope|doc [-s system]");
+      const to = flag<string>(flags, "to");
+      const data = JSON.parse(readFileSync(rest[0], "utf8"));
+      if (to === "envelope") { printJson(toGenerated(data as KageDoc, sys)); return 0; }
+      if (to === "doc") { if (!sys) throw new Error("convert --to doc needs -s <system>"); printJson(fromGenerated(data, sys)); return 0; }
+      throw new Error("convert needs --to envelope|doc");
+    }
+
+    // --- manage (workspace store) ---
+    case "init": { initWorkspace(ctx.dir); out(`initialized workspace at ${ctx.dir}`); return 0; }
+    case "create": {
+      need(1, "create <file> [--repo r]");
+      const doc = JSON.parse(readFileSync(rest[0], "utf8"));
+      return report(op("create_kage", { doc }, true), (d) => out(`created ${(d as any).version.ref}`));
+    }
+    case "patch": {
+      need(2, "patch <name> <patch.json>");
+      const ops = JSON.parse(readFileSync(rest[1], "utf8"));
+      return report(op("patch_kage", { name: rest[0], ops }, true), (d) => out(`patched → ${(d as any).version.ref}`));
+    }
+    case "ls": case "list":
+      return report(op("list_kages", {}), (d) => out(kageTable(d as KageSummary[])));
+    case "search": {
+      need(1, "search <query> [-s system]");
+      return report(op("search_kages", { text: rest[0], system: sys, state: flag(flags, "state") }), (d) => out(kageTable(((d as any[]).map(fromVersion))))); }
+    case "get": {
+      need(1, "get <name> [-v n] [-o file]");
+      return report(op("get_kage", { name: rest[0], version: flag(flags, "version") }), (d) => writeOut(flags, JSON.stringify(d, null, 2)));
+    }
+    case "versions": {
+      need(1, "versions <name>");
+      return report(op("list_versions", { name: rest[0] }), (d) => out(table(d as VersionSummary[], [
+        { header: "v", get: (v) => "v" + v.v },
+        { header: "state", get: (v) => v.state },
+        { header: "change", get: (v) => v.change.summary },
+        { header: "author", get: (v) => v.author.principal },
+        { header: "digest", get: (v) => v.digest.slice(0, 19) },
+      ])));
+    }
+    case "publish":
+      need(1, "publish <name> [--visibility v]");
+      return report(op("publish_kage", { name: rest[0], visibility: flag(flags, "visibility") }, true), (d) => out(`published ${(d as any).version.ref}`));
+    case "export": {
+      need(1, "export <name> [--format json|markdown] [-o file]");
+      return report(op("export_kage", { name: rest[0], format: flag(flags, "format") ?? "json" }), (d) => writeOut(flags, typeof d === "string" ? d : JSON.stringify(d, null, 2)));
+    }
+    case "state":
+      need(1, "state <name>");
+      return report(op("get_state", { name: rest[0] }), (d) => printJson(d));
+    case "comment": {
+      need(3, "comment <name> <block> <text> [--patch file]");
+      const suggestedPatch = flags.patch ? JSON.parse(readFileSync(flag<string>(flags, "patch")!, "utf8")) : undefined;
+      return report(op("comment", { kage: rest[0], block: rest[1], text: rest.slice(2).join(" "), suggestedPatch }, true), (d) => out(`comment ${(d as any).id} on ${(d as any).block}`));
+    }
+
+    // --- dev ---
+    case "pack": {
+      need(1, "pack <system> [-o dir]");
+      const p = pack(rest[0]);
+      const o = flag<string>(flags, "out");
+      if (o) {
+        mkdirSync(o, { recursive: true });
+        for (const f of ["SKILL.md", "AGENTS.md", "llms.txt", "catalog.txt"] as const) writeFileSync(join(o, f), p[f]);
+        out(`wrote pack for ${rest[0]} to ${o}/`);
+      } else if (ctx.json) printJson(p);
+      else out(p["SKILL.md"]);
+      return 0;
+    }
+    case "openapi": printJson(openapi()); return 0;
+    case "agent-card": printJson(a2aCard()); return 0;
+    case "mcp-tools": printJson(mcpTools()); return 0;
+
+    default:
+      err(`unknown command '${cmd}'. Run 'kages help'.`);
+      return 1;
+  }
+}
+
+interface KageSummary { name: string; title: string; system: string; version: number; state: string; visibility: string; blocks: number; validation: { ok: boolean; errors: number }; }
+interface VersionSummary { v: number; state: string; digest: string; change: { summary: string }; author: { principal: string }; validation: { ok: boolean }; }
+
+function kageTable(cards: KageSummary[]): string {
+  return table(cards, [
+    { header: "title", get: (c) => c.title },
+    { header: "name", get: (c) => c.name },
+    { header: "system", get: (c) => c.system },
+    { header: "v", get: (c) => "v" + c.version },
+    { header: "state", get: (c) => c.state },
+    { header: "vis", get: (c) => c.visibility },
+    { header: "blocks", get: (c) => String(c.blocks), align: "right" },
+    { header: "valid", get: (c) => (c.validation.ok ? "✓" : `${c.validation.errors}✗`) },
+  ]);
+}
+
+// search_kages returns full VersionRecords; map to the same card shape as list_kages.
+function fromVersion(v: any): KageSummary {
+  return { name: v.name, title: v.doc.title, system: v.resolved?.system ?? v.doc.system, version: v.v, state: v.state, visibility: v.visibility, blocks: Object.keys(v.doc.blocks).length, validation: v.validation };
+}
+
+function writeOut(flags: ParsedArgs["flags"], text: string): void {
+  const o = flag<string>(flags, "out");
+  if (o) { writeFileSync(o, text.endsWith("\n") ? text : text + "\n"); out(`wrote ${o}`); }
+  else out(text);
+}

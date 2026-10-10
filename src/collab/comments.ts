@@ -41,4 +41,15 @@ export class CommentThread {
   all(kage: string): Comment[] {
     return this.comments.filter((c) => c.kage === kage);
   }
+
+  /** Serialize/restore for a persistent store. `seq` is reset past the highest
+   *  id so a reload never re-mints an existing comment id. */
+  dump(): Comment[] {
+    return this.comments.map((c) => ({ ...c }));
+  }
+
+  load(comments: Comment[]): void {
+    this.comments = comments.map((c) => ({ ...c }));
+    this.seq = comments.reduce((max, c) => Math.max(max, Number(c.id.replace(/^c/, "")) || 0), 0);
+  }
 }

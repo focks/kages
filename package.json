@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "kages": "bin/kages.mjs"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
