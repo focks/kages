@@ -79,7 +79,9 @@ function PropsPanel({ doc, id, onPatch }: { doc: KageDoc; id: string; onPatch: (
           const isBound = bound.has(key);
           const editable = !isBound && ["string", "number", "boolean"].includes(spec.type ?? "") && !spec.enum;
           return (
-            <div key={key} className="space-y-1">
+            // Key by block id too: switching blocks remounts the fields, so an
+            // uncontrolled Input never shows the previous block's value.
+            <div key={`${id}:${key}`} className="space-y-1">
               <label className="font-mono text-xs text-muted-foreground">{key}{spec.required ? " *" : ""} <span className="italic opacity-70">{spec.type}</span></label>
               {isBound ? (
                 <div className="inline-flex items-center gap-1.5 rounded-sm bg-wire-soft px-2 py-1 font-mono text-xs text-wire">
@@ -87,7 +89,9 @@ function PropsPanel({ doc, id, onPatch }: { doc: KageDoc; id: string; onPatch: (
                   {JSON.stringify(b.bind![key])}
                 </div>
               ) : spec.enum ? (
-                <Select defaultValue={String(val ?? "")} onValueChange={(v) => setProp(key, v ?? "", spec)}>
+                // Controlled: the value lives in the doc, so editing (or switching
+                // blocks) flows value → doc → value with no uncontrolled warning.
+                <Select value={val === undefined ? null : String(val)} onValueChange={(v) => setProp(key, v ?? "", spec)}>
                   <SelectTrigger className="h-8"><SelectValue placeholder="—" /></SelectTrigger>
                   <SelectContent>{spec.enum.map((o) => <SelectItem key={String(o)} value={String(o)}>{String(o)}</SelectItem>)}</SelectContent>
                 </Select>
