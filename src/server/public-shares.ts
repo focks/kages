@@ -8,6 +8,7 @@
 // Table: public_shares(uuid pk, doc jsonb, updated_at) — see supabase/migrations.
 
 import type { KageDoc } from "../engine/types.ts";
+import type { Store } from "../store/store.ts";
 
 const BASE = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -49,4 +50,18 @@ export async function delPublicShare(uuid: string): Promise<void> {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}?uuid=eq.${encodeURIComponent(uuid)}`, { method: "DELETE", headers: headers() });
     if (!res.ok) console.error(`delPublicShare: ${res.status} ${await res.text()}`);
   } catch (e) { console.error("delPublicShare failed:", e); }
+}
+
+// Ops whose success can change what a /k/<uuid> link should serve.
+const SHARE_AFFECTING = new Set(["publish_kage", "share_kage", "patch_kage", "submitForReview", "deprecate", "archive"]);
+export const isShareAffecting = (op: string): boolean => SHARE_AFFECTING.has(op);
+
+/** After a share-affecting write, mirror the Kage's head into (or out of) the
+ *  global registry so /k/<uuid> resolves it across workspaces. */
+export async function syncShare(store: Store, name: string): Promise<void> {
+  const head = store.head(name);
+  if (!head) return;
+  const isPublic = head.state === "published" && (head.visibility === "link" || head.visibility === "public");
+  if (isPublic) await putPublicShare(head.uuid, head.doc);
+  else await delPublicShare(head.uuid);
 }

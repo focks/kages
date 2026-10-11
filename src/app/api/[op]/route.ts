@@ -10,10 +10,7 @@ import { handleRest } from "@/adapters/rest.ts";
 import { isWriteOp } from "@/adapters/operations.ts";
 import { getStore, persistStore } from "@/server/store-instance.ts";
 import { resolveIdentity } from "@/server/identity.ts";
-import { putPublicShare, delPublicShare } from "@/server/public-shares.ts";
-
-// Ops whose success can change what a /k/<uuid> link should serve.
-const SHARE_AFFECTING = new Set(["publish_kage", "share_kage", "patch_kage", "submitForReview", "deprecate", "archive"]);
+import { isShareAffecting, syncShare } from "@/server/public-shares.ts";
 
 async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
   const { op } = await ctx.params;
@@ -22,25 +19,17 @@ async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
 
   // Clone before handleRest consumes the body — needed to recover the Kage name
   // for public-share sync after the op runs.
-  const peek = SHARE_AFFECTING.has(op) ? req.clone() : null;
+  const peek = isShareAffecting(op) ? req.clone() : null;
   const res = await handleRest({ store, author }, op, req);
 
   if (isWriteOp(op) && res.ok) {
     await persistStore(workspace, store);
-    if (peek) await syncPublicShare(peek, store);
+    if (peek) {
+      const name = await peek.json().then((b) => b?.name).catch(() => undefined);
+      if (name) await syncShare(store, name);
+    }
   }
   return res;
-}
-
-async function syncPublicShare(peek: Request, store: Awaited<ReturnType<typeof getStore>>) {
-  let name: string | undefined;
-  try { name = (await peek.json())?.name; } catch { return; }
-  if (!name) return;
-  const head = store.head(name);
-  if (!head) return;
-  const isPublic = head.state === "published" && (head.visibility === "link" || head.visibility === "public");
-  if (isPublic) await putPublicShare(head.uuid, head.doc);
-  else await delPublicShare(head.uuid);
 }
 
 export const POST = handle;

@@ -1,0 +1,16 @@
+{
+  "name": "kages",
+  "version": "1.0.0",
+  "description": "Author interactive Kages from an agent: the operation set as MCP tools, the per-system authoring guides as skills.",
+  "author": { "name": "Kages" },
+  "homepage": "https://github.com/focks/kages",
+  "repository": "https://github.com/focks/kages",
+  "license": "MIT",
+  "keywords": ["kages", "mcp", "artifactory", "agents", "design-systems"],
+  "mcpServers": {
+    "kages": {
+      "type": "http",
+      "url": "https://kages-focks-projects.vercel.app/api/mcp"
+    }
+  }
+}

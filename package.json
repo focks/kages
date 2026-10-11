@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test \"src/**/*.test.ts\"",
     "tokens": "node scripts/kage-tokens.mjs",
-    "ds-integrity": "node scripts/ds-integrity.mjs"
+    "ds-integrity": "node scripts/ds-integrity.mjs",
+    "build:plugin": "node scripts/build-plugin-skills.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
