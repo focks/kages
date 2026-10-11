@@ -120,6 +120,45 @@ test("lifecycle: draft -> published requires publish grant and a clean version; 
   assert.equal(s.head("ops-console")!.visibility, "private");
 });
 
+test("lifecycle: unpublish/deprecate/restore and direct archive move between the right states", () => {
+  const s = seeded();
+  s.create("kages", ops(), agent);
+  assert.ok(s.publish("ops-console", agent).ok);
+  // unpublish pulls a published Kage back to draft (the inverse of publish)
+  assert.ok(s.unpublish("ops-console", agent).ok);
+  assert.equal(s.head("ops-console")!.state, "draft");
+  // re-publish, deprecate, then restore straight back to published
+  assert.ok(s.publish("ops-console", agent).ok);
+  assert.ok(s.deprecate("ops-console", agent).ok);
+  assert.equal(s.head("ops-console")!.state, "deprecated");
+  assert.ok(s.restore("ops-console", agent).ok);
+  assert.equal(s.head("ops-console")!.state, "published");
+  // archive is reachable directly (not only deprecated -> archived)
+  assert.ok(s.archive("ops-console", agent).ok);
+  assert.equal(s.head("ops-console")!.state, "archived");
+  assert.ok(s.restore("ops-console", agent).ok); // archived -> published
+  assert.equal(s.head("ops-console")!.state, "published");
+});
+
+test("delete: requires admin, removes the Kage, and records the deletion in the audit", () => {
+  // seeded() grants write/publish/review but NOT admin → delete is refused.
+  const s = seeded();
+  s.create("kages", ops(), agent);
+  const denied = s.remove("ops-console", agent);
+  assert.equal(denied.ok, false);
+  assert.equal(denied.error?.code, "forbidden");
+
+  // A creator in an unclaimed repo is its admin → delete succeeds and the Kage is gone.
+  const s2 = freshStore();
+  s2.create("proj", ops(), agent); // unclaimed repo → agent gets admin
+  const uuid = s2.head("ops-console")!.uuid;
+  const r = s2.remove("ops-console", agent);
+  assert.ok(r.ok);
+  assert.equal(r.version!.uuid, uuid);
+  assert.equal(s2.head("ops-console"), undefined);
+  assert.ok(s2.auditLog().some((e) => e.action === "delete"), "deletion is audited even though the doc is gone");
+});
+
 test("RBAC: a reviewer agent physically cannot patch", () => {
   const s = freshStore();
   s.grant("agent:acme/builder", "kages", ["write"]);

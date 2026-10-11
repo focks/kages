@@ -10,24 +10,24 @@ import { handleRest } from "@/adapters/rest.ts";
 import { isWriteOp } from "@/adapters/operations.ts";
 import { getStore, persistStore } from "@/server/store-instance.ts";
 import { resolveIdentity } from "@/server/identity.ts";
-import { isShareAffecting, syncShare } from "@/server/public-shares.ts";
+import { isShareAffecting, afterWriteShareSync } from "@/server/public-shares.ts";
 
 async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
   const { op } = await ctx.params;
   const { author, workspace } = await resolveIdentity(req);
   const store = await getStore(workspace);
 
-  // Clone before handleRest consumes the body — needed to recover the Kage name
-  // for public-share sync after the op runs.
-  const peek = isShareAffecting(op) ? req.clone() : null;
+  // Recover the Kage name (and, before a delete removes it, its uuid) from the
+  // body BEFORE handleRest consumes it, so the public registry can be reconciled.
+  const needsName = isShareAffecting(op) || op === "delete_kage";
+  const name = needsName ? await req.clone().json().then((b) => b?.name).catch(() => undefined) : undefined;
+  const preDeleteUuid = op === "delete_kage" && name ? store.head(name)?.uuid : undefined;
+
   const res = await handleRest({ store, author }, op, req);
 
   if (isWriteOp(op) && res.ok) {
     await persistStore(workspace, store);
-    if (peek) {
-      const name = await peek.json().then((b) => b?.name).catch(() => undefined);
-      if (name) await syncShare(store, name);
-    }
+    await afterWriteShareSync(store, op, name, preDeleteUuid);
   }
   return res;
 }

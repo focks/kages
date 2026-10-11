@@ -175,6 +175,28 @@ export const OPERATIONS: OpSpec[] = [
     return r.ok ? ok({ ref: r.version!.ref, visibility: r.version!.visibility }) : fail(r.error!.code, r.error!.msg);
   } },
 
+  // --- change status (lifecycle transitions; see LIFECYCLE_NEXT in the store) ---
+  { name: "submit_for_review", summary: "Send a draft to review (requires write)", params: ["name"], write: true, run: (c, p) =>
+    toResult(c.store.submitForReview(p.name, c.author)) },
+
+  { name: "unpublish_kage", summary: "Pull a published Kage back to draft (requires publish)", params: ["name"], write: true, run: (c, p) =>
+    toResult(c.store.unpublish(p.name, c.author)) },
+
+  { name: "deprecate_kage", summary: "Mark a published Kage deprecated (requires write)", params: ["name"], write: true, run: (c, p) =>
+    toResult(c.store.deprecate(p.name, c.author)) },
+
+  { name: "archive_kage", summary: "Archive a Kage — hides it from listings; reversible (requires write)", params: ["name"], write: true, run: (c, p) =>
+    toResult(c.store.archive(p.name, c.author)) },
+
+  { name: "restore_kage", summary: "Restore an archived/deprecated Kage to published (requires publish)", params: ["name"], write: true, run: (c, p) =>
+    toResult(c.store.restore(p.name, c.author)) },
+
+  { name: "delete_kage", summary: "Permanently remove a Kage from the workspace (requires admin; irreversible)", params: ["name"], write: true, run: (c, p) => {
+    const r = c.store.remove(p.name, c.author);
+    // Return the removed Kage's uuid so the server layer can purge its /k share.
+    return r.ok ? ok({ deleted: p.name, uuid: r.version!.uuid }) : fail(r.error!.code, r.error!.msg);
+  } },
+
   { name: "export_kage", summary: "Export JSON (doc+lockfile), Markdown (describe), or card", params: ["name", "format?"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
     if (!r.ok) return fail(r.code, r.msg);

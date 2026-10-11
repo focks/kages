@@ -9,6 +9,9 @@ export interface ParsedArgs {
 }
 
 const ALIASES: Record<string, string> = { C: "workspace", o: "out", s: "system", v: "version", h: "help" };
+// Flags that are always boolean, so they never swallow the following positional
+// (`kages --local create x` must keep `create x` as positionals, not local="create").
+const BOOLEAN = new Set(["local", "json", "help"]);
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
@@ -26,12 +29,12 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (a.startsWith("--")) {
       const key = a.slice(2);
       const next = argv[i + 1];
-      if (next === undefined || next.startsWith("-")) { set(key, true); }
+      if (BOOLEAN.has(key) || next === undefined || next.startsWith("-")) { set(key, true); }
       else { set(key, tryJson(next)); i++; }
     } else if (a.startsWith("-") && a.length > 1) {
       const key = ALIASES[a.slice(1)] ?? a.slice(1);
       const next = argv[i + 1];
-      if (next === undefined || next.startsWith("-")) { set(key, true); }
+      if (BOOLEAN.has(key) || next === undefined || next.startsWith("-")) { set(key, true); }
       else { set(key, tryJson(next)); i++; }
     } else {
       positionals.push(a);

@@ -63,6 +63,12 @@ manage  (your CLOUD workspace when signed in, else the local ./.kages; --local f
   versions <name>               revision history with provenance
   search <query> [-s sys]       full-text search
   publish <name> [--visibility private|workspace|link|public]
+  unpublish <name>              pull a published Kage back to draft
+  review <name>                 send a draft to review
+  deprecate <name>              mark a published Kage deprecated
+  archive <name>                archive (hide) a Kage; reversible
+  restore <name>                restore an archived Kage to published
+  delete <name> --yes           permanently remove a Kage (needs admin)
   export <name> [--format json|markdown] [-o file]
   state <name>                  current app state
   comment <name> <block> <text> [--patch file]
@@ -74,6 +80,8 @@ setup  (wire Kages into a coding harness)
 dev
   mcp                           run the MCP server (stdio): operations as tools,
                                 skill packs as prompts, catalogs as resources
+  mcp login [--url <depl>]      sign in so the server acts on your cloud workspace
+  mcp info                      what the server exposes + current auth mode
   pack <system> [-o dir]        skill pack (SKILL.md/AGENTS.md/llms.txt/catalog)
   openapi                       OpenAPI 3.1 for the REST adapter
   agent-card                    A2A agent card
@@ -239,6 +247,25 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     case "publish":
       need(1, "publish <name> [--visibility v]");
       return report(await op("publish_kage", { name: rest[0], visibility: flag(flags, "visibility") }, true), (d) => out(`published ${(d as any).version.ref}`));
+    case "unpublish":
+      need(1, "unpublish <name>");
+      return report(await op("unpublish_kage", { name: rest[0] }, true), (d) => out(`unpublished → draft ${(d as any).version.ref}`));
+    case "review":
+      need(1, "review <name>");
+      return report(await op("submit_for_review", { name: rest[0] }, true), (d) => out(`sent to review ${(d as any).version.ref}`));
+    case "deprecate":
+      need(1, "deprecate <name>");
+      return report(await op("deprecate_kage", { name: rest[0] }, true), (d) => out(`deprecated ${(d as any).version.ref}`));
+    case "archive":
+      need(1, "archive <name>");
+      return report(await op("archive_kage", { name: rest[0] }, true), (d) => out(`archived ${(d as any).version.ref}`));
+    case "restore":
+      need(1, "restore <name>");
+      return report(await op("restore_kage", { name: rest[0] }, true), (d) => out(`restored → published ${(d as any).version.ref}`));
+    case "delete":
+      need(1, "delete <name> --yes");
+      if (!flags.yes) { err(`delete is permanent. Re-run with --yes to remove '${rest[0]}'.`); return 1; }
+      return report(await op("delete_kage", { name: rest[0] }, true), (d) => out(`deleted ${(d as any).deleted}`));
     case "export": {
       need(1, "export <name> [--format json|markdown] [-o file]");
       return report(await op("export_kage", { name: rest[0], format: flag(flags, "format") ?? "json" }), (d) => writeOut(flags, typeof d === "string" ? d : JSON.stringify(d, null, 2)));
@@ -261,9 +288,16 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
 
     // --- dev ---
     case "mcp": {
-      // stdio MCP server: NOTHING may go to stdout but protocol messages, so
-      // this case prints nothing. Operations run through the same op() path as
+      const sub = rest[0];
+      if (sub === "login") { const email = await login(flag<string>(flags, "url")); out(`signed in as ${email} — the MCP server now acts on your cloud workspace`); return 0; }
+      if (sub === "info") return mcpInfo(useRemote ? status() : null, ctx);
+      // stdio MCP server: NOTHING may go to stdout but protocol messages, so this
+      // case prints only to stderr. Operations run through the same op() path as
       // every other command (cloud when signed in, else the local workspace).
+      const s = status();
+      process.stderr.write(useRemote && s
+        ? `kages mcp: serving your cloud workspace (signed in as ${s.email})\n`
+        : `kages mcp: serving the local workspace (${ctx.dir}) — run \`kages mcp login\` to use your cloud workspace\n`);
       const { createMcpServer } = await import("../adapters/mcp.ts");
       const { StdioServerTransport } = await import("@modelcontextprotocol/sdk/server/stdio.js");
       const server = createMcpServer((name, params) => op(name, params, isWriteOp(name)));
@@ -318,6 +352,18 @@ function writeOut(flags: ParsedArgs["flags"], text: string): void {
   const o = flag<string>(flags, "out");
   if (o) { writeFileSync(o, text.endsWith("\n") ? text : text + "\n"); out(`wrote ${o}`); }
   else out(text);
+}
+
+function mcpInfo(remote: { email: string; apiUrl: string } | null, ctx: Ctx): number {
+  const skills = Object.keys(systems).map((id) => "kages-" + id).join(", ");
+  out("Kages MCP server");
+  out(`  mode:      ${remote ? `cloud — signed in as ${remote.email} @ ${remote.apiUrl}` : `local — ${ctx.dir} (run \`kages mcp login\` for your cloud workspace)`}`);
+  out(`  tools:     ${mcpTools().length} (the full operation set)`);
+  out(`  skills:    ${skills} (served as MCP prompts)`);
+  out("  resources: per-system catalogs + the agent card");
+  out("  run:       kages mcp");
+  out("  register:  claude mcp add kages -- kages mcp   |   codex mcp add kages -- kages mcp");
+  return 0;
 }
 
 async function authCmd(rest: string[], flags: ParsedArgs["flags"]): Promise<number> {

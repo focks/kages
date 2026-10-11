@@ -63,6 +63,7 @@ export interface KageEvent {
     | "kage.version.created"
     | "kage.published"
     | "kage.state.changed"
+    | "kage.deleted"
     | "kage.action.emitted"
     | "kage.comment.created"
     | "system.published";

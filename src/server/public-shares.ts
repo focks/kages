@@ -52,8 +52,12 @@ export async function delPublicShare(uuid: string): Promise<void> {
   } catch (e) { console.error("delPublicShare failed:", e); }
 }
 
-// Ops whose success can change what a /k/<uuid> link should serve.
-const SHARE_AFFECTING = new Set(["publish_kage", "share_kage", "patch_kage", "submitForReview", "deprecate", "archive"]);
+// Ops whose success can change what a /k/<uuid> link should serve. delete_kage is
+// handled separately (afterWriteShareSync) because its Kage is gone afterwards.
+const SHARE_AFFECTING = new Set([
+  "publish_kage", "share_kage", "patch_kage",
+  "unpublish_kage", "deprecate_kage", "archive_kage", "restore_kage",
+]);
 export const isShareAffecting = (op: string): boolean => SHARE_AFFECTING.has(op);
 
 /** After a share-affecting write, mirror the Kage's head into (or out of) the
@@ -64,4 +68,14 @@ export async function syncShare(store: Store, name: string): Promise<void> {
   const isPublic = head.state === "published" && (head.visibility === "link" || head.visibility === "public");
   if (isPublic) await putPublicShare(head.uuid, head.doc);
   else await delPublicShare(head.uuid);
+}
+
+/** The one place both the REST and MCP routes reconcile the public registry after
+ *  a successful write. For delete_kage the Kage is already gone, so we purge by the
+ *  uuid captured BEFORE the op ran; otherwise we re-sync from the current head. */
+export async function afterWriteShareSync(
+  store: Store, op: string, name: string | undefined, preDeleteUuid: string | undefined,
+): Promise<void> {
+  if (op === "delete_kage") { if (preDeleteUuid) await delPublicShare(preDeleteUuid); return; }
+  if (name && isShareAffecting(op)) await syncShare(store, name);
 }

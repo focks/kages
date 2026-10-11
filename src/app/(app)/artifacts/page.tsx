@@ -11,9 +11,10 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, Upload, Eye, SquarePen, Download, History, Layers, FolderPlus, Folder, Copy } from "lucide-react";
+import { Search, Upload, Eye, SquarePen, Download, History, Layers, FolderPlus, Folder, Copy, Archive } from "lucide-react";
 import { KagePreview } from "@/components/dashboard/kage-preview";
 import { ShareMenu } from "@/components/dashboard/share-menu";
+import { StatusMenu } from "@/components/dashboard/status-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,7 @@ function ArtifactsInner() {
   const [q, setQ] = useState("");
   const [sysFilter, setSysFilter] = useState("all");
   const [proj, setProj] = useState("all");
+  const [showArchived, setShowArchived] = useState(false);
   const [repoInfo, setRepoInfo] = useState<{ workspace: string; projects: { repo: string; count: number }[] } | null>(null);
   const [preview, setPreview] = useState<{ doc: KageDoc; ref: string } | null>(null);
 
@@ -78,10 +80,14 @@ function ArtifactsInner() {
   // Deep link: /artifacts?id=<name> opens that Kage once the list is loaded.
   useEffect(() => { const id = params.get("id"); if (id && cards && !selected) openCard(id); }, [params, cards, selected, openCard]);
 
+  // Archived Kages are hidden by default so the workbench stays about live work;
+  // the Archive toggle brings them back. The selected one always stays visible.
   const filtered = useMemo(() => (cards ?? []).filter((c) =>
+    (showArchived || c.state !== "archived" || c.name === selected) &&
     (!q || (c.title + c.name).toLowerCase().includes(q.toLowerCase())) &&
     (sysFilter === "all" || c.system.startsWith(sysFilter)) &&
-    (proj === "all" || c.repo === proj)), [cards, q, sysFilter, proj]);
+    (proj === "all" || c.repo === proj)), [cards, q, sysFilter, proj, showArchived, selected]);
+  const archivedCount = useMemo(() => (cards ?? []).filter((c) => c.state === "archived").length, [cards]);
 
   // Projects (repos) in the workspace, from list_repos; include a just-created
   // empty project so it's selectable before it holds a Kage.
@@ -162,6 +168,8 @@ function ArtifactsInner() {
                 <SelectItem value="atelier">Atelier</SelectItem>
               </SelectContent>
             </Select>
+            <Button size="icon" variant={showArchived ? "secondary" : "outline"} aria-label="Show archived" aria-pressed={showArchived}
+              title={archivedCount ? `${archivedCount} archived` : "No archived Kages"} onClick={() => setShowArchived((v) => !v)}><Archive /></Button>
             <Button size="icon" variant="outline" aria-label={`New project`} onClick={newProject}><FolderPlus /></Button>
             <Button size="icon" variant="outline" aria-label="Import JSON" nativeButton={false} render={<label />}>
               <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
@@ -226,6 +234,9 @@ function ArtifactsInner() {
                 <Button size="sm" variant="outline" onClick={() => exportJson(current.name)}><Download className="size-4" /> Export</Button>
                 <ShareMenu name={current.name} uuid={current.uuid} state={current.state} visibility={current.visibility}
                   onChanged={async () => { await refresh(); await openCard(current.name); }} />
+                <StatusMenu name={current.name} state={current.state}
+                  onChanged={async () => { await refresh(); await openCard(current.name); }}
+                  onDeleted={async () => { setSelected(null); setDoc(null); setVersions([]); setDescribe(""); await refresh(); }} />
               </div>
             </div>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{current.ref}</p>

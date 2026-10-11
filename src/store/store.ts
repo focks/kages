@@ -23,12 +23,16 @@ import type {
 
 type Clock = () => number; // injected so versions/claims/quotas are deterministic in tests
 
+// The editorial forward path is draft → review → published → deprecated, but
+// archiving is "put it away" and must be reachable from any live state, and a
+// published Kage can be pulled back to draft (unpublish) or restored from the
+// archive. Deletion is NOT a state — it removes the Kage entirely (see remove()).
 const LIFECYCLE_NEXT: Record<LifecycleState, LifecycleState[]> = {
-  draft: ["review", "published"],
-  review: ["published", "draft"],
-  published: ["deprecated"],
-  deprecated: ["archived"],
-  archived: ["published"], // via restore
+  draft: ["review", "published", "archived"],
+  review: ["draft", "published", "archived"],
+  published: ["draft", "deprecated", "archived"], // draft = unpublish
+  deprecated: ["published", "archived"],
+  archived: ["draft", "published"], // restore
 };
 
 interface Kage {
@@ -388,7 +392,29 @@ export class Store {
 
   submitForReview(name: string, author: Provenance): WriteResult { return this.transition(name, "review", author, "write"); }
   deprecate(name: string, author: Provenance): WriteResult { return this.transition(name, "deprecated", author, "write"); }
-  archive(name: string, author: Provenance): WriteResult { return this.transition(name, "archived", author, "admin"); }
+  /** Put a Kage away. Reversible (restore/unpublish) and soft, so a writer may do
+   *  it; it drops out of the default listing and the public share registry. */
+  archive(name: string, author: Provenance): WriteResult { return this.transition(name, "archived", author, "write"); }
+  /** Pull a published Kage back to draft — the missing inverse of publish. */
+  unpublish(name: string, author: Provenance): WriteResult { return this.transition(name, "draft", author, "publish"); }
+  /** Bring an archived (or deprecated) Kage back to published. */
+  restore(name: string, author: Provenance): WriteResult { return this.transition(name, "published", author, "publish"); }
+
+  /** Permanently remove a Kage from the workspace. Requires `admin` — the highest
+   *  bar, because unlike archiving this is irreversible: the signed version chain
+   *  is dropped. An audit entry still records WHO removed WHAT and WHEN, so the
+   *  deletion itself stays accountable even though the document is gone. Returns
+   *  the removed head so the caller can purge its public share by uuid. */
+  remove(name: string, author: Provenance): WriteResult {
+    const head = this.head(name);
+    if (!head) return err("not_found", `no kage '${name}'`);
+    const repo = Store.repoOfRef(head.ref);
+    if (!this.allowed(author, repo, "admin")) return err("forbidden", `${author.principal} lacks admin on ${repo}`);
+    this.kages.delete(name);
+    this.record(author.principal, "delete", head.ref);
+    this.emit("kage.deleted", head.ref, { uuid: head.uuid });
+    return { ok: true, version: head };
+  }
 
   // --- read / search / export ---------------------------------------------
 
