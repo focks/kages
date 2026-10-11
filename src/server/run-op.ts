@@ -6,6 +6,7 @@
 import { dispatch, isWriteOp, type OpResult } from "../adapters/operations.ts";
 import { getStore, persistStore } from "./store-instance.ts";
 import { afterWriteShareSync } from "./public-shares.ts";
+import { anonWriteBlocked } from "./identity.ts";
 import type { Provenance } from "../store/types.ts";
 
 export async function executeOp(
@@ -14,6 +15,8 @@ export async function executeOp(
   op: string,
   params: Record<string, unknown>,
 ): Promise<OpResult> {
+  if (anonWriteBlocked(author, isWriteOp(op)))
+    return { ok: false, error: { code: "unauthorized", msg: "sign in to write — anonymous access is read-only" } };
   const store = await getStore(workspace);
   const name = typeof params.name === "string" ? params.name : undefined;
   // Capture the uuid before a delete removes the Kage, so its /k share can be purged.

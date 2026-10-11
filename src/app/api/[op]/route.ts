@@ -9,12 +9,17 @@
 import { handleRest } from "@/adapters/rest.ts";
 import { isWriteOp } from "@/adapters/operations.ts";
 import { getStore, persistStore } from "@/server/store-instance.ts";
-import { resolveIdentity } from "@/server/identity.ts";
+import { resolveIdentity, anonWriteBlocked } from "@/server/identity.ts";
 import { isShareAffecting, afterWriteShareSync } from "@/server/public-shares.ts";
 
 async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
   const { op } = await ctx.params;
   const { author, workspace } = await resolveIdentity(req);
+
+  // Anonymous callers are read-only on a deployment with auth enabled.
+  if (anonWriteBlocked(author, isWriteOp(op)))
+    return Response.json({ error: { code: "unauthorized", msg: "sign in to write — anonymous access is read-only" } }, { status: 401 });
+
   const store = await getStore(workspace);
 
   // Recover the Kage name (and, before a delete removes it, its uuid) from the

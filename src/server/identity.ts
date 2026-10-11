@@ -17,7 +17,18 @@ export function authEnabled(): boolean {
   return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-const ANON: Provenance = { principal: "anon", runtime: { framework: "next", adapter: "rest" } };
+export const ANON_PRINCIPAL = "anon";
+const ANON: Provenance = { principal: ANON_PRINCIPAL, runtime: { framework: "next", adapter: "rest" } };
+
+/** On a deployment with auth enabled, an unauthenticated caller may READ public
+ *  content but must never WRITE: the shared fallback workspace is unclaimed, and
+ *  the store's first-writer-claims rule would otherwise hand "anon" admin on it —
+ *  an open write surface for anyone. Locally (auth off) the writer is the demo
+ *  admin, not anon, so this never blocks development. The gate lives at the write
+ *  boundary (routes), before dispatch reaches the store's auto-grant. */
+export function anonWriteBlocked(author: Provenance, isWrite: boolean): boolean {
+  return isWrite && authEnabled() && author.principal === ANON_PRINCIPAL;
+}
 
 /** A workspace id from a user id. User ids are uuids (no slashes), so this is a
  *  safe segment for both the Supabase row key and the `kages://<ws>/…` ref. */
