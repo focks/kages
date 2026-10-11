@@ -1,0 +1,179 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Open studio — a landing page\" · system core@1.5.0 · 8 blocks\nstate {\"showDetails\":false}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.0.0] title=\"Create something that feels like yours\"\n      actions:\n        - explore [core/button@1.1.0] label=\"Explore the possibilities\"\n            ↳ writes click→state.showDetails\n    - features [core/grid@1.0.0]\n      - story [core/section@1.0.0] title=\"Tell a story\"\n      - tool [core/section@1.0.0] title=\"Build a tool\"\n      - gallery [core/section@1.0.0] title=\"Show the work\"\n    - closing [core/section@1.0.0] (hidden) title=\"Choose your own shape\"\n        ↳ reads state:showDetails",
+  "envelope": {
+    "title": "Open studio — a landing page",
+    "root": "root",
+    "state_json": "{\"showDetails\":false}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 8
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "hero",
+            "features",
+            "closing"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "hero",
+        "type": "section",
+        "props": {
+          "title": "Create something that feels like yours",
+          "eyebrow": "A space for your next idea",
+          "description": "Stories, tools and explorations can share a design system without sharing a layout.",
+          "level": null,
+          "tone": "accent",
+          "inset": 8,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": [
+            "explore"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "explore",
+        "type": "button",
+        "props": {
+          "label": "Explore the possibilities",
+          "variant": "primary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"toggle\",\"path\":\"showDetails\"}]"
+          }
+        ],
+        "visible_json": null
+      },
+      {
+        "id": "features",
+        "type": "grid",
+        "props": {
+          "columns": 3,
+          "minSize": "small",
+          "gap": 6
+        },
+        "slots": {
+          "children": [
+            "story",
+            "tool",
+            "gallery"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "story",
+        "type": "section",
+        "props": {
+          "title": "Tell a story",
+          "eyebrow": null,
+          "description": "Reading-width prose, captions, lists and code examples.",
+          "level": 3,
+          "tone": "surface",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "tool",
+        "type": "section",
+        "props": {
+          "title": "Build a tool",
+          "eyebrow": null,
+          "description": "Inputs and outputs side by side, with state connecting them.",
+          "level": 3,
+          "tone": "surface",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "gallery",
+        "type": "section",
+        "props": {
+          "title": "Show the work",
+          "eyebrow": null,
+          "description": "Images and feature cards in a grid that fits the available space.",
+          "level": 3,
+          "tone": "surface",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "closing",
+        "type": "section",
+        "props": {
+          "title": "Choose your own shape",
+          "eyebrow": null,
+          "description": "Start with a page, section, grid, split, stack or a single block. Add tabs or a sidebar when they help the experience.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$state\":\"showDetails\"}"
+      }
+    ]
+  }
+}

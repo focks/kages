@@ -14,6 +14,7 @@
     "test": "node --test \"src/**/*.test.ts\"",
     "tokens": "node scripts/kage-tokens.mjs",
     "ds-integrity": "node scripts/ds-integrity.mjs",
+    "build:ds": "node scripts/build-ds.mjs && node scripts/extract-data.mjs && node scripts/golden.mjs && npm run tokens && npm run ds-integrity && npm run build:plugin",
     "build:plugin": "node scripts/build-plugin-skills.mjs"
   },
   "dependencies": {

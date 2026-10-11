@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import vm from "node:vm";
+import { referenceBundle } from "./ds-source.mjs";
 
-const code = fs.readFileSync("originals/project/components/bundle.js", "utf8");
+const code = referenceBundle();
 
 const noop = () => null;
 const React = {
@@ -23,6 +24,7 @@ const dump = (name, val) => fs.writeFileSync(`src/engine/data/${name}.json`, JSO
 dump("systems", K.systems);
 dump("contracts", K.contracts);
 dump("interfaces", K.interfaces);
+dump("authoring", K.authoring);
 console.log("systems:", Object.keys(K.systems).join(", "));
 console.log("contracts:", Object.keys(K.contracts).length, "refs");
 console.log("interfaces:", Object.keys(K.interfaces).join(", "));

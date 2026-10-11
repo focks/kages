@@ -311,3 +311,90 @@
 @media (max-width: 760px) { .kg-trio { grid-template-columns: 1fr; } }
 .kg-trio > div { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; padding: var(--space-4); border-radius: var(--kg-r-lg); background: var(--kg-paper); border: 1px solid var(--kg-line); }
 .kg-log { font-family: var(--font-mono); font-size: 11.5px; line-height: 17px; color: var(--kg-ink-muted); white-space: pre-wrap; margin: 0; }
+
+/* Layout choices belong to contracts; the DS owns their geometry. The canvas
+   is also a container so previews respond to available space independently of
+   the browser viewport. Existing published component contracts stay intact. */
+.kg-kage {
+  container-type: inline-size;
+  --kg-space-0: 0px;
+  --kg-space-1: var(--space-1);
+  --kg-space-2: var(--space-2);
+  --kg-space-3: var(--space-3);
+  --kg-space-4: var(--space-4);
+  --kg-space-6: var(--space-6);
+  --kg-space-8: var(--space-8);
+  --kg-font-mono: var(--font-mono);
+}
+
+/* Without a sidebar the original auto column consumes the body's width,
+   leaving the flexible column empty. The body always occupies the final track. */
+.kg-shell__body { grid-column: -2 / -1; }
+.kg-shell:not(:has(> .kg-shell__side)) { grid-template-columns: minmax(0, 1fr); }
+
+.kg-page { width: 100%; margin-inline: auto; padding: min(var(--kg-layout-inset), 5cqi); display: flex; flex-direction: column; gap: var(--kg-layout-gap); }
+.kg-page--reading { max-width: 48rem; }
+.kg-page--wide { max-width: 84rem; }
+.kg-page__header, .kg-page__footer, .kg-page__content { min-width: 0; display: flex; flex-direction: column; gap: var(--kg-layout-gap); }
+.kg-page__footer { border-top: 1px solid var(--kg-line); padding-top: var(--kg-layout-gap); }
+.kg-section { min-width: 0; padding: min(var(--kg-layout-inset), 5cqi); display: flex; flex-direction: column; gap: var(--kg-layout-gap); border-radius: var(--kg-r-lg); overflow-wrap: anywhere; }
+.kg-section--surface { background: var(--kg-surface); }
+.kg-section--sunken { background: var(--kg-sunken); }
+.kg-section--accent { background: var(--kg-accent-soft); }
+.kg-section__eyebrow { margin: 0; font-size: 12px; font-weight: 600; color: var(--kg-ink-muted); }
+.kg-section__title { margin: 0; font-family: var(--kg-font-display); font-size: clamp(1.5rem, 4cqi, 2.75rem); line-height: 1.15; font-weight: 650; }
+h3.kg-section__title { font-size: clamp(1.125rem, 2cqi, 1.5rem); }
+h4.kg-section__title { font-size: clamp(1rem, 1.5cqi, 1.25rem); }
+.kg-section__description { margin: 0; max-width: 65ch; color: var(--kg-ink-muted); line-height: 1.65; }
+.kg-section__content { min-width: 0; display: flex; flex-direction: column; gap: var(--kg-layout-gap); }
+.kg-section__content:empty { display: none; }
+.kg-section__actions { display: flex; flex-wrap: wrap; gap: var(--kg-space-3); align-items: center; }
+
+/* The minimum tracks enforce both a maximum column count and a readable card
+   size. min(100%, ...) lets even a one-card grid fit a very narrow preview. */
+.kg-grid { min-width: 0; }
+.kg-grid__items { display: grid; gap: var(--kg-layout-gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--kg-item-min), calc((100% - (var(--kg-columns) - 1) * var(--kg-layout-gap)) / var(--kg-columns)))), 1fr)); }
+.kg-grid__items--small { --kg-item-min: 12rem; }
+.kg-grid__items--medium { --kg-item-min: 18rem; }
+.kg-grid__items--large { --kg-item-min: 24rem; }
+.kg-grid__items > *, .kg-stack > * { min-width: 0; }
+.kg-split { min-width: 0; container-type: inline-size; }
+.kg-split__items { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--kg-layout-gap); }
+.kg-split__pane { min-width: 0; display: flex; flex-direction: column; gap: var(--kg-layout-gap); }
+@container (min-width: 42rem) {
+  .kg-split__items--equal { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .kg-split__items--wide-start { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .kg-split__items--wide-end { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+}
+
+.kg-image { margin: 0; min-width: 0; }
+.kg-image img { display: block; width: 100%; height: auto; border-radius: var(--kg-r-md); background: var(--kg-sunken); }
+.kg-image--square img { aspect-ratio: 1; }
+.kg-image--landscape img { aspect-ratio: 16 / 9; }
+.kg-image--portrait img { aspect-ratio: 3 / 4; }
+.kg-image--cover img { object-fit: cover; }
+.kg-image--contain img { object-fit: contain; }
+.kg-image figcaption { margin-top: var(--kg-space-2); color: var(--kg-ink-muted); font-size: 12px; }
+.kg-code { min-width: 0; margin: 0; border: 1px solid var(--kg-line); border-radius: var(--kg-r-md); background: var(--kg-sunken); }
+.kg-code figcaption { padding: var(--kg-space-2) var(--kg-space-3); border-bottom: 1px solid var(--kg-line); color: var(--kg-ink-muted); font-size: 12px; }
+.kg-code pre { margin: 0; padding: var(--kg-space-4); overflow: auto; font-size: 12px; line-height: 1.6; }
+.kg-code code { font-family: var(--kg-font-mono); }
+.kg-code__wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+.kg-list { margin: 0; padding-inline-start: var(--kg-space-6); display: flex; flex-direction: column; gap: var(--kg-space-2); list-style: disc; }
+ol.kg-list { list-style: decimal; }
+.kg-divider { width: 100%; margin: 0; border: 0; border-top: 1px solid var(--kg-line); }
+.kg-free-field { min-width: 0; width: 100%; }
+.kg-textarea { height: auto; resize: vertical; padding: var(--kg-space-3); line-height: 1.5; }
+.kg-slider__label { display: flex; justify-content: space-between; gap: var(--kg-space-3); }
+.kg-slider__label output, .kg-bar-chart__value { font-family: var(--kg-font-mono); font-variant-numeric: tabular-nums; }
+.kg-slider { width: 100%; accent-color: var(--kg-accent); }
+.kg-checkbox { display: flex; align-items: center; gap: var(--kg-space-2); cursor: pointer; }
+.kg-checkbox input { accent-color: var(--kg-accent); }
+.kg-bar-chart { min-width: 0; margin: 0; }
+.kg-bar-chart figcaption { font-weight: 600; margin-bottom: var(--kg-space-4); }
+.kg-bar-chart ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--kg-space-3); }
+.kg-bar-chart li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; align-items: center; gap: var(--kg-space-3); }
+.kg-bar-chart__label { overflow-wrap: anywhere; }
+.kg-bar-chart__track { height: var(--kg-space-3); background: var(--kg-sunken); }
+.kg-bar-chart__bar { display: block; height: 100%; background: var(--kg-accent); }
+.kg-text { overflow-wrap: anywhere; }

@@ -62,11 +62,12 @@ export function Inspector({ doc, id, onPatch, findings }: {
     let value: unknown = raw;
     if (spec.type === "number") value = raw === "" ? 0 : Number(raw);
     if (spec.type === "boolean") value = raw === "true";
-    const exists = (b.props ?? {})[key] !== undefined;
-    onPatch([{ op: exists ? "replace" : "add", path: `/blocks/${id}/props/${key}`, value: value as never }]);
+    setMap("props", key, value);
   }
-  function setMap(section: "bind" | "on", key: string, value: unknown) {
-    const map = (section === "bind" ? b.bind : b.on) as Record<string, unknown> | undefined;
+  function setMap(section: "props" | "bind" | "on", key: string, value: unknown) {
+    // A newly-added block may have no props object. Add the map atomically so
+    // editing a required label cannot fail with a missing RFC6902 parent.
+    const map = b[section] as Record<string, unknown> | undefined;
     const exists = (map ?? {})[key] !== undefined;
     const hasObj = map !== undefined;
     const ops: PatchOp[] = [];
@@ -112,10 +113,15 @@ export function Inspector({ doc, id, onPatch, findings }: {
                     <SelectTrigger className={cn("h-8", msg && "border-destructive")}><SelectValue placeholder="—" /></SelectTrigger>
                     <SelectContent>{spec.enum.map((o) => <SelectItem key={String(o)} value={String(o)}>{String(o)}</SelectItem>)}</SelectContent>
                   </Select>
+                ) : spec.type === "boolean" ? (
+                  <Select value={val === undefined ? null : String(val)} onValueChange={(v) => setProp(key, v ?? "false", spec)}>
+                    <SelectTrigger className={cn("h-8", msg && "border-destructive")}><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent><SelectItem value="true">true</SelectItem><SelectItem value="false">false</SelectItem></SelectContent>
+                  </Select>
                 ) : editable ? (
                   <Input defaultValue={val === undefined ? "" : String(val)} onBlur={(e) => setProp(key, e.target.value, spec)} className={cn("h-8", msg && "border-destructive")} />
                 ) : (
-                  <div className="whitespace-pre-wrap break-all font-mono text-[11px] text-muted-foreground">{val === undefined ? "—" : JSON.stringify(val)}</div>
+                  <JsonField value={val} onCommit={(value) => setMap("props", key, value)} invalid={msg} />
                 )}
                 {msg && <p className="text-xs text-destructive">{msg}</p>}
               </div>

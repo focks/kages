@@ -15,6 +15,7 @@ find a new reusable pattern, add it as a skill.
 | --- | --- |
 | `kages-architecture` | Before changing engine, store, adapters, or runtime — the layer map, the oracle-as-truth rule, the golden-test pattern, the invariants. |
 | `how-to-extend-kages` | Adding a design system, component/role override, or protocol adapter. |
+| `free-flow-composition` | Artifact layouts, content blocks, or agent authoring guidance — additive oracle compilation and responsive composition. |
 | `comment-doctrine` | Writing or editing any code. Comment the *why* and the *failure mode*, never the *what*. |
 | `dashboard-over-adapters` | Building or changing any page that reads/writes Kages — UI talks to the store only through `/api/<op>`. |
 | `kages-cli` | Adding or changing a `kages` CLI command, or the file-backed workspace store. |
@@ -30,6 +31,7 @@ src/engine/        pure shared engine: resolve · evaluate · validate · descri
 src/engine/data/   registry data extracted from the reference (generated)
 src/engine/__fixtures__/  fixtures + golden outputs captured from the reference
 src/runtime/       React renderer (@kages/runtime) + DS-bundle loader — drives the trusted bundle with the engine
+src/design-system/ additive portable components/styles compiled into the reference oracle
 src/store/         artifactory: immutable signed versions, provenance, lifecycle, RBAC, search, events, quotas
 src/collab/        RFC6902 patch · block-level three-way merge · claims/leases · comments
 src/adapters/      one operation table → REST · MCP tools · A2A card · OpenAPI (all generated)

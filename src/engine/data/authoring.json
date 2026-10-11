@@ -1,0 +1,19 @@
+{
+  "composition": "Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.",
+  "guidance": {
+    "shell": {
+      "use": "Optional workspace frame with sidebar, header and main regions. Omit sidebar when it is not useful; page is another root choice.",
+      "avoid": "Nested workspace shells."
+    },
+    "tabs": {
+      "use": "Switch between sibling views, including primary navigation when it fits the artifact."
+    },
+    "stack": {
+      "use": "Local rows and columns. Use grid for responsive collections, split for unequal panes and page for a canvas.",
+      "avoid": "Undeclared styling; gap is a token spacing step."
+    },
+    "text": {
+      "use": "Headings, short copy and long-form prose. Compose report chapters with sections; use $tpl for state-driven text."
+    }
+  }
+}

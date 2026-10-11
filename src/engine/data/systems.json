@@ -2,7 +2,7 @@
   "core": {
     "id": "core",
     "name": "Kages Core",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "className": "kg-sys-core",
     "extends": null,
     "summary": "Neutral lattice system. The base every other system extends.",
@@ -18,13 +18,25 @@
       "text": "core/text@1.0.0",
       "badge": "core/badge@1.0.0",
       "stat": "core/stat@1.0.0",
-      "table": "core/table@1.0.0"
+      "table": "core/table@1.0.0",
+      "page": "core/page@1.0.0",
+      "section": "core/section@1.0.0",
+      "grid": "core/grid@1.0.0",
+      "split": "core/split@1.0.0",
+      "image": "core/image@1.0.0",
+      "code": "core/code@1.0.0",
+      "list": "core/list@1.0.0",
+      "divider": "core/divider@1.0.0",
+      "textarea": "core/textarea@1.0.0",
+      "slider": "core/slider@1.0.0",
+      "checkbox": "core/checkbox@1.0.0",
+      "bar-chart": "core/bar-chart@1.0.0"
     }
   },
   "ledger": {
     "id": "ledger",
     "name": "Ledger",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "className": "kg-sys-ledger",
     "extends": "core@1",
     "summary": "Dense, square, mono-numeral system for data and operations tools.",
@@ -40,13 +52,25 @@
       "text": "core/text@1.0.0",
       "badge": "core/badge@1.0.0",
       "stat": "ledger/stat@2.0.0",
-      "table": "core/table@1.0.0"
+      "table": "core/table@1.0.0",
+      "page": "core/page@1.0.0",
+      "section": "core/section@1.0.0",
+      "grid": "core/grid@1.0.0",
+      "split": "core/split@1.0.0",
+      "image": "core/image@1.0.0",
+      "code": "core/code@1.0.0",
+      "list": "core/list@1.0.0",
+      "divider": "core/divider@1.0.0",
+      "textarea": "core/textarea@1.0.0",
+      "slider": "core/slider@1.0.0",
+      "checkbox": "core/checkbox@1.0.0",
+      "bar-chart": "core/bar-chart@1.0.0"
     }
   },
   "atelier": {
     "id": "atelier",
     "name": "Atelier",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "className": "kg-sys-atelier",
     "extends": "core@1",
     "summary": "Soft, editorial, serif system for consumer and storytelling artifacts.",
@@ -62,7 +86,19 @@
       "text": "core/text@1.0.0",
       "badge": "core/badge@1.0.0",
       "stat": "atelier/stat@1.0.0",
-      "table": "core/table@1.0.0"
+      "table": "core/table@1.0.0",
+      "page": "core/page@1.0.0",
+      "section": "core/section@1.0.0",
+      "grid": "core/grid@1.0.0",
+      "split": "core/split@1.0.0",
+      "image": "core/image@1.0.0",
+      "code": "core/code@1.0.0",
+      "list": "core/list@1.0.0",
+      "divider": "core/divider@1.0.0",
+      "textarea": "core/textarea@1.0.0",
+      "slider": "core/slider@1.0.0",
+      "checkbox": "core/checkbox@1.0.0",
+      "bar-chart": "core/bar-chart@1.0.0"
     }
   }
 }

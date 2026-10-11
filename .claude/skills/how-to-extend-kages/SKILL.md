@@ -8,6 +8,10 @@ description: "Step-by-step recipes for the three scalable extension points in Ka
 Three things scale out in Kages. Each has a fixed recipe; follow it so the next
 agent's change looks like the last one. Read `kages-architecture` first.
 
+For additive artifact roles, also read `free-flow-composition`. Its tracked
+sources compile into the reference before inheritance. `npm run build:ds`
+replaces separate extract/golden/token/integrity/plugin commands for that flow.
+
 ## Add a design system
 
 A system is **a token set plus a role map**; it may `extend` a parent.
@@ -26,8 +30,8 @@ A system is **a token set plus a role map**; it may `extend` a parent.
    extension props, `limits`, and `agent` use/avoid notes.
 6. **Conformance**: every interface event fires with the declared payload;
    every command works; `outputs` match; `ops-console` renders with zero
-   runtime errors in light and dark. A root system must implement all 12
-   interfaces.
+   runtime errors in light and dark. A root system must implement every
+   installed shared interface, including the portable composition roles.
 7. Re-run `scripts/extract-data.mjs` then `scripts/golden.mjs`; the engine tests
    pin the new data. If the bundle's `public/ds/tokens.json` changed, also run
    `npm run tokens` to regenerate `public/ds/tokens.css` (the `.kg-kage`-scoped
@@ -36,7 +40,8 @@ A system is **a token set plus a role map**; it may `extend` a parent.
 ## Add a component / role override
 
 The **contract is the only thing an agent sees** — if it isn't declared, a block
-can't use it (no unlisted props, no styling, no internals).
+can't use it (no unlisted props or internals). Declared semantic layout props
+such as width, gap, inset, columns, ratio, tone and fit are valid design choices.
 
 1. Write the contract (`kages.contract/1`): `implements` an interface (cover
    every interface prop/event/output/command with compatible types), `props`

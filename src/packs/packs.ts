@@ -1,19 +1,23 @@
 // Skill packs, one per design system, GENERATED from the registry so they can
 // never drift from the validator. Every pack carries the same content in the
 // format an agent already loads: the catalog, the expression + action
-// reference, the authoring rules, and two worked Kages. See
+// reference, authoring rules and complete worked Kages. See
 // oracle/agent-access.feature.
 
 import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { OPERATORS } from "../engine/expr.ts";
 import { ACTIONS } from "../engine/runtime-core.ts";
+import { freeFlowExamples } from "./examples.ts";
 
 // The authoring rules ship in EVERY pack — including the prompt-injection rule,
 // which is the one every agent reading a Kage must obey.
 const AUTHORING_RULES = [
-  "Use only catalog types. If nothing fits, say so; use core/html@1 only when the user accepts a non-portable block.",
-  "No styling props, colours or pixel values. Spacing is a stack `gap` step.",
+  "Choose the artifact's shape from the content. Any catalog block can be the root; shell and sidebar are optional.",
+  "Use page for a reading, wide or full canvas; section for heroes and chapters; grid for responsive collections; split for two flowing panes; stack for local rows and columns.",
+  "Navigation is optional. Tabs can be primary navigation; use a sidebar when persistent section navigation helps the artifact.",
+  "Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.",
+  "Use declared semantic layout props and token spacing steps (0, 1, 2, 3, 4, 6, 8). Choose width, inset, gap, columns, minSize, ratio, tone and image fit through their contracts.",
   "Dynamic text uses $tpl; dynamic lists use $filter / $map over $data.",
   "Read other blocks only through declared outputs; change them only through commands.",
   "Declare every app-state key in `state` with an initial value.",
@@ -29,8 +33,6 @@ function exprReference(): string {
     "\nAn expression is a JSON object whose first key is an operator; anything else is a literal.";
 }
 
-const WORKED_SIDEBAR = `"nav": { "type": "sidebar", "bind": { "value": { "$state": "section" } },
-  "on": { "select": [{ "do": "set", "path": "section", "value": { "$event": "id" } }] } }`;
 const WORKED_FILTER = `"ordersTable": { "type": "table", "bind": { "rows": { "$filter": {
   "list": { "$data": "orders" }, "field": "region", "equals": { "$state": "region" }, "skipIf": "all" } } } }`;
 
@@ -39,7 +41,7 @@ export function skillMd(systemId: string): string {
   const sys = systems[systemId];
   return `---
 name: kages-${sys.id}
-description: Build Kages in the ${sys.name} design system (${sys.id}@${sys.version}).
+description: Build free-flowing pages, reports and interactive tools as Kages in ${sys.name} (${sys.id}@${sys.version}).
 ---
 
 # Kages — ${sys.name}
@@ -60,10 +62,7 @@ ${AUTHORING_RULES.map((r) => "- " + r).join("\n")}
 
 ## Worked examples
 
-Sidebar drives the page:
-\`\`\`json
-${WORKED_SIDEBAR}
-\`\`\`
+${freeFlowExamples(systemId).map((doc) => `${doc.title}:\n\`\`\`json\n${JSON.stringify(doc, null, 2)}\n\`\`\``).join("\n\n")}
 
 Filter → table → KPIs:
 \`\`\`json

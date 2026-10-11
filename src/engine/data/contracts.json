@@ -857,6 +857,843 @@
     },
     "limits": {}
   },
+  "core/page@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/page",
+    "version": "1.0.0",
+    "ref": "core/page@1.0.0",
+    "system": "core",
+    "name": "page",
+    "implements": [
+      "kages/page@1"
+    ],
+    "role": "page",
+    "summary": "Sidebar-free page with optional header and footer and a reading, wide or full canvas.",
+    "props": {
+      "width": {
+        "type": "string",
+        "enum": [
+          "reading",
+          "wide",
+          "full"
+        ],
+        "default": "wide"
+      },
+      "inset": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 6
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "header": {},
+      "children": {},
+      "footer": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Choose freely: reading for reports, wide for landing pages, full for tools. Any block may be the root. Navigation is optional."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/section@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/section",
+    "version": "1.0.0",
+    "ref": "core/section@1.0.0",
+    "system": "core",
+    "name": "section",
+    "implements": [
+      "kages/section@1"
+    ],
+    "role": "section",
+    "summary": "Editorial or hero region with optional title, prose, content and actions.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "level": {
+        "type": "number",
+        "enum": [
+          2,
+          3,
+          4
+        ],
+        "default": 2
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "plain",
+          "surface",
+          "sunken",
+          "accent"
+        ],
+        "default": "plain"
+      },
+      "inset": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 6
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Compose heroes, report chapters and feature sections; actions are ordinary blocks. Avoid adding a card around every section."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/grid@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/grid",
+    "version": "1.0.0",
+    "ref": "core/grid@1.0.0",
+    "system": "core",
+    "name": "grid",
+    "implements": [
+      "kages/grid@1"
+    ],
+    "role": "grid",
+    "summary": "Responsive equal-column grid that fits its container and stacks on narrow canvases.",
+    "props": {
+      "columns": {
+        "type": "number",
+        "default": 3,
+        "description": "Maximum column count, a positive integer. Fewer columns render when needed to fit the canvas."
+      },
+      "minSize": {
+        "type": "string",
+        "enum": [
+          "small",
+          "medium",
+          "large"
+        ],
+        "default": "medium"
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for galleries, feature cards and dashboards; columns is the maximum, minSize controls when columns fit. Children remain in source order."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/split@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/split",
+    "version": "1.0.0",
+    "ref": "core/split@1.0.0",
+    "system": "core",
+    "name": "split",
+    "implements": [
+      "kages/split@1"
+    ],
+    "role": "split",
+    "summary": "Two flowing panes with a chosen ratio, stacked in source order on narrow canvases.",
+    "props": {
+      "ratio": {
+        "type": "string",
+        "enum": [
+          "equal",
+          "wide-start",
+          "wide-end"
+        ],
+        "default": "equal"
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "start": {},
+      "end": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for side-by-side explanation and interaction, image and prose, or input and output. Does not create a sidebar."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/image@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/image",
+    "version": "1.0.0",
+    "ref": "core/image@1.0.0",
+    "system": "core",
+    "name": "image",
+    "implements": [
+      "kages/image@1"
+    ],
+    "role": "image",
+    "summary": "Accessible image with a semantic aspect ratio, fit and optional caption.",
+    "props": {
+      "src": {
+        "type": "string",
+        "required": true
+      },
+      "alt": {
+        "type": "string",
+        "required": true
+      },
+      "caption": {
+        "type": "string"
+      },
+      "ratio": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "square",
+          "landscape",
+          "portrait"
+        ],
+        "default": "auto"
+      },
+      "fit": {
+        "type": "string",
+        "enum": [
+          "cover",
+          "contain"
+        ],
+        "default": "cover"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use HTTPS URLs, local / paths or raster data URLs. Provide descriptive alt text; use empty alt only for decoration."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/code@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/code",
+    "version": "1.0.0",
+    "ref": "core/code@1.0.0",
+    "system": "core",
+    "name": "code",
+    "implements": [
+      "kages/code@1"
+    ],
+    "role": "code",
+    "summary": "Literal source code or structured text; displayed, never executed.",
+    "props": {
+      "code": {
+        "type": "string",
+        "required": true
+      },
+      "language": {
+        "type": "string"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "wrap": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Display examples, JSON, logs or source. Content remains literal text even when it contains markup."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/list@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/list",
+    "version": "1.0.0",
+    "ref": "core/list@1.0.0",
+    "system": "core",
+    "name": "list",
+    "implements": [
+      "kages/list@1"
+    ],
+    "role": "list",
+    "summary": "Ordered or unordered prose list.",
+    "props": {
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "ordered": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for instructions, summaries and checklists; items are text, ordered enables numbered steps."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/divider@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/divider",
+    "version": "1.0.0",
+    "ref": "core/divider@1.0.0",
+    "system": "core",
+    "name": "divider",
+    "implements": [
+      "kages/divider@1"
+    ],
+    "role": "divider",
+    "summary": "Semantic separator between flowing content regions.",
+    "props": {},
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Separate adjacent topics without wrapping them in cards."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
+  "core/textarea@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/textarea",
+    "version": "1.0.0",
+    "ref": "core/textarea@1.0.0",
+    "system": "core",
+    "name": "textarea",
+    "implements": [
+      "kages/textarea@1"
+    ],
+    "role": "textarea",
+    "summary": "Labelled multiline input with public value and change events.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "help": {
+        "type": "string"
+      },
+      "rows": {
+        "type": "number",
+        "enum": [
+          3,
+          5,
+          8,
+          12
+        ],
+        "default": 5
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for notes, drafts and longer answers. Read value or bind it to declared state; change emits {value}."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Native multiline text input: Tab to focus, typing to edit."
+    }
+  },
+  "core/slider@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/slider",
+    "version": "1.0.0",
+    "ref": "core/slider@1.0.0",
+    "system": "core",
+    "name": "slider",
+    "implements": [
+      "kages/slider@1"
+    ],
+    "role": "slider",
+    "summary": "Labelled numeric range input with a live value.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number"
+      },
+      "min": {
+        "type": "number",
+        "default": 0
+      },
+      "max": {
+        "type": "number",
+        "default": 100
+      },
+      "step": {
+        "type": "number",
+        "default": 1
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "number",
+        "default": 50
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for numeric exploration and simulations; change emits {value}. Native arrow keys adjust by step."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Native range: arrows and Home/End."
+    }
+  },
+  "core/checkbox@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/checkbox",
+    "version": "1.0.0",
+    "ref": "core/checkbox@1.0.0",
+    "system": "core",
+    "name": "checkbox",
+    "implements": [
+      "kages/checkbox@1"
+    ],
+    "role": "checkbox",
+    "summary": "Labelled boolean choice with public checked state.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "checked": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "checked": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "checked": "boolean"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "checked",
+          "value": {
+            "$event": "checked"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "checked"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for independent options; change emits {checked}. Space toggles the native checkbox."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Native checkbox: Tab and Space."
+    }
+  },
+  "core/bar-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/bar-chart",
+    "version": "1.0.0",
+    "ref": "core/bar-chart@1.0.0",
+    "system": "core",
+    "name": "bar-chart",
+    "implements": [
+      "kages/bar-chart@1"
+    ],
+    "role": "bar-chart",
+    "summary": "Responsive horizontal bars with accessible labels and numeric values.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for comparisons; bind items to data or $map. Values stay visible to assistive technology, including negative values."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Semantic content; interactive children own their keyboard behavior."
+    }
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

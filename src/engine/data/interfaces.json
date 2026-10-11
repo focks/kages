@@ -486,5 +486,452 @@
     "outputs": [
       "rows"
     ]
+  },
+  "kages/page@1": {
+    "summary": "Sidebar-free page with optional header and footer and a reading, wide or full canvas.",
+    "props": {
+      "width": {
+        "type": "string",
+        "enum": [
+          "reading",
+          "wide",
+          "full"
+        ],
+        "default": "wide"
+      },
+      "inset": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 6
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "header": {},
+      "children": {},
+      "footer": {}
+    },
+    "role": "page",
+    "events": {},
+    "outputs": []
+  },
+  "kages/section@1": {
+    "summary": "Editorial or hero region with optional title, prose, content and actions.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "level": {
+        "type": "number",
+        "enum": [
+          2,
+          3,
+          4
+        ],
+        "default": 2
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "plain",
+          "surface",
+          "sunken",
+          "accent"
+        ],
+        "default": "plain"
+      },
+      "inset": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 6
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "role": "section",
+    "events": {},
+    "outputs": []
+  },
+  "kages/grid@1": {
+    "summary": "Responsive equal-column grid that fits its container and stacks on narrow canvases.",
+    "props": {
+      "columns": {
+        "type": "number",
+        "default": 3,
+        "description": "Maximum column count, a positive integer. Fewer columns render when needed to fit the canvas."
+      },
+      "minSize": {
+        "type": "string",
+        "enum": [
+          "small",
+          "medium",
+          "large"
+        ],
+        "default": "medium"
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "role": "grid",
+    "events": {},
+    "outputs": []
+  },
+  "kages/split@1": {
+    "summary": "Two flowing panes with a chosen ratio, stacked in source order on narrow canvases.",
+    "props": {
+      "ratio": {
+        "type": "string",
+        "enum": [
+          "equal",
+          "wide-start",
+          "wide-end"
+        ],
+        "default": "equal"
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      }
+    },
+    "slots": {
+      "start": {},
+      "end": {}
+    },
+    "role": "split",
+    "events": {},
+    "outputs": []
+  },
+  "kages/image@1": {
+    "summary": "Accessible image with a semantic aspect ratio, fit and optional caption.",
+    "props": {
+      "src": {
+        "type": "string",
+        "required": true
+      },
+      "alt": {
+        "type": "string",
+        "required": true
+      },
+      "caption": {
+        "type": "string"
+      },
+      "ratio": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "square",
+          "landscape",
+          "portrait"
+        ],
+        "default": "auto"
+      },
+      "fit": {
+        "type": "string",
+        "enum": [
+          "cover",
+          "contain"
+        ],
+        "default": "cover"
+      }
+    },
+    "role": "image",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/code@1": {
+    "summary": "Literal source code or structured text; displayed, never executed.",
+    "props": {
+      "code": {
+        "type": "string",
+        "required": true
+      },
+      "language": {
+        "type": "string"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "wrap": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "role": "code",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/list@1": {
+    "summary": "Ordered or unordered prose list.",
+    "props": {
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "ordered": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "role": "list",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/divider@1": {
+    "summary": "Semantic separator between flowing content regions.",
+    "props": {},
+    "role": "divider",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/textarea@1": {
+    "summary": "Labelled multiline input with public value and change events.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "help": {
+        "type": "string"
+      },
+      "rows": {
+        "type": "number",
+        "enum": [
+          3,
+          5,
+          8,
+          12
+        ],
+        "default": 5
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "textarea",
+    "slots": {}
+  },
+  "kages/slider@1": {
+    "summary": "Labelled numeric range input with a live value.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number"
+      },
+      "min": {
+        "type": "number",
+        "default": 0
+      },
+      "max": {
+        "type": "number",
+        "default": 100
+      },
+      "step": {
+        "type": "number",
+        "default": 1
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "number",
+        "default": 50
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "number"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "slider",
+    "slots": {}
+  },
+  "kages/checkbox@1": {
+    "summary": "Labelled boolean choice with public checked state.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "checked": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "checked": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "checked": "boolean"
+        }
+      }
+    },
+    "outputs": [
+      "checked"
+    ],
+    "role": "checkbox",
+    "slots": {}
+  },
+  "kages/bar-chart@1": {
+    "summary": "Responsive horizontal bars with accessible labels and numeric values.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "bar-chart",
+    "slots": {},
+    "events": {},
+    "outputs": []
   }
 }

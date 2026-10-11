@@ -44,6 +44,11 @@ Two fixtures are the acceptance bar, reproduced exactly by `src/engine`:
 
 Don't hand-transcribe the oracle's data or guess its outputs — extract both:
 
+Additive portable roles in `src/design-system/` are compiled into this same
+reference by `scripts/ds-source.mjs` before extraction and golden capture.
+Existing contracts stay intact. `npm run build:ds` regenerates the complete
+served/extracted/golden/pack set; see `free-flow-composition`.
+
 1. `scripts/extract-data.mjs` runs `bundle.js` in a Node `vm` with a stub React
    and dumps `systems`/`contracts`/`interfaces` to `src/engine/data/*.json`.
 2. `scripts/golden.mjs` runs the reference `validate/describe/catalog/
@@ -81,7 +86,7 @@ you add engine behaviour, add its golden first.
 ## Extending the system
 
 - **New design system** → `how-to-extend-kages` skill. Root systems implement
-  all 12 interfaces; others `extend` a parent and override only roles whose
+  every installed shared interface; others `extend` a parent and override only roles whose
   *structure* differs. Re-run extract + golden.
 - **New engine function** → add to `src/engine/`, export from `index.ts`,
   capture a golden, keep it pure.

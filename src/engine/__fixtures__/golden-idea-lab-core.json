@@ -1,0 +1,246 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Idea lab — an interactive split tool\" · system core@1.5.0 · 11 blocks\nstate {\"draft\":\"A small tool for a big idea\",\"confidence\":60}\n- root [core/page@1.0.0]\n  header:\n    - heading [core/section@1.0.0] title=\"Give your idea a little space\"\n  children:\n    - workspace [core/split@1.0.0]\n      start:\n        - inputs [core/section@1.0.0] title=\"Your starting point\"\n          children:\n            - draft [core/textarea@1.0.0] label=\"Draft an idea\" value=\"A small tool for a big idea\" rows=undefined\n                ↳ reads state:draft · writes change→state.draft\n            - confidence [core/slider@1.0.0] label=\"Confidence\" value=60\n                ↳ reads state:confidence · writes change→state.confidence\n            - details [core/checkbox@1.0.0] label=\"Show a structured draft\"\n      end:\n        - outputs [core/section@1.0.0] title=\"Where it could go\"\n          children:\n            - summary [core/text@1.0.0] text=\"Your idea: A small tool for a big idea\\nConfidence: 60%\"\n            - comparison [core/bar-chart@1.0.0] label=\"Possible directions\" items=||\n                ↳ reads state:confidence\n            - structured [core/code@1.0.0] (hidden)\n                ↳ reads block:details.checked",
+  "envelope": {
+    "title": "Idea lab — an interactive split tool",
+    "root": "root",
+    "state_json": "{\"draft\":\"A small tool for a big idea\",\"confidence\":60}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [
+            "heading"
+          ],
+          "children": [
+            "workspace"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "heading",
+        "type": "section",
+        "props": {
+          "title": "Give your idea a little space",
+          "eyebrow": "An interactive exploration",
+          "description": "Write a draft, adjust your confidence and compare possible directions. Everything updates in place.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "workspace",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 8
+        },
+        "slots": {
+          "start": [
+            "inputs"
+          ],
+          "end": [
+            "outputs"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "inputs",
+        "type": "section",
+        "props": {
+          "title": "Your starting point",
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": "surface",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "draft",
+            "confidence",
+            "details"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "draft",
+        "type": "textarea",
+        "props": {
+          "label": "Draft an idea",
+          "value": null,
+          "placeholder": "What would you like to make?",
+          "help": null,
+          "rows": 5,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"draft\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"draft\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null
+      },
+      {
+        "id": "confidence",
+        "type": "slider",
+        "props": {
+          "label": "Confidence",
+          "value": null,
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"confidence\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"confidence\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null
+      },
+      {
+        "id": "details",
+        "type": "checkbox",
+        "props": {
+          "label": "Show a structured draft",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "outputs",
+        "type": "section",
+        "props": {
+          "title": "Where it could go",
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "summary",
+            "comparison",
+            "structured"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "summary",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$tpl\":\"Your idea: {{state.draft}}\\nConfidence: {{state.confidence}}%\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "comparison",
+        "type": "bar-chart",
+        "props": {
+          "label": "Possible directions",
+          "items": null,
+          "format": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "[{\"label\":\"Story\",\"value\":70},{\"label\":\"Interactive tool\",\"value\":{\"$state\":\"confidence\"}},{\"label\":\"Visual collection\",\"value\":45}]"
+          }
+        ],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "structured",
+        "type": "code",
+        "props": {
+          "code": null,
+          "language": null,
+          "caption": "Your draft as data",
+          "wrap": true
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "code",
+            "expr_json": "{\"$tpl\":\"Draft: {{state.draft}}\\nConfidence: {{state.confidence}}\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": "{\"$block\":\"details.checked\"}"
+      }
+    ]
+  }
+}

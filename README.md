@@ -17,6 +17,10 @@ by link.
   field. Every edit is an RFC 6902 patch; every save is a new signed version.
 - **Three design systems** — the same portable document renders in **Core**,
   **Ledger** or **Atelier**. The system is chosen at creation and fixed after.
+- **Free-flowing layouts** — reading pages, landing pages, responsive grids
+  and split tools, with optional navigation. Any catalog block can be the root.
+  Images, literal code, lists, multiline inputs, sliders, checkboxes and bar
+  charts extend the original component palette in all three systems.
 - **Projects & workspaces** — organize Kages into projects within a workspace
   (`workspace → project → Kage`), visible in the dashboard.
 - **Share links** — publish a Kage and share an opaque `/k/<uuid>` link; anyone
@@ -48,6 +52,18 @@ npm run dev        # http://localhost:3000 — no login, in-memory store
 npm test           # node:test suite
 npm run typecheck
 ```
+
+The Studio opens an interactive split example. Fresh workspaces also include
+reading-page and landing-page starters. Complete examples live in
+`src/packs/examples.ts`; the generated agent catalogs and packs teach these
+compositions. Existing workspaces can import `public/ds/idea-lab.kage.json`,
+`field-notes.kage.json` or `open-studio.kage.json` from the Artifacts view.
+
+To regenerate artifact design-system assets, registries, oracle goldens,
+integrity hashes and plugin packs, run `npm run build:ds` with `originals/`
+available. Additive component sources live in `src/design-system/` and compile
+into the reference oracle before inheritance; existing contract refs remain
+unchanged. See `.claude/skills/free-flow-composition/SKILL.md`.
 
 With **no environment variables set**, the app runs fully in-memory with no
 login and a seeded demo — ideal for development.

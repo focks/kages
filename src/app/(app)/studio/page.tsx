@@ -59,7 +59,7 @@ function StudioInner() {
 
   const load = useCallback(async () => {
     try {
-      const d: KageDoc = name ? await op<KageDoc>("get_kage", { name }) : await fetch("/ds/ops-console.kage.json").then((r) => r.json());
+      const d: KageDoc = name ? await op<KageDoc>("get_kage", { name }) : await fetch("/ds/idea-lab.kage.json").then((r) => r.json());
       setHead(d); setDoc(d); setSelected(d.root); setMarked(new Set());
     } catch (e) { toast.error(String((e as Error).message)); }
   }, [name]);

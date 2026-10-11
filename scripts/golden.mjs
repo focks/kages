@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import vm from "node:vm";
-const code = fs.readFileSync("originals/project/components/bundle.js", "utf8");
+import { referenceBundle } from "./ds-source.mjs";
+import { freeFlowExamples } from "../src/packs/examples.ts";
+const code = referenceBundle();
 const noop = () => null;
 const React = { createElement: noop, cloneElement: noop, createContext: () => ({ Provider: noop, Consumer: noop }),
   Fragment: "Fragment", memo: (f) => f, forwardRef: (f) => f, useState: (v) => [typeof v === "function" ? v() : v, noop],
@@ -30,10 +32,18 @@ const env = K.toGenerated(ops);
 w("golden-togenerated-ops", env);
 const back = K.fromGenerated(env, "core");
 w("golden-fromgenerated-validate", K.validate(back, "core"));
+// Capture the new shapes against the extended oracle before the pure engine
+// exercises them, including full generation round trips.
+for (const doc of freeFlowExamples()) {
+  fs.writeFileSync(`public/ds/${doc.id}.kage.json`, JSON.stringify(doc, null, 2) + "\n");
+  for (const sys of ["core", "ledger", "atelier"]) {
+    w(`golden-${doc.id}-${sys}`, { validation: K.validate(doc, sys), description: K.describe(doc, sys), envelope: K.toGenerated(doc, sys) });
+  }
+}
 // summary
 const vb = K.validate(BAD);
 console.log("broken:", vb.errors.length, "errors,", vb.warnings.length, "warnings; codes:", vb.errors.map(e=>e.code).join(","), "|", vb.warnings.map(e=>e.code).join(","));
 for (const s of ["core","ledger","atelier"]) { const v = K.validate(ops, s); console.log(`ops ${s}:`, v.errors.length, "e", v.warnings.length, "w portable:", v.portable); }
 const rt = K.validate(back, "core"); console.log("round-trip:", rt.errors.length, "e", rt.warnings.length, "w");
-console.log("catalog core keys:", Object.keys(K.catalog("core")).join(","));
+console.log("catalog core:", K.catalog("core").length, "characters");
 console.log("describe type:", typeof K.describe(ops), (K.describe(ops)+"").slice(0,80).replace(/\n/g," "));

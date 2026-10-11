@@ -1,0 +1,127 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Field notes — a reading page\" · system ledger@2.2.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  header:\n    - title [core/text@1.0.0] text=\"Make room for ideas\"\n  children:\n    - intro [core/section@1.0.0] title=\"Start with the content\"\n    - steps [core/list@1.0.0] items=||\n    - rule [core/divider@1.0.0]\n    - example [core/code@1.0.0]\n  footer:\n    - footer [core/text@1.0.0] text=\"Built from portable blocks.\"",
+  "envelope": {
+    "title": "Field notes — a reading page",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 8
+        },
+        "slots": {
+          "header": [
+            "title"
+          ],
+          "children": [
+            "intro",
+            "steps",
+            "rule",
+            "example"
+          ],
+          "footer": [
+            "footer"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "title",
+        "type": "text",
+        "props": {
+          "text": "Make room for ideas",
+          "variant": "display"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Start with the content",
+          "eyebrow": null,
+          "description": "A report can be a single flowing page. Choose navigation only when the reader needs it.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "steps",
+        "type": "list",
+        "props": {
+          "items": [
+            "Choose a reading, wide or full canvas.",
+            "Compose sections, imagery and interactive blocks.",
+            "Use grids and splits when the content benefits from comparison."
+          ],
+          "ordered": true
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "rule",
+        "type": "divider",
+        "props": {},
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "example",
+        "type": "code",
+        "props": {
+          "code": "{\"kages\":\"1.0\",\"id\":\"note\",\"title\":\"A note\",\"system\":\"core@1\",\"root\":\"note\",\"blocks\":{\"note\":{\"type\":\"text\",\"props\":{\"text\":\"Any block can be the root.\"}}}}",
+          "language": "json",
+          "caption": "A complete minimal page",
+          "wrap": true
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      },
+      {
+        "id": "footer",
+        "type": "text",
+        "props": {
+          "text": "Built from portable blocks.",
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null
+      }
+    ]
+  }
+}

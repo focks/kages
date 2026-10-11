@@ -1,6 +1,6 @@
 ---
 name: kages-ledger
-description: Build Kages in the Ledger design system (ledger@2.1.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Ledger (ledger@2.2.0).
 ---
 
 # Kages — Ledger
@@ -9,12 +9,13 @@ Dense, square, mono-numeral system for data and operations tools.
 
 ## Components
 
-# Ledger 2.1.0 (ledger) extends core@1
+# Ledger 2.2.0 (ledger) extends core@1
 Dense, square, mono-numeral system for data and operations tools.
+Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
 - shell → core/shell@1.0.0 [kages/shell@1] App frame with sidebar, header and main regions.
   props:  · slots: sidebar, header, main
-  use: Root block of any multi-region artifact. Put exactly one nav in `sidebar`. · avoid: Nesting shells.
+  use: Optional workspace frame with sidebar, header and main regions. Omit sidebar when it is not useful; page is another root choice. · avoid: Nested workspace shells.
 - sidebar → ledger/sidebar@2.0.0 [kages/nav@1] Collapsible navigation list; one active item.
   props: title:string, items*:array, value:string · events: select, toggle · outputs: value, collapsed · commands: toggle, collapse, expand
   use: Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers. · avoid: Long labels; Ledger truncates at one line.
@@ -35,10 +36,10 @@ Dense, square, mono-numeral system for data and operations tools.
   use: Panels in dense grids; `code` is a short panel id like PNL-01. · avoid: Padding-heavy content; bodies sit flush.
 - stack → core/stack@1.0.0 [kages/stack@1] Lay children out in a row, column or grid.
   props: direction:row|column, gap:0|1|2|3|4|6|8, columns:number, align:string, justify:string, wrap:boolean · slots: children
-  use: All layout. `columns` switches to an even grid. · avoid: Pixel values; gap is a spacing step.
+  use: Local rows and columns. Use grid for responsive collections, split for unequal panes and page for a canvas. · avoid: Undeclared styling; gap is a token spacing step.
 - text → core/text@1.0.0 [kages/text@1] A run of text in one type style.
   props: text*:string, variant:display|title|heading|body|muted|caption|code
-  use: Headings and prose. Use `$tpl` for text that reads state. · avoid: Long documents; that is a Docs artifact.
+  use: Headings, short copy and long-form prose. Compose report chapters with sections; use $tpl for state-driven text.
 - badge → core/badge@1.0.0 [kages/badge@1] Short status label.
   props: label*:string, tone:neutral|accent|success|danger|wire
   use: Status next to a title or row. · avoid: Interactive filters.
@@ -48,6 +49,42 @@ Dense, square, mono-numeral system for data and operations tools.
 - table → core/table@1.0.0 [kages/table@1] Rows of records under typed columns.
   props: columns*:array, rows*:array, empty:string, dense:boolean · events: rowSelect · outputs: rows
   use: Records; bind `rows` to `$filter` over a data source for interactive filtering. · avoid: Over ~200 rows without paging.
+- page → core/page@1.0.0 [kages/page@1] Sidebar-free page with optional header and footer and a reading, wide or full canvas.
+  props: width:reading|wide|full, inset:0|1|2|3|4|6|8, gap:0|1|2|3|4|6|8 · slots: header, children, footer
+  use: Choose freely: reading for reports, wide for landing pages, full for tools. Any block may be the root. Navigation is optional.
+- section → core/section@1.0.0 [kages/section@1] Editorial or hero region with optional title, prose, content and actions.
+  props: title:string, eyebrow:string, description:string, level:2|3|4, tone:plain|surface|sunken|accent, inset:0|1|2|3|4|6|8, gap:0|1|2|3|4|6|8 · slots: children, actions
+  use: Compose heroes, report chapters and feature sections; actions are ordinary blocks. Avoid adding a card around every section.
+- grid → core/grid@1.0.0 [kages/grid@1] Responsive equal-column grid that fits its container and stacks on narrow canvases.
+  props: columns:number, minSize:small|medium|large, gap:0|1|2|3|4|6|8 · slots: children
+  use: Use for galleries, feature cards and dashboards; columns is the maximum, minSize controls when columns fit. Children remain in source order.
+- split → core/split@1.0.0 [kages/split@1] Two flowing panes with a chosen ratio, stacked in source order on narrow canvases.
+  props: ratio:equal|wide-start|wide-end, gap:0|1|2|3|4|6|8 · slots: start, end
+  use: Use for side-by-side explanation and interaction, image and prose, or input and output. Does not create a sidebar.
+- image → core/image@1.0.0 [kages/image@1] Accessible image with a semantic aspect ratio, fit and optional caption.
+  props: src*:string, alt*:string, caption:string, ratio:auto|square|landscape|portrait, fit:cover|contain
+  use: Use HTTPS URLs, local / paths or raster data URLs. Provide descriptive alt text; use empty alt only for decoration.
+- code → core/code@1.0.0 [kages/code@1] Literal source code or structured text; displayed, never executed.
+  props: code*:string, language:string, caption:string, wrap:boolean
+  use: Display examples, JSON, logs or source. Content remains literal text even when it contains markup.
+- list → core/list@1.0.0 [kages/list@1] Ordered or unordered prose list.
+  props: items*:array, ordered:boolean
+  use: Use for instructions, summaries and checklists; items are text, ordered enables numbered steps.
+- divider → core/divider@1.0.0 [kages/divider@1] Semantic separator between flowing content regions.
+  props:
+  use: Separate adjacent topics without wrapping them in cards.
+- textarea → core/textarea@1.0.0 [kages/textarea@1] Labelled multiline input with public value and change events.
+  props: label*:string, value:string, placeholder:string, help:string, rows:3|5|8|12, disabled:boolean · events: change · outputs: value
+  use: Use for notes, drafts and longer answers. Read value or bind it to declared state; change emits {value}.
+- slider → core/slider@1.0.0 [kages/slider@1] Labelled numeric range input with a live value.
+  props: label*:string, value:number, min:number, max:number, step:number, disabled:boolean · events: change · outputs: value
+  use: Use for numeric exploration and simulations; change emits {value}. Native arrow keys adjust by step.
+- checkbox → core/checkbox@1.0.0 [kages/checkbox@1] Labelled boolean choice with public checked state.
+  props: label*:string, checked:boolean, disabled:boolean · events: change · outputs: checked
+  use: Use for independent options; change emits {checked}. Space toggles the native checkbox.
+- bar-chart → core/bar-chart@1.0.0 [kages/bar-chart@1] Responsive horizontal bars with accessible labels and numeric values.
+  props: label*:string, items*:array, format:text|number|currency|percent, empty:string
+  use: Use for comparisons; bind items to data or $map. Values stay visible to assistive technology, including negative values.
 
 ## Expressions & actions
 
@@ -57,8 +94,11 @@ An expression is a JSON object whose first key is an operator; anything else is 
 
 ## Authoring rules
 
-- Use only catalog types. If nothing fits, say so; use core/html@1 only when the user accepts a non-portable block.
-- No styling props, colours or pixel values. Spacing is a stack `gap` step.
+- Choose the artifact's shape from the content. Any catalog block can be the root; shell and sidebar are optional.
+- Use page for a reading, wide or full canvas; section for heroes and chapters; grid for responsive collections; split for two flowing panes; stack for local rows and columns.
+- Navigation is optional. Tabs can be primary navigation; use a sidebar when persistent section navigation helps the artifact.
+- Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.
+- Use declared semantic layout props and token spacing steps (0, 1, 2, 3, 4, 6, 8). Choose width, inset, gap, columns, minSize, ratio, tone and image fit through their contracts.
 - Dynamic text uses $tpl; dynamic lists use $filter / $map over $data.
 - Read other blocks only through declared outputs; change them only through commands.
 - Declare every app-state key in `state` with an initial value.
@@ -69,10 +109,384 @@ An expression is a JSON object whose first key is an operator; anything else is 
 
 ## Worked examples
 
-Sidebar drives the page:
+Field notes — a reading page:
 ```json
-"nav": { "type": "sidebar", "bind": { "value": { "$state": "section" } },
-  "on": { "select": [{ "do": "set", "path": "section", "value": { "$event": "id" } }] } }
+{
+  "kages": "1.0",
+  "id": "field-notes",
+  "title": "Field notes — a reading page",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 8
+      },
+      "slots": {
+        "header": [
+          "title"
+        ],
+        "children": [
+          "intro",
+          "steps",
+          "rule",
+          "example"
+        ],
+        "footer": [
+          "footer"
+        ]
+      }
+    },
+    "title": {
+      "type": "text",
+      "props": {
+        "variant": "display",
+        "text": "Make room for ideas"
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Start with the content",
+        "description": "A report can be a single flowing page. Choose navigation only when the reader needs it.",
+        "inset": 0
+      }
+    },
+    "steps": {
+      "type": "list",
+      "props": {
+        "ordered": true,
+        "items": [
+          "Choose a reading, wide or full canvas.",
+          "Compose sections, imagery and interactive blocks.",
+          "Use grids and splits when the content benefits from comparison."
+        ]
+      }
+    },
+    "rule": {
+      "type": "divider"
+    },
+    "example": {
+      "type": "code",
+      "props": {
+        "caption": "A complete minimal page",
+        "language": "json",
+        "wrap": true,
+        "code": "{\"kages\":\"1.0\",\"id\":\"note\",\"title\":\"A note\",\"system\":\"core@1\",\"root\":\"note\",\"blocks\":{\"note\":{\"type\":\"text\",\"props\":{\"text\":\"Any block can be the root.\"}}}}"
+      }
+    },
+    "footer": {
+      "type": "text",
+      "props": {
+        "variant": "caption",
+        "text": "Built from portable blocks."
+      }
+    }
+  }
+}
+```
+
+Open studio — a landing page:
+```json
+{
+  "kages": "1.0",
+  "id": "open-studio",
+  "title": "Open studio — a landing page",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "features",
+          "closing"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "A space for your next idea",
+        "title": "Create something that feels like yours",
+        "description": "Stories, tools and explorations can share a design system without sharing a layout.",
+        "tone": "accent",
+        "inset": 8
+      },
+      "slots": {
+        "actions": [
+          "explore"
+        ]
+      }
+    },
+    "explore": {
+      "type": "button",
+      "props": {
+        "label": "Explore the possibilities",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "toggle",
+            "path": "showDetails"
+          }
+        ]
+      }
+    },
+    "features": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "story",
+          "tool",
+          "gallery"
+        ]
+      }
+    },
+    "story": {
+      "type": "section",
+      "props": {
+        "title": "Tell a story",
+        "level": 3,
+        "tone": "surface",
+        "description": "Reading-width prose, captions, lists and code examples."
+      }
+    },
+    "tool": {
+      "type": "section",
+      "props": {
+        "title": "Build a tool",
+        "level": 3,
+        "tone": "surface",
+        "description": "Inputs and outputs side by side, with state connecting them."
+      }
+    },
+    "gallery": {
+      "type": "section",
+      "props": {
+        "title": "Show the work",
+        "level": 3,
+        "tone": "surface",
+        "description": "Images and feature cards in a grid that fits the available space."
+      }
+    },
+    "closing": {
+      "type": "section",
+      "props": {
+        "title": "Choose your own shape",
+        "description": "Start with a page, section, grid, split, stack or a single block. Add tabs or a sidebar when they help the experience.",
+        "inset": 0
+      },
+      "visible": {
+        "$state": "showDetails"
+      }
+    }
+  },
+  "state": {
+    "showDetails": false
+  }
+}
+```
+
+Idea lab — an interactive split tool:
+```json
+{
+  "kages": "1.0",
+  "id": "idea-lab",
+  "title": "Idea lab — an interactive split tool",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "header": [
+          "heading"
+        ],
+        "children": [
+          "workspace"
+        ]
+      }
+    },
+    "heading": {
+      "type": "section",
+      "props": {
+        "eyebrow": "An interactive exploration",
+        "title": "Give your idea a little space",
+        "description": "Write a draft, adjust your confidence and compare possible directions. Everything updates in place.",
+        "inset": 0
+      }
+    },
+    "workspace": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "inputs"
+        ],
+        "end": [
+          "outputs"
+        ]
+      }
+    },
+    "inputs": {
+      "type": "section",
+      "props": {
+        "title": "Your starting point",
+        "level": 3,
+        "tone": "surface"
+      },
+      "slots": {
+        "children": [
+          "draft",
+          "confidence",
+          "details"
+        ]
+      }
+    },
+    "draft": {
+      "type": "textarea",
+      "props": {
+        "label": "Draft an idea",
+        "rows": 5,
+        "placeholder": "What would you like to make?"
+      },
+      "bind": {
+        "value": {
+          "$state": "draft"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "draft",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "confidence": {
+      "type": "slider",
+      "props": {
+        "label": "Confidence",
+        "min": 0,
+        "max": 100,
+        "step": 5
+      },
+      "bind": {
+        "value": {
+          "$state": "confidence"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "confidence",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "details": {
+      "type": "checkbox",
+      "props": {
+        "label": "Show a structured draft"
+      }
+    },
+    "outputs": {
+      "type": "section",
+      "props": {
+        "title": "Where it could go",
+        "level": 3,
+        "inset": 0
+      },
+      "slots": {
+        "children": [
+          "summary",
+          "comparison",
+          "structured"
+        ]
+      }
+    },
+    "summary": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$tpl": "Your idea: {{state.draft}}\nConfidence: {{state.confidence}}%"
+        }
+      }
+    },
+    "comparison": {
+      "type": "bar-chart",
+      "props": {
+        "label": "Possible directions"
+      },
+      "bind": {
+        "items": [
+          {
+            "label": "Story",
+            "value": 70
+          },
+          {
+            "label": "Interactive tool",
+            "value": {
+              "$state": "confidence"
+            }
+          },
+          {
+            "label": "Visual collection",
+            "value": 45
+          }
+        ]
+      }
+    },
+    "structured": {
+      "type": "code",
+      "props": {
+        "caption": "Your draft as data",
+        "wrap": true
+      },
+      "bind": {
+        "code": {
+          "$tpl": "Draft: {{state.draft}}\nConfidence: {{state.confidence}}"
+        }
+      },
+      "visible": {
+        "$block": "details.checked"
+      }
+    }
+  },
+  "state": {
+    "draft": "A small tool for a big idea",
+    "confidence": 60
+  }
+}
 ```
 
 Filter → table → KPIs:

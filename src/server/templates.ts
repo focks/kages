@@ -1,12 +1,13 @@
 // Starter content seeded into a NEW user's workspace on first login, so they
 // don't land on an empty dashboard. Short "what is Kages" intros built from the
-// most basic core components (stack + card + text — none have required props
-// beyond text.text), so they validate by construction in any install.
+// portable components (page + card + text), alongside complete examples that
+// demonstrate editorial, landing and interactive compositions.
 
 import type { KageDoc } from "../engine/types.ts";
+import { freeFlowExamples } from "../packs/examples.ts";
 
-function stack(children: string[]): KageDoc["blocks"][string] {
-  return { type: "stack", slots: { children } };
+function page(children: string[]): KageDoc["blocks"][string] {
+  return { type: "page", props: { width: "reading", gap: 6 }, slots: { children } };
 }
 function card(children: string[]): KageDoc["blocks"][string] {
   return { type: "card", slots: { children } };
@@ -23,7 +24,7 @@ function doc(id: string, title: string, blocks: KageDoc["blocks"]): KageDoc {
 export function introTemplates(): KageDoc[] {
   return [
     doc("welcome", "Welcome to Kages", {
-      root: stack(["h", "lead", "c1", "c2"]),
+      root: page(["h", "lead", "c1", "c2"]),
       h: text("Welcome to Kages"),
       lead: text("Kages is an artifactory for agents. An agent assembles an interface from blocks against component contracts, and the result is a signed, versioned document — data, never code — that renders anywhere."),
       c1: card(["c1h", "c1b"]),
@@ -34,7 +35,7 @@ export function introTemplates(): KageDoc[] {
       c2b: text("Open any Kage in the studio to add, move and group blocks, edit bindings and actions, and see validation point at the exact field. Publish it and share a link."),
     }),
     doc("what-is-a-block", "Blocks & contracts", {
-      root: stack(["h", "lead", "c1", "c2"]),
+      root: page(["h", "lead", "c1", "c2"]),
       h: text("Blocks & contracts"),
       lead: text("A block is an instance of a component contract. The contract declares what props, slots, events and commands exist — so you can only set what's allowed, and a Kage is valid by construction."),
       c1: card(["c1h", "c1b"]),
@@ -45,7 +46,7 @@ export function introTemplates(): KageDoc[] {
       c2b: text("Events run declarative actions — set state, call a command, ask a model. The runtime applies them as one transaction, so a Kage never ends up half-updated."),
     }),
     doc("design-systems", "Three design systems", {
-      root: stack(["h", "lead", "c1", "c2"]),
+      root: page(["h", "lead", "c1", "c2"]),
       h: text("Three design systems"),
       lead: text("The same portable document renders in Core, Ledger or Atelier. The design system is chosen when the Kage is created and is fixed after that — a viewer always sees it as the author intended."),
       c1: card(["c1h", "c1b"]),
@@ -55,5 +56,6 @@ export function introTemplates(): KageDoc[] {
       c2h: text("Share a link"),
       c2b: text("Publish a Kage and share a /k link. Anyone with the link sees a clean, full-page render in the Kage's own design system, with a Made-with-Kages badge."),
     }),
+    ...freeFlowExamples(),
   ];
 }
