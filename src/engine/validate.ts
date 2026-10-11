@@ -2,6 +2,8 @@
 // finding is {at: <JSON pointer>, code, msg}. Ported from the oracle; a document
 // that passes validate() never throws in any renderer. See oracle/validator.feature.
 
+import { advancedFindings } from "./advanced.js";
+import { materialize, initLocals, makeCtx } from "./runtime-core.ts";
 import { systems, interfaces } from "./data.ts";
 import { resolve, systemOf } from "./resolve.ts";
 import { isExpr, walkExpr, getPath } from "./expr.ts";
@@ -36,7 +38,7 @@ function badExprArg(op: string, arg: Any): string | null {
   }
 }
 
-export function validate(doc: KageDoc, override?: string): ValidateResult {
+function validateBase(doc: KageDoc, override?: string): ValidateResult {
   const errors: Finding[] = [];
   const warnings: Finding[] = [];
   const sysId = systemOf(doc, override);
@@ -120,7 +122,7 @@ export function validate(doc: KageDoc, override?: string): ValidateResult {
   Object.keys(blocks).forEach((id) => {
     const b = blocks[id];
     const at = "/blocks/" + id;
-    walkExpr([b.props, b.bind, b.visible, b.on], (op, arg) => {
+    walkExpr([b.props, b.bind, b.visible, b.on, b.repeat?.each], (op, arg) => {
       // Operator argument shape. A malformed expression ({"$and": 1}) would
       // otherwise pass validation and then throw at render time, breaking the
       // "a validated doc never throws" invariant. Caught here so the author is
@@ -204,4 +206,20 @@ export function validate(doc: KageDoc, override?: string): ValidateResult {
   });
 
   return { ok: errors.length === 0, errors, warnings, system: sysId, portable };
+}
+
+/** Validate definitions even when their repeat is empty, then exercise initial
+ * expansion to catch duplicate keys and recursion before a version is stored. */
+export function validate(doc: KageDoc, override?: string): ValidateResult {
+  const result = validateBase(doc, override);
+  const errors = advancedFindings(doc, (d: KageDoc) => validateBase(d, override), isExpr, walkExpr, (type: string) => resolve(result.system, type).contract);
+  if (result.ok && errors.length === 0) {
+    try {
+      const expanded = materialize(doc, result.system, doc.state || {}, initLocals(doc, result.system));
+      const ctx = makeCtx(expanded, result.system, doc.state || {}, initLocals(expanded, result.system));
+      for (const [id, block] of Object.entries(expanded.blocks)) if (block.type === "composition" && doc.compositions?.[String(block.props?.name)]?.outputType) ctx.output(id);
+    }
+    catch (e) { errors.push({ at: "/blocks", code: "bad-expansion", msg: (e as Error).message }); }
+  }
+  return { ...result, ok: result.ok && errors.length === 0, errors: [...result.errors, ...errors] };
 }

@@ -18,6 +18,7 @@ find a new reusable pattern, add it as a skill.
 | `free-flow-composition` | Artifact layouts, content blocks, or agent authoring guidance — additive oracle compilation and responsive composition. |
 | `comment-doctrine` | Writing or editing any code. Comment the *why* and the *failure mode*, never the *what*. |
 | `dashboard-over-adapters` | Building or changing any page that reads/writes Kages — UI talks to the store only through `/api/<op>`. |
+| `expressive-artifacts` | Changing repeats, computations, reusable compositions, visual blocks, or generation envelopes. |
 | `kages-cli` | Adding or changing a `kages` CLI command, or the file-backed workspace store. |
 | `testing-conventions` | Adding a test or a testable module (node --test, native TS, injected clocks). |
 | `kages-app-design-system` | Before adding or changing any UI: tokens, type, states, the Kage boundary. |
@@ -48,7 +49,8 @@ scripts/           extract-data.mjs, golden.mjs — regenerate data + goldens fr
 
 ## Status
 
-All ten `oracle/*.feature` files are implemented and tested (`npm test` → 70 tests).
+The oracle features are implemented and tested (`npm test` covers engine,
+compositions, design-system rendering, CLI, store and collaboration).
 Milestones 1–9 of the build plan are complete: engine (golden-faithful to the
 oracle), runtime (headless + React, System Swap), store + collab, adapters +
 packs, host bridge + viewer + studio, plus the `kages` CLI with a persistent

@@ -283,7 +283,7 @@ export class Store {
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
 
     const { blockIds, structural } = touchedBy(ops, head.doc);
-    // Structural ops (/root, /state, /system, wholesale /blocks) need a claim on
+    // Structural ops (/root, /state, /system, /compositions, wholesale /blocks) need a claim on
     // `root`; otherwise a /blocks replace would slip past a block-level claim.
     if (structural && !this.claims.canWrite(name, "root", author.principal, this.clock()))
       return err("claimed", `structural edit needs a free claim on 'root' (held by ${this.claims.claimant(name, "root", this.clock())})`);
@@ -481,7 +481,7 @@ export class Store {
 function err(code: string, msg: string): WriteResult { return { ok: false, error: { code, msg } }; }
 
 /** What an op list touches: the specific block ids, and whether it is a
- *  STRUCTURAL edit (the doc root, state/system/data, or a wholesale `/blocks`
+ *  STRUCTURAL edit (the doc root, state/system/data/compositions, or a wholesale `/blocks`
  *  rewrite). A `/blocks` replace touches every current block, so it must clear
  *  every block's claim — not slip past because it names no single id. */
 function touchedBy(ops: PatchOp[], headDoc: KageDoc): { blockIds: string[]; structural: boolean } {
@@ -492,7 +492,7 @@ function touchedBy(ops: PatchOp[], headDoc: KageDoc): { blockIds: string[]; stru
     const m = /^\/blocks\/([a-zA-Z0-9_-]+)/.exec(path);
     if (m) { ids.add(m[1]); return; }
     if (path === "/blocks") { for (const id of Object.keys(headDoc.blocks ?? {})) ids.add(id); structural = true; return; }
-    if (path === "" || path === "/" || /^\/(root|state|system|data|sources|persist)(\/|$)/.test(path)) structural = true;
+    if (path === "" || path === "/" || /^\/(root|state|system|data|sources|persist|compositions)(\/|$)/.test(path)) structural = true;
   };
   for (const op of ops) { mark(op.path); if (op.op === "move") mark(op.from); }
   return { blockIds: [...ids], structural };
@@ -506,6 +506,14 @@ function lockfile(doc: KageDoc): Record<string, string> {
   for (const id of Object.keys(doc.blocks)) {
     const r = resolve(sysId, doc.blocks[id].type);
     if (r.ref) out[id] = r.ref;
+  }
+  // Definition blocks are signed content too; leaving them unpinned would let
+  // a registry upgrade change a historical composition's implementation.
+  for (const [name, def] of Object.entries(doc.compositions || {})) {
+    for (const [id, block] of Object.entries(def.blocks)) {
+      const r = resolve(sysId, block.type);
+      if (r.ref) out[`compositions/${name}/${id}`] = r.ref;
+    }
   }
   return out;
 }

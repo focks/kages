@@ -1,0 +1,245 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Event planner — a validated form\" · system core@1.6.0 · 10 blocks\nstate {\"submitted\":null}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Plan a gathering\"\n    - form [core/form@1.0.0] label=\"Gathering details\"\n        ↳ writes submit→state.submitted\n      - name [core/text-field@1.0.0] label=\"Gathering name\"\n      - email [core/text-field@1.0.0] label=\"Contact email\"\n      - date [core/date-input@1.0.0] label=\"Date\"\n      - count [core/number-input@1.0.0] label=\"Group size\"\n      - venue [core/choice@1.0.0] label=\"Venue\" options=studio|garden\n      - activities [core/multiselect@1.0.0] label=\"Activities\" value=[] options=talk|workshop|exhibition\n    - receipt [core/code@1.0.0] (hidden)\n        ↳ reads state:submitted",
+  "envelope": {
+    "title": "Event planner — a validated form",
+    "root": "root",
+    "state_json": "{\"submitted\":null}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "form",
+            "receipt"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Plan a gathering",
+          "eyebrow": null,
+          "description": "Pick a date, group size and activities. Required fields are checked before submission.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "form",
+        "type": "form",
+        "props": {
+          "label": "Gathering details",
+          "submitLabel": "Create plan",
+          "disabled": null
+        },
+        "slots": {
+          "children": [
+            "name",
+            "email",
+            "date",
+            "count",
+            "venue",
+            "activities"
+          ]
+        },
+        "bind": [],
+        "on": [
+          {
+            "event": "submit",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"submitted\",\"value\":{\"$event\":\"values\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "name",
+        "type": "text-field",
+        "props": {
+          "label": "Gathering name",
+          "name": "name",
+          "required": true,
+          "disabled": null,
+          "value": null,
+          "kind": null,
+          "help": null,
+          "placeholder": null,
+          "minLength": 3,
+          "maxLength": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "email",
+        "type": "text-field",
+        "props": {
+          "label": "Contact email",
+          "name": "email",
+          "required": true,
+          "disabled": null,
+          "value": null,
+          "kind": "email",
+          "help": null,
+          "placeholder": null,
+          "minLength": null,
+          "maxLength": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "date",
+        "type": "date-input",
+        "props": {
+          "label": "Date",
+          "name": "date",
+          "required": true,
+          "disabled": null,
+          "value": null,
+          "min": null,
+          "max": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "count",
+        "type": "number-input",
+        "props": {
+          "label": "Group size",
+          "name": "count",
+          "required": true,
+          "disabled": null,
+          "value_json": null,
+          "min": 1,
+          "max": 100,
+          "step": 1
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "venue",
+        "type": "choice",
+        "props": {
+          "label": "Venue",
+          "name": "venue",
+          "required": true,
+          "disabled": null,
+          "value": null,
+          "options": [
+            {
+              "value": "studio",
+              "label": "Studio"
+            },
+            {
+              "value": "garden",
+              "label": "Garden"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "activities",
+        "type": "multiselect",
+        "props": {
+          "label": "Activities",
+          "name": "activities",
+          "required": null,
+          "disabled": null,
+          "value": null,
+          "options": [
+            {
+              "value": "talk",
+              "label": "A conversation"
+            },
+            {
+              "value": "workshop",
+              "label": "A workshop"
+            },
+            {
+              "value": "exhibition",
+              "label": "An exhibition"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "receipt",
+        "type": "code",
+        "props": {
+          "code": null,
+          "language": null,
+          "caption": "Your plan",
+          "wrap": true
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "code",
+            "expr_json": "{\"$tpl\":\"{{state.submitted}}\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": "{\"$neq\":[{\"$state\":\"submitted\"},null]}",
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

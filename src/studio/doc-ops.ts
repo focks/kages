@@ -180,7 +180,9 @@ export function docDiff(oldDoc: KageDoc, newDoc: KageDoc): PatchOp[] {
 
   for (const key of ["title", "system", "root"] as const)
     if (oldDoc[key] !== newDoc[key]) ops.push({ op: "replace", path: `/${key}`, value: newDoc[key] as never });
-  for (const key of ["state", "data"] as const) {
+  // Definitions sit outside blocks; omitting them would show edits in preview
+  // and then silently discard them when Save constructs its patch.
+  for (const key of ["state", "data", "compositions"] as const) {
     if (JSON.stringify(oldDoc[key]) === JSON.stringify(newDoc[key])) continue;
     if (oldDoc[key] === undefined) ops.push({ op: "add", path: `/${key}`, value: clone(newDoc[key]) as never });
     else if (newDoc[key] === undefined) ops.push({ op: "remove", path: `/${key}` });

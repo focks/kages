@@ -1,0 +1,234 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Growth lab — a visual calculator\" · system ledger@2.3.0 · 10 blocks\nstate {\"principal\":1000,\"rate\":5,\"selected\":\"\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Watch an idea compound\"\n    - workspace [core/split@1.0.0]\n      start:\n        - controls [core/section@1.0.0] title=\"Try a scenario\"\n          children:\n            - principal [core/number-input@1.0.0] label=\"Starting amount\" value=1000\n                ↳ reads state:principal · writes change→state.principal\n            - rate [core/slider@1.0.0] label=\"Annual growth (%)\" value=5\n                ↳ reads state:rate · writes change→state.rate\n            - result [ledger/stat@2.0.0] label=\"After ten years\" value=1628.89\n                ↳ reads state:principal, state:rate\n            - explanation [core/rich-text@1.0.0]\n      end:\n        - plot [core/line-chart@1.0.0] label=\"Projected growth\" items=||||||||||\n            ↳ reads data:years, state:principal, state:rate\n    - diagram [core/diagram@1.0.0] label=\"How the projection works\"",
+  "envelope": {
+    "title": "Growth lab — a visual calculator",
+    "root": "root",
+    "state_json": "{\"principal\":1000,\"rate\":5,\"selected\":\"\"}",
+    "data_json": "{\"years\":[0,1,2,3,4,5,6,7,8,9,10]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "workspace",
+            "diagram"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Watch an idea compound",
+          "eyebrow": "Growth lab",
+          "description": "Explore how a starting amount and annual rate change a ten-year projection.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "workspace",
+        "type": "split",
+        "props": {
+          "ratio": "wide-end",
+          "gap": null
+        },
+        "slots": {
+          "start": [
+            "controls"
+          ],
+          "end": [
+            "plot"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "controls",
+        "type": "section",
+        "props": {
+          "title": "Try a scenario",
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": "surface",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "principal",
+            "rate",
+            "result",
+            "explanation"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "principal",
+        "type": "number-input",
+        "props": {
+          "label": "Starting amount",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "value_json": null,
+          "min": 0,
+          "max": 1000000,
+          "step": 100
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"principal\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"principal\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "rate",
+        "type": "slider",
+        "props": {
+          "label": "Annual growth (%)",
+          "value": null,
+          "min": 0,
+          "max": 20,
+          "step": 0.5,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"rate\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"rate\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "result",
+        "type": "stat",
+        "props": {
+          "label": "After ten years",
+          "value": null,
+          "format": "currency",
+          "delta": null,
+          "caption": null,
+          "trend": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$round\":[{\"$mul\":[{\"$state\":\"principal\"},{\"$pow\":[{\"$add\":[1,{\"$div\":[{\"$state\":\"rate\"},100]}]},10]}]},2]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "explanation",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"paragraph\",\"runs\":[{\"text\":\"Explore a hypothetical projection. \",\"bold\":true},{\"text\":\"The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration.\"}]},{\"kind\":\"code\",\"text\":\"{\\\"$mul\\\":[{\\\"$state\\\":\\\"principal\\\"},{\\\"$pow\\\":[1.05,10]}]}\"}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "plot",
+        "type": "line-chart",
+        "props": {
+          "label": "Projected growth",
+          "items": null,
+          "xLabel": "Year",
+          "yLabel": "Amount",
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "{\"$map\":{\"list\":{\"$data\":\"years\"},\"to\":{\"x\":{\"$item\":\"\"},\"y\":{\"$round\":[{\"$mul\":[{\"$state\":\"principal\"},{\"$pow\":[{\"$add\":[1,{\"$div\":[{\"$state\":\"rate\"},100]}]},{\"$item\":\"\"}]}]},2]}}}}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "diagram",
+        "type": "diagram",
+        "props": {
+          "label": "How the projection works",
+          "nodes_json": "[{\"id\":\"start\",\"label\":\"Starting amount\"},{\"id\":\"rate\",\"label\":\"Annual growth\"},{\"id\":\"result\",\"label\":\"Projected amount\"}]",
+          "edges_json": "[{\"from\":\"start\",\"to\":\"rate\"},{\"from\":\"rate\",\"to\":\"result\"}]",
+          "interactive": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

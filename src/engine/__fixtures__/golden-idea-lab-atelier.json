@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Idea lab — an interactive split tool\" · system atelier@1.1.0 · 11 blocks\nstate {\"draft\":\"A small tool for a big idea\",\"confidence\":60}\n- root [core/page@1.0.0]\n  header:\n    - heading [core/section@1.0.0] title=\"Give your idea a little space\"\n  children:\n    - workspace [core/split@1.0.0]\n      start:\n        - inputs [core/section@1.0.0] title=\"Your starting point\"\n          children:\n            - draft [core/textarea@1.0.0] label=\"Draft an idea\" value=\"A small tool for a big idea\" rows=undefined\n                ↳ reads state:draft · writes change→state.draft\n            - confidence [core/slider@1.0.0] label=\"Confidence\" value=60\n                ↳ reads state:confidence · writes change→state.confidence\n            - details [core/checkbox@1.0.0] label=\"Show a structured draft\"\n      end:\n        - outputs [core/section@1.0.0] title=\"Where it could go\"\n          children:\n            - summary [core/text@1.0.0] text=\"Your idea: A small tool for a big idea\\nConfidence: 60%\"\n            - comparison [core/bar-chart@1.0.0] label=\"Possible directions\" items=||\n                ↳ reads state:confidence\n            - structured [core/code@1.0.0] (hidden)\n                ↳ reads block:details.checked",
+  "description": "Kage \"Idea lab — an interactive split tool\" · system atelier@1.2.0 · 11 blocks\nstate {\"draft\":\"A small tool for a big idea\",\"confidence\":60}\n- root [core/page@1.0.0]\n  header:\n    - heading [core/section@1.0.0] title=\"Give your idea a little space\"\n  children:\n    - workspace [core/split@1.0.0]\n      start:\n        - inputs [core/section@1.0.0] title=\"Your starting point\"\n          children:\n            - draft [core/textarea@1.0.0] label=\"Draft an idea\" value=\"A small tool for a big idea\" rows=undefined\n                ↳ reads state:draft · writes change→state.draft\n            - confidence [core/slider@1.0.0] label=\"Confidence\" value=60\n                ↳ reads state:confidence · writes change→state.confidence\n            - details [core/checkbox@1.0.0] label=\"Show a structured draft\"\n      end:\n        - outputs [core/section@1.0.0] title=\"Where it could go\"\n          children:\n            - summary [core/text@1.0.0] text=\"Your idea: A small tool for a big idea\\nConfidence: 60%\"\n            - comparison [core/bar-chart@1.0.0] label=\"Possible directions\" items=||\n                ↳ reads state:confidence\n            - structured [core/code@1.0.0] (hidden)\n                ↳ reads block:details.checked",
   "envelope": {
     "title": "Idea lab — an interactive split tool",
     "root": "root",
@@ -32,7 +32,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "heading",
@@ -52,7 +53,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "workspace",
@@ -71,7 +73,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "inputs",
@@ -95,7 +98,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "draft",
@@ -121,7 +125,8 @@
             "actions_json": "[{\"do\":\"set\",\"path\":\"draft\",\"value\":{\"$event\":\"value\"}}]"
           }
         ],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "confidence",
@@ -147,7 +152,8 @@
             "actions_json": "[{\"do\":\"set\",\"path\":\"confidence\",\"value\":{\"$event\":\"value\"}}]"
           }
         ],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "details",
@@ -160,7 +166,8 @@
         "slots": {},
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "outputs",
@@ -184,7 +191,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "summary",
@@ -201,7 +209,8 @@
           }
         ],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "comparison",
@@ -220,7 +229,8 @@
           }
         ],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "structured",
@@ -239,8 +249,10 @@
           }
         ],
         "on": [],
-        "visible_json": "{\"$block\":\"details.checked\"}"
+        "visible_json": "{\"$block\":\"details.checked\"}",
+        "repeat_json": null
       }
-    ]
+    ],
+    "compositions_json": null
   }
 }

@@ -1,6 +1,6 @@
 ---
 name: kages-core
-description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.5.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.6.0).
 ---
 
 # Kages — Kages Core
@@ -9,7 +9,7 @@ Neutral lattice system. The base every other system extends.
 
 ## Components
 
-# Kages Core 1.5.0 (core)
+# Kages Core 1.6.0 (core)
 Neutral lattice system. The base every other system extends.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -85,10 +85,49 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - bar-chart → core/bar-chart@1.0.0 [kages/bar-chart@1] Responsive horizontal bars with accessible labels and numeric values.
   props: label*:string, items*:array, format:text|number|currency|percent, empty:string
   use: Use for comparisons; bind items to data or $map. Values stay visible to assistive technology, including negative values.
+- composition → core/composition@1.0.0 [kages/composition@1] Reusable document-local composition with typed inputs and a public value output.
+  props: name*:string, inputs:object, value:string|number|boolean|object|array|null · slots: children · outputs: value
+  use: Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code.
+- link → core/link@1.0.0 [kages/link@1] Accessible passive link; executable URL schemes are refused.
+  props: label*:string, href*:string, newTab:boolean
+  use: Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.
+- rich-text → core/rich-text@1.0.0 [kages/rich-text@1] Structured headings, paragraphs, quotes, lists and inline emphasis without raw HTML.
+  props: nodes*:array
+  use: nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.
+- text-field → core/text-field@1.0.0 [kages/text-field@1] Named text, email or URL field with native form validation.
+  props: label*:string, name:string, required:boolean, disabled:boolean, value:string, kind:text|email|url, help:string, placeholder:string, minLength:number, maxLength:number · events: change · outputs: value
+  use: Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}.
+- number-input → core/number-input@1.0.0 [kages/number-input@1] Named numeric field with min/max/step validation; empty value is null.
+  props: label*:string, name:string, required:boolean, disabled:boolean, value:number|null, min:number, max:number, step:number · events: change · outputs: value
+  use: Use for calculations; an empty field emits null. Set name inside form; change emits {value}.
+- date-input → core/date-input@1.0.0 [kages/date-input@1] Named date field with native picker and ISO date output.
+  props: label*:string, name:string, required:boolean, disabled:boolean, value:string, min:string, max:string · events: change · outputs: value
+  use: Date values and bounds are YYYY-MM-DD; change emits {value}.
+- choice → core/choice@1.0.0 [kages/choice@1] Named radio group with native keyboard navigation and a public selection.
+  props: label*:string, name:string, required:boolean, disabled:boolean, value:string, options*:array · events: change · outputs: value
+  use: Use for one option from a short list; options are [{value,label}]. change emits {value}.
+- multiselect → core/multiselect@1.0.0 [kages/multiselect@1] Named multiple selection with native keyboard support and array output.
+  props: label*:string, name:string, required:boolean, disabled:boolean, value:array, options*:array · events: change · outputs: value
+  use: Use for several choices; options are [{value,label}], value is a string array. change emits {value}.
+- form → core/form@1.0.0 [kages/form@1] Native validated form; submit emits named field values as strings or arrays of strings.
+  props: label*:string, submitLabel:string, disabled:boolean · slots: children · events: submit
+  use: Place named native fields in children. Invalid fields prevent submit. submit emits {values}: string values, duplicate names become arrays. Wire submit to declared state or a host action.
+- scene → core/scene@1.0.0 [kages/scene@1] Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.
+  props: label*:string, width:number, height:number, shapes*:array, interactive:boolean · events: select
+  use: shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space.
+- diagram → core/diagram@1.0.0 [kages/diagram@1] Node and edge diagram with automatic placement or explicit coordinates.
+  props: label*:string, nodes*:array, edges:array, interactive:boolean · events: select
+  use: nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}.
+- line-chart → core/line-chart@1.0.0 [kages/line-chart@1] Responsive numeric X/Y line chart with an accessible data table.
+  props: label*:string, items*:array, xLabel:string, yLabel:string, empty:string
+  use: items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table.
+- scatter-chart → core/scatter-chart@1.0.0 [kages/scatter-chart@1] Responsive numeric X/Y scatter plot with an accessible data table.
+  props: label*:string, items*:array, xLabel:string, yLabel:string, empty:string
+  use: items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations.
 
 ## Expressions & actions
 
-Expressions (closed set): $state, $block, $self, $event, $data, $item, $not, $eq, $neq, $and, $or, $if, $tpl, $filter, $count, $sum, $find, $map
+Expressions (closed set): $state, $block, $self, $event, $data, $item, $not, $eq, $neq, $and, $or, $if, $tpl, $filter, $count, $sum, $find, $map, $literal, $index, $scope, $input, $add, $sub, $mul, $div, $mod, $pow, $min, $max, $round, $lt, $lte, $gt, $gte, $concat, $sort, $format
 Actions: set, toggle, setLocal, call, log, ask, agent, fetch, emit
 An expression is a JSON object whose first key is an operator; anything else is a literal.
 
@@ -99,7 +138,10 @@ An expression is a JSON object whose first key is an operator; anything else is 
 - Navigation is optional. Tabs can be primary navigation; use a sidebar when persistent section navigation helps the artifact.
 - Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.
 - Use declared semantic layout props and token spacing steps (0, 1, 2, 3, 4, 6, 8). Choose width, inset, gap, columns, minSize, ratio, tone and image fit through their contracts.
-- Dynamic text uses $tpl; dynamic lists use $filter / $map over $data.
+- Dynamic text uses $tpl/$concat; dynamic datasets use $filter/$map/$sort. repeat: {each, key, as?} expands a block and its subtree. Use stable item keys, $item for the current row, $index:"" for its position, and $scope for named outer rows. Repeated controls have independent local state.
+- Use $add/$sub/$mul/$div/$mod/$pow/$min/$max/$round for finite numeric computation, $lt/$lte/$gt/$gte for numeric comparisons. Invalid arithmetic returns null. $format: {value, style:number|currency|percent|date, digits?, currency?} is deterministic en-US/UTC.
+- Define reusable compositions in doc.compositions: {name:{inputs:{inputName:{type,required?,default?,enum?}},root,blocks,output?,outputType?:{type,enum?}}}. Instantiate a composition block with props.name and props.inputs or bind.inputs. Read typed values with $input inside and public instance.value outside. Definitions use installed blocks and cannot recurse.
+- Use scene/diagram/line-chart/scatter-chart for graphics. Geometry and token colors are declarative; strings never become SVG attributes or HTML. Use rich-text for structured prose and named native fields inside form for validation and submit events.
 - Read other blocks only through declared outputs; change them only through commands.
 - Declare every app-state key in `state` with an initial value.
 - Respect `limits`. If a Ledger dropdown needs 9 options, pin core/dropdown@1.
@@ -485,6 +527,688 @@ Idea lab — an interactive split tool:
   "state": {
     "draft": "A small tool for a big idea",
     "confidence": 60
+  }
+}
+```
+
+Collection lab — reusable, data-driven cards:
+```json
+{
+  "kages": "1.0",
+  "id": "collection-lab",
+  "title": "Collection lab — reusable, data-driven cards",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide"
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "search",
+          "cards",
+          "empty"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Find your next workspace",
+        "eyebrow": "Collection lab",
+        "description": "Three cards share one typed composition. Filter the collection; each note survives filtering and reordering.",
+        "inset": 0
+      }
+    },
+    "search": {
+      "type": "text-field",
+      "props": {
+        "label": "Filter workspaces",
+        "placeholder": "Try Design"
+      },
+      "bind": {
+        "value": {
+          "$state": "query"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "cards": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small"
+      },
+      "slots": {
+        "children": [
+          "product"
+        ]
+      }
+    },
+    "product": {
+      "type": "composition",
+      "props": {
+        "name": "product"
+      },
+      "bind": {
+        "inputs": {
+          "name": {
+            "$item": "name"
+          },
+          "category": {
+            "$item": "category"
+          },
+          "price": {
+            "$item": "price"
+          }
+        }
+      },
+      "repeat": {
+        "each": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "products"
+                },
+                "fields": [
+                  "name",
+                  "category"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            },
+            "field": "name"
+          }
+        },
+        "key": "id",
+        "as": "product"
+      }
+    },
+    "empty": {
+      "type": "text",
+      "props": {
+        "text": "No matching workspaces. Try a different search."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$data": "products"
+                },
+                "fields": [
+                  "name",
+                  "category"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  "state": {
+    "query": "",
+    "selected": ""
+  },
+  "data": {
+    "products": [
+      {
+        "id": "atlas",
+        "name": "Atlas",
+        "category": "Research",
+        "price": 29
+      },
+      {
+        "id": "canvas",
+        "name": "Canvas",
+        "category": "Design",
+        "price": 49
+      },
+      {
+        "id": "compass",
+        "name": "Compass",
+        "category": "Planning",
+        "price": 19
+      }
+    ]
+  },
+  "compositions": {
+    "product": {
+      "inputs": {
+        "name": {
+          "type": "string",
+          "required": true
+        },
+        "category": {
+          "type": "string",
+          "required": true
+        },
+        "price": {
+          "type": "number",
+          "required": true
+        }
+      },
+      "root": "card",
+      "blocks": {
+        "card": {
+          "type": "section",
+          "props": {
+            "level": 3,
+            "tone": "surface"
+          },
+          "bind": {
+            "title": {
+              "$input": "name"
+            }
+          },
+          "slots": {
+            "children": [
+              "category",
+              "price",
+              "notes"
+            ]
+          }
+        },
+        "category": {
+          "type": "text",
+          "bind": {
+            "text": {
+              "$input": "category"
+            }
+          }
+        },
+        "price": {
+          "type": "text",
+          "bind": {
+            "text": {
+              "$format": {
+                "value": {
+                  "$input": "price"
+                },
+                "style": "currency"
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "text-field",
+          "props": {
+            "label": "Personal note",
+            "placeholder": "Each card keeps its own note"
+          }
+        }
+      },
+      "output": {
+        "$block": "notes.value"
+      },
+      "outputType": {
+        "type": "string"
+      }
+    }
+  }
+}
+```
+
+Growth lab — a visual calculator:
+```json
+{
+  "kages": "1.0",
+  "id": "growth-lab",
+  "title": "Growth lab — a visual calculator",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide"
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "workspace",
+          "diagram"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Watch an idea compound",
+        "eyebrow": "Growth lab",
+        "description": "Explore how a starting amount and annual rate change a ten-year projection.",
+        "inset": 0
+      }
+    },
+    "workspace": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-end"
+      },
+      "slots": {
+        "start": [
+          "controls"
+        ],
+        "end": [
+          "plot"
+        ]
+      }
+    },
+    "controls": {
+      "type": "section",
+      "props": {
+        "title": "Try a scenario",
+        "level": 3,
+        "tone": "surface"
+      },
+      "slots": {
+        "children": [
+          "principal",
+          "rate",
+          "result",
+          "explanation"
+        ]
+      }
+    },
+    "principal": {
+      "type": "number-input",
+      "props": {
+        "label": "Starting amount",
+        "min": 0,
+        "max": 1000000,
+        "step": 100
+      },
+      "bind": {
+        "value": {
+          "$state": "principal"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "principal",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "rate": {
+      "type": "slider",
+      "props": {
+        "label": "Annual growth (%)",
+        "min": 0,
+        "max": 20,
+        "step": 0.5
+      },
+      "bind": {
+        "value": {
+          "$state": "rate"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "rate",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "result": {
+      "type": "stat",
+      "props": {
+        "label": "After ten years",
+        "format": "currency"
+      },
+      "bind": {
+        "value": {
+          "$round": [
+            {
+              "$mul": [
+                {
+                  "$state": "principal"
+                },
+                {
+                  "$pow": [
+                    {
+                      "$add": [
+                        1,
+                        {
+                          "$div": [
+                            {
+                              "$state": "rate"
+                            },
+                            100
+                          ]
+                        }
+                      ]
+                    },
+                    10
+                  ]
+                }
+              ]
+            },
+            2
+          ]
+        }
+      }
+    },
+    "explanation": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Explore a hypothetical projection. ",
+                "bold": true
+              },
+              {
+                "text": "The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration."
+              }
+            ]
+          },
+          {
+            "kind": "code",
+            "text": "{\"$mul\":[{\"$state\":\"principal\"},{\"$pow\":[1.05,10]}]}"
+          }
+        ]
+      }
+    },
+    "plot": {
+      "type": "line-chart",
+      "props": {
+        "label": "Projected growth",
+        "xLabel": "Year",
+        "yLabel": "Amount"
+      },
+      "bind": {
+        "items": {
+          "$map": {
+            "list": {
+              "$data": "years"
+            },
+            "to": {
+              "x": {
+                "$item": ""
+              },
+              "y": {
+                "$round": [
+                  {
+                    "$mul": [
+                      {
+                        "$state": "principal"
+                      },
+                      {
+                        "$pow": [
+                          {
+                            "$add": [
+                              1,
+                              {
+                                "$div": [
+                                  {
+                                    "$state": "rate"
+                                  },
+                                  100
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "$item": ""
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  2
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagram": {
+      "type": "diagram",
+      "props": {
+        "label": "How the projection works",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "Starting amount"
+          },
+          {
+            "id": "rate",
+            "label": "Annual growth"
+          },
+          {
+            "id": "result",
+            "label": "Projected amount"
+          }
+        ],
+        "edges": [
+          {
+            "from": "start",
+            "to": "rate"
+          },
+          {
+            "from": "rate",
+            "to": "result"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "principal": 1000,
+    "rate": 5,
+    "selected": ""
+  },
+  "data": {
+    "years": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  }
+}
+```
+
+Event planner — a validated form:
+```json
+{
+  "kages": "1.0",
+  "id": "event-planner",
+  "title": "Event planner — a validated form",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading"
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "form",
+          "receipt"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Plan a gathering",
+        "description": "Pick a date, group size and activities. Required fields are checked before submission.",
+        "inset": 0
+      }
+    },
+    "form": {
+      "type": "form",
+      "props": {
+        "label": "Gathering details",
+        "submitLabel": "Create plan"
+      },
+      "slots": {
+        "children": [
+          "name",
+          "email",
+          "date",
+          "count",
+          "venue",
+          "activities"
+        ]
+      },
+      "on": {
+        "submit": [
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": {
+              "$event": "values"
+            }
+          }
+        ]
+      }
+    },
+    "name": {
+      "type": "text-field",
+      "props": {
+        "label": "Gathering name",
+        "name": "name",
+        "required": true,
+        "minLength": 3
+      }
+    },
+    "email": {
+      "type": "text-field",
+      "props": {
+        "label": "Contact email",
+        "name": "email",
+        "kind": "email",
+        "required": true
+      }
+    },
+    "date": {
+      "type": "date-input",
+      "props": {
+        "label": "Date",
+        "name": "date",
+        "required": true
+      }
+    },
+    "count": {
+      "type": "number-input",
+      "props": {
+        "label": "Group size",
+        "name": "count",
+        "min": 1,
+        "max": 100,
+        "step": 1,
+        "required": true
+      }
+    },
+    "venue": {
+      "type": "choice",
+      "props": {
+        "label": "Venue",
+        "name": "venue",
+        "required": true,
+        "options": [
+          {
+            "value": "studio",
+            "label": "Studio"
+          },
+          {
+            "value": "garden",
+            "label": "Garden"
+          }
+        ]
+      }
+    },
+    "activities": {
+      "type": "multiselect",
+      "props": {
+        "label": "Activities",
+        "name": "activities",
+        "options": [
+          {
+            "value": "talk",
+            "label": "A conversation"
+          },
+          {
+            "value": "workshop",
+            "label": "A workshop"
+          },
+          {
+            "value": "exhibition",
+            "label": "An exhibition"
+          }
+        ]
+      }
+    },
+    "receipt": {
+      "type": "code",
+      "props": {
+        "caption": "Your plan",
+        "wrap": true
+      },
+      "bind": {
+        "code": {
+          "$tpl": "{{state.submitted}}"
+        }
+      },
+      "visible": {
+        "$neq": [
+          {
+            "$state": "submitted"
+          },
+          null
+        ]
+      }
+    }
+  },
+  "state": {
+    "submitted": null
   }
 }
 ```

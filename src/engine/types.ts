@@ -102,6 +102,14 @@ export interface Block {
   meta?: Json;
 }
 
+export interface Composition {
+  inputs: Record<string, PropSpec>;
+  root: string;
+  blocks: Record<string, Block>;
+  output?: Expr;
+  outputType?: PropSpec;
+}
+
 export interface KageDoc {
   kages: string;
   id: string;
@@ -113,6 +121,7 @@ export interface KageDoc {
   persist?: Record<string, "personal" | "shared">;
   data?: Record<string, Json>;
   sources?: Record<string, Json>;
+  compositions?: Record<string, Composition>;
   resolved?: { system: string; blocks: Record<string, string> };
   meta?: Json;
 }
@@ -139,6 +148,9 @@ export interface EvalContext {
   self?: string;
   event?: Json;
   item?: Json;
+  index?: number;
+  scope?: Record<string, Json>;
+  input?: Record<string, Json>;
   output?: (id: string) => Record<string, Json> | undefined;
 }
 

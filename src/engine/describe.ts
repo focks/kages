@@ -5,20 +5,22 @@
 import { systems } from "./data.ts";
 import { resolve } from "./resolve.ts";
 import { evaluate, clone, merge, walkExpr } from "./expr.ts";
-import { initLocals, makeCtx, systemOf } from "./runtime-core.ts";
+import { initLocals, makeCtx, systemOf, materialize } from "./runtime-core.ts";
 import type { KageDoc, Block, Json } from "./types.ts";
 
 type Any = any;
 
 export function describe(doc: KageDoc, override?: string, stateOverride?: Record<string, Json>): string {
   const sysId = systemOf(doc, override);
+  const templateCount = Object.keys(doc.blocks || {}).length;
+  doc = materialize(doc, sysId, stateOverride || doc.state || {}, initLocals(doc, sysId));
   const blocks = doc.blocks || {};
   const lines: string[] = [];
   const state = stateOverride || clone(doc.state || {});
   const locals = initLocals(doc, sysId);
   const ctx = makeCtx(doc, sysId, state, locals);
 
-  lines.push('Kage "' + (doc.title || doc.id) + '" · system ' + sysId + (systems[sysId] ? "@" + systems[sysId].version : "") + " · " + Object.keys(blocks).length + " blocks");
+  lines.push('Kage "' + (doc.title || doc.id) + '" · system ' + sysId + (systems[sysId] ? "@" + systems[sysId].version : "") + " · " + templateCount + " blocks" + (templateCount !== Object.keys(blocks).length ? " · " + Object.keys(blocks).length + " instances" : ""));
   lines.push("state " + JSON.stringify(state));
 
   const short = (v: Any) => { const t = JSON.stringify(v); return t && t.length > 60 ? t.slice(0, 57) + "…" : t; };

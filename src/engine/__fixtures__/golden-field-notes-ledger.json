@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Field notes — a reading page\" · system ledger@2.2.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  header:\n    - title [core/text@1.0.0] text=\"Make room for ideas\"\n  children:\n    - intro [core/section@1.0.0] title=\"Start with the content\"\n    - steps [core/list@1.0.0] items=||\n    - rule [core/divider@1.0.0]\n    - example [core/code@1.0.0]\n  footer:\n    - footer [core/text@1.0.0] text=\"Built from portable blocks.\"",
+  "description": "Kage \"Field notes — a reading page\" · system ledger@2.3.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  header:\n    - title [core/text@1.0.0] text=\"Make room for ideas\"\n  children:\n    - intro [core/section@1.0.0] title=\"Start with the content\"\n    - steps [core/list@1.0.0] items=||\n    - rule [core/divider@1.0.0]\n    - example [core/code@1.0.0]\n  footer:\n    - footer [core/text@1.0.0] text=\"Built from portable blocks.\"",
   "envelope": {
     "title": "Field notes — a reading page",
     "root": "root",
@@ -37,7 +37,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "title",
@@ -49,7 +50,8 @@
         "slots": {},
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "intro",
@@ -69,7 +71,8 @@
         },
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "steps",
@@ -85,7 +88,8 @@
         "slots": {},
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "rule",
@@ -94,7 +98,8 @@
         "slots": {},
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "example",
@@ -108,7 +113,8 @@
         "slots": {},
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       },
       {
         "id": "footer",
@@ -120,8 +126,10 @@
         "slots": {},
         "bind": [],
         "on": [],
-        "visible_json": null
+        "visible_json": null,
+        "repeat_json": null
       }
-    ]
+    ],
+    "compositions_json": null
   }
 }

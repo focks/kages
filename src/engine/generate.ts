@@ -58,7 +58,7 @@ export function generationSchema(systemId: string): Any {
       type: "object",
       description: c.ref + " — " + c.summary + (c.agent.use ? " Use: " + c.agent.use : ""),
       additionalProperties: false,
-      required: ["id", "type", "props", "slots", "bind", "on", "visible_json"],
+      required: ["id", "type", "props", "slots", "bind", "on", "visible_json", "repeat_json"],
       properties: {
         id: { type: "string", description: "lowerCamel id, unique" },
         type: { type: "string", enum: [name] },
@@ -66,6 +66,7 @@ export function generationSchema(systemId: string): Any {
         slots: { type: "object", properties: slots, required: sreq, additionalProperties: false },
         bind: { type: "array", items: { type: "object", additionalProperties: false, required: ["prop", "expr_json"], properties: { prop: { type: "string", enum: bindable.length ? bindable : ["_none"] }, expr_json: { type: "string", description: 'A Kages expression as JSON, e.g. {"$state":"region"}' } } } },
         on: { type: "array", items: { type: "object", additionalProperties: false, required: ["event", "actions_json"], properties: { event: { type: "string", enum: evs.length ? evs : ["_none"] }, actions_json: { type: "string", description: "JSON array of actions" } } } },
+        repeat_json: { type: ["string", "null"], description: "Repeat template: JSON {each, as?, key?}; null for one instance" },
         visible_json: { type: ["string", "null"], description: "Optional expression as JSON" },
       },
     });
@@ -75,12 +76,13 @@ export function generationSchema(systemId: string): Any {
     title: "Kage generation envelope for " + sys.name + " " + sys.version,
     type: "object",
     additionalProperties: false,
-    required: ["title", "root", "state_json", "data_json", "blocks"],
+    required: ["title", "root", "state_json", "data_json", "compositions_json", "blocks"],
     properties: {
       title: { type: "string" },
       root: { type: "string" },
       state_json: { type: "string", description: "JSON object of initial app state" },
       data_json: { type: ["string", "null"], description: "JSON object of static datasets" },
+      compositions_json: { type: ["string", "null"], description: "JSON object of local compositions: typed inputs, root, blocks, optional output" },
       blocks: { type: "array", items: { anyOf: variants } },
     },
   };
@@ -109,6 +111,8 @@ export function fromGenerated(gen: Any, systemId: string): KageDoc {
   };
   const data = parseJ(gen.data_json, null);
   if (data) doc.data = data;
+  const compositions = parseJ(gen.compositions_json, null);
+  if (compositions) doc.compositions = compositions;
   (gen.blocks || []).forEach((g: Any) => {
     const b: Any = { type: g.type };
     const props: Any = {};
@@ -124,6 +128,7 @@ export function fromGenerated(gen: Any, systemId: string): KageDoc {
     if (Object.keys(sl).length) b.slots = sl;
     if (g.bind && g.bind.length) { b.bind = {}; g.bind.forEach((x: Any) => { b.bind[x.prop] = parseJ(x.expr_json); }); }
     if (g.on && g.on.length) { b.on = {}; g.on.forEach((x: Any) => { b.on[x.event] = parseJ(x.actions_json, []); }); }
+    if (g.repeat_json) b.repeat = parseJ(g.repeat_json);
     if (g.visible_json) b.visible = parseJ(g.visible_json);
     doc.blocks[g.id] = b;
   });
@@ -144,6 +149,7 @@ export function toGenerated(doc: KageDoc, systemId?: string): Any {
     root: doc.root,
     state_json: JSON.stringify(doc.state || {}),
     data_json: doc.data ? JSON.stringify(doc.data) : null,
+    compositions_json: doc.compositions ? JSON.stringify(doc.compositions) : null,
     blocks: [],
   };
   Object.keys(doc.blocks).forEach((id) => {
@@ -166,8 +172,9 @@ export function toGenerated(doc: KageDoc, systemId?: string): Any {
       type: name,
       props,
       slots,
-      bind: Object.keys(b.bind || {}).map((k) => ({ prop: k, expr_json: JSON.stringify(b.bind![k]) })),
+      bind: Object.entries({ ...Object.fromEntries(Object.entries(own).filter(([k, v]) => c.props[k] && strictOf(c.props[k]) && isExpr(v))), ...b.bind }).map(([prop, value]) => ({ prop, expr_json: JSON.stringify(value) })),
       on: Object.keys(b.on || {}).map((k) => ({ event: k, actions_json: JSON.stringify(b.on![k]) })),
+      repeat_json: b.repeat === undefined ? null : JSON.stringify(b.repeat),
       visible_json: b.visible === undefined ? null : JSON.stringify(b.visible),
     });
   });

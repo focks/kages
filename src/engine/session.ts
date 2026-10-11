@@ -8,7 +8,7 @@
 
 import { resolve } from "./resolve.ts";
 import { evaluate, clone, merge } from "./expr.ts";
-import { initLocals, makeCtx, runActions, systemOf, type LogEntry, type Draft } from "./runtime-core.ts";
+import { initLocals, makeCtx, materialize, runActions, systemOf, type LogEntry, type RuntimeCtx, type Draft } from "./runtime-core.ts";
 import type { KageDoc, Json } from "./types.ts";
 
 export class KageSession {
@@ -20,6 +20,8 @@ export class KageSession {
   private state: Record<string, Json>;
   private locals: Record<string, Record<string, Json>>;
   log: LogEntry[] = [];
+  private expanded?: KageDoc;
+  private context?: RuntimeCtx;
 
   constructor(doc: KageDoc, system?: string) {
     this.doc = doc;
@@ -33,16 +35,32 @@ export class KageSession {
     return clone(this.state);
   }
 
+  /** Resolve current instances after state changes; retained locals survive
+   * filtering and reordering because identity follows the item key. */
+  instances(): KageDoc {
+    return clone(this.currentDoc());
+  }
+
+  private currentDoc(): KageDoc {
+    return this.expanded ??= materialize(this.doc, this.sysId, this.state, this.locals);
+  }
+
+  private currentContext(): RuntimeCtx {
+    const doc = this.currentDoc();
+    return this.context ??= makeCtx(doc, this.sysId, this.state, { ...initLocals(doc, this.sysId), ...this.locals });
+  }
+
   /** A block's resolved outputs right now: contract defaults → local → props → bind. */
   read(id: string): Record<string, Json> | undefined {
-    return makeCtx(this.doc, this.sysId, this.state, this.locals).output(id);
+    return clone(this.currentContext().output(id));
   }
 
   /** Whether a block's `visible` expression holds now (absent visible = shown). */
   visible(id: string): boolean {
-    const b = this.doc.blocks[id];
+    const doc = this.currentDoc();
+    const b = doc.blocks[id];
     if (!b || b.visible === undefined) return true;
-    const ctx = merge(makeCtx(this.doc, this.sysId, this.state, this.locals), { self: id });
+    const ctx = merge(this.currentContext(), { self: id });
     return !!evaluate(b.visible, ctx);
   }
 
@@ -51,16 +69,18 @@ export class KageSession {
    *  so a failed handler leaves state untouched (the transaction invariant).
    *  Returns the log of host actions / errors from this dispatch. */
   dispatch(id: string, event: string, payload: Json = {}): LogEntry[] {
-    const b = this.doc.blocks[id];
+    const doc = this.currentDoc();
+    const b = doc.blocks[id];
     if (!b) throw new Error("dispatch: no block '" + id + "'");
     const r = resolve(this.sysId, b.type);
     if (!r.contract) throw new Error("dispatch: unresolved block '" + id + "'");
-    const draft: Draft = { state: clone(this.state), locals: clone(this.locals) };
+    const draft: Draft = { state: clone(this.state), locals: { ...initLocals(doc, this.sysId), ...clone(this.locals) } };
     const log: LogEntry[] = [];
-    runActions(this.doc, this.sysId, r.contract.defaults[event], draft, id, payload, log);
-    runActions(this.doc, this.sysId, (b.on || {})[event], draft, id, payload, log);
+    runActions(doc, this.sysId, r.contract.defaults[event], draft, id, payload, log);
+    runActions(doc, this.sysId, (b.on || {})[event], draft, id, payload, log);
     this.state = draft.state;
     this.locals = draft.locals;
+    this.expanded = undefined; this.context = undefined;
     this.log = log.concat(this.log).slice(0, 50);
     return log;
   }

@@ -25,7 +25,7 @@ import * as React from "react";
 import { resolve } from "@/engine/resolve.ts";
 import { contracts } from "@/engine/data.ts";
 import { evaluate, clone, merge, setPath } from "@/engine/expr.ts";
-import { initLocals, makeCtx, runActions, systemOf, type Draft, type LogEntry, type HostTask } from "@/engine/runtime-core.ts";
+import { initLocals, makeCtx, materialize, runActions, systemOf, type Draft, type LogEntry, type HostTask } from "@/engine/runtime-core.ts";
 import { HostBridge } from "@/host/bridge.ts";
 import type { KageDoc, Json, Contract, Block } from "@/engine/types.ts";
 import { useDsBundle } from "./useDsBundle.ts";
@@ -94,7 +94,11 @@ export function KageRenderer({ doc, system, dsBase = "/ds", className, onState }
   const sys = (kages.systems as Record<string, { className: string; version: string }>)[sysId];
   if (!sys) return React.createElement(MissingBox, { id: "system", msg: `Unknown design system '${sysId}'` });
 
-  const ctx = makeCtx(doc, sysId, state, locals);
+  const template = doc;
+  try { doc = materialize(template, sysId, state, locals); }
+  catch (e) { return React.createElement(MissingBox, { id: "collection", msg: (e as Error).message }); }
+  const activeLocals = { ...initLocals(doc, sysId), ...locals };
+  const ctx = makeCtx(doc, sysId, state, activeLocals);
 
   // Resolve a block to its implementation via the LOCKFILE first. A stored
   // version pins exact component refs in `resolved`; honouring them means an old
@@ -111,7 +115,7 @@ export function KageRenderer({ doc, system, dsBase = "/ds", className, onState }
     const b = doc.blocks[id];
     const r = contractFor(id, b);
     if (!r.contract) return;
-    const draft: Draft = { state: clone(state), locals: clone(locals) };
+    const draft: Draft = { state: clone(state), locals: clone(activeLocals) };
     const log: LogEntry[] = [];
     const hostTasks: HostTask[] = [];
     const opts = { onHost: (t: HostTask) => hostTasks.push(t) };

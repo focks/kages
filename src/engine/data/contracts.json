@@ -1694,6 +1694,930 @@
       "keyboard": "Semantic content; interactive children own their keyboard behavior."
     }
   },
+  "core/composition@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/composition",
+    "version": "1.0.0",
+    "ref": "core/composition@1.0.0",
+    "system": "core",
+    "name": "composition",
+    "implements": [
+      "kages/composition@1"
+    ],
+    "role": "composition",
+    "summary": "Reusable document-local composition with typed inputs and a public value output.",
+    "props": {
+      "name": {
+        "type": "string",
+        "required": true
+      },
+      "inputs": {
+        "type": "object"
+      },
+      "value": {
+        "type": "string|number|boolean|object|array|null"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code."
+    },
+    "limits": {}
+  },
+  "core/link@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/link",
+    "version": "1.0.0",
+    "ref": "core/link@1.0.0",
+    "system": "core",
+    "name": "link",
+    "implements": [
+      "kages/link@1"
+    ],
+    "role": "link",
+    "summary": "Accessible passive link; executable URL schemes are refused.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "href": {
+        "type": "string",
+        "required": true
+      },
+      "newTab": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text."
+    },
+    "limits": {}
+  },
+  "core/rich-text@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/rich-text",
+    "version": "1.0.0",
+    "ref": "core/rich-text@1.0.0",
+    "system": "core",
+    "name": "rich-text",
+    "implements": [
+      "kages/rich-text@1"
+    ],
+    "role": "rich-text",
+    "summary": "Structured headings, paragraphs, quotes, lists and inline emphasis without raw HTML.",
+    "props": {
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "kind"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal."
+    },
+    "limits": {}
+  },
+  "core/text-field@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/text-field",
+    "version": "1.0.0",
+    "ref": "core/text-field@1.0.0",
+    "system": "core",
+    "name": "text-field",
+    "implements": [
+      "kages/text-field@1"
+    ],
+    "role": "text-field",
+    "summary": "Named text, email or URL field with native form validation.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "name": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "string"
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "text",
+          "email",
+          "url"
+        ],
+        "default": "text"
+      },
+      "help": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "minLength": {
+        "type": "number"
+      },
+      "maxLength": {
+        "type": "number"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}."
+    },
+    "limits": {}
+  },
+  "core/number-input@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/number-input",
+    "version": "1.0.0",
+    "ref": "core/number-input@1.0.0",
+    "system": "core",
+    "name": "number-input",
+    "implements": [
+      "kages/number-input@1"
+    ],
+    "role": "number-input",
+    "summary": "Named numeric field with min/max/step validation; empty value is null.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "name": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "number|null"
+      },
+      "min": {
+        "type": "number"
+      },
+      "max": {
+        "type": "number"
+      },
+      "step": {
+        "type": "number"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "number|null",
+        "default": null
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "number|null"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for calculations; an empty field emits null. Set name inside form; change emits {value}."
+    },
+    "limits": {}
+  },
+  "core/date-input@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/date-input",
+    "version": "1.0.0",
+    "ref": "core/date-input@1.0.0",
+    "system": "core",
+    "name": "date-input",
+    "implements": [
+      "kages/date-input@1"
+    ],
+    "role": "date-input",
+    "summary": "Named date field with native picker and ISO date output.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "name": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "string"
+      },
+      "min": {
+        "type": "string"
+      },
+      "max": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Date values and bounds are YYYY-MM-DD; change emits {value}."
+    },
+    "limits": {}
+  },
+  "core/choice@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/choice",
+    "version": "1.0.0",
+    "ref": "core/choice@1.0.0",
+    "system": "core",
+    "name": "choice",
+    "implements": [
+      "kages/choice@1"
+    ],
+    "role": "choice",
+    "summary": "Named radio group with native keyboard navigation and a public selection.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "name": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "string"
+      },
+      "options": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for one option from a short list; options are [{value,label}]. change emits {value}."
+    },
+    "limits": {}
+  },
+  "core/multiselect@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/multiselect",
+    "version": "1.0.0",
+    "ref": "core/multiselect@1.0.0",
+    "system": "core",
+    "name": "multiselect",
+    "implements": [
+      "kages/multiselect@1"
+    ],
+    "role": "multiselect",
+    "summary": "Named multiple selection with native keyboard support and array output.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "name": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "options": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for several choices; options are [{value,label}], value is a string array. change emits {value}."
+    },
+    "limits": {}
+  },
+  "core/form@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/form",
+    "version": "1.0.0",
+    "ref": "core/form@1.0.0",
+    "system": "core",
+    "name": "form",
+    "implements": [
+      "kages/form@1"
+    ],
+    "role": "form",
+    "summary": "Native validated form; submit emits named field values as strings or arrays of strings.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "submitLabel": {
+        "type": "string",
+        "default": "Submit"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {},
+    "events": {
+      "submit": {
+        "handler": "onSubmit",
+        "payload": {
+          "values": "object"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Place named native fields in children. Invalid fields prevent submit. submit emits {values}: string values, duplicate names become arrays. Wire submit to declared state or a host action."
+    },
+    "limits": {}
+  },
+  "core/scene@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/scene",
+    "version": "1.0.0",
+    "ref": "core/scene@1.0.0",
+    "system": "core",
+    "name": "scene",
+    "implements": [
+      "kages/scene@1"
+    ],
+    "role": "scene",
+    "summary": "Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "width": {
+        "type": "number",
+        "default": 640
+      },
+      "height": {
+        "type": "number",
+        "default": 360
+      },
+      "shapes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "kind"
+          ]
+        }
+      },
+      "interactive": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space."
+    },
+    "limits": {}
+  },
+  "core/diagram@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/diagram",
+    "version": "1.0.0",
+    "ref": "core/diagram@1.0.0",
+    "system": "core",
+    "name": "diagram",
+    "implements": [
+      "kages/diagram@1"
+    ],
+    "role": "diagram",
+    "summary": "Node and edge diagram with automatic placement or explicit coordinates.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "from",
+            "to"
+          ]
+        }
+      },
+      "interactive": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}."
+    },
+    "limits": {}
+  },
+  "core/line-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/line-chart",
+    "version": "1.0.0",
+    "ref": "core/line-chart@1.0.0",
+    "system": "core",
+    "name": "line-chart",
+    "implements": [
+      "kages/line-chart@1"
+    ],
+    "role": "line-chart",
+    "summary": "Responsive numeric X/Y line chart with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table."
+    },
+    "limits": {}
+  },
+  "core/scatter-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/scatter-chart",
+    "version": "1.0.0",
+    "ref": "core/scatter-chart@1.0.0",
+    "system": "core",
+    "name": "scatter-chart",
+    "implements": [
+      "kages/scatter-chart@1"
+    ],
+    "role": "scatter-chart",
+    "summary": "Responsive numeric X/Y scatter plot with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

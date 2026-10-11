@@ -1,0 +1,98 @@
+[
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/blocks",
+        "code": "bad-expansion",
+        "msg": "Duplicate repeat key \"x\" at row"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/blocks/root/slots/main",
+        "code": "empty-slot",
+        "msg": "`main` needs at least one block"
+      },
+      {
+        "at": "/blocks/root/slots/sidebar",
+        "code": "repeat-slot-limit",
+        "msg": "Place repeated blocks inside an unbounded container to respect slot cardinality"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/blocks/summary",
+        "code": "ambiguous-instance",
+        "msg": "Reference to repeated block row must be inside the same repeat scope"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/blocks/root",
+        "code": "bad-expr",
+        "msg": "$div takes [a, b]"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/compositions/loop",
+        "code": "composition-cycle",
+        "msg": "Recursive composition: loop → loop"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/blocks/root/props/inputs/title",
+        "code": "input-type",
+        "msg": "Input title should be string"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  {
+    "ok": false,
+    "errors": [
+      {
+        "at": "/compositions/card/output",
+        "code": "private-output",
+        "msg": "$block 'root.text': core/text@1.0.0 outputs only nothing"
+      }
+    ],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  }
+]

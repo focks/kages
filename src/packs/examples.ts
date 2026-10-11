@@ -1,7 +1,7 @@
 // Complete examples are shared by packs, starter seeding and golden capture.
 // Isolated snippets encouraged agents to repeat the reference console's shape;
 // these documents demonstrate three independent compositions.
-import type { KageDoc } from "../engine/types.ts";
+import type { KageDoc, Expr } from "../engine/types.ts";
 
 /** Fresh documents on every call: studio edits and store lockfiles must never
  * mutate the examples embedded in another agent's pack. */
@@ -43,4 +43,60 @@ export function freeFlowExamples(system = "core"): KageDoc[] {
       structured: { type: "code", props: { caption: "Your draft as data", wrap: true }, bind: { code: { $tpl: "Draft: {{state.draft}}\nConfidence: {{state.confidence}}" } }, visible: { $block: "details.checked" } },
     }, { draft: "A small tool for a big idea", confidence: 60 }),
   ];
+}
+
+/** Examples exercise collections, formulas and composition outputs together;
+ * fresh documents keep the Studio draft independent of published templates. */
+export function expressiveExamples(system = "core"): KageDoc[] {
+  const base = (id: string, title: string): KageDoc => ({ kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} });
+  const collection = base("collection-lab", "Collection lab — reusable, data-driven cards");
+  collection.state = { query: "", selected: "" };
+  collection.data = { products: [{ id: "atlas", name: "Atlas", category: "Research", price: 29 }, { id: "canvas", name: "Canvas", category: "Design", price: 49 }, { id: "compass", name: "Compass", category: "Planning", price: 19 }] };
+  collection.compositions = {
+    product: { inputs: { name: { type: "string", required: true }, category: { type: "string", required: true }, price: { type: "number", required: true } }, root: "card", blocks: {
+      card: { type: "section", props: { level: 3, tone: "surface" }, bind: { title: { $input: "name" } }, slots: { children: ["category", "price", "notes"] } },
+      category: { type: "text", bind: { text: { $input: "category" } } },
+      price: { type: "text", bind: { text: { $format: { value: { $input: "price" }, style: "currency" } } } },
+      notes: { type: "text-field", props: { label: "Personal note", placeholder: "Each card keeps its own note" } },
+    }, output: { $block: "notes.value" }, outputType: { type: "string" } },
+  };
+  collection.blocks = {
+    root: { type: "page", props: { width: "wide" }, slots: { children: ["intro", "search", "cards", "empty"] } },
+    intro: { type: "section", props: { title: "Find your next workspace", eyebrow: "Collection lab", description: "Three cards share one typed composition. Filter the collection; each note survives filtering and reordering.", inset: 0 } },
+    search: { type: "text-field", props: { label: "Filter workspaces", placeholder: "Try Design" }, bind: { value: { $state: "query" } }, on: { change: [{ do: "set", path: "query", value: { $event: "value" } }] } },
+    cards: { type: "grid", props: { columns: 3, minSize: "small" }, slots: { children: ["product"] } },
+    product: { type: "composition", props: { name: "product" }, bind: { inputs: { name: { $item: "name" }, category: { $item: "category" }, price: { $item: "price" } } }, repeat: { each: { $sort: { list: { $filter: { list: { $data: "products" }, fields: ["name", "category"], contains: { $state: "query" } } }, field: "name" } }, key: "id", as: "product" } },
+    empty: { type: "text", props: { text: "No matching workspaces. Try a different search." }, visible: { $eq: [{ $count: { $filter: { list: { $data: "products" }, fields: ["name", "category"], contains: { $state: "query" } } } }, 0] } },
+  };
+  const calculator = base("growth-lab", "Growth lab — a visual calculator");
+  calculator.state = { principal: 1000, rate: 5, selected: "" };
+  calculator.data = { years: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
+  const growth = (year: Expr): Expr => ({ $round: [{ $mul: [{ $state: "principal" }, { $pow: [{ $add: [1, { $div: [{ $state: "rate" }, 100] }] }, year] }] }, 2] });
+  calculator.blocks = {
+    root: { type: "page", props: { width: "wide" }, slots: { children: ["intro", "workspace", "diagram"] } },
+    intro: { type: "section", props: { title: "Watch an idea compound", eyebrow: "Growth lab", description: "Explore how a starting amount and annual rate change a ten-year projection.", inset: 0 } },
+    workspace: { type: "split", props: { ratio: "wide-end" }, slots: { start: ["controls"], end: ["plot"] } },
+    controls: { type: "section", props: { title: "Try a scenario", level: 3, tone: "surface" }, slots: { children: ["principal", "rate", "result", "explanation"] } },
+    principal: { type: "number-input", props: { label: "Starting amount", min: 0, max: 1000000, step: 100 }, bind: { value: { $state: "principal" } }, on: { change: [{ do: "set", path: "principal", value: { $event: "value" } }] } },
+    rate: { type: "slider", props: { label: "Annual growth (%)", min: 0, max: 20, step: .5 }, bind: { value: { $state: "rate" } }, on: { change: [{ do: "set", path: "rate", value: { $event: "value" } }] } },
+    result: { type: "stat", props: { label: "After ten years", format: "currency" }, bind: { value: growth(10) } },
+    explanation: { type: "rich-text", props: { nodes: [{ kind: "paragraph", runs: [{ text: "Explore a hypothetical projection. ", bold: true }, { text: "The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration." }] }, { kind: "code", text: '{"$mul":[{"$state":"principal"},{"$pow":[1.05,10]}]}' }] } },
+    plot: { type: "line-chart", props: { label: "Projected growth", xLabel: "Year", yLabel: "Amount" }, bind: { items: { $map: { list: { $data: "years" }, to: { x: { $item: "" }, y: growth({ $item: "" }) } } } } },
+    diagram: { type: "diagram", props: { label: "How the projection works", nodes: [{ id: "start", label: "Starting amount" }, { id: "rate", label: "Annual growth" }, { id: "result", label: "Projected amount" }], edges: [{ from: "start", to: "rate" }, { from: "rate", to: "result" }] } },
+  };
+  const form = base("event-planner", "Event planner — a validated form");
+  form.state = { submitted: null };
+  form.blocks = {
+    root: { type: "page", props: { width: "reading" }, slots: { children: ["intro", "form", "receipt"] } },
+    intro: { type: "section", props: { title: "Plan a gathering", description: "Pick a date, group size and activities. Required fields are checked before submission.", inset: 0 } },
+    form: { type: "form", props: { label: "Gathering details", submitLabel: "Create plan" }, slots: { children: ["name", "email", "date", "count", "venue", "activities"] }, on: { submit: [{ do: "set", path: "submitted", value: { $event: "values" } }] } },
+    name: { type: "text-field", props: { label: "Gathering name", name: "name", required: true, minLength: 3 } },
+    email: { type: "text-field", props: { label: "Contact email", name: "email", kind: "email", required: true } },
+    date: { type: "date-input", props: { label: "Date", name: "date", required: true } },
+    count: { type: "number-input", props: { label: "Group size", name: "count", min: 1, max: 100, step: 1, required: true } },
+    venue: { type: "choice", props: { label: "Venue", name: "venue", required: true, options: [{ value: "studio", label: "Studio" }, { value: "garden", label: "Garden" }] } },
+    activities: { type: "multiselect", props: { label: "Activities", name: "activities", options: [{ value: "talk", label: "A conversation" }, { value: "workshop", label: "A workshop" }, { value: "exhibition", label: "An exhibition" }] } },
+    receipt: { type: "code", props: { caption: "Your plan", wrap: true }, bind: { code: { $tpl: "{{state.submitted}}" } }, visible: { $neq: [{ $state: "submitted" }, null] } },
+  };
+  return [collection, calculator, form];
 }

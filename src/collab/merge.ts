@@ -22,7 +22,7 @@ export interface MergeResult {
 }
 
 /** The ids whose block definition differs between two documents. Top-level
- *  non-block fields (state/data/root/system) are compared as the pseudo-block
+ *  non-block fields (state/data/root/system/compositions) are compared as the pseudo-block
  *  "/root" so a structural change is attributable too. */
 function changedBlocks(base: KageDoc, next: KageDoc): Set<string> {
   const changed = new Set<string>();
@@ -30,7 +30,7 @@ function changedBlocks(base: KageDoc, next: KageDoc): Set<string> {
   for (const id of ids) {
     if (JSON.stringify(base.blocks?.[id]) !== JSON.stringify(next.blocks?.[id])) changed.add(id);
   }
-  for (const key of ["state", "data", "root", "system"] as const) {
+  for (const key of ["state", "data", "root", "system", "compositions"] as const) {
     if (JSON.stringify(base[key]) !== JSON.stringify(next[key])) changed.add("/root");
   }
   return changed;
@@ -63,5 +63,5 @@ export function mergeThreeWay(base: KageDoc, theirs: KageDoc, yours: KageDoc): M
 }
 
 function pickStructural(doc: KageDoc) {
-  return { state: doc.state, data: doc.data, root: doc.root, system: doc.system };
+  return { state: doc.state, data: doc.data, root: doc.root, system: doc.system, compositions: doc.compositions };
 }

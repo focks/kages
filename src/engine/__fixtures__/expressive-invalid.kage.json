@@ -1,0 +1,285 @@
+[
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "grid",
+        "slots": {
+          "children": [
+            "row"
+          ]
+        }
+      },
+      "row": {
+        "type": "text",
+        "props": {
+          "text": "Row"
+        },
+        "repeat": {
+          "each": {
+            "$state": "items"
+          },
+          "key": "id"
+        }
+      }
+    }
+  },
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "shell",
+        "slots": {
+          "sidebar": [
+            "row"
+          ]
+        }
+      },
+      "row": {
+        "type": "text",
+        "props": {
+          "text": "Row"
+        },
+        "repeat": {
+          "each": {
+            "$state": "items"
+          }
+        }
+      }
+    }
+  },
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "grid",
+        "slots": {
+          "children": [
+            "row",
+            "summary"
+          ]
+        }
+      },
+      "row": {
+        "type": "text",
+        "props": {
+          "text": "Row"
+        },
+        "repeat": {
+          "each": {
+            "$state": "items"
+          }
+        }
+      },
+      "summary": {
+        "type": "text",
+        "bind": {
+          "text": {
+            "$tpl": "{{block.row.text}}"
+          }
+        }
+      }
+    }
+  },
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "text",
+        "bind": {
+          "text": {
+            "$div": [
+              1
+            ]
+          }
+        }
+      }
+    }
+  },
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "text",
+        "props": {
+          "text": "Dormant"
+        }
+      }
+    },
+    "compositions": {
+      "loop": {
+        "inputs": {},
+        "root": "root",
+        "blocks": {
+          "root": {
+            "type": "composition",
+            "props": {
+              "name": "loop"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "composition",
+        "props": {
+          "name": "card",
+          "inputs": {
+            "title": 42
+          }
+        }
+      }
+    },
+    "compositions": {
+      "card": {
+        "inputs": {
+          "title": {
+            "type": "string",
+            "required": true
+          }
+        },
+        "root": "root",
+        "blocks": {
+          "root": {
+            "type": "text",
+            "bind": {
+              "text": {
+                "$input": "title"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "kages": "1.0",
+    "id": "invalid-example",
+    "title": "Invalid example",
+    "system": "core@1",
+    "root": "root",
+    "state": {
+      "items": [
+        {
+          "id": "x"
+        },
+        {
+          "id": "x"
+        }
+      ]
+    },
+    "blocks": {
+      "root": {
+        "type": "composition",
+        "props": {
+          "name": "card"
+        }
+      }
+    },
+    "compositions": {
+      "card": {
+        "inputs": {},
+        "root": "root",
+        "blocks": {
+          "root": {
+            "type": "text",
+            "props": {
+              "text": "Private"
+            }
+          }
+        },
+        "output": {
+          "$block": "root.text"
+        }
+      }
+    }
+  }
+]

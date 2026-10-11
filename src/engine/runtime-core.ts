@@ -3,6 +3,7 @@
 // cycle guard), and the action dispatcher. Ported from the oracle.
 // See oracle/actions-runtime.feature.
 
+import { expandDocument, matchesInput } from "./advanced.js";
 import { resolve, systemOf } from "./resolve.ts";
 import { evaluate, getPath, setPath, isExpr, merge } from "./expr.ts";
 import type { KageDoc, Action, Json, EvalContext } from "./types.ts";
@@ -72,6 +73,8 @@ export function makeCtx(
     const own = b.props ? merge(b.props, (b.props.x && (b.props.x as Any)[sysId]) || {}) : null;
     if (own) for (const k2 in own) { if (k2 === "x" || (c.local[k2] && !isExpr((own as Any)[k2]))) continue; out[k2] = evaluate((own as Any)[k2], sub); }
     if (b.bind) for (const k3 in b.bind) out[k3] = evaluate(b.bind[k3], sub);
+    const outputType = b.type === "composition" ? doc.compositions?.[String(b.props?.name)]?.outputType : undefined;
+    if (outputType && !matchesInput(outputType, out.value)) throw new Error("Invalid composition output at " + id);
     busy[id] = false;
     cache[id] = out;
     return out;
@@ -159,3 +162,9 @@ export function runActions(
 export const ACTIONS = ["set", "toggle", "setLocal", "call", "log", "ask", "agent", "fetch", "emit"];
 
 export { systemOf };
+
+/** Materialization is ephemeral: repeat keys identify runtime locals while the
+ * signed template document remains the source of truth. */
+export function materialize(doc: KageDoc, sysId: string, state: Record<string, Json>, locals: Record<string, Record<string, Json>>): KageDoc {
+  return expandDocument(doc, makeCtx(doc, sysId, state, locals), evaluate, getPath, (d: KageDoc) => makeCtx(d, sysId, state, { ...initLocals(d, sysId), ...locals })) as KageDoc;
+}

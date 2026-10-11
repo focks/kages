@@ -81,5 +81,5 @@ test("free-flow: starters validate and create/clone/publish through the operatio
   assert.equal(dispatch(ctx, "clone_kage", { name: "idea-lab", title: "My lab" }).ok, true);
   assert.equal(dispatch(ctx, "publish_kage", { name: "idea-lab" }).ok, true);
   const templates = dispatch(ctx, "search_templates", {}) as any;
-  assert.equal(templates.data.length, 7); // clone remains an ordinary searchable Kage
+  assert.equal(templates.data.length, introTemplates().length + 1); // clone remains an ordinary searchable Kage
 });

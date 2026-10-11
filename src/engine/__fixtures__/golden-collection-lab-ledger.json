@@ -1,0 +1,146 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Collection lab — reusable, data-driven cards\" · system ledger@2.3.0 · 6 blocks · 20 instances\nstate {\"query\":\"\",\"selected\":\"\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Find your next workspace\"\n    - search [core/text-field@1.0.0] label=\"Filter workspaces\"\n        ↳ reads state:query · writes change→state.query\n    - cards [core/grid@1.0.0]\n      - product~/product%3A%22atlas%22 [core/composition@1.0.0]\n          ↳ reads block:notes~/product%3A%22atlas%22/product%3Aproduct.value\n        - card~/product%3A%22atlas%22/product%3Aproduct [core/section@1.0.0] title=\"Atlas\"\n          children:\n            - category~/product%3A%22atlas%22/product%3Aproduct [core/text@1.0.0] text=\"Research\"\n            - price~/product%3A%22atlas%22/product%3Aproduct [core/text@1.0.0] text=\"$29.00\"\n            - notes~/product%3A%22atlas%22/product%3Aproduct [core/text-field@1.0.0] label=\"Personal note\"\n      - product~/product%3A%22canvas%22 [core/composition@1.0.0]\n          ↳ reads block:notes~/product%3A%22canvas%22/product%3Aproduct.value\n        - card~/product%3A%22canvas%22/product%3Aproduct [core/section@1.0.0] title=\"Canvas\"\n          children:\n            - category~/product%3A%22canvas%22/product%3Aproduct [core/text@1.0.0] text=\"Design\"\n            - price~/product%3A%22canvas%22/product%3Aproduct [core/text@1.0.0] text=\"$49.00\"\n            - notes~/product%3A%22canvas%22/product%3Aproduct [core/text-field@1.0.0] label=\"Personal note\"\n      - product~/product%3A%22compass%22 [core/composition@1.0.0]\n          ↳ reads block:notes~/product%3A%22compass%22/product%3Aproduct.value\n        - card~/product%3A%22compass%22/product%3Aproduct [core/section@1.0.0] title=\"Compass\"\n          children:\n            - category~/product%3A%22compass%22/product%3Aproduct [core/text@1.0.0] text=\"Planning\"\n            - price~/product%3A%22compass%22/product%3Aproduct [core/text@1.0.0] text=\"$19.00\"\n            - notes~/product%3A%22compass%22/product%3Aproduct [core/text-field@1.0.0] label=\"Personal note\"\n    - empty [core/text@1.0.0] (hidden) text=\"No matching workspaces. Try a different search.\"\n        ↳ reads data:products, state:query",
+  "envelope": {
+    "title": "Collection lab — reusable, data-driven cards",
+    "root": "root",
+    "state_json": "{\"query\":\"\",\"selected\":\"\"}",
+    "data_json": "{\"products\":[{\"id\":\"atlas\",\"name\":\"Atlas\",\"category\":\"Research\",\"price\":29},{\"id\":\"canvas\",\"name\":\"Canvas\",\"category\":\"Design\",\"price\":49},{\"id\":\"compass\",\"name\":\"Compass\",\"category\":\"Planning\",\"price\":19}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "search",
+            "cards",
+            "empty"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Find your next workspace",
+          "eyebrow": "Collection lab",
+          "description": "Three cards share one typed composition. Filter the collection; each note survives filtering and reordering.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "search",
+        "type": "text-field",
+        "props": {
+          "label": "Filter workspaces",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "value": null,
+          "kind": null,
+          "help": null,
+          "placeholder": "Try Design",
+          "minLength": null,
+          "maxLength": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"query\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"query\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "cards",
+        "type": "grid",
+        "props": {
+          "columns": 3,
+          "minSize": "small",
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "product"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "product",
+        "type": "composition",
+        "props": {
+          "name": "product",
+          "inputs_json": null,
+          "value_json": null
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [
+          {
+            "prop": "inputs",
+            "expr_json": "{\"name\":{\"$item\":\"name\"},\"category\":{\"$item\":\"category\"},\"price\":{\"$item\":\"price\"}}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$sort\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"products\"},\"fields\":[\"name\",\"category\"],\"contains\":{\"$state\":\"query\"}}},\"field\":\"name\"}},\"key\":\"id\",\"as\":\"product\"}"
+      },
+      {
+        "id": "empty",
+        "type": "text",
+        "props": {
+          "text": "No matching workspaces. Try a different search.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$count\":{\"$filter\":{\"list\":{\"$data\":\"products\"},\"fields\":[\"name\",\"category\"],\"contains\":{\"$state\":\"query\"}}}},0]}",
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": "{\"product\":{\"inputs\":{\"name\":{\"type\":\"string\",\"required\":true},\"category\":{\"type\":\"string\",\"required\":true},\"price\":{\"type\":\"number\",\"required\":true}},\"root\":\"card\",\"blocks\":{\"card\":{\"type\":\"section\",\"props\":{\"level\":3,\"tone\":\"surface\"},\"bind\":{\"title\":{\"$input\":\"name\"}},\"slots\":{\"children\":[\"category\",\"price\",\"notes\"]}},\"category\":{\"type\":\"text\",\"bind\":{\"text\":{\"$input\":\"category\"}}},\"price\":{\"type\":\"text\",\"bind\":{\"text\":{\"$format\":{\"value\":{\"$input\":\"price\"},\"style\":\"currency\"}}}},\"notes\":{\"type\":\"text-field\",\"props\":{\"label\":\"Personal note\",\"placeholder\":\"Each card keeps its own note\"}}},\"output\":{\"$block\":\"notes.value\"},\"outputType\":{\"type\":\"string\"}}}"
+  }
+}

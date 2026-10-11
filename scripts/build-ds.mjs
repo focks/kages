@@ -4,4 +4,4 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { referenceBundle } from "./ds-source.mjs";
 
 writeFileSync("public/ds/bundle.js", referenceBundle());
-writeFileSync("public/ds/bundle.css", readFileSync("originals/project/components/bundle.css", "utf8") + "\n" + readFileSync("src/design-system/free-flow.css", "utf8"));
+writeFileSync("public/ds/bundle.css", readFileSync("originals/project/components/bundle.css", "utf8") + "\n" + readFileSync("src/design-system/free-flow.css", "utf8") + "\n" + readFileSync("src/design-system/expressive.css", "utf8"));

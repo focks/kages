@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -520,6 +520,178 @@
   };
   freeFlowExports.authoring = authoring;
 
+/* Portable expressive blocks accept data, never markup or arbitrary SVG props.
+ * Native controls own validation and keyboard behavior; shapes expose only a
+ * fixed geometry vocabulary. See oracle/expressive-artifacts.feature. */
+  function passiveLink(value) {
+    if (typeof value !== "string" || /[\s\\<>]/.test(value)) return undefined;
+    return /^(https?:\/\/[^/]+(?:\/|$)|\/(?!\/)|#|mailto:[^:]+@)/i.test(value) ? value : undefined;
+  }
+  function CoreLink(p) { var href = passiveLink(p.href); return href ? h("a", { className: "kg-link", href: href, target: p.newTab ? "_blank" : undefined, rel: p.newTab ? "noopener noreferrer" : undefined }, p.label) : h("span", null, p.label); }
+  function richRuns(runs) {
+    return (Array.isArray(runs) ? runs : []).map(function (run, i) {
+      if (!run || typeof run.text !== "string") return null;
+      var child = run.text;
+      if (run.code) child = h("code", null, child);
+      if (run.bold) child = h("strong", null, child);
+      if (run.italic) child = h("em", null, child);
+      var href = passiveLink(run.href);
+      return h(href ? "a" : "span", { key: i, href: href }, child);
+    });
+  }
+  function CoreRichText(p) {
+    return h("div", { className: "kg-rich-text" }, (Array.isArray(p.nodes) ? p.nodes : []).map(function (node, i) {
+      if (!node) return null;
+      if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, String(item)); }));
+      if (node.kind === "code") return h("pre", { key: i }, h("code", null, String(node.text || "")));
+      var tag = node.kind === "heading" ? "h" + choice(node.level, [2, 3, 4], 2) : node.kind === "quote" ? "blockquote" : "p";
+      return h(tag, { key: i }, node.runs ? richRuns(node.runs) : String(node.text || ""));
+    }));
+  }
+  function CoreComposition(p) { return h("div", { className: "kg-composition" }, p.children); }
+  function CoreTextField(p) {
+    var uid = R().useId();
+    return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
+      h("input", { className: "kg-input", type: choice(p.kind, ["text", "email", "url"], "text"), "aria-label": p.label, "aria-describedby": p.help ? uid + "-help" : undefined, name: p.name, value: p.value == null ? "" : p.value, required: p.required, minLength: p.minLength, maxLength: p.maxLength, placeholder: p.placeholder, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), p.help ? h("span", { id: uid + "-help", className: "kg-field__help" }, p.help) : null);
+  }
+  function CoreNumberInput(p) {
+    return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
+      h("input", { className: "kg-input", type: "number", name: p.name, value: typeof p.value === "number" && isFinite(p.value) ? p.value : "", min: p.min, max: p.max, step: typeof p.step === "number" && p.step > 0 ? p.step : "any", required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : null }); } }));
+  }
+  function CoreDateInput(p) {
+    return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
+      h("input", { className: "kg-input", type: "date", name: p.name, value: p.value || "", min: p.min, max: p.max, required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }));
+  }
+  function CoreChoice(p) {
+    var uid = R().useId();
+    return h("fieldset", { className: "kg-choice", disabled: p.disabled }, h("legend", { className: "kg-field__label" }, p.label),
+      (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("label", { key: i }, h("input", { type: "radio", name: p.name || uid, value: o.value, checked: p.value === o.value, required: p.required, onChange: function () { fire(p.onChange, { value: o.value }); } }), h("span", null, o.label)); }));
+  }
+  function CoreMultiselect(p) {
+    var selected = Array.isArray(p.value) ? p.value : [], uid = R().useId();
+    return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
+      h("select", { className: "kg-input kg-multiselect", name: p.name, "aria-label": p.label, "aria-describedby": uid + "-help", multiple: true, value: selected, required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: Array.from(e.target.selectedOptions).map(function (o) { return o.value; }) }); } }, (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("option", { key: i, value: o.value }, o.label); })),
+      h("span", { id: uid + "-help", className: "kg-field__help" }, "Choose multiple with Ctrl or Command; use arrow keys and Shift on the keyboard."));
+  }
+  function CoreForm(p) {
+    return h("form", { className: "kg-form", "aria-label": p.label, onSubmit: function (e) {
+      e.preventDefault();
+      var values = Object.create(null);
+      new FormData(e.currentTarget).forEach(function (value, key) {
+        if (["__proto__", "constructor", "prototype"].indexOf(key) >= 0) return;
+        if (Object.prototype.hasOwnProperty.call(values, key)) values[key] = [].concat(values[key], String(value)); else values[key] = String(value);
+      });
+      fire(p.onSubmit, { values: values });
+    } }, p.children, h("button", { className: "kg-btn kg-btn--primary", type: "submit", disabled: p.disabled }, p.submitLabel || "Submit"));
+  }
+
+  function finiteNumber(n, fallback) { return typeof n === "number" && isFinite(n) ? Math.max(-1000000, Math.min(1000000, n)) : fallback; }
+  function paint(value, fallback) { return "var(--kg-" + choice(value, ["accent", "ink", "ink-muted", "line", "surface", "sunken", "paper", "success", "danger"], fallback) + ")"; }
+  function CoreScene(p) {
+    var width = Math.max(1, finiteNumber(p.width, 640)), height = Math.max(1, finiteNumber(p.height, 360));
+    return h("figure", { className: "kg-scene" }, h("figcaption", null, p.label),
+      h("svg", { viewBox: "0 0 " + width + " " + height, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label),
+        (Array.isArray(p.shapes) ? p.shapes : []).slice(0, 2000).map(function (s, i) {
+          if (!s || ["rect", "circle", "line", "path", "text"].indexOf(s.kind) < 0) return null;
+          var attrs = { key: i, fill: s.kind === "line" || s.kind === "path" ? "none" : paint(s.fill, "surface"), stroke: paint(s.stroke, "ink"), strokeWidth: Math.max(0, finiteNumber(s.strokeWidth, 1)), "aria-label": s.label || undefined };
+          if (p.interactive && typeof s.id === "string") {
+            attrs.role = "button"; attrs.tabIndex = 0;
+            attrs.onClick = function () { fire(p.onSelect, { id: s.id }); };
+            attrs.onKeyDown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fire(p.onSelect, { id: s.id }); } };
+          }
+          if (s.kind === "rect") Object.assign(attrs, { x: finiteNumber(s.x, 0), y: finiteNumber(s.y, 0), width: Math.max(0, finiteNumber(s.width, 100)), height: Math.max(0, finiteNumber(s.height, 60)), rx: Math.max(0, finiteNumber(s.radius, 8)) });
+          if (s.kind === "circle") Object.assign(attrs, { cx: finiteNumber(s.x, 0), cy: finiteNumber(s.y, 0), r: Math.max(0, finiteNumber(s.radius, 20)) });
+          if (s.kind === "line") Object.assign(attrs, { x1: finiteNumber(s.x, 0), y1: finiteNumber(s.y, 0), x2: finiteNumber(s.x2, 100), y2: finiteNumber(s.y2, 100) });
+          if (s.kind === "path") { if (typeof s.d !== "string" || s.d.length > 20000 || !/^[MmLlHhVvCcSsQqTtAaZz0-9eE+.,\s-]+$/.test(s.d)) return null; attrs.d = s.d; }
+          if (s.kind === "text") Object.assign(attrs, { x: finiteNumber(s.x, 0), y: finiteNumber(s.y, 0), fill: paint(s.fill, "ink"), stroke: "none", fontSize: Math.max(8, Math.min(64, finiteNumber(s.size, 16))) });
+          return h(s.kind, attrs, s.kind === "text" ? String(s.text == null ? "" : s.text) : h("title", null, s.label || s.id || s.kind));
+        })));
+  }
+  function CoreDiagram(p) {
+    var nodes = (Array.isArray(p.nodes) ? p.nodes : []).filter(function (n) { return n && typeof n.id === "string"; }).slice(0, 200);
+    var rows = Math.ceil(nodes.length / 3), width = 660, height = Math.max(140, rows * 140), positions = Object.create(null), shapes = [];
+    nodes.forEach(function (n, i) { positions[n.id] = { x: finiteNumber(n.x, 20 + (i % 3) * 220), y: finiteNumber(n.y, 30 + Math.floor(i / 3) * 140) }; });
+    (Array.isArray(p.edges) ? p.edges : []).forEach(function (edge) {
+      var from = positions[edge.from], to = positions[edge.to]; if (!from || !to) return;
+      shapes.push({ kind: "line", x: from.x + 90, y: from.y + 35, x2: to.x + 90, y2: to.y + 35, stroke: "ink-muted", strokeWidth: 2, label: edge.label || edge.from + " to " + edge.to });
+    });
+    nodes.forEach(function (n) {
+      var pos = positions[n.id]; width = Math.max(width, pos.x + 200); height = Math.max(height, pos.y + 100);
+      shapes.push({ kind: "rect", id: n.id, x: pos.x, y: pos.y, width: 180, height: 70, fill: n.tone || "surface", label: n.label });
+      shapes.push({ kind: "text", x: pos.x + 12, y: pos.y + 42, text: String(n.label || n.id).slice(0, 20), label: n.label });
+    });
+    return CoreScene({ label: p.label, width: width, height: height, shapes: shapes, interactive: p.interactive, onSelect: p.onSelect });
+  }
+  function plot(p, scatter) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.x === "number" && isFinite(it.x) && typeof it.y === "number" && isFinite(it.y); }).slice(0, 2000);
+    if (!items.length) return h("figure", { className: "kg-scene" }, h("figcaption", null, p.label), h("p", null, p.empty || "No data to show"));
+    var xs = items.map(function (i) { return i.x; }), ys = items.map(function (i) { return i.y; });
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs), minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    // Normalize before subtraction so opposite near-MAX_VALUE coordinates do
+    // not overflow into NaN geometry even though each input is finite.
+    var scaleX = Math.max(Math.abs(minX), Math.abs(maxX), 1), scaleY = Math.max(Math.abs(minY), Math.abs(maxY), 1);
+    var dx = maxX / scaleX - minX / scaleX, dy = maxY / scaleY - minY / scaleY;
+    var points = items.map(function (it) { return { x: 50 + (dx ? (it.x / scaleX - minX / scaleX) / dx : .5) * 530, y: 250 - (dy ? (it.y / scaleY - minY / scaleY) / dy : .5) * 210 }; });
+    var shapes = [{ kind: "line", x: 50, y: 250, x2: 580, y2: 250, stroke: "ink-muted" }, { kind: "line", x: 50, y: 40, x2: 50, y2: 250, stroke: "ink-muted" }];
+    if (!scatter) shapes.push({ kind: "path", d: points.map(function (pt, i) { return (i ? "L" : "M") + pt.x + " " + pt.y; }).join(" "), stroke: "accent", strokeWidth: 3 });
+    points.forEach(function (pt, i) { shapes.push({ kind: "circle", x: pt.x, y: pt.y, radius: 4, fill: "accent", label: (items[i].label || "Point " + (i + 1)) + ": " + items[i].x + ", " + items[i].y }); });
+    shapes.push({ kind: "text", x: 50, y: 285, text: minX }, { kind: "text", x: 540, y: 285, text: maxX }, { kind: "text", x: 4, y: 36, text: maxY });
+    return h("div", { className: "kg-plot" }, CoreScene({ label: p.label, width: 640, height: 310, shapes: shapes }),
+      h("details", { className: "kg-chart-data" }, h("summary", null, "View chart data"), h("table", null, h("caption", null, p.label), h("thead", null, h("tr", null, h("th", null, "Label"), h("th", null, p.xLabel || "X"), h("th", null, p.yLabel || "Y"))), h("tbody", null, items.map(function (it, i) { return h("tr", { key: i }, h("td", null, it.label || i + 1), h("td", null, it.x), h("td", null, it.y)); })))));
+  }
+  function CoreLineChart(p) { return plot(p, false); }
+  function CoreScatterChart(p) { return plot(p, true); }
+
+  var CONTROL_PROPS = { label: S("string", { required: true }), name: S("string"), required: S("boolean"), disabled: S("boolean") };
+  var OPTIONS_PROP = S("array", { required: true, items: S("object", { properties: { value: S("string"), label: S("string") }, requiredKeys: ["value", "label"] }) });
+  var PLOT_PROPS = { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { x: S("number"), y: S("number"), label: S("string") }, requiredKeys: ["x", "y"] }) }), xLabel: S("string"), yLabel: S("string"), empty: S("string") };
+  var EXPRESSIVE = {
+    composition: { summary: "Reusable document-local composition with typed inputs and a public value output.", props: { name: S("string", { required: true }), inputs: S("object"), value: S("string|number|boolean|object|array|null") }, slots: { children: {} }, outputs: ["value"] },
+    link: { summary: "Accessible passive link; executable URL schemes are refused.", props: { label: S("string", { required: true }), href: S("string", { required: true }), newTab: S("boolean") } },
+    "rich-text": { summary: "Structured headings, paragraphs, quotes, lists and inline emphasis without raw HTML.", props: { nodes: S("array", { required: true, items: S("object", { requiredKeys: ["kind"] }) }) } },
+    "text-field": { summary: "Named text, email or URL field with native form validation.", props: merge(CONTROL_PROPS, { value: S("string"), kind: S("string", { enum: ["text", "email", "url"], default: "text" }), help: S("string"), placeholder: S("string"), minLength: S("number"), maxLength: S("number") }), local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
+    "number-input": { summary: "Named numeric field with min/max/step validation; empty value is null.", props: merge(CONTROL_PROPS, { value: S("number|null"), min: S("number"), max: S("number"), step: S("number") }), local: { value: { type: "number|null", default: null } }, events: { change: { payload: { value: "number|null" } } }, outputs: ["value"] },
+    "date-input": { summary: "Named date field with native picker and ISO date output.", props: merge(CONTROL_PROPS, { value: S("string"), min: S("string"), max: S("string") }), local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
+    choice: { summary: "Named radio group with native keyboard navigation and a public selection.", props: merge(CONTROL_PROPS, { value: S("string"), options: OPTIONS_PROP }), local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
+    multiselect: { summary: "Named multiple selection with native keyboard support and array output.", props: merge(CONTROL_PROPS, { value: S("array", { items: S("string") }), options: OPTIONS_PROP }), local: { value: { type: "array", default: [] } }, events: { change: { payload: { value: "array" } } }, outputs: ["value"] },
+    form: { summary: "Native validated form; submit emits named field values as strings or arrays of strings.", props: { label: S("string", { required: true }), submitLabel: S("string", { default: "Submit" }), disabled: S("boolean") }, slots: { children: {} }, events: { submit: { payload: { values: "object" } } } },
+    scene: { summary: "Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.", props: { label: S("string", { required: true }), width: S("number", { default: 640 }), height: S("number", { default: 360 }), shapes: S("array", { required: true, items: S("object", { requiredKeys: ["kind"] }) }), interactive: S("boolean") }, events: { select: { payload: { id: "string" } } } },
+    diagram: { summary: "Node and edge diagram with automatic placement or explicit coordinates.", props: { label: S("string", { required: true }), nodes: S("array", { required: true, items: S("object", { requiredKeys: ["id", "label"] }) }), edges: S("array", { items: S("object", { requiredKeys: ["from", "to"] }) }), interactive: S("boolean") }, events: { select: { payload: { id: "string" } } } },
+    "line-chart": { summary: "Responsive numeric X/Y line chart with an accessible data table.", props: PLOT_PROPS },
+    "scatter-chart": { summary: "Responsive numeric X/Y scatter plot with an accessible data table.", props: PLOT_PROPS }
+  };
+  var EXPRESSIVE_NOTES = {
+    composition: "Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code.",
+    link: "Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.",
+    "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.",
+    "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}.",
+    "number-input": "Use for calculations; an empty field emits null. Set name inside form; change emits {value}.",
+    "date-input": "Date values and bounds are YYYY-MM-DD; change emits {value}.",
+    choice: "Use for one option from a short list; options are [{value,label}]. change emits {value}.",
+    multiselect: "Use for several choices; options are [{value,label}], value is a string array. change emits {value}.",
+    form: "Place named native fields in children. Invalid fields prevent submit. submit emits {values}: string values, duplicate names become arrays. Wire submit to declared state or a host action.",
+    scene: "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space.",
+    diagram: "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}.",
+    "line-chart": "items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table.",
+    "scatter-chart": "items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations."
+  };
+  Object.assign(freeFlowExports, { CoreComposition: CoreComposition, CoreLink: CoreLink, CoreRichText: CoreRichText, CoreTextField: CoreTextField, CoreNumberInput: CoreNumberInput, CoreDateInput: CoreDateInput, CoreChoice: CoreChoice, CoreMultiselect: CoreMultiselect, CoreForm: CoreForm, CoreScene: CoreScene, CoreDiagram: CoreDiagram, CoreLineChart: CoreLineChart, CoreScatterChart: CoreScatterChart });
+  // The reference has a closed event-to-prop table. Without registering submit
+  // before contracts are built, the renderer wires an undefined prop and a
+  // perfectly valid form silently drops every successful submission.
+  HANDLER.submit = "onSubmit";
+  Object.keys(EXPRESSIVE).forEach(function (name) {
+    var I = EXPRESSIVE[name]; I.role = name; I.slots = I.slots || {}; I.events = I.events || {}; I.outputs = I.outputs || [];
+    interfaces["kages/" + name + "@1"] = I;
+    if (I.local) DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
+    var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
+    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
+  });
+
   var ledger = {
     sidebar: contract("ledger", "sidebar", "2.0.0", "kages/nav@1", LedgerSidebar, { tokens: ["ledger-sunken", "ledger-line", "ledger-accent"], agent: { use: "Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers.", avoid: "Long labels; Ledger truncates at one line." } }),
     dropdown: contract("ledger", "dropdown", "2.0.0", "kages/select@1", LedgerDropdown, { limits: { maxOptions: 6 }, tokens: ["ledger-line-control", "ledger-accent", "ledger-accent-ink"], agent: { use: "Segmented control: every option visible, one tap. Up to 6 short options.", avoid: "Long or dynamic option lists — pin `core/dropdown@1` for those." } }),
@@ -538,9 +710,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.5.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.2.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.1.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.6.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.3.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.2.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:
@@ -604,7 +776,7 @@
     }
     return undefined;
   }
-  function walkExpr(x, fn) { if (Array.isArray(x)) return x.forEach(function (v) { walkExpr(v, fn); }); if (!x || typeof x !== "object") return; if (isExpr(x)) fn(Object.keys(x)[0], x[Object.keys(x)[0]]); for (var k in x) walkExpr(x[k], fn); }
+  function walkExpr(x, fn) { if (Array.isArray(x)) return x.forEach(function (v) { walkExpr(v, fn); }); if (!x || typeof x !== "object") return; if (isExpr(x)) fn(Object.keys(x)[0], x[Object.keys(x)[0]]); if (Object.keys(x)[0] === '$literal') return; for (var k in x) walkExpr(x[k], fn); }
 
   /* ============================== RUNTIME ============================== */
   function systemOf(doc, override) { if (override) return override; var s = String(doc.system || "core@1"); return s.split("@")[0]; }
@@ -634,6 +806,7 @@
       var own = b.props ? merge(b.props, (b.props.x && b.props.x[sysId]) || {}) : null;
       if (own) for (var k2 in own) { if (k2 === "x" || (c.local[k2] && !isExpr(own[k2]))) continue; out[k2] = evaluate(own[k2], sub); }
       if (b.bind) for (var k3 in b.bind) out[k3] = evaluate(b.bind[k3], sub);
+      var outputType = b.type === 'composition' && doc.compositions && doc.compositions[b.props.name] && doc.compositions[b.props.name].outputType; if (outputType && !matchesInput(outputType, out.value)) throw new Error('Invalid composition output at ' + id);
       busy[id] = false; cache[id] = out; return out;
     };
     return ctx;
@@ -675,6 +848,8 @@
     var logRef = r.useRef([]);
     var sys = systems[sysId];
     if (!sys) return h(Missing, { id: "system", msg: "Unknown design system '" + sysId + "'" });
+    try { doc = expandDocument(doc, makeCtx(doc, sysId, state, locals), evaluate, getPath, function (d) { return makeCtx(d, sysId, state, merge(initLocals(d, sysId), locals)); }); } catch (e) { return h(Missing, { id: 'collection', msg: e.message }); }
+    locals = merge(initLocals(doc, sysId), locals);
     var ctx = makeCtx(doc, sysId, state, locals);
 
     function dispatch(id, evName, payload) {
@@ -756,7 +931,7 @@
     // refs + actions (after all types resolved)
     Object.keys(blocks).forEach(function (id) {
       var b = blocks[id], at = "/blocks/" + id;
-      walkExpr([b.props, b.bind, b.visible, b.on], function (op, arg) {
+      walkExpr([b.props, b.bind, b.visible, b.on, b.repeat && b.repeat.each], function (op, arg) {
         if (op === "$block") {
           var tid = String(arg).split(".")[0], key = String(arg).split(".")[1];
           if (!blocks[tid]) E(at, "dangling-ref", "$block '" + arg + "': no block '" + tid + "'");
@@ -939,6 +1114,343 @@
     if (st.properties && typeof v === "object") { var o = {}; Object.keys(st.properties).forEach(function (k) { o[k] = v[k] === undefined ? null : fill(st.properties[k], v[k]); }); return o; }
     return v;
   }
+
+// Shared, framework-free extensions for the oracle and the pure engine. Keeping
+// one implementation prevents an agent's generated formula or collection from
+// validating on the server but behaving differently in the browser.
+// See oracle/expressive-artifacts.feature.
+const COMPUTE_OPERATORS = ["$literal", "$index", "$scope", "$input", "$add", "$sub", "$mul", "$div", "$mod", "$pow", "$min", "$max", "$round", "$lt", "$lte", "$gt", "$gte", "$concat", "$sort", "$format"];
+const binary = ["$sub", "$div", "$mod", "$pow", "$lt", "$lte", "$gt", "$gte"];
+const variadic = ["$add", "$mul", "$min", "$max", "$concat"];
+const own = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
+const object = (o) => o != null && typeof o === "object" && !Array.isArray(o);
+const finite = (n) => typeof n === "number" && Number.isFinite(n);
+const safeKey = (s) => typeof s === "string" && s.split(".").every(k => k && !["__proto__", "constructor", "prototype"].includes(k));
+
+/** Malformed operator shapes are rejected before evaluation; numeric domain
+ * errors yield null so NaN/Infinity never escape into document state. */
+function computationArgError(op, a) {
+  if (binary.includes(op)) return Array.isArray(a) && a.length === 2 ? null : op + " takes [a, b]";
+  if (variadic.includes(op)) return Array.isArray(a) && a.length > 0 ? null : op + " takes a nonempty array";
+  if (op === "$round") return Array.isArray(a) && (a.length === 1 || a.length === 2) ? null : "$round takes [value, digits?]";
+  if (["$scope", "$input"].includes(op)) return typeof a === "string" ? null : op + " takes a path string";
+  if (op === "$index") return a === "" ? null : "$index takes an empty path string";
+  if (op === "$sort") return object(a) && own(a, "list") && (a.field === undefined || typeof a.field === "string") && (a.direction === undefined || ["asc", "desc"].includes(a.direction)) ? null : "$sort takes {list, field?, direction?: asc|desc}";
+  if (op === "$format") return object(a) && own(a, "value") && ["number", "currency", "percent", "date"].includes(a.style) && (a.digits === undefined || Number.isInteger(a.digits) && a.digits >= 0 && a.digits <= 10) && (a.currency === undefined || /^[A-Z]{3}$/.test(a.currency)) ? null : "$format takes {value, style: number|currency|percent|date, digits?: 0..10, currency?: ISO code}";
+  return null;
+}
+
+/** Evaluate only closed operators; no coercive arithmetic, code, locale clock,
+ * or mutable sorting. Formatting is pinned to en-US and UTC for reproducibility. */
+function computeExpression(op, a, ctx, evaluate, getPath) {
+  if (computationArgError(op, a)) return null;
+  if (op === "$literal") return a;
+  if (op === "$index") return ctx.index ?? null;
+  if (op === "$scope") return getPath(ctx.scope, a);
+  if (op === "$input") return getPath(ctx.input, a);
+  if (op === "$concat") return a.map(v => evaluate(v, ctx)).map(v => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v)).join("");
+  if (op === "$sort") {
+    const list = evaluate(a.list, ctx);
+    if (!Array.isArray(list)) return [];
+    return list.map((value, i) => ({ value, i, key: a.field ? getPath(value, a.field) : value })).sort((x, y) => {
+      const p = x.key, q = y.key;
+      if (p == null) return q == null ? x.i - y.i : 1;
+      if (q == null) return -1;
+      const cmp = typeof p === "number" && typeof q === "number" ? p - q : String(p) < String(q) ? -1 : String(p) > String(q) ? 1 : 0;
+      return (a.direction === "desc" ? -cmp : cmp) || x.i - y.i;
+    }).map(x => x.value);
+  }
+  if (op === "$format") {
+    const value = evaluate(a.value, ctx);
+    try {
+      if (a.style === "date") {
+        if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*(?:Z|[+-]\d{2}:\d{2}))?$/.test(value)) return null;
+        const date = new Date(value);
+        return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(date) : null;
+      }
+      if (!finite(value)) return null;
+      const opts = { style: a.style, ...(a.style === "currency" ? { currency: a.currency || "USD" } : {}), ...(a.digits !== undefined ? { minimumFractionDigits: a.digits, maximumFractionDigits: a.digits } : {}) };
+      return new Intl.NumberFormat("en-US", opts).format(value);
+    } catch { return null; }
+  }
+  const v = a.map(x => evaluate(x, ctx));
+  if (!v.every(finite)) return null;
+  let result;
+  switch (op) {
+    case "$add": result = v.reduce((s, n) => s + n, 0); break;
+    case "$sub": result = v[0] - v[1]; break;
+    case "$mul": result = v.reduce((s, n) => s * n, 1); break;
+    case "$div": result = v[1] === 0 ? null : v[0] / v[1]; break;
+    case "$mod": result = v[1] === 0 ? null : v[0] % v[1]; break;
+    case "$pow": result = Math.pow(v[0], v[1]); break;
+    case "$min": result = Math.min(...v); break;
+    case "$max": result = Math.max(...v); break;
+    case "$round": {
+      const digits = v[1] ?? 0;
+      if (!Number.isInteger(digits) || digits < -10 || digits > 10) return null;
+      const scale = Math.pow(10, digits); result = Math.round(v[0] * scale) / scale; break;
+    }
+    case "$lt": return v[0] < v[1];
+    case "$lte": return v[0] <= v[1];
+    case "$gt": return v[0] > v[1];
+    case "$gte": return v[0] >= v[1];
+  }
+  return finite(result) ? result : null;
+}
+
+// Scope substitution uses $literal because item data may itself contain keys
+// such as "$state". Recursively evaluating that data would turn an innocent
+// dataset into a program. References are rebound to the same concrete instance.
+function scopeValue(x, scope, ids, getPath, scopedItem = true) {
+  if (Array.isArray(x)) return x.map(v => scopeValue(v, scope, ids, getPath, scopedItem));
+  if (!object(x)) return x;
+  const op = Object.keys(x)[0], a = x[op];
+  if (op === "$literal") return x;
+  if (!scopedItem && ["$item", "$index"].includes(op)) return x;
+  if (op === "$map" && object(a)) return { $map: { ...scopeValue(a, scope, ids, getPath, scopedItem), to: scopeValue(a.to, scope, ids, getPath, false) } };
+  if (["$item", "$index", "$scope", "$input"].includes(op)) {
+    const value = op === "$index" ? scope.index : getPath(scope[op.slice(1)], a);
+    return { $literal: value ?? null };
+  }
+  if (op === "$block" && typeof a === "string") {
+    const dot = a.indexOf("."), id = dot < 0 ? a : a.slice(0, dot);
+    return { $block: (ids[id] || id) + (dot < 0 ? "" : a.slice(dot)) };
+  }
+  if (op === "$tpl" && typeof a === "string") {
+    const parts = []; let offset = 0;
+    for (const m of a.matchAll(/\{\{\s*([a-zA-Z]+)\.([^}\s]+)\s*\}\}/g)) {
+      parts.push(a.slice(offset, m.index), scopeValue({ ["$" + m[1]]: m[2] }, scope, ids, getPath, scopedItem)); offset = m.index + m[0].length;
+    }
+    parts.push(a.slice(offset)); return { $concat: parts };
+  }
+  const result = Object.fromEntries(Object.entries(x).map(([k, v]) => [k, scopeValue(v, scope, ids, getPath, scopedItem)]));
+  if (["call", "setLocal"].includes(x.do) && typeof x.target === "string" && x.target !== "$self") result.target = ids[x.target] || x.target;
+  return result;
+}
+
+/** Expand declarative templates into an ephemeral instance tree. Stored ids and
+ * signatures stay untouched; stable typed keys preserve each control's locals.
+ * Fail closed on ambiguous keys or cycles, with a bounded expansion budget. */
+function expandDocument(doc, ctx, evaluate, getPath, createCtx) {
+  if (!doc.compositions && !Object.values(doc.blocks || {}).some(b => b.repeat)) return doc;
+  const blocks = Object.create(null), pins = Object.create(null);
+  const reachable = new Set();
+  function mark(id) { if (reachable.has(id)) return; reachable.add(id); for (const children of Object.values(doc.blocks[id]?.slots || {})) children.forEach(mark); }
+  mark(doc.root);
+  for (const [id, block] of Object.entries(doc.blocks)) if (!reachable.has(id) && !block.repeat) blocks[id] = block;
+  let count = 0;
+  function contextFor(source, scope, expression) {
+    function scopedReference(x) {
+      if (Array.isArray(x)) return x.some(scopedReference);
+      if (!object(x) || Object.keys(x)[0] === "$literal") return false;
+      if (Object.keys(x)[0] === "$block" && typeof x.$block === "string" && own(scope.ids, x.$block.split(".")[0])) return true;
+      return Object.values(x).some(scopedReference);
+    }
+    // Most inputs read item/state data. Building a whole context for every card
+    // would make a large collection quadratic; only scoped output reads need it.
+    if (!createCtx || !scopedReference(expression)) return ctx;
+    const scoped = Object.fromEntries(Object.entries(scope.ids || {}).filter(([id]) => own(source, id)).map(([id, uid]) => [uid, scopeValue(source[id], scope, scope.ids, getPath)]));
+    return createCtx({ ...doc, blocks: { ...doc.blocks, ...scoped, ...blocks } });
+  }
+  function visit(id, source, prefix, scope, ancestry, definitions) {
+    if (ancestry.includes(id) || ancestry.length > 64 || definitions.length > 64) throw new Error("Composition/slot cycle at " + id);
+    const b = source[id]; if (!b) throw new Error("Missing template " + id);
+    // A repeat instance includes the template id as well as its typed key.
+    // Independent repeat blocks with the same row keys must not share locals.
+    if (b.repeat) {
+      const each = evaluate(scopeValue(b.repeat.each, scope, scope.ids || {}, getPath), contextFor(source, scope, b.repeat.each));
+      if (!Array.isArray(each)) throw new Error("repeat.each must evaluate to an array at " + id);
+      const keys = new Set();
+      return each.flatMap((item, index) => {
+        const key = b.repeat.key ? getPath(item, b.repeat.key) : index;
+        if (!(typeof key === "string" || finite(key))) throw new Error("repeat.key must be a string or finite number at " + id);
+        const token = JSON.stringify(key);
+        if (keys.has(token)) throw new Error("Duplicate repeat key " + token + " at " + id); keys.add(token);
+        const instancePrefix = prefix + "/" + encodeURIComponent(id + ":" + token).replace(/\./g, "%2E");
+        const descendants = new Set();
+        function collect(k) { if (descendants.has(k)) return; descendants.add(k); for (const children of Object.values(source[k]?.slots || {})) children.forEach(collect); }
+        collect(id);
+        const ids = { ...scope.ids, ...Object.fromEntries([...descendants].map(k => [k, k + "~" + instancePrefix])) };
+        const next = { ...scope, ids, item, index, scope: { ...scope.scope, ...(b.repeat.as ? { [b.repeat.as]: item } : {}) } };
+        return visitOne(id, b, source, instancePrefix, next, ancestry, definitions);
+      });
+    }
+    return visitOne(id, b, source, prefix, scope, ancestry, definitions);
+  }
+  function visitOne(id, b, source, prefix, scope, ancestry, definitions) {
+    if (++count > 10000) throw new Error("Artifact exceeds 10000 rendered blocks");
+    const uid = prefix ? id + "~" + prefix : id;
+    const ids = scope.ids || {};
+    const copy = scopeValue(b, scope, ids, getPath); delete copy.repeat;
+    blocks[uid] = copy;
+    if (doc.resolved?.blocks?.[(scope.pinPrefix || "") + id]) pins[uid] = doc.resolved.blocks[(scope.pinPrefix || "") + id];
+    copy.slots = Object.fromEntries(Object.entries(b.slots || {}).map(([slot, children]) => [slot, children.flatMap(child => visit(child, source, prefix, scope, [...ancestry, id], definitions))]));
+    if (b.type === "composition") {
+      const name = b.props?.name, definition = own(doc.compositions, name) ? doc.compositions[name] : undefined;
+      if (!definition) throw new Error("Unknown composition " + name);
+      if (definitions.includes(name)) throw new Error("Recursive composition " + name);
+      const input = evaluate(scopeValue(b.bind?.inputs || b.props?.inputs || {}, scope, ids, getPath), contextFor(source, scope, b.bind?.inputs || b.props?.inputs));
+      if (!object(input)) throw new Error("Composition inputs must evaluate to an object at " + id);
+      for (const key of Object.keys(input)) if (!own(definition.inputs || {}, key)) throw new Error("Unknown composition input " + key + " at " + id);
+      const values = { ...Object.fromEntries(Object.entries(definition.inputs || {}).filter(([, s]) => s.default !== undefined).map(([k, s]) => [k, s.default])), ...input };
+      for (const [key, spec] of Object.entries(definition.inputs || {})) {
+        if ((spec.required && values[key] === undefined) || (values[key] !== undefined && !matchesInput(spec, values[key]))) throw new Error("Invalid composition input " + key + " at " + id);
+      }
+      const nextScope = { ...scope, pinPrefix: "compositions/" + name + "/", input: values, ids: { ...scope.ids, ...Object.fromEntries(Object.keys(definition.blocks).map(k => [k, k + "~" + prefix + "/" + encodeURIComponent(id + ":" + name)])) } };
+      copy.slots.children = visit(definition.root, definition.blocks, prefix + "/" + encodeURIComponent(id + ":" + name), nextScope, [], [...definitions, name]);
+      if (definition.output !== undefined) {
+        const localIds = Object.fromEntries(Object.keys(definition.blocks).map(k => [k, k + "~" + prefix + "/" + encodeURIComponent(id + ":" + name)]));
+        copy.bind = { ...copy.bind, value: scopeValue(definition.output, nextScope, localIds, getPath) };
+      }
+    }
+    return [uid];
+  }
+  const roots = visit(doc.root, doc.blocks, "", { scope: {} }, [], []);
+  let root = roots[0];
+  if (roots.length !== 1) { root = "collection~root"; blocks[root] = { type: "stack", slots: { children: roots } }; }
+  return { ...doc, root, blocks, resolved: doc.resolved ? { ...doc.resolved, blocks: pins } : undefined };
+}
+
+/** Check authoring errors on templates, including dormant definitions and
+ * empty collections. Runtime expansion alone would hide those mistakes. */
+function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFor) {
+  const errors = [];
+  const fail = (at, code, msg) => errors.push({ at, code, msg });
+  const definitions = doc.compositions || {};
+  function checkBlocks(blocks, base) {
+    const parent = new Map();
+    for (const [id, b] of Object.entries(blocks || {})) for (const children of Object.values(b.slots || {})) for (const child of children) parent.set(child, id);
+    function repeats(id) { const ids = new Set(), seen = new Set(); while (id && !seen.has(id)) { seen.add(id); if (blocks[id]?.repeat) ids.add(id); id = parent.get(id); } return ids; }
+    for (const [id, b] of Object.entries(blocks || {})) {
+      const at = base + "/" + id;
+      const scope = repeats(id);
+      function checkReference(arg) {
+        const target = arg.split(".")[0];
+        if ([...repeats(target)].some(r => !scope.has(r))) fail(at, "ambiguous-instance", "Reference to repeated block " + target + " must be inside the same repeat scope");
+      }
+      walkExpr([b.props, b.bind, b.on, b.visible], (op, arg) => {
+        if (op === "$block" && typeof arg === "string") checkReference(arg);
+        if (op === "$tpl" && typeof arg === "string") for (const m of arg.matchAll(/\{\{\s*block\.([^}\s]+)\s*\}\}/g)) checkReference(m[1]);
+      });
+      for (const actions of Object.values(b.on || {})) for (const action of Array.isArray(actions) ? actions : []) { if (action.do === "call" && action.target !== "$self" && [...repeats(action.target)].some(r => !scope.has(r))) fail(at, "ambiguous-instance", "Call to a repeated block must be inside the same repeat scope"); }
+      const c = contractFor ? contractFor(b.type) : null;
+      for (const [slot, children] of Object.entries(b.slots || {})) if (c?.slots?.[slot]?.max && children.some(child => blocks[child]?.repeat)) fail(at + "/slots/" + slot, "repeat-slot-limit", "Place repeated blocks inside an unbounded container to respect slot cardinality");
+      if (b.repeat !== undefined) {
+        const r = b.repeat;
+        if (!object(r) || !own(r, "each") || (r.as !== undefined && (typeof r.as !== "string" || !/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(r.as) || !safeKey(r.as))) || (r.key !== undefined && !safeKey(r.key)) || Object.keys(r).some(k => !["each", "as", "key"].includes(k))) fail(at + "/repeat", "bad-repeat", "repeat takes {each, as?: alias, key?: item path}");
+        else if (!isExpr(r.each) && !Array.isArray(r.each)) fail(at + "/repeat/each", "bad-repeat", "repeat.each must be an array or expression");
+      }
+      walkExpr([b.props, b.bind, b.on, b.visible, b.repeat?.each], (op, arg) => {
+        const error = computationArgError(op, arg); if (error) fail(at, "bad-expr", error);
+      });
+      if (b.type === "composition") {
+        const def = own(definitions, b.props?.name) ? definitions[b.props.name] : undefined;
+        if (!def) { fail(at, "missing-composition", "Unknown composition " + b.props?.name); continue; }
+        const values = b.props?.inputs || {};
+        for (const [key, spec] of Object.entries(def.inputs || {})) {
+          const value = values[key];
+          if (spec.required && value === undefined && !own(b.bind || {}, "inputs") && spec.default === undefined) fail(at + "/props/inputs/" + key, "missing-input", "Composition requires " + key);
+          if (value !== undefined && !isExpr(value) && !matchesInput(spec, value)) fail(at + "/props/inputs/" + key, "input-type", "Input " + key + " should be " + spec.type);
+        }
+        for (const key of Object.keys(values)) if (!own(def.inputs || {}, key)) fail(at + "/props/inputs/" + key, "unknown-input", "Unknown composition input " + key);
+      }
+    }
+  }
+  if (doc.compositions !== undefined && !object(doc.compositions)) fail("/compositions", "bad-composition", "compositions must be an object");
+  checkBlocks(doc.blocks, "/blocks");
+  for (const [name, def] of Object.entries(definitions)) {
+    const at = "/compositions/" + name;
+    if (typeof name !== "string" || !/^[a-z][a-zA-Z0-9_-]{0,47}$/.test(name) || !safeKey(name) || !object(def) || !object(def.blocks) || !object(def.inputs) || typeof def.root !== "string") { fail(at, "bad-composition", "Composition needs typed inputs, root and blocks"); continue; }
+    for (const [key, spec] of Object.entries(def.inputs)) if (!/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/.test(key) || !safeKey(key) || !object(spec) || !["string", "number", "boolean", "array", "object"].includes(spec.type) || (spec.default !== undefined && !matchesInput(spec, spec.default))) fail(at + "/inputs/" + key, "bad-input", "Inputs need a safe name, JSON type and compatible default");
+    if (def.outputType && (!object(def.outputType) || typeof def.outputType.type !== "string" || !def.outputType.type.split("|").every(t => ["string", "number", "boolean", "array", "object", "null"].includes(t)))) fail(at + "/outputType", "bad-output", "Output needs a JSON type");
+    let outputId = "compositionOutput"; while (own(def.blocks, outputId)) outputId += "X";
+    const check = def.output === undefined ? { ...doc, root: def.root, blocks: def.blocks } : { ...doc, root: outputId, blocks: { ...def.blocks, [outputId]: { type: "composition", props: { name }, bind: { value: def.output }, slots: { children: [def.root] } } } };
+    const result = baseValidate({ ...check, compositions: undefined });
+    for (const e of result.errors) fail(e.at === "/blocks/" + outputId ? at + "/output" : at + e.at, e.code, e.msg);
+    checkBlocks(def.blocks, at + "/blocks");
+    walkExpr([def.blocks, def.output], (op, arg) => { if (op === "$input" && typeof arg === "string" && !own(def.inputs, arg.split(".")[0])) fail(at, "unknown-input", "Undeclared $input " + arg); });
+    walkExpr(def.output, (op, arg) => { const error = computationArgError(op, arg); if (error) fail(at + "/output", "bad-expr", error); });
+  }
+  const colors = new Map();
+  function visitDefinition(name, chain) {
+    if (colors.get(name) === 1) { fail("/compositions/" + name, "composition-cycle", "Recursive composition: " + [...chain, name].join(" → ")); return; }
+    if (colors.get(name) === 2 || !own(definitions, name)) return;
+    colors.set(name, 1);
+    for (const block of Object.values(definitions[name]?.blocks || {})) if (block.type === "composition") visitDefinition(block.props?.name, [...chain, name]);
+    colors.set(name, 2);
+  }
+  for (const name of Object.keys(definitions)) visitDefinition(name, []);
+  return errors;
+}
+
+/** Input contracts accept JSON values only; expressions are checked after they
+ * resolve as well, so a state update cannot bypass a reusable component's type. */
+function matchesInput(spec, value) {
+  return typeof spec.type === "string" && spec.type.split("|").some(type => type === "null" ? value === null : value != null && (type === "array" ? Array.isArray(value) : type === "object" ? object(value) : type === "number" ? finite(value) : typeof value === type)) && (!spec.enum || spec.enum.includes(value));
+}
+
+/* Extend the reference's public operations together. Old contracts stay intact;
+ * shared pure capabilities supply only the new semantics and error findings. */
+  OPS = OPS.concat(COMPUTE_OPERATORS);
+  var baseEvaluate = evaluate;
+  evaluate = function (x, ctx) {
+    var op = x && typeof x === "object" && !Array.isArray(x) ? Object.keys(x)[0] : null;
+    return COMPUTE_OPERATORS.indexOf(op) >= 0 ? computeExpression(op, x[op], ctx, evaluate, getPath) : baseEvaluate(x, ctx);
+  };
+  var baseValidate = validate;
+  validate = function (doc, override) {
+    var result = baseValidate(doc, override);
+    var errors = advancedFindings(doc, function (d) { return baseValidate(d, override); }, isExpr, walkExpr, function (type) { return resolve(result.system, type).contract; });
+    if (result.ok && !errors.length) {
+      try { var expanded = expandDocument(doc, makeCtx(doc, result.system, doc.state || {}, initLocals(doc, result.system)), evaluate, getPath, function (d) { return makeCtx(d, result.system, doc.state || {}, initLocals(d, result.system)); });
+        var ctx = makeCtx(expanded, result.system, doc.state || {}, initLocals(expanded, result.system));
+        Object.keys(expanded.blocks).forEach(function (id) { var b = expanded.blocks[id]; if (b.type === "composition" && doc.compositions && doc.compositions[b.props.name] && doc.compositions[b.props.name].outputType) ctx.output(id); });
+      }
+      catch (e) { errors.push({ at: "/blocks", code: "bad-expansion", msg: e.message }); }
+    }
+    return merge(result, { ok: result.ok && !errors.length, errors: result.errors.concat(errors) });
+  };
+  var baseDescribe = describe;
+  describe = function (doc, override, state) {
+    var sys = systemOf(doc, override), count = Object.keys(doc.blocks || {}).length;
+    var expanded = expandDocument(doc, makeCtx(doc, sys, state || doc.state || {}, initLocals(doc, sys)), evaluate, getPath, function (d) { return makeCtx(d, sys, state || doc.state || {}, initLocals(d, sys)); });
+    var text = baseDescribe(expanded, override, state);
+    var instances = Object.keys(expanded.blocks).length;
+    return text.replace(" · " + instances + " blocks\n", " · " + count + " blocks" + (instances !== count ? " · " + instances + " instances" : "") + "\n");
+  };
+  var baseSchema = generationSchema;
+  generationSchema = function (sys) {
+    var schema = baseSchema(sys);
+    schema.required.splice(4, 0, "compositions_json");
+    schema.properties.compositions_json = { type: ["string", "null"], description: "JSON object of local compositions: typed inputs, root, blocks, optional output" };
+    schema.properties.blocks.items.anyOf.forEach(function (v) {
+      v.required.push("repeat_json");
+      v.properties.repeat_json = { type: ["string", "null"], description: "Repeat template: JSON {each, as?, key?}; null for one instance" };
+    });
+    return schema;
+  };
+  var baseToGenerated = toGenerated;
+  toGenerated = function (doc, sys) {
+    var envelope = baseToGenerated(doc, sys);
+    envelope.compositions_json = doc.compositions ? JSON.stringify(doc.compositions) : null;
+    envelope.blocks.forEach(function (g) {
+      var b = doc.blocks[g.id], c = resolve(systemOf(doc, sys), b.type).contract;
+      g.repeat_json = b.repeat === undefined ? null : JSON.stringify(b.repeat);
+      var props = merge(b.props || {}, ((b.props || {}).x || {})[systemOf(doc, sys)] || {});
+      var expressions = {};
+      Object.keys(props).forEach(function (key) { if (c.props[key] && strictOf(c.props[key]) && isExpr(props[key])) expressions[key] = props[key]; });
+      expressions = merge(expressions, b.bind || {});
+      g.bind = Object.keys(expressions).map(function (key) { return { prop: key, expr_json: JSON.stringify(expressions[key]) }; });
+    });
+    return envelope;
+  };
+  var baseFromGenerated = fromGenerated;
+  fromGenerated = function (g, sys) {
+    var doc = baseFromGenerated(g, sys);
+    var compositions = parseJ(g.compositions_json, null); if (compositions) doc.compositions = compositions;
+    (g.blocks || []).forEach(function (b) { if (b.repeat_json) doc.blocks[b.id].repeat = parseJ(b.repeat_json); });
+    return doc;
+  };
 
   var api = {
     version: "1.0.0",

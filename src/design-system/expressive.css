@@ -1,0 +1,28 @@
+/* All geometry follows the artifact canvas; plots remain usable inside Studio
+ * panes and reading layouts. Colors come from the active system's tokens. */
+.kg-composition { display: contents; }
+.kg-link, .kg-rich-text a { color: var(--kg-accent); text-decoration: underline; text-underline-offset: .2em; }
+.kg-rich-text { display: grid; gap: var(--kg-space-4); line-height: 1.65; overflow-wrap: anywhere; }
+.kg-rich-text :is(p,h2,h3,h4,blockquote,pre,ul,ol) { margin: 0; }
+.kg-rich-text h2 { font-size: 1.5rem; }
+.kg-rich-text h3 { font-size: 1.125rem; }
+.kg-rich-text :is(pre,code) { font-family: var(--kg-font-mono); background: var(--kg-sunken); border-radius: var(--kg-r-sm); }
+.kg-rich-text pre { padding: var(--kg-space-4); white-space: pre-wrap; }
+.kg-rich-text blockquote { border-inline-start: 3px solid var(--kg-accent); padding-inline-start: var(--kg-space-4); color: var(--kg-ink-muted); }
+.kg-form { display: grid; gap: var(--kg-space-4); min-width: 0; }
+.kg-form > button { justify-self: start; }
+.kg-choice { display: grid; gap: var(--kg-space-2); min-width: 0; margin: 0; border: 0; padding: 0; }
+.kg-choice legend { margin-bottom: var(--kg-space-2); }
+.kg-choice label { display: flex; gap: var(--kg-space-2); align-items: center; }
+.kg-choice input { accent-color: var(--kg-accent); }
+.kg-multiselect { min-height: 7rem; }
+.kg-scene { margin: 0; display: grid; gap: var(--kg-space-3); min-width: 0; }
+.kg-scene figcaption { font-weight: 600; }
+.kg-scene svg { display: block; width: 100%; height: auto; overflow: hidden; background: var(--kg-paper); border: 1px solid var(--kg-line); border-radius: var(--kg-r-md); }
+.kg-scene svg [role=button] { cursor: pointer; }
+.kg-scene svg [role=button]:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 3px; }
+.kg-scene svg text { font-family: var(--kg-font-body); }
+.kg-chart-data { margin-top: var(--kg-space-3); max-width: 100%; overflow: auto; }
+.kg-chart-data summary { color: var(--kg-accent); cursor: pointer; }
+.kg-chart-data table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.kg-chart-data :is(th,td) { padding: var(--kg-space-2); border-bottom: 1px solid var(--kg-line); text-align: start; }

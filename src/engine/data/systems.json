@@ -2,7 +2,7 @@
   "core": {
     "id": "core",
     "name": "Kages Core",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "className": "kg-sys-core",
     "extends": null,
     "summary": "Neutral lattice system. The base every other system extends.",
@@ -30,13 +30,26 @@
       "textarea": "core/textarea@1.0.0",
       "slider": "core/slider@1.0.0",
       "checkbox": "core/checkbox@1.0.0",
-      "bar-chart": "core/bar-chart@1.0.0"
+      "bar-chart": "core/bar-chart@1.0.0",
+      "composition": "core/composition@1.0.0",
+      "link": "core/link@1.0.0",
+      "rich-text": "core/rich-text@1.0.0",
+      "text-field": "core/text-field@1.0.0",
+      "number-input": "core/number-input@1.0.0",
+      "date-input": "core/date-input@1.0.0",
+      "choice": "core/choice@1.0.0",
+      "multiselect": "core/multiselect@1.0.0",
+      "form": "core/form@1.0.0",
+      "scene": "core/scene@1.0.0",
+      "diagram": "core/diagram@1.0.0",
+      "line-chart": "core/line-chart@1.0.0",
+      "scatter-chart": "core/scatter-chart@1.0.0"
     }
   },
   "ledger": {
     "id": "ledger",
     "name": "Ledger",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "className": "kg-sys-ledger",
     "extends": "core@1",
     "summary": "Dense, square, mono-numeral system for data and operations tools.",
@@ -64,13 +77,26 @@
       "textarea": "core/textarea@1.0.0",
       "slider": "core/slider@1.0.0",
       "checkbox": "core/checkbox@1.0.0",
-      "bar-chart": "core/bar-chart@1.0.0"
+      "bar-chart": "core/bar-chart@1.0.0",
+      "composition": "core/composition@1.0.0",
+      "link": "core/link@1.0.0",
+      "rich-text": "core/rich-text@1.0.0",
+      "text-field": "core/text-field@1.0.0",
+      "number-input": "core/number-input@1.0.0",
+      "date-input": "core/date-input@1.0.0",
+      "choice": "core/choice@1.0.0",
+      "multiselect": "core/multiselect@1.0.0",
+      "form": "core/form@1.0.0",
+      "scene": "core/scene@1.0.0",
+      "diagram": "core/diagram@1.0.0",
+      "line-chart": "core/line-chart@1.0.0",
+      "scatter-chart": "core/scatter-chart@1.0.0"
     }
   },
   "atelier": {
     "id": "atelier",
     "name": "Atelier",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "className": "kg-sys-atelier",
     "extends": "core@1",
     "summary": "Soft, editorial, serif system for consumer and storytelling artifacts.",
@@ -98,7 +124,20 @@
       "textarea": "core/textarea@1.0.0",
       "slider": "core/slider@1.0.0",
       "checkbox": "core/checkbox@1.0.0",
-      "bar-chart": "core/bar-chart@1.0.0"
+      "bar-chart": "core/bar-chart@1.0.0",
+      "composition": "core/composition@1.0.0",
+      "link": "core/link@1.0.0",
+      "rich-text": "core/rich-text@1.0.0",
+      "text-field": "core/text-field@1.0.0",
+      "number-input": "core/number-input@1.0.0",
+      "date-input": "core/date-input@1.0.0",
+      "choice": "core/choice@1.0.0",
+      "multiselect": "core/multiselect@1.0.0",
+      "form": "core/form@1.0.0",
+      "scene": "core/scene@1.0.0",
+      "diagram": "core/diagram@1.0.0",
+      "line-chart": "core/line-chart@1.0.0",
+      "scatter-chart": "core/scatter-chart@1.0.0"
     }
   }
 }

@@ -100,3 +100,15 @@ test("docDiff + applyPatch round-trips any structural edit", () => {
   const ops = docDiff(start, end);
   assert.deepEqual(applyPatch(start, ops), end);
 });
+
+test("docDiff preserves additions, edits and removal of composition definitions", () => {
+  const original = base();
+  const added = structuredClone(original);
+  added.compositions = { note: { inputs: {}, root: "body", blocks: { body: { type: "text", props: { text: "Before" } } } } };
+  assert.deepEqual(applyPatch(original, docDiff(original, added)), added);
+  const changed = structuredClone(added);
+  changed.compositions!.note.blocks.body.props!.text = "After";
+  assert.deepEqual(applyPatch(added, docDiff(added, changed)), changed);
+  const removed = structuredClone(changed); delete removed.compositions;
+  assert.deepEqual(applyPatch(changed, docDiff(changed, removed)), removed);
+});

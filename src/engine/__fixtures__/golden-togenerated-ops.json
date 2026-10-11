@@ -23,7 +23,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "nav",
@@ -71,7 +72,8 @@
           "actions_json": "[{\"do\":\"set\",\"path\":\"section\",\"value\":{\"$event\":\"id\"}}]"
         }
       ],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "topbar",
@@ -92,7 +94,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "heading",
@@ -109,7 +112,8 @@
         }
       ],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "navToggle",
@@ -128,7 +132,8 @@
           "actions_json": "[{\"do\":\"call\",\"target\":\"nav\",\"command\":\"toggle\"}]"
         }
       ],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "ordersView",
@@ -150,7 +155,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"orders\"]}"
+      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"orders\"]}",
+      "repeat_json": null
     },
     {
       "id": "filters",
@@ -171,7 +177,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "regionPicker",
@@ -217,7 +224,8 @@
           "actions_json": "[{\"do\":\"set\",\"path\":\"region\",\"value\":{\"$event\":\"value\"}}]"
         }
       ],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "search",
@@ -233,7 +241,8 @@
       "slots": {},
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "kpis",
@@ -255,7 +264,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "kpiCount",
@@ -275,7 +285,8 @@
         }
       ],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "kpiRevenue",
@@ -295,7 +306,8 @@
         }
       ],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "kpiOpen",
@@ -315,7 +327,8 @@
         }
       ],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "ordersCard",
@@ -342,7 +355,8 @@
         }
       ],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "resetBtn",
@@ -361,7 +375,8 @@
           "actions_json": "[{\"do\":\"set\",\"path\":\"region\",\"value\":\"all\"},{\"do\":\"call\",\"target\":\"search\",\"command\":\"clear\"}]"
         }
       ],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "ordersTable",
@@ -411,7 +426,8 @@
         }
       ],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "customersView",
@@ -431,7 +447,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"customers\"]}"
+      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"customers\"]}",
+      "repeat_json": null
     },
     {
       "id": "custTabs",
@@ -454,7 +471,8 @@
       "slots": {},
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "custActive",
@@ -466,7 +484,8 @@
       "slots": {},
       "bind": [],
       "on": [],
-      "visible_json": "{\"$eq\":[{\"$block\":\"custTabs.value\"},\"active\"]}"
+      "visible_json": "{\"$eq\":[{\"$block\":\"custTabs.value\"},\"active\"]}",
+      "repeat_json": null
     },
     {
       "id": "custDormant",
@@ -478,7 +497,8 @@
       "slots": {},
       "bind": [],
       "on": [],
-      "visible_json": "{\"$eq\":[{\"$block\":\"custTabs.value\"},\"dormant\"]}"
+      "visible_json": "{\"$eq\":[{\"$block\":\"custTabs.value\"},\"dormant\"]}",
+      "repeat_json": null
     },
     {
       "id": "settingsView",
@@ -496,7 +516,8 @@
       },
       "bind": [],
       "on": [],
-      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"settings\"]}"
+      "visible_json": "{\"$eq\":[{\"$state\":\"section\"},\"settings\"]}",
+      "repeat_json": null
     },
     {
       "id": "settingsText",
@@ -508,7 +529,8 @@
       "slots": {},
       "bind": [],
       "on": [],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "askBtn",
@@ -527,7 +549,8 @@
           "actions_json": "[{\"do\":\"ask\",\"prompt\":{\"$tpl\":\"In two sentences, summarise these orders for an operations lead: {{block.ordersTable.rows}}\"},\"model\":\"fast\",\"into\":\"summary\",\"pendingInto\":\"summarising\",\"mock\":\"Four open orders worth $9,205 sit mostly in the west and north. Basalt Works ($1,390) is on hold and needs a decision today.\"}]"
         }
       ],
-      "visible_json": null
+      "visible_json": null,
+      "repeat_json": null
     },
     {
       "id": "summaryText",
@@ -544,7 +567,9 @@
         }
       ],
       "on": [],
-      "visible_json": "{\"$neq\":[{\"$state\":\"summary\"},null]}"
+      "visible_json": "{\"$neq\":[{\"$state\":\"summary\"},null]}",
+      "repeat_json": null
     }
-  ]
+  ],
+  "compositions_json": null
 }

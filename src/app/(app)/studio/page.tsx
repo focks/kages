@@ -12,7 +12,7 @@
 // imports the store). See the plan and oracle/contracts.feature.
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Copy, Trash2, Combine, ArrowUp, ArrowDown, IndentIncrease, IndentDecrease, Save } from "lucide-react";
 import { resolve } from "@/engine/resolve";
 import { walkExpr } from "@/engine/expr";
@@ -20,6 +20,9 @@ import { validate } from "@/engine/validate";
 import { applyPatch, type PatchOp } from "@/collab/patch";
 import { KageRenderer } from "@/runtime/KageRenderer";
 import { KageFrame, op } from "@/components/dashboard/kage-ui";
+import { studioStarters } from "@/studio/starters";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,6 +52,12 @@ function slotsOfType(sysId: string, type: string): string[] {
 
 function StudioInner() {
   const params = useSearchParams();
+  const router = useRouter();
+  const starter = params.get("starter") || "idea-lab";
+  const [showStarters, setShowStarters] = useState(false);
+  const [canvasOnly, setCanvasOnly] = useState(false);
+  const [previewWidth, setPreviewWidth] = useState("full");
+  const [repo, setRepo] = useState("kages");
   const name = params.get("kage");
   const [head, setHead] = useState<KageDoc | null>(null);
   const [doc, setDoc] = useState<KageDoc | null>(null);
@@ -59,10 +68,11 @@ function StudioInner() {
 
   const load = useCallback(async () => {
     try {
-      const d: KageDoc = name ? await op<KageDoc>("get_kage", { name }) : await fetch("/ds/idea-lab.kage.json").then((r) => r.json());
+      const d: KageDoc = name ? await op<KageDoc>("get_kage", { name }) : (studioStarters().find((d) => d.id === starter) || studioStarters()[0]);
+      if (!name) { d.id = `${d.id}-${crypto.randomUUID().slice(0, 8)}`; if (starter === "blank") d.title = "Untitled artifact"; }
       setHead(d); setDoc(d); setSelected(d.root); setMarked(new Set());
     } catch (e) { toast.error(String((e as Error).message)); }
-  }, [name]);
+  }, [name, starter]);
   useEffect(() => { load(); }, [load]);
 
   const sysId = doc ? doc.system.split("@")[0] : "core";
@@ -124,43 +134,49 @@ function StudioInner() {
   }
 
   async function save() {
-    if (!name || !head) return;
+    if (!head) return;
     setSaving(true);
     try {
-      const ops = docDiff(head, doc!);
-      await op("patch_kage", { name, ops });
+      if (name) await op("patch_kage", { name, ops: docDiff(head, doc!) });
+      else {
+        const result = await op<{ version: { name: string } }>("create_kage", { doc, repo });
+        router.replace(`/studio?kage=${encodeURIComponent(result.version.name)}`);
+      }
       toast.success("Saved");
-      await load();
+      if (name) await load();
     } catch (e) { toast.error(String((e as Error).message)); }
     finally { setSaving(false); }
   }
 
   const toggleMark = (id: string) => setMarked((m) => { const n = new Set(m); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const canSave = !!name && dirty && !!validation?.ok && !saving;
+  const canSave = (!name || dirty) && !!validation?.ok && !saving;
 
   return (
     <div className="flex h-[calc(100svh-3.5rem)] flex-col">
       {/* Sub-header */}
-      <div className="flex items-center gap-3 border-b px-4 py-2">
-        <h2 className="font-display text-[17px] font-[650] tracking-[-0.01em]">{doc.title}</h2>
+      <div className="flex flex-wrap items-center gap-3 border-b px-4 py-2">
+        {name ? <h2 className="font-display text-[17px] font-[650] tracking-[-0.01em]">{doc.title}</h2> : <Input aria-label="Artifact title" className="h-8 w-56 font-display" value={doc.title} onChange={(e) => setDoc({ ...doc, title: e.target.value })} />}
+        <Button size="sm" variant="outline" aria-expanded={showStarters} onClick={() => setShowStarters(!showStarters)}>New artifact</Button>
+        <Button size="sm" variant="outline" aria-pressed={canvasOnly} onClick={() => setCanvasOnly(!canvasOnly)}>{canvasOnly ? "Show editors" : "Expand canvas"}</Button>
         <span className="font-mono text-xs text-muted-foreground">{doc.system}</span>
         <div className="ml-auto flex items-center gap-3">
           {dirty && <span className="text-xs text-muted-foreground">● unsaved</span>}
           <span className={cn("text-xs", validation?.ok ? "text-success" : "text-destructive")}>
             {validation?.ok ? "valid" : `${validation?.errors.length} error${validation?.errors.length === 1 ? "" : "s"}`}
           </span>
-          {name ? (
-            <Button size="sm" onClick={save} disabled={!canSave}><Save className="size-4" /> Save</Button>
-          ) : (
-            <span className="text-xs text-muted-foreground">read-only (open from Artifacts to save)</span>
-          )}
+          {!name && <Input aria-label="Save project" className="h-8 w-32" value={repo} onChange={(e) => setRepo(e.target.value)} />}
+          <Button size="sm" onClick={save} disabled={!canSave || !repo.trim()}><Save className="size-4" /> {name ? "Save" : "Save new artifact"}</Button>
         </div>
       </div>
 
+      {showStarters && <div className="grid shrink-0 grid-cols-2 gap-2 border-b p-3 lg:grid-cols-4" aria-label="Choose a starting point">
+        {studioStarters().map((d) => <Button key={d.id} size="sm" variant="outline" className="h-auto justify-start whitespace-normal py-2 text-left" onClick={() => { setDoc(null); setShowStarters(false); router.push(`/studio?starter=${d.id}`); if (!name && starter === d.id) void load(); }}>{d.title}</Button>)}
+      </div>}
+
       {/* Main */}
-      <div className="grid min-h-0 flex-1 grid-cols-[260px_340px_1fr]">
+      <div className={cn("grid min-h-0 flex-1 overflow-auto", canvasOnly ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-[220px_300px_minmax(0,1fr)]")}>
         {/* Tree + toolbar */}
-        <div className="flex min-h-0 flex-col border-r">
+        <div className={cn("flex min-h-0 flex-col border-r", canvasOnly && "hidden")}>
           <div className="flex flex-wrap items-center gap-1 border-b p-2">
             {addParent && <AddBlockMenu sysId={sysId} slots={addSlots} onAdd={(type, slot) => edit(() => addBlock(doc, addParent, slot, type))} />}
             <Button size="icon" variant="outline" className="size-8" aria-label="Duplicate" disabled={selected === doc.root} onClick={() => edit(() => duplicateBlock(doc, selected))}><Copy className="size-4" /></Button>
@@ -181,7 +197,7 @@ function StudioInner() {
         </div>
 
         {/* Inspector / JSON */}
-        <div className="flex min-h-0 flex-col border-r">
+        <div className={cn("flex min-h-0 flex-col border-r", canvasOnly && "hidden")}>
           <Tabs value={mid} onValueChange={setMid} className="flex min-h-0 flex-1 flex-col">
             <TabsList variant="line" className="shrink-0 justify-start gap-4 border-b px-3">
               <TabsTrigger value="inspector" className="flex-none">Inspector</TabsTrigger>
@@ -198,9 +214,15 @@ function StudioInner() {
 
         {/* Preview */}
         <div className="min-h-0 overflow-auto p-4">
+          <div className="mb-3 flex items-center gap-3">
+            <label id="preview-width-label" className="text-xs text-muted-foreground">Preview width</label>
+            <Select value={previewWidth} onValueChange={(v) => setPreviewWidth(v || "full")}><SelectTrigger aria-labelledby="preview-width-label" className="h-8"><SelectValue>{previewWidth === "full" ? "Available width" : previewWidth === "768" ? "Tablet · 768px" : "Phone · 390px"}</SelectValue></SelectTrigger><SelectContent><SelectItem value="full">Available width</SelectItem><SelectItem value="768">Tablet · 768px</SelectItem><SelectItem value="390">Phone · 390px</SelectItem></SelectContent></Select>
+          </div>
+          <div className="mx-auto" style={{ width: previewWidth === "full" ? "100%" : Number(previewWidth), maxWidth: "100%" }}>
           <KageFrame system={doc.system} kageRef={`kages://acme/kages/${doc.id}`}>
-            <KageRenderer doc={doc} />
+            <KageRenderer key={`${doc.id}:${sysId}`} doc={doc} />
           </KageFrame>
+          </div>
         </div>
       </div>
 

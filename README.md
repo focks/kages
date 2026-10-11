@@ -21,6 +21,12 @@ by link.
   and split tools, with optional navigation. Any catalog block can be the root.
   Images, literal code, lists, multiline inputs, sliders, checkboxes and bar
   charts extend the original component palette in all three systems.
+- **Data-driven artifacts** — stable keyed repeats with independent local state,
+  nested item scopes, safe arithmetic/comparisons, sorting and formatting.
+- **Reusable compositions** — define document-local blocks with typed inputs and
+  an optional typed public output, using the installed contracts.
+- **Visuals, prose and forms** — declarative vector scenes, diagrams, line/scatter
+  charts with accessible data tables, rich text, links, and native validated forms.
 - **Projects & workspaces** — organize Kages into projects within a workspace
   (`workspace → project → Kage`), visible in the dashboard.
 - **Share links** — publish a Kage and share an opaque `/k/<uuid>` link; anyone
@@ -53,11 +59,35 @@ npm test           # node:test suite
 npm run typecheck
 ```
 
-The Studio opens an interactive split example. Fresh workspaces also include
-reading-page and landing-page starters. Complete examples live in
-`src/packs/examples.ts`; the generated agent catalogs and packs teach these
-compositions. Existing workspaces can import `public/ds/idea-lab.kage.json`,
-`field-notes.kage.json` or `open-studio.kage.json` from the Artifacts view.
+The Studio opens an interactive split example. **New artifact** offers a blank
+canvas and six starters, including a searchable collection of reusable cards, a
+visual growth calculator and a validated event form. **Expand canvas** hides the
+editors; the preview supports available, tablet and phone widths. New drafts save
+through `create_kage`, and existing artifacts save through `patch_kage`.
+
+Complete examples live in `src/packs/examples.ts`; generated catalogs and packs
+teach their contracts and expression syntax. Fresh workspaces include the
+examples in the templates project. Existing workspaces can import the JSON
+documents under `public/ds/` or save a starter from Studio.
+
+Repeats use `{each, key?, as?}`; choose a stable string or numeric item key to
+preserve local state through filtering and sorting. Without `key`, identity
+follows array position. `$item` reads the current row, `$index: ""` its position,
+and `$scope: "alias.path"` a named outer row. Repeated references and commands
+stay within their instance scope; use an unbounded container inside bounded
+slots. Runtime expansion is capped at 10,000 blocks.
+
+Compositions live in `doc.compositions[name]` with `inputs`, `root`, `blocks`,
+optional `output` and `outputType`. Instantiate with a `composition` block and
+`props.name` plus `props.inputs` or `bind.inputs`. Definitions read `$input`;
+callers read `instance.value`. Both inputs and declared outputs are type checked.
+Arithmetic uses finite numbers; invalid domains, overflow and division by zero
+return null. Formatting is pinned to en-US and UTC. Forms emit named values as
+strings or arrays of strings; numeric input change events emit numbers or null.
+
+The generation envelope adds nullable `repeat_json` per block and
+`compositions_json` per document. Legacy envelopes still parse; structured-output
+clients should refresh their generation schema.
 
 To regenerate artifact design-system assets, registries, oracle goldens,
 integrity hashes and plugin packs, run `npm run build:ds` with `originals/`

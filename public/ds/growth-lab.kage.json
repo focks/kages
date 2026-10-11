@@ -1,0 +1,277 @@
+{
+  "kages": "1.0",
+  "id": "growth-lab",
+  "title": "Growth lab — a visual calculator",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide"
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "workspace",
+          "diagram"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Watch an idea compound",
+        "eyebrow": "Growth lab",
+        "description": "Explore how a starting amount and annual rate change a ten-year projection.",
+        "inset": 0
+      }
+    },
+    "workspace": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-end"
+      },
+      "slots": {
+        "start": [
+          "controls"
+        ],
+        "end": [
+          "plot"
+        ]
+      }
+    },
+    "controls": {
+      "type": "section",
+      "props": {
+        "title": "Try a scenario",
+        "level": 3,
+        "tone": "surface"
+      },
+      "slots": {
+        "children": [
+          "principal",
+          "rate",
+          "result",
+          "explanation"
+        ]
+      }
+    },
+    "principal": {
+      "type": "number-input",
+      "props": {
+        "label": "Starting amount",
+        "min": 0,
+        "max": 1000000,
+        "step": 100
+      },
+      "bind": {
+        "value": {
+          "$state": "principal"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "principal",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "rate": {
+      "type": "slider",
+      "props": {
+        "label": "Annual growth (%)",
+        "min": 0,
+        "max": 20,
+        "step": 0.5
+      },
+      "bind": {
+        "value": {
+          "$state": "rate"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "rate",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "result": {
+      "type": "stat",
+      "props": {
+        "label": "After ten years",
+        "format": "currency"
+      },
+      "bind": {
+        "value": {
+          "$round": [
+            {
+              "$mul": [
+                {
+                  "$state": "principal"
+                },
+                {
+                  "$pow": [
+                    {
+                      "$add": [
+                        1,
+                        {
+                          "$div": [
+                            {
+                              "$state": "rate"
+                            },
+                            100
+                          ]
+                        }
+                      ]
+                    },
+                    10
+                  ]
+                }
+              ]
+            },
+            2
+          ]
+        }
+      }
+    },
+    "explanation": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Explore a hypothetical projection. ",
+                "bold": true
+              },
+              {
+                "text": "The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration."
+              }
+            ]
+          },
+          {
+            "kind": "code",
+            "text": "{\"$mul\":[{\"$state\":\"principal\"},{\"$pow\":[1.05,10]}]}"
+          }
+        ]
+      }
+    },
+    "plot": {
+      "type": "line-chart",
+      "props": {
+        "label": "Projected growth",
+        "xLabel": "Year",
+        "yLabel": "Amount"
+      },
+      "bind": {
+        "items": {
+          "$map": {
+            "list": {
+              "$data": "years"
+            },
+            "to": {
+              "x": {
+                "$item": ""
+              },
+              "y": {
+                "$round": [
+                  {
+                    "$mul": [
+                      {
+                        "$state": "principal"
+                      },
+                      {
+                        "$pow": [
+                          {
+                            "$add": [
+                              1,
+                              {
+                                "$div": [
+                                  {
+                                    "$state": "rate"
+                                  },
+                                  100
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "$item": ""
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  2
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagram": {
+      "type": "diagram",
+      "props": {
+        "label": "How the projection works",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "Starting amount"
+          },
+          {
+            "id": "rate",
+            "label": "Annual growth"
+          },
+          {
+            "id": "result",
+            "label": "Projected amount"
+          }
+        ],
+        "edges": [
+          {
+            "from": "start",
+            "to": "rate"
+          },
+          {
+            "from": "rate",
+            "to": "result"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "principal": 1000,
+    "rate": 5,
+    "selected": ""
+  },
+  "data": {
+    "years": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  }
+}

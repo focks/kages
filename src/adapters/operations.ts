@@ -162,7 +162,7 @@ export const OPERATIONS: OpSpec[] = [
     if (!r.ok) return fail(r.code, r.msg);
     const s = new KageSession(r.record.doc, p.system);
     const snapshot: Record<string, unknown> = {};
-    for (const id of Object.keys(r.record.doc.blocks)) snapshot[id] = { visible: s.visible(id), output: s.read(id) };
+    for (const id of Object.keys(s.instances().blocks)) snapshot[id] = { visible: s.visible(id), output: s.read(id) };
     return ok({ system: s.sysId, blocks: snapshot });
   } },
 

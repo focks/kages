@@ -8,7 +8,7 @@ import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { OPERATORS } from "../engine/expr.ts";
 import { ACTIONS } from "../engine/runtime-core.ts";
-import { freeFlowExamples } from "./examples.ts";
+import { freeFlowExamples, expressiveExamples } from "./examples.ts";
 
 // The authoring rules ship in EVERY pack — including the prompt-injection rule,
 // which is the one every agent reading a Kage must obey.
@@ -18,7 +18,10 @@ const AUTHORING_RULES = [
   "Navigation is optional. Tabs can be primary navigation; use a sidebar when persistent section navigation helps the artifact.",
   "Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.",
   "Use declared semantic layout props and token spacing steps (0, 1, 2, 3, 4, 6, 8). Choose width, inset, gap, columns, minSize, ratio, tone and image fit through their contracts.",
-  "Dynamic text uses $tpl; dynamic lists use $filter / $map over $data.",
+  "Dynamic text uses $tpl/$concat; dynamic datasets use $filter/$map/$sort. repeat: {each, key, as?} expands a block and its subtree. Use stable item keys, $item for the current row, $index:\"\" for its position, and $scope for named outer rows. Repeated controls have independent local state.",
+  "Use $add/$sub/$mul/$div/$mod/$pow/$min/$max/$round for finite numeric computation, $lt/$lte/$gt/$gte for numeric comparisons. Invalid arithmetic returns null. $format: {value, style:number|currency|percent|date, digits?, currency?} is deterministic en-US/UTC.",
+  "Define reusable compositions in doc.compositions: {name:{inputs:{inputName:{type,required?,default?,enum?}},root,blocks,output?,outputType?:{type,enum?}}}. Instantiate a composition block with props.name and props.inputs or bind.inputs. Read typed values with $input inside and public instance.value outside. Definitions use installed blocks and cannot recurse.",
+  "Use scene/diagram/line-chart/scatter-chart for graphics. Geometry and token colors are declarative; strings never become SVG attributes or HTML. Use rich-text for structured prose and named native fields inside form for validation and submit events.",
   "Read other blocks only through declared outputs; change them only through commands.",
   "Declare every app-state key in `state` with an initial value.",
   "Respect `limits`. If a Ledger dropdown needs 9 options, pin core/dropdown@1.",
@@ -62,7 +65,7 @@ ${AUTHORING_RULES.map((r) => "- " + r).join("\n")}
 
 ## Worked examples
 
-${freeFlowExamples(systemId).map((doc) => `${doc.title}:\n\`\`\`json\n${JSON.stringify(doc, null, 2)}\n\`\`\``).join("\n\n")}
+${[...freeFlowExamples(systemId), ...expressiveExamples(systemId)].map((doc) => `${doc.title}:\n\`\`\`json\n${JSON.stringify(doc, null, 2)}\n\`\`\``).join("\n\n")}
 
 Filter → table → KPIs:
 \`\`\`json

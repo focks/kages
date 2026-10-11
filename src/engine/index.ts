@@ -8,5 +8,5 @@ export { validate } from "./validate.ts";
 export { describe } from "./describe.ts";
 export { catalog } from "./catalog.ts";
 export { generationSchema, fromGenerated, toGenerated } from "./generate.ts";
-export { initLocals, makeCtx, runActions, ACTIONS } from "./runtime-core.ts";
+export { initLocals, makeCtx, runActions, materialize, ACTIONS } from "./runtime-core.ts";
 export type * from "./types.ts";

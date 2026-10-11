@@ -1,15 +1,16 @@
-// The Kages expression language: a closed set of 18 operators, pure and
+// The Kages expression language: a closed set of declarative operators, pure and
 // synchronous. Ported from the oracle bundle. No string is ever executed as
 // code; getPath reads own enumerable keys only (hasOwnProperty), so prototype
 // keys resolve to undefined and no expression can reach window or prototypes.
 // See oracle/expressions.feature.
 
+import { COMPUTE_OPERATORS, computeExpression } from "./advanced.js";
 import type { Expr, EvalContext, Json } from "./types.ts";
 
 export const OPERATORS = [
   "$state", "$block", "$self", "$event", "$data", "$item",
   "$not", "$eq", "$neq", "$and", "$or", "$if", "$tpl",
-  "$filter", "$count", "$sum", "$find", "$map",
+  "$filter", "$count", "$sum", "$find", "$map", ...COMPUTE_OPERATORS,
 ] as const;
 
 export type Operator = (typeof OPERATORS)[number];
@@ -87,6 +88,7 @@ export function evaluate(x: Any, ctx: EvalContext): Any {
   }
   const op = Object.keys(x)[0];
   const a = x[op];
+  if (COMPUTE_OPERATORS.includes(op)) return computeExpression(op, a, ctx, evaluate, getPath);
   switch (op) {
     case "$state": return getPath(ctx.state, a);
     case "$block": {
@@ -173,5 +175,6 @@ export function walkExpr(x: Any, fn: (op: string, arg: Any) => void): void {
   }
   if (!x || typeof x !== "object") return;
   if (isExpr(x)) fn(Object.keys(x)[0], x[Object.keys(x)[0]]);
+  if (Object.keys(x)[0] === "$literal") return;
   for (const k in x) walkExpr(x[k], fn);
 }

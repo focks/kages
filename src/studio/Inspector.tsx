@@ -91,6 +91,7 @@ export function Inspector({ doc, id, onPatch, findings }: {
         <TabsList variant="line" className="w-full justify-start gap-4 border-b">
           <TabsTrigger value="props" className="flex-none">Props</TabsTrigger>
           <TabsTrigger value="bindings" className="flex-none">Bindings{bound.size ? ` (${bound.size})` : ""}</TabsTrigger>
+          <TabsTrigger value="repeat" className="flex-none">Repeat</TabsTrigger>
           <TabsTrigger value="actions" className="flex-none">Actions{b.on ? ` (${Object.keys(b.on).length})` : ""}</TabsTrigger>
         </TabsList>
 
@@ -146,6 +147,11 @@ export function Inspector({ doc, id, onPatch, findings }: {
               <SelectContent>{unboundProps.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}</SelectContent>
             </Select>
           )}
+        </TabsContent>
+
+        <TabsContent value="repeat" className="mt-3 space-y-3">
+          <p className="text-xs text-muted-foreground">Repeat this block and its children over data. Use a stable item key; $item reads the current row.</p>
+          <JsonField value={b.repeat} placeholder='{"each":{"$data":"items"},"key":"id","as":"row"}' onCommit={(value) => onPatch(value === null ? b.repeat ? [{ op: "remove", path: `/blocks/${id}/repeat` }] : [] : [{ op: b.repeat ? "replace" : "add", path: `/blocks/${id}/repeat`, value: value as never }])} />
         </TabsContent>
 
         {/* ACTIONS */}
