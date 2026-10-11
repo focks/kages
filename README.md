@@ -63,6 +63,27 @@ Both are **env-gated**: absent → the in-memory/no-login defaults above.
 
 See `.env.example`. Database schema is versioned under `supabase/migrations/`.
 
+## MCP & skills
+
+Kages ships an MCP server so any MCP client (Claude Code, Codex, …) can author
+Kages. It mirrors the one operation table onto MCP:
+
+- **tools** — every operation (`create_kage`, `patch_kage`, `list_kages`, …);
+- **prompts** — the per-system authoring **skills** (`kages-core`, `kages-ledger`,
+  `kages-atelier`) — MCP has no skill primitive, so a prompt is its analog;
+- **resources** — each system's component catalog and the agent card.
+
+```bash
+kages mcp                                   # run the stdio server
+kages setup skills --harness claude --harness codex
+```
+
+`setup skills` installs the same skill packs where each harness loads them
+(`~/.claude/skills/kages-<system>/SKILL.md`, `~/.codex/prompts/kages-<system>.md`)
+and prints the one-liner to register the server (`claude mcp add kages -- kages mcp`).
+Signed in (`kages auth login`) the server acts on your cloud workspace; otherwise
+the local `./.kages`.
+
 ## Deploying
 
 The app deploys to Vercel from this repo (auto-deploys on push to `main`). Set

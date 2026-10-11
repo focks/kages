@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "class-variance-authority": "^0.7.1",

@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "./args.ts";
 import { main } from "./kages.ts";
+import { setupSkills } from "./setup.ts";
 import { Store } from "../store/store.ts";
 import { verifyDigest } from "../store/crypto.ts";
 import type { KageDoc } from "../engine/types.ts";
@@ -51,6 +52,20 @@ test("parseArgs: positionals, flags, aliases, JSON values", () => {
   assert.equal(q.flags.days, 7); // numeric JSON
   assert.deepEqual(q.flags.ops, [1, 2]); // array JSON
   assert.equal(parseArgs(["x", "--", "--not-a-flag"]).positionals.at(-1), "--not-a-flag");
+});
+
+test("parseArgs: a repeated flag collects into an array; single use stays scalar", () => {
+  const p = parseArgs(["setup", "skills", "--harness", "codex", "--harness", "claude"]);
+  assert.deepEqual(p.flags.harness, ["codex", "claude"]);
+  assert.equal(parseArgs(["--harness", "codex"]).flags.harness, "codex");
+});
+
+test("setup skills installs one SKILL.md per system into the harness dir", () => {
+  const home = mkdtempSync(join(tmpdir(), "kages-home-"));
+  process.env.HOME = home; // homedir() reads $HOME
+  assert.equal(setupSkills(["claude"]), 0);
+  const skill = readFileSync(join(home, ".claude/skills/kages-core/SKILL.md"), "utf8");
+  assert.match(skill, /name: kages-core/);
 });
 
 test("help and version exit 0", async () => {

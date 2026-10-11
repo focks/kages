@@ -13,19 +13,26 @@ const ALIASES: Record<string, string> = { C: "workspace", o: "out", s: "system",
 export function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
   const flags: Record<string, unknown> = {};
+  // A repeated flag (e.g. --harness a --harness b) collects into an array;
+  // single use stays a scalar, so existing callers are unaffected.
+  const set = (key: string, value: unknown) => {
+    if (!(key in flags)) { flags[key] = value; return; }
+    const prev = flags[key];
+    flags[key] = Array.isArray(prev) ? [...prev, value] : [prev, value];
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--") { positionals.push(...argv.slice(i + 1)); break; }
     if (a.startsWith("--")) {
       const key = a.slice(2);
       const next = argv[i + 1];
-      if (next === undefined || next.startsWith("-")) { flags[key] = true; }
-      else { flags[key] = tryJson(next); i++; }
+      if (next === undefined || next.startsWith("-")) { set(key, true); }
+      else { set(key, tryJson(next)); i++; }
     } else if (a.startsWith("-") && a.length > 1) {
       const key = ALIASES[a.slice(1)] ?? a.slice(1);
       const next = argv[i + 1];
-      if (next === undefined || next.startsWith("-")) { flags[key] = true; }
-      else { flags[key] = tryJson(next); i++; }
+      if (next === undefined || next.startsWith("-")) { set(key, true); }
+      else { set(key, tryJson(next)); i++; }
     } else {
       positionals.push(a);
     }

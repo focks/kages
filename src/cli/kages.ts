@@ -19,8 +19,9 @@ import { validate } from "../engine/validate.ts";
 import { describe } from "../engine/describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
 import { KageSession } from "../engine/session.ts";
-import { dispatch, type OpContext, type OpResult } from "../adapters/operations.ts";
+import { dispatch, isWriteOp, type OpContext, type OpResult } from "../adapters/operations.ts";
 import { openapi, a2aCard, mcpTools } from "../adapters/surfaces.ts";
+import { setupCmd } from "./setup.ts";
 import { pack } from "../packs/packs.ts";
 import { loadStore, saveStore, owner, workspaceDir, initWorkspace } from "./workspace.ts";
 import { login, logout, status, remoteCall } from "./auth.ts";
@@ -66,7 +67,13 @@ manage  (your CLOUD workspace when signed in, else the local ./.kages; --local f
   state <name>                  current app state
   comment <name> <block> <text> [--patch file]
 
+setup  (wire Kages into a coding harness)
+  setup skills [--harness claude|codex] ...
+                                install the authoring skills (one per system)
+
 dev
+  mcp                           run the MCP server (stdio): operations as tools,
+                                skill packs as prompts, catalogs as resources
   pack <system> [-o dir]        skill pack (SKILL.md/AGENTS.md/llms.txt/catalog)
   openapi                       OpenAPI 3.1 for the REST adapter
   agent-card                    A2A agent card
@@ -245,7 +252,25 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       return report(await op("comment", { kage: rest[0], block: rest[1], text: rest.slice(2).join(" "), suggestedPatch }, true), (d) => out(`comment ${(d as any).id} on ${(d as any).block}`));
     }
 
+    // --- setup (wire Kages into a harness) ---
+    case "setup": {
+      const raw = flags.harness;
+      const harnesses = (raw === undefined ? [] : Array.isArray(raw) ? raw : [raw]) as string[];
+      return setupCmd(rest, harnesses);
+    }
+
     // --- dev ---
+    case "mcp": {
+      // stdio MCP server: NOTHING may go to stdout but protocol messages, so
+      // this case prints nothing. Operations run through the same op() path as
+      // every other command (cloud when signed in, else the local workspace).
+      const { createMcpServer } = await import("../adapters/mcp.ts");
+      const { StdioServerTransport } = await import("@modelcontextprotocol/sdk/server/stdio.js");
+      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name)));
+      await server.connect(new StdioServerTransport());
+      await new Promise(() => {}); // run until the client closes stdin
+      return 0;
+    }
     case "pack": {
       need(1, "pack <system> [-o dir]");
       const p = pack(rest[0]);
