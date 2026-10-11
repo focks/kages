@@ -9,10 +9,11 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
-import { loadSnapshot, saveSnapshot, persistenceEnabled } from "./persistence.ts";
+import { loadSnapshotRev, saveSnapshot, casSave, persistenceEnabled } from "./persistence.ts";
 import { putPublicShare, sharesEnabled } from "./public-shares.ts";
 import { introTemplates } from "./templates.ts";
 import { freeFlowExamples, expressiveExamples } from "../packs/examples.ts";
+import type { OpResult } from "../adapters/operations.ts";
 import type { Provenance } from "../store/types.ts";
 import type { KageDoc } from "../engine/types.ts";
 
@@ -47,26 +48,57 @@ export async function getStore(workspace = "acme"): Promise<Store> {
   return initPromises.get(workspace)!;
 }
 
-/** Persist a workspace's current snapshot (no-op without Supabase env). Called
- *  by the API route after a successful write so durability tracks in-memory
- *  state without the store layer knowing anything about the database. */
-export async function persistStore(workspace: string, store: Store): Promise<void> {
-  if (persistenceEnabled()) await saveSnapshot(workspace, store.snapshot());
+/** Run a write against a workspace with optimistic concurrency. Without Supabase
+ *  the cached in-memory store is the single source of truth (local/tests), so the
+ *  op applies directly. With Supabase, each attempt loads the LATEST snapshot,
+ *  applies the op to it, and commits only if the revision hasn't moved — retrying
+ *  on conflict — so a stale serverless instance can neither lose a write nor
+ *  resurrect a deleted Kage. `apply` returns the op result plus an optional
+ *  `after` hook (public-share sync) that runs only once the write is committed. */
+export async function mutateStore(
+  workspace: string,
+  apply: (store: Store) => { result: OpResult; after?: () => Promise<void> },
+): Promise<OpResult> {
+  if (!persistenceEnabled()) {
+    const store = await getStore(workspace);
+    const { result, after } = apply(store);
+    if (result.ok && after) await after();
+    return result;
+  }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const loaded = await loadSnapshotRev(workspace);
+    const store = loaded ? Store.restore(loaded.snapshot) : buildSeeded(workspace);
+    const { result, after } = apply(store);
+    if (!result.ok) return result; // a failed op changed nothing → nothing to commit
+    const committed = await casSave(workspace, store.snapshot(), loaded ? loaded.rev : null);
+    if (committed) {
+      stores.set(workspace, store); // this instance now holds the committed state
+      if (after) await after();
+      return result;
+    }
+    // revision moved under us → reload and re-apply against the fresh state
+  }
+  return { ok: false, error: { code: "conflict", msg: "workspace changed concurrently; please retry" } };
+}
+
+/** Seed a brand-new workspace in memory (no persistence). Shared "acme" gets the
+ *  demo content; a user's own workspace gets the intro templates. */
+function buildSeeded(workspace: string): Store {
+  const store = new Store({ workspace });
+  if (workspace === "acme") seed(store);
+  else seedStarters(store, workspace);
+  return store;
 }
 
 async function initStore(workspace: string): Promise<Store> {
-  const snap = await loadSnapshot(workspace);
-  if (snap) {
-    const s = Store.restore(snap);
+  const loaded = await loadSnapshotRev(workspace);
+  if (loaded) {
+    const s = Store.restore(loaded.snapshot);
     stores.set(workspace, s);
     await syncPublicShares(s); // registered shares may predate the public_shares table
     return s;
   }
-  // Fresh workspace: the shared "acme" workspace gets the demo content; a new
-  // user's own workspace gets the intro templates ("What is Kages", etc.).
-  const store = new Store({ workspace });
-  if (workspace === "acme") seed(store);
-  else seedStarters(store, workspace);
+  const store = buildSeeded(workspace);
   if (persistenceEnabled()) await saveSnapshot(workspace, store.snapshot());
   stores.set(workspace, store);
   await syncPublicShares(store);

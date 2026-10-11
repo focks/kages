@@ -1,10 +1,11 @@
-// Run one operation in a workspace with the full server-side lifecycle: dispatch
-// against the workspace store, persist the snapshot after a successful write, and
-// keep the public_shares registry in sync. The REST route does this inline around
-// handleRest; the MCP route uses this directly so both behave identically.
+// Run one operation in a workspace with the full server-side lifecycle. Reads hit
+// the cached store directly. Writes go through mutateStore: anonymous callers are
+// rejected (read-only when auth is on), then the op is applied under optimistic
+// concurrency (persist + public-share reconciliation on commit). Both the REST
+// route and the MCP route call this, so the two behave identically.
 
 import { dispatch, isWriteOp, type OpResult } from "../adapters/operations.ts";
-import { getStore, persistStore } from "./store-instance.ts";
+import { getStore, mutateStore } from "./store-instance.ts";
 import { afterWriteShareSync } from "./public-shares.ts";
 import { anonWriteBlocked } from "./identity.ts";
 import type { Provenance } from "../store/types.ts";
@@ -15,16 +16,21 @@ export async function executeOp(
   op: string,
   params: Record<string, unknown>,
 ): Promise<OpResult> {
-  if (anonWriteBlocked(author, isWriteOp(op)))
+  const write = isWriteOp(op);
+  if (anonWriteBlocked(author, write))
     return { ok: false, error: { code: "unauthorized", msg: "sign in to write — anonymous access is read-only" } };
-  const store = await getStore(workspace);
-  const name = typeof params.name === "string" ? params.name : undefined;
-  // Capture the uuid before a delete removes the Kage, so its /k share can be purged.
-  const preDeleteUuid = op === "delete_kage" && name ? store.head(name)?.uuid : undefined;
-  const r = dispatch({ store, author }, op, params);
-  if (r.ok && isWriteOp(op)) {
-    await persistStore(workspace, store);
-    await afterWriteShareSync(store, op, name, preDeleteUuid);
+
+  if (!write) {
+    const store = await getStore(workspace);
+    return dispatch({ store, author }, op, params);
   }
-  return r;
+
+  const name = typeof params.name === "string" ? params.name : undefined;
+  return mutateStore(workspace, (store) => {
+    // Capture the uuid before a delete removes the Kage, so its /k share can be purged.
+    const preDeleteUuid = op === "delete_kage" && name ? store.head(name)?.uuid : undefined;
+    const result = dispatch({ store, author }, op, params);
+    const after = result.ok ? () => afterWriteShareSync(store, op, name, preDeleteUuid) : undefined;
+    return { result, after };
+  });
 }

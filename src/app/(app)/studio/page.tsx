@@ -164,7 +164,8 @@ function StudioInner() {
           <span className={cn("text-xs", validation?.ok ? "text-success" : "text-destructive")}>
             {validation?.ok ? "valid" : `${validation?.errors.length} error${validation?.errors.length === 1 ? "" : "s"}`}
           </span>
-          {!name && <Input aria-label="Save project" className="h-8 w-32" value={repo} onChange={(e) => setRepo(e.target.value)} />}
+          {!name && <Input aria-label="Save project" placeholder="project" className="h-8 w-32" value={repo}
+            onChange={(e) => setRepo(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"))} />}
           <Button size="sm" onClick={save} disabled={!canSave || !repo.trim()}><Save className="size-4" /> {name ? "Save" : "Save new artifact"}</Button>
         </div>
       </div>

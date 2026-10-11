@@ -29,11 +29,13 @@ export async function handleRest(ctx: OpContext, op: string, req: Request): Prom
 }
 
 /** Map operation error codes to HTTP status, so a REST client sees the right
- *  class of failure (a permission denial is 403, a bad doc is 422). */
-function httpStatus(code: string): number {
+ *  class of failure (a permission denial is 403, a bad doc is 422). Shared with
+ *  the Next route, which runs ops through executeOp and maps the result here. */
+export function httpStatus(code: string): number {
   switch (code) {
     case "unknown_operation": return 404;
     case "not_found": return 404;
+    case "unauthorized": return 401;
     case "forbidden": return 403;
     case "rate_limited": return 429;
     case "claimed": return 409;
