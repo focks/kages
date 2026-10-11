@@ -159,6 +159,45 @@ test("delete: requires admin, removes the Kage, and records the deletion in the 
   assert.ok(s2.auditLog().some((e) => e.action === "delete"), "deletion is audited even though the doc is gone");
 });
 
+test("lifecycle: archive resets visibility so restore can't silently re-expose a public Kage", () => {
+  const s = seeded(); // has publish
+  s.create("kages", ops(), agent);
+  assert.ok(s.publish("ops-console", agent, "public").ok);
+  assert.equal(s.head("ops-console")!.visibility, "public");
+  assert.ok(s.archive("ops-console", agent).ok);
+  assert.equal(s.head("ops-console")!.visibility, "private"); // reset on archive
+  assert.ok(s.restore("ops-console", agent).ok);
+  assert.equal(s.head("ops-console")!.state, "published");
+  assert.equal(s.head("ops-console")!.visibility, "private"); // NOT re-exposed
+});
+
+test("lifecycle: archiving a PUBLISHED Kage needs publish, but a draft can be archived by a writer", () => {
+  const s = freshStore();
+  s.grant(agent.principal, "kages", ["write", "publish"]);
+  s.grant("agent:w", "kages", ["write"]);
+  s.create("kages", ops(), agent);
+  assert.ok(s.publish("ops-console", agent).ok);
+  const denied = s.archive("ops-console", { principal: "agent:w" }); // write-only can't take published offline
+  assert.equal(denied.ok, false);
+  assert.equal(denied.error?.code, "forbidden");
+  s.create("kages", { ...ops(), id: "draft-k" }, agent);
+  assert.ok(s.archive("draft-k", { principal: "agent:w" }).ok); // but a draft is fine
+});
+
+test("delete: purges the Kage's comments and claims so a reused name starts clean", () => {
+  const s = freshStore();
+  s.create("proj", ops(), agent); // unclaimed repo → agent gets admin
+  s.comment("ops-console", "app", agent.principal, "note");
+  s.claims.claim("ops-console", ["app"], agent.principal, 300, 1);
+  assert.equal(s.comments.all("ops-console").length, 1);
+  assert.ok(s.remove("ops-console", agent).ok);
+  assert.equal(s.comments.all("ops-console").length, 0);
+  assert.ok(s.claims.canWrite("ops-console", "app", "agent:other", 2)); // claim gone
+  // recreate the same name → no inherited comments
+  s.create("proj", ops(), agent);
+  assert.equal(s.comments.all("ops-console").length, 0);
+});
+
 test("RBAC: a reviewer agent physically cannot patch", () => {
   const s = freshStore();
   s.grant("agent:acme/builder", "kages", ["write"]);

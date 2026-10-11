@@ -358,6 +358,9 @@ export class Store {
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, needed)) return err("forbidden", `${author.principal} lacks ${needed} on ${repo}`);
     if (!LIFECYCLE_NEXT[head.state].includes(to)) return err("bad_state", `cannot go ${head.state} -> ${to}`);
+    // One gate for every path into `published` (publish AND restore): a version
+    // with validation errors can never become published, no back door.
+    if (to === "published" && !head.validation.ok) return err("invalid_content", "cannot publish a version with validation errors");
     head.state = to;
     this.record(author.principal, to, head.ref);
     this.emit("kage.state.changed", head.ref, { to });
@@ -392,12 +395,30 @@ export class Store {
 
   submitForReview(name: string, author: Provenance): WriteResult { return this.transition(name, "review", author, "write"); }
   deprecate(name: string, author: Provenance): WriteResult { return this.transition(name, "deprecated", author, "write"); }
-  /** Put a Kage away. Reversible (restore/unpublish) and soft, so a writer may do
-   *  it; it drops out of the default listing and the public share registry. */
-  archive(name: string, author: Provenance): WriteResult { return this.transition(name, "archived", author, "write"); }
-  /** Pull a published Kage back to draft — the missing inverse of publish. */
-  unpublish(name: string, author: Provenance): WriteResult { return this.transition(name, "draft", author, "publish"); }
-  /** Bring an archived (or deprecated) Kage back to published. */
+
+  /** Put a Kage away — reversible and soft. A draft may be archived by a writer,
+   *  but archiving a PUBLISHED Kage takes content others may depend on offline, so
+   *  that needs `publish`. Visibility is reset to private so a later restore can't
+   *  silently re-expose what was once public — the restorer re-shares explicitly. */
+  archive(name: string, author: Provenance): WriteResult {
+    const head = this.head(name);
+    if (!head) return err("not_found", `no kage '${name}'`);
+    const needed: Grant = head.state === "published" ? "publish" : "write";
+    const r = this.transition(name, "archived", author, needed);
+    if (r.ok && r.version) r.version.visibility = "private";
+    return r;
+  }
+
+  /** Pull a published Kage back to draft — the missing inverse of publish. Resets
+   *  visibility so re-publishing is an explicit, deliberate choice again. */
+  unpublish(name: string, author: Provenance): WriteResult {
+    const r = this.transition(name, "draft", author, "publish");
+    if (r.ok && r.version) r.version.visibility = "private";
+    return r;
+  }
+
+  /** Bring an archived (or deprecated) Kage back to published — private until the
+   *  owner shares it again, so restore never re-leaks a formerly-public Kage. */
   restore(name: string, author: Provenance): WriteResult { return this.transition(name, "published", author, "publish"); }
 
   /** Permanently remove a Kage from the workspace. Requires `admin` — the highest
@@ -411,6 +432,11 @@ export class Store {
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, "admin")) return err("forbidden", `${author.principal} lacks admin on ${repo}`);
     this.kages.delete(name);
+    // Drop everything else keyed by this name, so a later Kage reusing it can't
+    // inherit a stale lease or someone else's old comments. (public_shares is
+    // purged by the server layer via the returned uuid — it lives in Supabase.)
+    this.claims.releaseAll(name);
+    this.comments.purge(name);
     this.record(author.principal, "delete", head.ref);
     this.emit("kage.deleted", head.ref, { uuid: head.uuid });
     return { ok: true, version: head };

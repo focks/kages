@@ -98,38 +98,59 @@ export function createMcpServer(exec: Exec): Server {
 
 // --- transport 2: Streamable HTTP (stateless JSON-RPC over one POST) ---
 
-interface JsonRpc { jsonrpc: "2.0"; id?: string | number | null; method: string; params?: Record<string, unknown>; }
+interface JsonRpc { jsonrpc?: "2.0"; id?: string | number | null; method?: string; params?: Record<string, unknown> }
+const PROTOCOL_VERSIONS = new Set(["2025-06-18", "2025-03-26", "2024-11-05", "2025-11-25"]);
 
 /** Handle one JSON-RPC message. Returns the response object, or null for a
- *  notification (no id → the route replies 202 with no body). */
+ *  notification (no id → the route replies 202 with no body). Every malformed
+ *  shape is answered with a JSON-RPC error, never a thrown exception — one bad
+ *  element in a batch must not take down the others. */
 export async function handleMcpMessage(exec: Exec, msg: JsonRpc): Promise<object | null> {
+  // A non-object element (null, number, array, string) has no recoverable id.
+  if (typeof msg !== "object" || msg === null || Array.isArray(msg))
+    return { jsonrpc: "2.0", id: null, error: { code: -32600, message: "invalid request" } };
+
   const { id, method, params = {} } = msg;
   const ok = (result: object) => ({ jsonrpc: "2.0" as const, id, result });
   const fail = (code: number, message: string) => ({ jsonrpc: "2.0" as const, id, error: { code, message } });
   const isNotification = id === undefined || id === null;
+  if (typeof method !== "string") return isNotification ? null : fail(-32600, "invalid request: missing method");
+  const p = (params ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" ? v : undefined);
 
   try {
     switch (method) {
-      case "initialize":
+      case "initialize": {
+        const requested = str(p.protocolVersion);
         return ok({
-          protocolVersion: (params.protocolVersion as string) ?? PROTOCOL_VERSION,
+          protocolVersion: requested && PROTOCOL_VERSIONS.has(requested) ? requested : PROTOCOL_VERSION,
           capabilities: CAPABILITIES,
           serverInfo: SERVER_INFO,
         });
+      }
       case "ping":
         return ok({});
       case "tools/list":
         return ok({ tools: mcpTools() });
-      case "tools/call":
-        return ok(await callToolResult(exec, params.name as string, (params.arguments ?? {}) as Record<string, unknown>));
+      case "tools/call": {
+        const name = str(p.name);
+        if (!name) return fail(-32602, "tools/call requires string params.name");
+        return ok(await callToolResult(exec, name, (p.arguments ?? {}) as Record<string, unknown>));
+      }
       case "prompts/list":
         return ok({ prompts: promptList() });
-      case "prompts/get":
-        return ok(getPromptResult(params.name as string));
+      case "prompts/get": {
+        const name = str(p.name);
+        if (!name) return fail(-32602, "prompts/get requires string params.name");
+        return ok(getPromptResult(name));
+      }
       case "resources/list":
         return ok({ resources: resourceList() });
-      case "resources/read":
-        return ok(readResourceResult(params.uri as string));
+      case "resources/read": {
+        const uri = str(p.uri);
+        if (!uri) return fail(-32602, "resources/read requires string params.uri");
+        return ok(readResourceResult(uri));
+      }
       default:
         // Unknown notifications (e.g. notifications/initialized) are ignored.
         return isNotification ? null : fail(-32601, `method not found: ${method}`);

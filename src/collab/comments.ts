@@ -42,6 +42,12 @@ export class CommentThread {
     return this.comments.filter((c) => c.kage === kage);
   }
 
+  /** Drop every comment on a Kage — used when the Kage is deleted, so they don't
+   *  live on orphaned in the snapshot or attach to a later Kage of the same name. */
+  purge(kage: string): void {
+    this.comments = this.comments.filter((c) => c.kage !== kage);
+  }
+
   /** Serialize/restore for a persistent store. `seq` is reset past the highest
    *  id so a reload never re-mints an existing comment id. */
   dump(): Comment[] {

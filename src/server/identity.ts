@@ -36,7 +36,7 @@ export function workspaceOf(userId: string): string {
   return "ws-" + userId;
 }
 
-export async function getSessionUser(req?: Request) {
+export async function getSessionUser(req?: Request, bearerOnly = false) {
   if (!authEnabled()) return null;
   // A Bearer token (from the `kages` CLI after `auth login`) takes precedence
   // over the browser cookie session — verified against Supabase with the anon
@@ -50,6 +50,9 @@ export async function getSessionUser(req?: Request) {
       return data.user ?? null;
     } catch { return null; }
   }
+  // Agent/CLI endpoints (MCP) pass bearerOnly so a browser's ambient cookie can
+  // never authenticate a cross-site request to them (no CSRF-read surface).
+  if (bearerOnly) return null;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -62,9 +65,9 @@ export async function getSessionUser(req?: Request) {
 export interface Identity { author: Provenance; workspace: string; }
 
 /** Resolve the acting identity + workspace for the current request. */
-export async function resolveIdentity(req?: Request): Promise<Identity> {
+export async function resolveIdentity(req?: Request, bearerOnly = false): Promise<Identity> {
   if (!authEnabled()) return { author: DEMO_PRINCIPAL, workspace: "acme" };
-  const user = await getSessionUser(req);
+  const user = await getSessionUser(req, bearerOnly);
   if (!user) return { author: ANON, workspace: "acme" };
   return {
     author: { principal: `user:${user.id}`, runtime: { framework: "next", adapter: "rest" } },

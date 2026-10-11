@@ -58,6 +58,12 @@ export class ClaimRegistry {
     this.claims = this.claims.filter((c) => !(c.kage === kage && c.principal === principal));
   }
 
+  /** Drop every claim on a Kage regardless of claimant — used when the Kage is
+   *  deleted, so a later Kage reusing the name can't inherit a stale lease. */
+  releaseAll(kage: string): void {
+    this.claims = this.claims.filter((c) => c.kage !== kage);
+  }
+
   private gc(now: number): void {
     this.claims = this.claims.filter((c) => c.expiresAt > now);
   }
