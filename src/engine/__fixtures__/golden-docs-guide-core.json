@@ -1,0 +1,391 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Docs guide — outline, tabs, code and validated fields\" · system core@1.11.0 · 18 blocks\nstate {\"age\":null,\"period\":{\"start\":\"\",\"end\":\"\"}}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Getting started\"\n    - layout [core/split@1.0.0]\n      start:\n        - toc [core/toc@1.0.0] title=\"On this page\" items=||\n      end:\n        - a-install [core/anchor@1.0.0]\n        - h-install [core/rich-text@1.0.0]\n        - platforms [core/tab-panel@1.0.0] label=\"Platform\"\n          panel1:\n            - mac [core/text@1.0.0] text=\"Install with Homebrew, then restart your terminal.\"\n          panel2:\n            - linux [core/text@1.0.0] text=\"Use your package manager or download the static binary.\"\n          panel3:\n            - win [core/text@1.0.0] text=\"Use the installer or winget.\"\n        - a-usage [core/anchor@1.0.0]\n        - h-usage [core/rich-text@1.0.0]\n        - snippet [core/code-tabs@1.0.0]\n        - a-check [core/anchor@1.0.0]\n        - h-check [core/rich-text@1.0.0]\n        - age [core/number-input@1.1.0] label=\"Your age\"\n            ↳ reads state:age · writes change→state.age\n        - period [core/date-range@1.0.0] label=\"Reporting period\" value={\"start\":\"\",\"end\":\"\"}\n            ↳ reads state:period · writes change→state.period\n        - report [core/file-upload@1.0.0] label=\"Attach a CSV (read locally)\"",
+  "envelope": {
+    "title": "Docs guide — outline, tabs, code and validated fields",
+    "root": "root",
+    "state_json": "{\"age\":null,\"period\":{\"start\":\"\",\"end\":\"\"}}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 8
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "layout"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Getting started",
+          "eyebrow": "Documentation",
+          "description": "A long page with an outline that follows you, tabbed alternatives, copyable code and fields that explain themselves.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "layout",
+        "type": "split",
+        "props": {
+          "ratio": "wide-end",
+          "gap": 8
+        },
+        "slots": {
+          "start": [
+            "toc"
+          ],
+          "end": [
+            "a-install",
+            "h-install",
+            "platforms",
+            "a-usage",
+            "h-usage",
+            "snippet",
+            "a-check",
+            "h-check",
+            "age",
+            "period",
+            "report"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "toc",
+        "type": "toc",
+        "props": {
+          "title": "On this page",
+          "items": [
+            {
+              "label": "Install",
+              "target": "install",
+              "level": null
+            },
+            {
+              "label": "Usage",
+              "target": "usage",
+              "level": null
+            },
+            {
+              "label": "Check your details",
+              "target": "check",
+              "level": null
+            }
+          ],
+          "sticky": true,
+          "value": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "a-install",
+        "type": "anchor",
+        "props": {
+          "name": "install"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "h-install",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"heading\",\"level\":2,\"text\":\"Install\"}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "platforms",
+        "type": "tab-panel",
+        "props": {
+          "label": "Platform",
+          "tabs": [
+            {
+              "id": "mac",
+              "label": "macOS"
+            },
+            {
+              "id": "linux",
+              "label": "Linux"
+            },
+            {
+              "id": "win",
+              "label": "Windows"
+            }
+          ],
+          "value": null
+        },
+        "slots": {
+          "panel1": [
+            "mac"
+          ],
+          "panel2": [
+            "linux"
+          ],
+          "panel3": [
+            "win"
+          ],
+          "panel4": [],
+          "panel5": [],
+          "panel6": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "mac",
+        "type": "text",
+        "props": {
+          "text": "Install with Homebrew, then restart your terminal.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "linux",
+        "type": "text",
+        "props": {
+          "text": "Use your package manager or download the static binary.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "win",
+        "type": "text",
+        "props": {
+          "text": "Use the installer or winget.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "a-usage",
+        "type": "anchor",
+        "props": {
+          "name": "usage"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "h-usage",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"heading\",\"level\":2,\"text\":\"Usage\"}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "snippet",
+        "type": "code-tabs",
+        "props": {
+          "caption": "List your Kages",
+          "tabs": [
+            {
+              "id": "sh",
+              "label": "Shell",
+              "language": "sh",
+              "code": "kages ls --json"
+            },
+            {
+              "id": "js",
+              "label": "JavaScript",
+              "language": "js",
+              "code": "const kages = await fetch('/api/list_kages').then(r => r.json());"
+            },
+            {
+              "id": "py",
+              "label": "Python",
+              "language": "py",
+              "code": "import requests\nkages = requests.post(url + '/api/list_kages').json()"
+            }
+          ],
+          "value": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "a-check",
+        "type": "anchor",
+        "props": {
+          "name": "check"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "h-check",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"heading\",\"level\":2,\"text\":\"Check your details\"}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "age",
+        "type": "number-input",
+        "props": {
+          "label": "Your age",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value_json": null,
+          "min": 0,
+          "max": 120,
+          "step": 1
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"age\"}"
+          },
+          {
+            "prop": "error",
+            "expr_json": "{\"$if\":[{\"$lt\":[{\"$state\":\"age\"},18]},\"You must be 18 or older.\",\"\"]}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"age\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "period",
+        "type": "date-range",
+        "props": {
+          "label": "Reporting period",
+          "value_json": null,
+          "name": null,
+          "min": null,
+          "max": null,
+          "required": null,
+          "disabled": null,
+          "error": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"period\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"period\",\"value\":{\"start\":{\"$event\":\"start\"},\"end\":{\"$event\":\"end\"}}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "report",
+        "type": "file-upload",
+        "props": {
+          "label": "Attach a CSV (read locally)",
+          "accept": ".csv,text/csv,text/plain",
+          "multiple": null,
+          "maxBytes": 50000,
+          "readAs": null,
+          "name": null,
+          "help": null,
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "files_json": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

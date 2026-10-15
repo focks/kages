@@ -1,6 +1,6 @@
 ---
 name: kages-ledger
-description: Build free-flowing pages, reports and interactive tools as Kages in Ledger (ledger@2.7.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Ledger (ledger@2.8.0).
 ---
 
 # Kages — Ledger
@@ -9,7 +9,7 @@ Dense, square, mono-numeral system for data and operations tools.
 
 ## Components
 
-# Ledger 2.7.0 (ledger) extends core@1
+# Ledger 2.8.0 (ledger) extends core@1
 Dense, square, mono-numeral system for data and operations tools.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -94,20 +94,20 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - rich-text → core/rich-text@1.0.0 [kages/rich-text@1] Structured headings, paragraphs, quotes, lists and inline emphasis without raw HTML.
   props: nodes*:array
   use: nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.
-- text-field → core/text-field@1.0.0 [kages/text-field@1] Named text, email or URL field with native form validation.
-  props: label*:string, name:string, required:boolean, disabled:boolean, value:string, kind:text|email|url, help:string, placeholder:string, minLength:number, maxLength:number · events: change · outputs: value
-  use: Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}.
-- number-input → core/number-input@1.0.0 [kages/number-input@1] Named numeric field with min/max/step validation; empty value is null.
-  props: label*:string, name:string, required:boolean, disabled:boolean, value:number|null, min:number, max:number, step:number · events: change · outputs: value
+- text-field → core/text-field@1.1.0 [kages/text-field@1] Named text, email or URL field with native form validation.
+  props: label*:string, name:string, required:boolean, disabled:boolean, error:string, value:string, kind:text|email|url, help:string, placeholder:string, minLength:number, maxLength:number · events: change · outputs: value
+  use: Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules).
+- number-input → core/number-input@1.1.0 [kages/number-input@1] Named numeric field with min/max/step validation; empty value is null.
+  props: label*:string, name:string, required:boolean, disabled:boolean, error:string, value:number|null, min:number, max:number, step:number · events: change · outputs: value
   use: Use for calculations; an empty field emits null. Set name inside form; change emits {value}.
-- date-input → core/date-input@1.0.0 [kages/date-input@1] Named date field with native picker and ISO date output.
-  props: label*:string, name:string, required:boolean, disabled:boolean, value:string, min:string, max:string · events: change · outputs: value
+- date-input → core/date-input@1.1.0 [kages/date-input@1] Named date field with native picker and ISO date output.
+  props: label*:string, name:string, required:boolean, disabled:boolean, error:string, value:string, min:string, max:string · events: change · outputs: value
   use: Date values and bounds are YYYY-MM-DD; change emits {value}.
-- choice → core/choice@1.0.0 [kages/choice@1] Named radio group with native keyboard navigation and a public selection.
-  props: label*:string, name:string, required:boolean, disabled:boolean, value:string, options*:array · events: change · outputs: value
+- choice → core/choice@1.1.0 [kages/choice@1] Named radio group with native keyboard navigation and a public selection.
+  props: label*:string, name:string, required:boolean, disabled:boolean, error:string, value:string, options*:array · events: change · outputs: value
   use: Use for one option from a short list; options are [{value,label}]. change emits {value}.
-- multiselect → core/multiselect@1.0.0 [kages/multiselect@1] Named multiple selection with native keyboard support and array output.
-  props: label*:string, name:string, required:boolean, disabled:boolean, value:array, options*:array · events: change · outputs: value
+- multiselect → core/multiselect@1.1.0 [kages/multiselect@1] Named multiple selection with native keyboard support and array output.
+  props: label*:string, name:string, required:boolean, disabled:boolean, error:string, value:array, options*:array · events: change · outputs: value
   use: Use for several choices; options are [{value,label}], value is a string array. change emits {value}.
 - form → core/form@1.0.0 [kages/form@1] Native validated form; submit emits named field values as strings or arrays of strings.
   props: label*:string, submitLabel:string, disabled:boolean · slots: children · events: submit
@@ -199,6 +199,33 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - map → core/map@1.0.0 [kages/map@1] Choropleth of GeoJSON Polygon/MultiPolygon regions shaded by value, with optional selection.
   props: interactive:boolean, selected:string, label*:string, features*:array, empty:string · events: select · outputs: selected
   use: features: [{id,name?,value?,geometry}] where geometry is GeoJSON Polygon or MultiPolygon in [lon,lat]. Shades by value; interactive select emits {id,name,value}; output `selected` is the id. Bring simplified boundaries: 20,000 points total.
+- tab-panel → core/tab-panel@1.0.0 [kages/tab-panel@1] Tabs whose panels hold blocks: panel1..panel6 map to the tabs in order, and only the selected panel shows.
+  props: label*:string, tabs*:array, value:string · slots: panel1, panel2, panel3, panel4, panel5, panel6 · events: change · outputs: value
+  use: tabs: [{id,label}] (max 6); put each tab's blocks in slot panel1, panel2… in the same order. Empty value means the first tab. change emits {id}. Use for alternatives, not for sequence (use stepper).
+- code-tabs → core/code-tabs@1.0.0 [kages/code-tabs@1] One code listing in several languages behind tabs, with a copy button; code is displayed, never run.
+  props: caption:string, tabs*:array, value:string · events: change · outputs: value
+  use: tabs: [{id,label,language?,code}]. Use for the same snippet in several languages or shells. Code is literal text; the copy button copies the visible tab.
+- anchor → core/anchor@1.0.0 [kages/anchor@1] Invisible jump target; place it just before a heading so a table of contents can link to it.
+  props: name*:string
+  use: name becomes a jump target (letters, digits, - and _). Put one before each heading you want to link to.
+- toc → core/toc@1.0.0 [kages/toc@1] On-this-page outline of links that scroll to anchors, highlighting the section in view.
+  props: title:string, items*:array, sticky:boolean, value:string · events: select · outputs: value
+  use: items: [{label,target,level?}] where target is an anchor name defined by an `anchor` block on the same page. sticky keeps it in view while scrolling. Every target needs a matching anchor.
+- video → core/video@1.0.0 [kages/video@1] Video with native controls, optional poster, captions and transcript; never autoplays.
+  props: label*:string, src*:string, poster:string, caption:string, transcript:string, captions:array
+  use: src is an https URL or local path. Add captions [{src,lang,label}] and a transcript for accessibility. No autoplay, no embeds of third-party players.
+- audio → core/audio@1.0.0 [kages/audio@1] Audio with native controls, optional captions and transcript; never autoplays.
+  props: label*:string, src*:string, caption:string, transcript:string, captions:array
+  use: src is an https URL or local path. Add a transcript for accessibility. No autoplay.
+- gallery → core/gallery@1.0.0 [kages/gallery@1] Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).
+  props: label*:string, items*:array, index:number, empty:string · events: change · outputs: index
+  use: items: [{src,alt,caption?}] with the image block's source rules. Thumbnails open a lightbox; arrows navigate, Escape closes. index -1 means closed.
+- date-range → core/date-range@1.0.0 [kages/date-range@1] Start and end dates with native pickers; flags an end before the start. Value is {start,end} (ISO dates).
+  props: label*:string, value:object, name:string, min:string, max:string, required:boolean, disabled:boolean, error:string · events: change · outputs: value
+  use: Use for periods and bookings. value is {start,end}; change emits {start,end}. An end before the start shows an inline message. min/max bound both dates.
+- file-upload → core/file-upload@1.0.0 [kages/file-upload@1] Pick files read locally in the browser: reports name, size, type and the text of small text files; nothing is uploaded.
+  props: label*:string, accept:string, multiple:boolean, maxBytes:number, readAs:text|none, name:string, help:string, required:boolean, disabled:boolean, error:string, files:array · events: change · outputs: files
+  use: Local read only. accept like '.csv,text/plain'; maxBytes up to 1,000,000 (default 100,000); multiple allows up to 5. change emits {files:[{name,size,type,text|null,error}]}. Bind the output into state to preview or parse it with blocks; there is no upload.
 
 ## Expressions & actions
 
@@ -2909,6 +2936,379 @@ Quarterly report — six ways to see the data:
     }
   },
   "state": {}
+}
+```
+
+Docs guide — outline, tabs, code and validated fields:
+```json
+{
+  "kages": "1.0",
+  "id": "docs-guide",
+  "title": "Docs guide — outline, tabs, code and validated fields",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "layout"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Documentation",
+        "title": "Getting started",
+        "description": "A long page with an outline that follows you, tabbed alternatives, copyable code and fields that explain themselves.",
+        "inset": 0
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-end",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "toc"
+        ],
+        "end": [
+          "a-install",
+          "h-install",
+          "platforms",
+          "a-usage",
+          "h-usage",
+          "snippet",
+          "a-check",
+          "h-check",
+          "age",
+          "period",
+          "report"
+        ]
+      }
+    },
+    "toc": {
+      "type": "toc",
+      "props": {
+        "title": "On this page",
+        "sticky": true,
+        "items": [
+          {
+            "label": "Install",
+            "target": "install"
+          },
+          {
+            "label": "Usage",
+            "target": "usage"
+          },
+          {
+            "label": "Check your details",
+            "target": "check"
+          }
+        ]
+      }
+    },
+    "a-install": {
+      "type": "anchor",
+      "props": {
+        "name": "install"
+      }
+    },
+    "h-install": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Install"
+          }
+        ]
+      }
+    },
+    "platforms": {
+      "type": "tab-panel",
+      "props": {
+        "label": "Platform",
+        "tabs": [
+          {
+            "id": "mac",
+            "label": "macOS"
+          },
+          {
+            "id": "linux",
+            "label": "Linux"
+          },
+          {
+            "id": "win",
+            "label": "Windows"
+          }
+        ]
+      },
+      "slots": {
+        "panel1": [
+          "mac"
+        ],
+        "panel2": [
+          "linux"
+        ],
+        "panel3": [
+          "win"
+        ]
+      }
+    },
+    "mac": {
+      "type": "text",
+      "props": {
+        "text": "Install with Homebrew, then restart your terminal."
+      }
+    },
+    "linux": {
+      "type": "text",
+      "props": {
+        "text": "Use your package manager or download the static binary."
+      }
+    },
+    "win": {
+      "type": "text",
+      "props": {
+        "text": "Use the installer or winget."
+      }
+    },
+    "a-usage": {
+      "type": "anchor",
+      "props": {
+        "name": "usage"
+      }
+    },
+    "h-usage": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Usage"
+          }
+        ]
+      }
+    },
+    "snippet": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "List your Kages",
+        "tabs": [
+          {
+            "id": "sh",
+            "label": "Shell",
+            "language": "sh",
+            "code": "kages ls --json"
+          },
+          {
+            "id": "js",
+            "label": "JavaScript",
+            "language": "js",
+            "code": "const kages = await fetch('/api/list_kages').then(r => r.json());"
+          },
+          {
+            "id": "py",
+            "label": "Python",
+            "language": "py",
+            "code": "import requests\nkages = requests.post(url + '/api/list_kages').json()"
+          }
+        ]
+      }
+    },
+    "a-check": {
+      "type": "anchor",
+      "props": {
+        "name": "check"
+      }
+    },
+    "h-check": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Check your details"
+          }
+        ]
+      }
+    },
+    "age": {
+      "type": "number-input",
+      "props": {
+        "label": "Your age",
+        "min": 0,
+        "max": 120,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "age"
+        },
+        "error": {
+          "$if": [
+            {
+              "$lt": [
+                {
+                  "$state": "age"
+                },
+                18
+              ]
+            },
+            "You must be 18 or older.",
+            ""
+          ]
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "age",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "period": {
+      "type": "date-range",
+      "props": {
+        "label": "Reporting period"
+      },
+      "bind": {
+        "value": {
+          "$state": "period"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "period",
+            "value": {
+              "start": {
+                "$event": "start"
+              },
+              "end": {
+                "$event": "end"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "report": {
+      "type": "file-upload",
+      "props": {
+        "label": "Attach a CSV (read locally)",
+        "accept": ".csv,text/csv,text/plain",
+        "maxBytes": 50000
+      }
+    }
+  },
+  "state": {
+    "age": null,
+    "period": {
+      "start": "",
+      "end": ""
+    }
+  }
+}
+```
+
+Media gallery — video, audio and photos:
+```json
+{
+  "kages": "1.0",
+  "id": "media-gallery",
+  "title": "Media gallery — video, audio and photos",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "clip",
+          "sound",
+          "photos"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Show and tell",
+        "description": "Passive, captionable media: nothing plays until you press play.",
+        "inset": 0
+      }
+    },
+    "clip": {
+      "type": "video",
+      "props": {
+        "label": "A flower blooming",
+        "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+        "caption": "Time-lapse of a flower (CC0).",
+        "transcript": "A flower bud opens slowly over several seconds."
+      }
+    },
+    "sound": {
+      "type": "audio",
+      "props": {
+        "label": "A dinosaur roar",
+        "src": "https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3",
+        "caption": "Sound sample (CC0).",
+        "transcript": "A deep, rumbling roar."
+      }
+    },
+    "photos": {
+      "type": "gallery",
+      "props": {
+        "label": "Colour studies",
+        "items": [
+          {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABD0lEQVR42tXCaUcDAADH4d/HKVlSMiVNymSZkpLaTDPLzDKrmYkkkkgiGUkkkUQSSSSRsa51N9u6b9136VWf4/94iDVkSGfVnimdNUeWdNadBulsuLKls+nOkU7ckyudLW+edLZ9+dLZ8RulsxsokM5ea6F09kNF0jkIF0vnsM0knUR7iXSSHaXSSXWWSSfdZZbOUXe5dI57LNI56a2QzmmfVTpn/ZXSOR+oks7FYLV0LiM10rkaqpXO9XCddG5G6qVzO2qTzt2YXTr34w7pPEw0Sudx0imdpymXdJ6n3dJ5mWmSzuusRzpvc17pvM/7pPOx0Cydz0W/dL6WAtL5Xm6Rzs9KUDq/0ZB0/mJh6f+cUAf8Hy6sbAAAAABJRU5ErkJggg==",
+            "alt": "Warm orange gradient",
+            "caption": "Ember"
+          },
+          {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCUlEQVR42tXCi0ZDAQDH4d+TJCOJJJKYRBJJJJGMSSSRmtb1OI61day1rXWbmdXMzKx7rdvWzMyqtaR36jn+n4+21R3ptHsM6TjWTOl0rFvS6dz0Sadr2y+dbiMgnR7Tlk6vFZROny8knX5/WDoDexHpOO1D6QwGj6QzFDqRznD4TDoj0bh0RmMJ6YwdJ6UzfpqSzkT8QjqTibR0ppIZ6UynstKZOc9JZzadl44rU5COO3spnbnctXTm87fSWSjcS2fx6lE6SzdF6SzfPUtn5eFVOp5iSTrep3fpbLxUpLP1VpWOUa5Jx6zUpWNVG9LZrX1IJ1D/ko7d+JbO/uePdA6av9KJtv6k/wM3+M3PnpzlbQAAAABJRU5ErkJggg==",
+            "alt": "Cool teal gradient",
+            "caption": "Lagoon"
+          },
+          {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABBklEQVR42tXCDUcDAQDH4f9nSiQSiZmVmV60NTOVKTNrzTnOWrO21rRWW6s5qzlrzXISySSSGUkiSfR1+hy/x6OxpAdd4ykvuibSPnRNGvPomjL96Jq2AuiaySygaza7hC5PbgVd3v0QuuaKYXT5SxF0BcpRdC1W1tC1XN1AV/A0hq7V+ha6Io04uqLNBLrW7SS6Yq0Uujav0uiKOwa6Eh0TXdtdC107vQy6jNssukw3hy7rLo+u3fsCuvYeDtCVfzxEV2FwhK7S0zG6ys8n6Kq81NBVfT1DV214jq7GqImuizcbXfb7JbpaH210tT8ddDlfHXRdf3fRdfPTQ1f/t48u989F/wdpg1XPpvn/wAAAAABJRU5ErkJggg==",
+            "alt": "Soft green gradient",
+            "caption": "Meadow"
+          },
+          {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCElEQVR42tXCi0ZDAQDH4d+DJUmSmCSTLmZmZqqZmZnpYmZmpouZ7ThOzWmtmllm3WealElJSUmaKZM9R8/x/3wUhualYwwvSscccUnHGnVLZ3fMI53iuFc69oRPOvuTfukcOJalczgVkM7xdFA6lZmQdKrOsHRqsxHpnMxFpVNfiEmn4VqTzql7Qzrnnrh0Lr0J6Vz7ktJp+lPSaS2lpXOzkpFOO7glndvQjnTuwlnp3Edy0ulE89J5iBnSeVw1pfO0bknnOV6UzkvCls5rsiSdt1RZOu/pI+l8ZCrS+dysSudruyad72xdOt1cQzq9/Jl0fowL6fyaV9LpW03p/O21pDOw29L/Ad++j+3HCrdzAAAAAElFTkSuQmCC",
+            "alt": "Rose gradient",
+            "caption": "Dusk"
+          }
+        ]
+      }
+    }
+  }
 }
 ```
 

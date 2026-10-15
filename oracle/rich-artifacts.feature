@@ -81,3 +81,12 @@ Feature: Rich visual and disclosure blocks
     And Sankey links that do not point forward, self links and dangling links are dropped
     And map regions come from GeoJSON Polygon or MultiPolygon only, within a total point budget
     And every chart keeps a data table and funnel, treemap and map regions can be selected by keyboard
+
+  Scenario: Structure, media and forms stay passive and accessible
+    Given tab panels, code tabs, anchors, a table of contents, video, audio, a gallery, a date range and a file picker
+    Then tab panels map panel slots to tabs, show one panel and support arrow, Home and End keys
+    And anchor names become namespaced slugs so an author id can never shadow a page global
+    And media sources are https or local paths only, never autoplay, and unsafe caption sources are dropped
+    And a gallery lightbox is a labelled modal dialog that closes on Escape and returns focus
+    And a file picker reads small text files locally and reports metadata, never uploading anything
+    And a field-level error is announced, linked to its input and rendered as literal text

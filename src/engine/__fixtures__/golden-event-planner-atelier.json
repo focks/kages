@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Event planner — a validated form\" · system atelier@1.6.0 · 10 blocks\nstate {\"submitted\":null}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Plan a gathering\"\n    - form [core/form@1.0.0] label=\"Gathering details\"\n        ↳ writes submit→state.submitted\n      - name [core/text-field@1.0.0] label=\"Gathering name\"\n      - email [core/text-field@1.0.0] label=\"Contact email\"\n      - date [core/date-input@1.0.0] label=\"Date\"\n      - count [core/number-input@1.0.0] label=\"Group size\"\n      - venue [core/choice@1.0.0] label=\"Venue\" options=studio|garden\n      - activities [core/multiselect@1.0.0] label=\"Activities\" value=[] options=talk|workshop|exhibition\n    - receipt [core/code@1.0.0] (hidden)\n        ↳ reads state:submitted",
+  "description": "Kage \"Event planner — a validated form\" · system atelier@1.7.0 · 10 blocks\nstate {\"submitted\":null}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Plan a gathering\"\n    - form [core/form@1.0.0] label=\"Gathering details\"\n        ↳ writes submit→state.submitted\n      - name [core/text-field@1.1.0] label=\"Gathering name\"\n      - email [core/text-field@1.1.0] label=\"Contact email\"\n      - date [core/date-input@1.1.0] label=\"Date\"\n      - count [core/number-input@1.1.0] label=\"Group size\"\n      - venue [core/choice@1.1.0] label=\"Venue\" options=studio|garden\n      - activities [core/multiselect@1.1.0] label=\"Activities\" value=[] options=talk|workshop|exhibition\n    - receipt [core/code@1.0.0] (hidden)\n        ↳ reads state:submitted",
   "envelope": {
     "title": "Event planner — a validated form",
     "root": "root",
@@ -92,6 +92,7 @@
           "name": "name",
           "required": true,
           "disabled": null,
+          "error": null,
           "value": null,
           "kind": null,
           "help": null,
@@ -113,6 +114,7 @@
           "name": "email",
           "required": true,
           "disabled": null,
+          "error": null,
           "value": null,
           "kind": "email",
           "help": null,
@@ -134,6 +136,7 @@
           "name": "date",
           "required": true,
           "disabled": null,
+          "error": null,
           "value": null,
           "min": null,
           "max": null
@@ -152,6 +155,7 @@
           "name": "count",
           "required": true,
           "disabled": null,
+          "error": null,
           "value_json": null,
           "min": 1,
           "max": 100,
@@ -171,6 +175,7 @@
           "name": "venue",
           "required": true,
           "disabled": null,
+          "error": null,
           "value": null,
           "options": [
             {
@@ -197,6 +202,7 @@
           "name": "activities",
           "required": null,
           "disabled": null,
+          "error": null,
           "value": null,
           "options": [
             {

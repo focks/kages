@@ -228,3 +228,43 @@ export function chartExamples(system = "core"): KageDoc[] {
   };
   return [doc];
 }
+
+
+/** Batch 5: structure, media and forms — a documentation page and a media page. */
+export function contentExamples(system = "core"): KageDoc[] {
+  const base = (id: string, title: string): KageDoc => ({ kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} });
+  const docs = base("docs-guide", "Docs guide — outline, tabs, code and validated fields");
+  docs.state = { age: null, period: { start: "", end: "" } };
+  const heading = (text: string) => ({ type: "rich-text", props: { nodes: [{ kind: "heading", level: 2, text }] } });
+  docs.blocks = {
+    root: { type: "page", props: { width: "wide", gap: 8 }, slots: { children: ["intro", "layout"] } },
+    intro: { type: "section", props: { eyebrow: "Documentation", title: "Getting started", description: "A long page with an outline that follows you, tabbed alternatives, copyable code and fields that explain themselves.", inset: 0 } },
+    layout: { type: "split", props: { ratio: "wide-end", gap: 8 }, slots: { start: ["toc"], end: ["a-install", "h-install", "platforms", "a-usage", "h-usage", "snippet", "a-check", "h-check", "age", "period", "report"] } },
+    toc: { type: "toc", props: { title: "On this page", sticky: true, items: [{ label: "Install", target: "install" }, { label: "Usage", target: "usage" }, { label: "Check your details", target: "check" }] } },
+    "a-install": { type: "anchor", props: { name: "install" } },
+    "h-install": heading("Install"),
+    platforms: { type: "tab-panel", props: { label: "Platform", tabs: [{ id: "mac", label: "macOS" }, { id: "linux", label: "Linux" }, { id: "win", label: "Windows" }] }, slots: { panel1: ["mac"], panel2: ["linux"], panel3: ["win"] } },
+    mac: { type: "text", props: { text: "Install with Homebrew, then restart your terminal." } },
+    linux: { type: "text", props: { text: "Use your package manager or download the static binary." } },
+    win: { type: "text", props: { text: "Use the installer or winget." } },
+    "a-usage": { type: "anchor", props: { name: "usage" } },
+    "h-usage": heading("Usage"),
+    snippet: { type: "code-tabs", props: { caption: "List your Kages", tabs: [{ id: "sh", label: "Shell", language: "sh", code: "kages ls --json" }, { id: "js", label: "JavaScript", language: "js", code: "const kages = await fetch('/api/list_kages').then(r => r.json());" }, { id: "py", label: "Python", language: "py", code: "import requests\nkages = requests.post(url + '/api/list_kages').json()" }] } },
+    "a-check": { type: "anchor", props: { name: "check" } },
+    "h-check": heading("Check your details"),
+    age: { type: "number-input", props: { label: "Your age", min: 0, max: 120, step: 1 }, bind: { value: { $state: "age" }, error: { $if: [{ $lt: [{ $state: "age" }, 18] }, "You must be 18 or older.", ""] } }, on: { change: [{ do: "set", path: "age", value: { $event: "value" } }] } },
+    period: { type: "date-range", props: { label: "Reporting period" }, bind: { value: { $state: "period" } }, on: { change: [{ do: "set", path: "period", value: { start: { $event: "start" }, end: { $event: "end" } } }] } },
+    report: { type: "file-upload", props: { label: "Attach a CSV (read locally)", accept: ".csv,text/csv,text/plain", maxBytes: 50000 } },
+  };
+  const media = base("media-gallery", "Media gallery — video, audio and photos");
+  media.blocks = {
+    root: { type: "page", props: { width: "reading", gap: 6 }, slots: { children: ["intro", "clip", "sound", "photos"] } },
+    intro: { type: "section", props: { title: "Show and tell", description: "Passive, captionable media: nothing plays until you press play.", inset: 0 } },
+    clip: { type: "video", props: { label: "A flower blooming", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm", caption: "Time-lapse of a flower (CC0).", transcript: "A flower bud opens slowly over several seconds." } },
+    sound: { type: "audio", props: { label: "A dinosaur roar", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3", caption: "Sound sample (CC0).", transcript: "A deep, rumbling roar." } },
+    photos: { type: "gallery", props: { label: "Colour studies", items: [
+      { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABD0lEQVR42tXCaUcDAADH4d/HKVlSMiVNymSZkpLaTDPLzDKrmYkkkkgiGUkkkUQSSSSRsa51N9u6b9136VWf4/94iDVkSGfVnimdNUeWdNadBulsuLKls+nOkU7ckyudLW+edLZ9+dLZ8RulsxsokM5ea6F09kNF0jkIF0vnsM0knUR7iXSSHaXSSXWWSSfdZZbOUXe5dI57LNI56a2QzmmfVTpn/ZXSOR+oks7FYLV0LiM10rkaqpXO9XCddG5G6qVzO2qTzt2YXTr34w7pPEw0Sudx0imdpymXdJ6n3dJ5mWmSzuusRzpvc17pvM/7pPOx0Cydz0W/dL6WAtL5Xm6Rzs9KUDq/0ZB0/mJh6f+cUAf8Hy6sbAAAAABJRU5ErkJggg==", alt: "Warm orange gradient", caption: "Ember" }, { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCUlEQVR42tXCi0ZDAQDH4d+TJCOJJJKYRBJJJJGMSSSRmtb1OI61day1rXWbmdXMzKx7rdvWzMyqtaR36jn+n4+21R3ptHsM6TjWTOl0rFvS6dz0Sadr2y+dbiMgnR7Tlk6vFZROny8knX5/WDoDexHpOO1D6QwGj6QzFDqRznD4TDoj0bh0RmMJ6YwdJ6UzfpqSzkT8QjqTibR0ppIZ6UynstKZOc9JZzadl44rU5COO3spnbnctXTm87fSWSjcS2fx6lE6SzdF6SzfPUtn5eFVOp5iSTrep3fpbLxUpLP1VpWOUa5Jx6zUpWNVG9LZrX1IJ1D/ko7d+JbO/uePdA6av9KJtv6k/wM3+M3PnpzlbQAAAABJRU5ErkJggg==", alt: "Cool teal gradient", caption: "Lagoon" },
+      { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABBklEQVR42tXCDUcDAQDH4f9nSiQSiZmVmV60NTOVKTNrzTnOWrO21rRWW6s5qzlrzXISySSSGUkiSfR1+hy/x6OxpAdd4ykvuibSPnRNGvPomjL96Jq2AuiaySygaza7hC5PbgVd3v0QuuaKYXT5SxF0BcpRdC1W1tC1XN1AV/A0hq7V+ha6Io04uqLNBLrW7SS6Yq0Uujav0uiKOwa6Eh0TXdtdC107vQy6jNssukw3hy7rLo+u3fsCuvYeDtCVfzxEV2FwhK7S0zG6ys8n6Kq81NBVfT1DV214jq7GqImuizcbXfb7JbpaH210tT8ddDlfHXRdf3fRdfPTQ1f/t48u989F/wdpg1XPpvn/wAAAAABJRU5ErkJggg==", alt: "Soft green gradient", caption: "Meadow" }, { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCElEQVR42tXCi0ZDAQDH4d+DJUmSmCSTLmZmZqqZmZnpYmZmpouZ7ThOzWmtmllm3WealElJSUmaKZM9R8/x/3wUhualYwwvSscccUnHGnVLZ3fMI53iuFc69oRPOvuTfukcOJalczgVkM7xdFA6lZmQdKrOsHRqsxHpnMxFpVNfiEmn4VqTzql7Qzrnnrh0Lr0J6Vz7ktJp+lPSaS2lpXOzkpFOO7glndvQjnTuwlnp3Edy0ulE89J5iBnSeVw1pfO0bknnOV6UzkvCls5rsiSdt1RZOu/pI+l8ZCrS+dysSudruyad72xdOt1cQzq9/Jl0fowL6fyaV9LpW03p/O21pDOw29L/Ad++j+3HCrdzAAAAAElFTkSuQmCC", alt: "Rose gradient", caption: "Dusk" }] } },
+  };
+  return [docs, media];
+}

@@ -148,7 +148,8 @@ test("new artifacts create and preview concrete instances through the operation 
     if (preview.ok && doc.id === "collection-lab") assert.ok(Object.keys((preview.data as any).blocks).some(id => id.startsWith("notes~")));
   }
   const result = store.head("collection-lab")!;
-  assert.equal(result.resolved.blocks["compositions/product/notes"], "core/text-field@1.0.0");
+  // text-field gained the optional `error` prop (minor release 1.1.0); the lockfile pins whatever the registry resolved.
+  assert.equal(result.resolved.blocks["compositions/product/notes"], "core/text-field@1.1.0");
 });
 
 test("dormant recursive definitions, undeclared inputs and private outputs are rejected", () => {

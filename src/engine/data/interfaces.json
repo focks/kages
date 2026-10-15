@@ -1012,6 +1012,9 @@
       "disabled": {
         "type": "boolean"
       },
+      "error": {
+        "type": "string"
+      },
       "value": {
         "type": "string"
       },
@@ -1072,6 +1075,9 @@
       "disabled": {
         "type": "boolean"
       },
+      "error": {
+        "type": "string"
+      },
       "value": {
         "type": "number|null"
       },
@@ -1120,6 +1126,9 @@
       "disabled": {
         "type": "boolean"
       },
+      "error": {
+        "type": "string"
+      },
       "value": {
         "type": "string"
       },
@@ -1164,6 +1173,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "string"
@@ -1222,6 +1234,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "array",
@@ -2605,6 +2620,448 @@
       "selected"
     ],
     "role": "map",
+    "slots": {}
+  },
+  "kages/tab-panel@1": {
+    "summary": "Tabs whose panels hold blocks: panel1..panel6 map to the tabs in order, and only the selected panel shows.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "tabs": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "panel1": {},
+      "panel2": {},
+      "panel3": {},
+      "panel4": {},
+      "panel5": {},
+      "panel6": {}
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "tab-panel"
+  },
+  "kages/code-tabs@1": {
+    "summary": "One code listing in several languages behind tabs, with a copy button; code is displayed, never run.",
+    "props": {
+      "caption": {
+        "type": "string"
+      },
+      "tabs": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "language": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label",
+            "code"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "code-tabs",
+    "slots": {}
+  },
+  "kages/anchor@1": {
+    "summary": "Invisible jump target; place it just before a heading so a table of contents can link to it.",
+    "props": {
+      "name": {
+        "type": "string",
+        "required": true
+      }
+    },
+    "role": "anchor",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/toc@1": {
+    "summary": "On-this-page outline of links that scroll to anchors, highlighting the section in view.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "level": {
+              "type": "number",
+              "enum": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "target"
+          ]
+        }
+      },
+      "sticky": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "target": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "toc",
+    "slots": {}
+  },
+  "kages/video@1": {
+    "summary": "Video with native controls, optional poster, captions and transcript; never autoplays.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "src": {
+        "type": "string",
+        "required": true
+      },
+      "poster": {
+        "type": "string"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "transcript": {
+        "type": "string"
+      },
+      "captions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "lang": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "src"
+          ]
+        }
+      }
+    },
+    "role": "video",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/audio@1": {
+    "summary": "Audio with native controls, optional captions and transcript; never autoplays.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "src": {
+        "type": "string",
+        "required": true
+      },
+      "caption": {
+        "type": "string"
+      },
+      "transcript": {
+        "type": "string"
+      },
+      "captions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "lang": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "src"
+          ]
+        }
+      }
+    },
+    "role": "audio",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/gallery@1": {
+    "summary": "Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            },
+            "caption": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "src",
+            "alt"
+          ]
+        }
+      },
+      "index": {
+        "type": "number"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "index": {
+        "type": "number",
+        "default": -1
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "index"
+    ],
+    "role": "gallery",
+    "slots": {}
+  },
+  "kages/date-range@1": {
+    "summary": "Start and end dates with native pickers; flags an end before the start. Value is {start,end} (ISO dates).",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "object"
+      },
+      "name": {
+        "type": "string"
+      },
+      "min": {
+        "type": "string"
+      },
+      "max": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "object",
+        "default": {
+          "start": "",
+          "end": ""
+        }
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "start": "string",
+          "end": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "date-range",
+    "slots": {}
+  },
+  "kages/file-upload@1": {
+    "summary": "Pick files read locally in the browser: reports name, size, type and the text of small text files; nothing is uploaded.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "accept": {
+        "type": "string"
+      },
+      "multiple": {
+        "type": "boolean"
+      },
+      "maxBytes": {
+        "type": "number",
+        "default": 100000
+      },
+      "readAs": {
+        "type": "string",
+        "enum": [
+          "text",
+          "none"
+        ],
+        "default": "text"
+      },
+      "name": {
+        "type": "string"
+      },
+      "help": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "string"
+      },
+      "files": {
+        "type": "array"
+      }
+    },
+    "local": {
+      "files": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "files": "array"
+        }
+      }
+    },
+    "outputs": [
+      "files"
+    ],
+    "role": "file-upload",
     "slots": {}
   }
 }

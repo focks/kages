@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Region explorer — click a slice to filter\" · system ledger@2.7.0 · 6 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Where is the pipeline?\"\n    - layout [core/split@1.0.0]\n      start:\n        - mix [core/donut-chart@1.1.0] label=\"Pipeline value by region\" items=||\n      end:\n        - table [core/data-grid@1.0.0] label=\"Deals\" rows=4\n            ↳ reads data:deals, block:mix.selected\n        - caption [core/text@1.0.0] text=\"Showing 4 of 4 deals\"\n            ↳ reads data:deals, block:mix.selected",
+  "description": "Kage \"Region explorer — click a slice to filter\" · system ledger@2.8.0 · 6 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Where is the pipeline?\"\n    - layout [core/split@1.0.0]\n      start:\n        - mix [core/donut-chart@1.1.0] label=\"Pipeline value by region\" items=||\n      end:\n        - table [core/data-grid@1.0.0] label=\"Deals\" rows=4\n            ↳ reads data:deals, block:mix.selected\n        - caption [core/text@1.0.0] text=\"Showing 4 of 4 deals\"\n            ↳ reads data:deals, block:mix.selected",
   "envelope": {
     "title": "Region explorer — click a slice to filter",
     "root": "root",

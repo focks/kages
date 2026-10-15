@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import vm from "node:vm";
 import { referenceBundle, referenceFile } from "./ds-source.mjs";
-import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples } from "../src/packs/examples.ts";
+import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../src/packs/examples.ts";
 const code = referenceBundle();
 const noop = () => null;
 const React = { createElement: noop, cloneElement: noop, createContext: () => ({ Provider: noop, Consumer: noop }),
@@ -34,7 +34,7 @@ const back = K.fromGenerated(env, "core");
 w("golden-fromgenerated-validate", K.validate(back, "core"));
 // Capture the new shapes against the extended oracle before the pure engine
 // exercises them, including full generation round trips.
-for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples()]) {
+for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()]) {
   fs.writeFileSync(`public/ds/${doc.id}.kage.json`, JSON.stringify(doc, null, 2) + "\n");
   for (const sys of ["core", "ledger", "atelier"]) {
     w(`golden-${doc.id}-${sys}`, { validation: K.validate(doc, sys), description: K.describe(doc, sys), envelope: K.toGenerated(doc, sys) });

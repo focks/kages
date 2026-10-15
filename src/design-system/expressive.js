@@ -26,34 +26,40 @@
       return h(tag, { key: i }, node.runs ? richRuns(node.runs) : String(node.text || ""));
     }));
   }
+  /** Field-level validation message: announced when it appears, tied to its input
+   *  through aria-describedby/aria-invalid by each field. Text only. */
+  function fieldError(p, id) { return p.error ? h("span", { id: id, className: "kg-field__error", role: "alert" }, String(p.error)) : null; }
+  function describedBy(uid, p) { var ids = [p.help ? uid + "-help" : null, p.error ? uid + "-err" : null].filter(Boolean).join(" "); return ids || undefined; }
   function CoreComposition(p) { return h("div", { className: "kg-composition" }, p.children); }
   function CoreTextField(p) {
     var uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("input", { className: "kg-input", type: choice(p.kind, ["text", "email", "url"], "text"), "aria-label": p.label, "aria-describedby": p.help ? uid + "-help" : undefined, name: p.name, value: p.value == null ? "" : p.value, required: p.required, minLength: p.minLength, maxLength: p.maxLength, placeholder: p.placeholder, disabled: p.disabled,
-        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), p.help ? h("span", { id: uid + "-help", className: "kg-field__help" }, p.help) : null);
+      h("input", { className: "kg-input", type: choice(p.kind, ["text", "email", "url"], "text"), "aria-label": p.label, "aria-describedby": describedBy(uid, p), "aria-invalid": p.error ? true : undefined, name: p.name, value: p.value == null ? "" : p.value, required: p.required, minLength: p.minLength, maxLength: p.maxLength, placeholder: p.placeholder, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), p.help ? h("span", { id: uid + "-help", className: "kg-field__help" }, p.help) : null, fieldError(p, uid + "-err"));
   }
   function CoreNumberInput(p) {
+    var uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("input", { className: "kg-input", type: "number", name: p.name, value: typeof p.value === "number" && isFinite(p.value) ? p.value : "", min: p.min, max: p.max, step: typeof p.step === "number" && p.step > 0 ? p.step : "any", required: p.required, disabled: p.disabled,
-        onChange: function (e) { fire(p.onChange, { value: isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : null }); } }));
+      h("input", { className: "kg-input", type: "number", "aria-describedby": describedBy(uid, p), "aria-invalid": p.error ? true : undefined, name: p.name, value: typeof p.value === "number" && isFinite(p.value) ? p.value : "", min: p.min, max: p.max, step: typeof p.step === "number" && p.step > 0 ? p.step : "any", required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : null }); } }), fieldError(p, uid + "-err"));
   }
   function CoreDateInput(p) {
+    var uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("input", { className: "kg-input", type: "date", name: p.name, value: p.value || "", min: p.min, max: p.max, required: p.required, disabled: p.disabled,
-        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }));
+      h("input", { className: "kg-input", type: "date", "aria-describedby": describedBy(uid, p), "aria-invalid": p.error ? true : undefined, name: p.name, value: p.value || "", min: p.min, max: p.max, required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), fieldError(p, uid + "-err"));
   }
   function CoreChoice(p) {
     var uid = R().useId();
-    return h("fieldset", { className: "kg-choice", disabled: p.disabled }, h("legend", { className: "kg-field__label" }, p.label),
-      (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("label", { key: i }, h("input", { type: "radio", name: p.name || uid, value: o.value, checked: p.value === o.value, required: p.required, onChange: function () { fire(p.onChange, { value: o.value }); } }), h("span", null, o.label)); }));
+    return h("fieldset", { className: "kg-choice", disabled: p.disabled, "aria-describedby": p.error ? uid + "-err" : undefined, "aria-invalid": p.error ? true : undefined }, h("legend", { className: "kg-field__label" }, p.label),
+      (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("label", { key: i }, h("input", { type: "radio", name: p.name || uid, value: o.value, checked: p.value === o.value, required: p.required, onChange: function () { fire(p.onChange, { value: o.value }); } }), h("span", null, o.label)); }), fieldError(p, uid + "-err"));
   }
   function CoreMultiselect(p) {
     var selected = Array.isArray(p.value) ? p.value : [], uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("select", { className: "kg-input kg-multiselect", name: p.name, "aria-label": p.label, "aria-describedby": uid + "-help", multiple: true, value: selected, required: p.required, disabled: p.disabled,
+      h("select", { className: "kg-input kg-multiselect", name: p.name, "aria-label": p.label, "aria-describedby": uid + "-help" + (p.error ? " " + uid + "-err" : ""), "aria-invalid": p.error ? true : undefined, multiple: true, value: selected, required: p.required, disabled: p.disabled,
         onChange: function (e) { fire(p.onChange, { value: Array.from(e.target.selectedOptions).map(function (o) { return o.value; }) }); } }, (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("option", { key: i, value: o.value }, o.label); })),
-      h("span", { id: uid + "-help", className: "kg-field__help" }, "Choose multiple with Ctrl or Command; use arrow keys and Shift on the keyboard."));
+      h("span", { id: uid + "-help", className: "kg-field__help" }, "Choose multiple with Ctrl or Command; use arrow keys and Shift on the keyboard."), fieldError(p, uid + "-err"));
   }
   function CoreForm(p) {
     return h("form", { className: "kg-form", "aria-label": p.label, onSubmit: function (e) {
@@ -149,7 +155,7 @@
   function CoreLineChart(p) { return plot(p, false); }
   function CoreScatterChart(p) { return plot(p, true); }
 
-  var CONTROL_PROPS = { label: S("string", { required: true }), name: S("string"), required: S("boolean"), disabled: S("boolean") };
+  var CONTROL_PROPS = { label: S("string", { required: true }), name: S("string"), required: S("boolean"), disabled: S("boolean"), error: S("string") };
   var OPTIONS_PROP = S("array", { required: true, items: S("object", { properties: { value: S("string"), label: S("string") }, requiredKeys: ["value", "label"] }) });
   var PLOT_PROPS = { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { x: S("number"), y: S("number"), label: S("string") }, requiredKeys: ["x", "y"] }) }), xLabel: S("string"), yLabel: S("string"), empty: S("string") };
   var EXPRESSIVE = {
@@ -171,7 +177,7 @@
     composition: "Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code.",
     link: "Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.",
     "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.",
-    "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}.",
+    "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules).",
     "number-input": "Use for calculations; an empty field emits null. Set name inside form; change emits {value}.",
     "date-input": "Date values and bounds are YYYY-MM-DD; change emits {value}.",
     choice: "Use for one option from a short list; options are [{value,label}]. change emits {value}.",
@@ -192,5 +198,6 @@
     interfaces["kages/" + name + "@1"] = I;
     if (I.local) DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
-    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
+    // Fields gained the optional `error` prop: a minor contract release.
+    core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
   });

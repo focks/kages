@@ -1834,11 +1834,11 @@
     },
     "limits": {}
   },
-  "core/text-field@1.0.0": {
+  "core/text-field@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/text-field",
-    "version": "1.0.0",
-    "ref": "core/text-field@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/text-field@1.1.0",
     "system": "core",
     "name": "text-field",
     "implements": [
@@ -1859,6 +1859,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "string"
@@ -1926,15 +1929,15 @@
       "focus"
     ],
     "agent": {
-      "use": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}."
+      "use": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules)."
     },
     "limits": {}
   },
-  "core/number-input@1.0.0": {
+  "core/number-input@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/number-input",
-    "version": "1.0.0",
-    "ref": "core/number-input@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/number-input@1.1.0",
     "system": "core",
     "name": "number-input",
     "implements": [
@@ -1955,6 +1958,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "number|null"
@@ -2014,11 +2020,11 @@
     },
     "limits": {}
   },
-  "core/date-input@1.0.0": {
+  "core/date-input@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/date-input",
-    "version": "1.0.0",
-    "ref": "core/date-input@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/date-input@1.1.0",
     "system": "core",
     "name": "date-input",
     "implements": [
@@ -2039,6 +2045,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "string"
@@ -2095,11 +2104,11 @@
     },
     "limits": {}
   },
-  "core/choice@1.0.0": {
+  "core/choice@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/choice",
-    "version": "1.0.0",
-    "ref": "core/choice@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/choice@1.1.0",
     "system": "core",
     "name": "choice",
     "implements": [
@@ -2120,6 +2129,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "string"
@@ -2189,11 +2201,11 @@
     },
     "limits": {}
   },
-  "core/multiselect@1.0.0": {
+  "core/multiselect@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/multiselect",
-    "version": "1.0.0",
-    "ref": "core/multiselect@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/multiselect@1.1.0",
     "system": "core",
     "name": "multiselect",
     "implements": [
@@ -2214,6 +2226,9 @@
       },
       "disabled": {
         "type": "boolean"
+      },
+      "error": {
+        "type": "string"
       },
       "value": {
         "type": "array",
@@ -4721,6 +4736,756 @@
     ],
     "agent": {
       "use": "features: [{id,name?,value?,geometry}] where geometry is GeoJSON Polygon or MultiPolygon in [lon,lat]. Shades by value; interactive select emits {id,name,value}; output `selected` is the id. Bring simplified boundaries: 20,000 points total."
+    },
+    "limits": {}
+  },
+  "core/tab-panel@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/tab-panel",
+    "version": "1.0.0",
+    "ref": "core/tab-panel@1.0.0",
+    "system": "core",
+    "name": "tab-panel",
+    "implements": [
+      "kages/tab-panel@1"
+    ],
+    "role": "tab-panel",
+    "summary": "Tabs whose panels hold blocks: panel1..panel6 map to the tabs in order, and only the selected panel shows.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "tabs": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "panel1": {},
+      "panel2": {},
+      "panel3": {},
+      "panel4": {},
+      "panel5": {},
+      "panel6": {}
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "tabs: [{id,label}] (max 6); put each tab's blocks in slot panel1, panel2… in the same order. Empty value means the first tab. change emits {id}. Use for alternatives, not for sequence (use stepper)."
+    },
+    "limits": {}
+  },
+  "core/code-tabs@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/code-tabs",
+    "version": "1.0.0",
+    "ref": "core/code-tabs@1.0.0",
+    "system": "core",
+    "name": "code-tabs",
+    "implements": [
+      "kages/code-tabs@1"
+    ],
+    "role": "code-tabs",
+    "summary": "One code listing in several languages behind tabs, with a copy button; code is displayed, never run.",
+    "props": {
+      "caption": {
+        "type": "string"
+      },
+      "tabs": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "language": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label",
+            "code"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "tabs: [{id,label,language?,code}]. Use for the same snippet in several languages or shells. Code is literal text; the copy button copies the visible tab."
+    },
+    "limits": {}
+  },
+  "core/anchor@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/anchor",
+    "version": "1.0.0",
+    "ref": "core/anchor@1.0.0",
+    "system": "core",
+    "name": "anchor",
+    "implements": [
+      "kages/anchor@1"
+    ],
+    "role": "anchor",
+    "summary": "Invisible jump target; place it just before a heading so a table of contents can link to it.",
+    "props": {
+      "name": {
+        "type": "string",
+        "required": true
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "name becomes a jump target (letters, digits, - and _). Put one before each heading you want to link to."
+    },
+    "limits": {}
+  },
+  "core/toc@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/toc",
+    "version": "1.0.0",
+    "ref": "core/toc@1.0.0",
+    "system": "core",
+    "name": "toc",
+    "implements": [
+      "kages/toc@1"
+    ],
+    "role": "toc",
+    "summary": "On-this-page outline of links that scroll to anchors, highlighting the section in view.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "level": {
+              "type": "number",
+              "enum": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "target"
+          ]
+        }
+      },
+      "sticky": {
+        "type": "boolean"
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "target": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "target"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{label,target,level?}] where target is an anchor name defined by an `anchor` block on the same page. sticky keeps it in view while scrolling. Every target needs a matching anchor."
+    },
+    "limits": {}
+  },
+  "core/video@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/video",
+    "version": "1.0.0",
+    "ref": "core/video@1.0.0",
+    "system": "core",
+    "name": "video",
+    "implements": [
+      "kages/video@1"
+    ],
+    "role": "video",
+    "summary": "Video with native controls, optional poster, captions and transcript; never autoplays.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "src": {
+        "type": "string",
+        "required": true
+      },
+      "poster": {
+        "type": "string"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "transcript": {
+        "type": "string"
+      },
+      "captions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "lang": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "src"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "src is an https URL or local path. Add captions [{src,lang,label}] and a transcript for accessibility. No autoplay, no embeds of third-party players."
+    },
+    "limits": {}
+  },
+  "core/audio@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/audio",
+    "version": "1.0.0",
+    "ref": "core/audio@1.0.0",
+    "system": "core",
+    "name": "audio",
+    "implements": [
+      "kages/audio@1"
+    ],
+    "role": "audio",
+    "summary": "Audio with native controls, optional captions and transcript; never autoplays.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "src": {
+        "type": "string",
+        "required": true
+      },
+      "caption": {
+        "type": "string"
+      },
+      "transcript": {
+        "type": "string"
+      },
+      "captions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "lang": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "src"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "src is an https URL or local path. Add a transcript for accessibility. No autoplay."
+    },
+    "limits": {}
+  },
+  "core/gallery@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/gallery",
+    "version": "1.0.0",
+    "ref": "core/gallery@1.0.0",
+    "system": "core",
+    "name": "gallery",
+    "implements": [
+      "kages/gallery@1"
+    ],
+    "role": "gallery",
+    "summary": "Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            },
+            "caption": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "src",
+            "alt"
+          ]
+        }
+      },
+      "index": {
+        "type": "number"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "index": {
+        "type": "number",
+        "default": -1
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "index",
+          "value": {
+            "$event": "index"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "index"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{src,alt,caption?}] with the image block's source rules. Thumbnails open a lightbox; arrows navigate, Escape closes. index -1 means closed."
+    },
+    "limits": {}
+  },
+  "core/date-range@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/date-range",
+    "version": "1.0.0",
+    "ref": "core/date-range@1.0.0",
+    "system": "core",
+    "name": "date-range",
+    "implements": [
+      "kages/date-range@1"
+    ],
+    "role": "date-range",
+    "summary": "Start and end dates with native pickers; flags an end before the start. Value is {start,end} (ISO dates).",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "object"
+      },
+      "name": {
+        "type": "string"
+      },
+      "min": {
+        "type": "string"
+      },
+      "max": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "object",
+        "default": {
+          "start": "",
+          "end": ""
+        }
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "start": "string",
+          "end": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "start": {
+              "$event": "start"
+            },
+            "end": {
+              "$event": "end"
+            }
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for periods and bookings. value is {start,end}; change emits {start,end}. An end before the start shows an inline message. min/max bound both dates."
+    },
+    "limits": {}
+  },
+  "core/file-upload@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/file-upload",
+    "version": "1.0.0",
+    "ref": "core/file-upload@1.0.0",
+    "system": "core",
+    "name": "file-upload",
+    "implements": [
+      "kages/file-upload@1"
+    ],
+    "role": "file-upload",
+    "summary": "Pick files read locally in the browser: reports name, size, type and the text of small text files; nothing is uploaded.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "accept": {
+        "type": "string"
+      },
+      "multiple": {
+        "type": "boolean"
+      },
+      "maxBytes": {
+        "type": "number",
+        "default": 100000
+      },
+      "readAs": {
+        "type": "string",
+        "enum": [
+          "text",
+          "none"
+        ],
+        "default": "text"
+      },
+      "name": {
+        "type": "string"
+      },
+      "help": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      },
+      "error": {
+        "type": "string"
+      },
+      "files": {
+        "type": "array"
+      }
+    },
+    "slots": {},
+    "local": {
+      "files": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "files": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "files",
+          "value": {
+            "$event": "files"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "files"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "Local read only. accept like '.csv,text/plain'; maxBytes up to 1,000,000 (default 100,000); multiple allows up to 5. change emits {files:[{name,size,type,text|null,error}]}. Bind the output into state to preview or parse it with blocks; there is no upload."
     },
     "limits": {}
   },

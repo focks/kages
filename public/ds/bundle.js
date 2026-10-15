@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -548,34 +548,40 @@
       return h(tag, { key: i }, node.runs ? richRuns(node.runs) : String(node.text || ""));
     }));
   }
+  /** Field-level validation message: announced when it appears, tied to its input
+   *  through aria-describedby/aria-invalid by each field. Text only. */
+  function fieldError(p, id) { return p.error ? h("span", { id: id, className: "kg-field__error", role: "alert" }, String(p.error)) : null; }
+  function describedBy(uid, p) { var ids = [p.help ? uid + "-help" : null, p.error ? uid + "-err" : null].filter(Boolean).join(" "); return ids || undefined; }
   function CoreComposition(p) { return h("div", { className: "kg-composition" }, p.children); }
   function CoreTextField(p) {
     var uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("input", { className: "kg-input", type: choice(p.kind, ["text", "email", "url"], "text"), "aria-label": p.label, "aria-describedby": p.help ? uid + "-help" : undefined, name: p.name, value: p.value == null ? "" : p.value, required: p.required, minLength: p.minLength, maxLength: p.maxLength, placeholder: p.placeholder, disabled: p.disabled,
-        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), p.help ? h("span", { id: uid + "-help", className: "kg-field__help" }, p.help) : null);
+      h("input", { className: "kg-input", type: choice(p.kind, ["text", "email", "url"], "text"), "aria-label": p.label, "aria-describedby": describedBy(uid, p), "aria-invalid": p.error ? true : undefined, name: p.name, value: p.value == null ? "" : p.value, required: p.required, minLength: p.minLength, maxLength: p.maxLength, placeholder: p.placeholder, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), p.help ? h("span", { id: uid + "-help", className: "kg-field__help" }, p.help) : null, fieldError(p, uid + "-err"));
   }
   function CoreNumberInput(p) {
+    var uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("input", { className: "kg-input", type: "number", name: p.name, value: typeof p.value === "number" && isFinite(p.value) ? p.value : "", min: p.min, max: p.max, step: typeof p.step === "number" && p.step > 0 ? p.step : "any", required: p.required, disabled: p.disabled,
-        onChange: function (e) { fire(p.onChange, { value: isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : null }); } }));
+      h("input", { className: "kg-input", type: "number", "aria-describedby": describedBy(uid, p), "aria-invalid": p.error ? true : undefined, name: p.name, value: typeof p.value === "number" && isFinite(p.value) ? p.value : "", min: p.min, max: p.max, step: typeof p.step === "number" && p.step > 0 ? p.step : "any", required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: isFinite(e.target.valueAsNumber) ? e.target.valueAsNumber : null }); } }), fieldError(p, uid + "-err"));
   }
   function CoreDateInput(p) {
+    var uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("input", { className: "kg-input", type: "date", name: p.name, value: p.value || "", min: p.min, max: p.max, required: p.required, disabled: p.disabled,
-        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }));
+      h("input", { className: "kg-input", type: "date", "aria-describedby": describedBy(uid, p), "aria-invalid": p.error ? true : undefined, name: p.name, value: p.value || "", min: p.min, max: p.max, required: p.required, disabled: p.disabled,
+        onChange: function (e) { fire(p.onChange, { value: e.target.value }); } }), fieldError(p, uid + "-err"));
   }
   function CoreChoice(p) {
     var uid = R().useId();
-    return h("fieldset", { className: "kg-choice", disabled: p.disabled }, h("legend", { className: "kg-field__label" }, p.label),
-      (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("label", { key: i }, h("input", { type: "radio", name: p.name || uid, value: o.value, checked: p.value === o.value, required: p.required, onChange: function () { fire(p.onChange, { value: o.value }); } }), h("span", null, o.label)); }));
+    return h("fieldset", { className: "kg-choice", disabled: p.disabled, "aria-describedby": p.error ? uid + "-err" : undefined, "aria-invalid": p.error ? true : undefined }, h("legend", { className: "kg-field__label" }, p.label),
+      (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("label", { key: i }, h("input", { type: "radio", name: p.name || uid, value: o.value, checked: p.value === o.value, required: p.required, onChange: function () { fire(p.onChange, { value: o.value }); } }), h("span", null, o.label)); }), fieldError(p, uid + "-err"));
   }
   function CoreMultiselect(p) {
     var selected = Array.isArray(p.value) ? p.value : [], uid = R().useId();
     return h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, p.label),
-      h("select", { className: "kg-input kg-multiselect", name: p.name, "aria-label": p.label, "aria-describedby": uid + "-help", multiple: true, value: selected, required: p.required, disabled: p.disabled,
+      h("select", { className: "kg-input kg-multiselect", name: p.name, "aria-label": p.label, "aria-describedby": uid + "-help" + (p.error ? " " + uid + "-err" : ""), "aria-invalid": p.error ? true : undefined, multiple: true, value: selected, required: p.required, disabled: p.disabled,
         onChange: function (e) { fire(p.onChange, { value: Array.from(e.target.selectedOptions).map(function (o) { return o.value; }) }); } }, (Array.isArray(p.options) ? p.options : []).map(function (o, i) { return h("option", { key: i, value: o.value }, o.label); })),
-      h("span", { id: uid + "-help", className: "kg-field__help" }, "Choose multiple with Ctrl or Command; use arrow keys and Shift on the keyboard."));
+      h("span", { id: uid + "-help", className: "kg-field__help" }, "Choose multiple with Ctrl or Command; use arrow keys and Shift on the keyboard."), fieldError(p, uid + "-err"));
   }
   function CoreForm(p) {
     return h("form", { className: "kg-form", "aria-label": p.label, onSubmit: function (e) {
@@ -671,7 +677,7 @@
   function CoreLineChart(p) { return plot(p, false); }
   function CoreScatterChart(p) { return plot(p, true); }
 
-  var CONTROL_PROPS = { label: S("string", { required: true }), name: S("string"), required: S("boolean"), disabled: S("boolean") };
+  var CONTROL_PROPS = { label: S("string", { required: true }), name: S("string"), required: S("boolean"), disabled: S("boolean"), error: S("string") };
   var OPTIONS_PROP = S("array", { required: true, items: S("object", { properties: { value: S("string"), label: S("string") }, requiredKeys: ["value", "label"] }) });
   var PLOT_PROPS = { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { x: S("number"), y: S("number"), label: S("string") }, requiredKeys: ["x", "y"] }) }), xLabel: S("string"), yLabel: S("string"), empty: S("string") };
   var EXPRESSIVE = {
@@ -693,7 +699,7 @@
     composition: "Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code.",
     link: "Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.",
     "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.",
-    "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}.",
+    "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules).",
     "number-input": "Use for calculations; an empty field emits null. Set name inside form; change emits {value}.",
     "date-input": "Date values and bounds are YYYY-MM-DD; change emits {value}.",
     choice: "Use for one option from a short list; options are [{value,label}]. change emits {value}.",
@@ -714,7 +720,8 @@
     interfaces["kages/" + name + "@1"] = I;
     if (I.local) DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
-    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
+    // Fields gained the optional `error` prop: a minor contract release.
+    core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
   });
 
 /* Batch 1 of the rich-artifact roles: data visualisation and disclosure.
@@ -1554,6 +1561,210 @@
     core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "wire", "success", "danger", "focus"], agent: { use: CHART_NOTES[name] } });
   });
 
+/* Batch 5a: structure and media — tab panel, code tabs, anchor + table of
+ * contents, video, audio and gallery. Media sources follow the passive rules of
+ * the image block: https or local paths only, never data:, javascript: or
+ * protocol-relative URLs; nothing autoplays. Everything user-visible is text in
+ * React children. See oracle/rich-artifacts.feature. */
+  function mediaSource(v) { return typeof v === "string" && v.length < 2048 && /^(https:\/\/[^\s<>"'\\]+|\/(?!\/)[^\s<>"'\\]*)$/.test(v) ? v : undefined; }
+  function langTag(v) { return typeof v === "string" && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(v) ? v : undefined; }
+  // An anchor name becomes a DOM id, so it is restricted to a safe slug and
+  // namespaced; a bare author-chosen id could clobber page elements (DOM clobbering).
+  function anchorId(name) { var s = String(name == null ? "" : name).toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48); return s ? "kg-a-" + s : undefined; }
+
+  function CoreTabPanel(p) {
+    var uid = R().useId(), tabs = (Array.isArray(p.tabs) ? p.tabs : []).filter(function (t) { return t && typeof t.id === "string"; }).slice(0, 6);
+    if (!tabs.length) return null;
+    var at = Math.max(0, tabs.findIndex(function (t) { return t.id === p.value; }));
+    function go(i) {
+      var n = (i + tabs.length) % tabs.length; fire(p.onChange, { id: tabs[n].id });
+      var el = typeof document !== "undefined" && document.getElementById(uid + "-t" + n); if (el && el.focus) el.focus();
+    }
+    return h("div", { className: "kg-tabpanel" },
+      h("div", { role: "tablist", "aria-label": p.label, className: "kg-tabpanel__list", onKeyDown: function (e) {
+        if (e.key === "ArrowRight") { e.preventDefault(); go(at + 1); } else if (e.key === "ArrowLeft") { e.preventDefault(); go(at - 1); }
+        else if (e.key === "Home") { e.preventDefault(); go(0); } else if (e.key === "End") { e.preventDefault(); go(tabs.length - 1); }
+      } }, tabs.map(function (t, i) { return h("button", { key: t.id, id: uid + "-t" + i, type: "button", role: "tab", className: "kg-tabpanel__tab" + (i === at ? " kg-tabpanel__tab--on" : ""), "aria-selected": i === at, "aria-controls": uid + "-p" + i, tabIndex: i === at ? 0 : -1, onClick: function () { fire(p.onChange, { id: t.id }); } }, String(t.label == null ? t.id : t.label)); })),
+      tabs.map(function (t, i) { return h("div", { key: t.id, id: uid + "-p" + i, role: "tabpanel", "aria-labelledby": uid + "-t" + i, hidden: i !== at, tabIndex: 0, className: "kg-tabpanel__panel" }, p["panel" + (i + 1)]); }));
+  }
+
+  function CoreCodeTabs(p) {
+    var R_ = R(), uid = R_.useId(), st = R_.useState(false), copied = st[0], setCopied = st[1];
+    var tabs = (Array.isArray(p.tabs) ? p.tabs : []).filter(function (t) { return t && typeof t.id === "string"; }).slice(0, 8);
+    if (!tabs.length) return null;
+    var at = Math.max(0, tabs.findIndex(function (t) { return t.id === p.value; })), tab = tabs[at], code = String(tab.code == null ? "" : tab.code).slice(0, 20000);
+    function copy() {
+      // Clipboard writes need a user gesture and may be refused; failure is silent
+      // because the code stays selectable on screen either way.
+      try { var w = typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText(code); if (w && w.then) w.then(function () { setCopied(true); setTimeout(function () { setCopied(false); }, 1600); }, function () {}); } catch (e) { /* ignore */ }
+    }
+    return h("figure", { className: "kg-codetabs" }, p.caption ? h("figcaption", null, p.caption) : null,
+      h("div", { className: "kg-codetabs__bar" },
+        h("div", { role: "tablist", "aria-label": p.caption || "Code languages", className: "kg-codetabs__list" }, tabs.map(function (t, i) { return h("button", { key: t.id, type: "button", role: "tab", id: uid + "-t" + i, "aria-selected": i === at, "aria-controls": uid + "-p", tabIndex: i === at ? 0 : -1, className: "kg-codetabs__tab" + (i === at ? " kg-codetabs__tab--on" : ""), onClick: function () { fire(p.onChange, { id: t.id }); } }, String(t.label == null ? t.id : t.label)); })),
+        h("button", { type: "button", className: "kg-codetabs__copy", onClick: copy }, copied ? "Copied" : "Copy"), h("span", { className: "kg-sr-only", role: "status" }, copied ? "Copied to clipboard" : "")),
+      h("pre", { id: uid + "-p", role: "tabpanel", "aria-labelledby": uid + "-t" + at, tabIndex: 0, className: "kg-codetabs__code" }, h("code", { lang: langTag(tab.language) }, code)));
+  }
+
+  function CoreAnchor(p) { var id = anchorId(p.name); return id ? h("span", { id: id, className: "kg-anchor", tabIndex: -1 }) : null; }
+
+  function CoreToc(p) {
+    var R_ = R(), st = R_.useState(""), seen = st[0], setSeen = st[1];
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && anchorId(it.target); }).slice(0, 40);
+    // Highlight the section being read. Observers are a progressive enhancement:
+    // without IntersectionObserver (or on the server) the list is still a list of links.
+    R_.useEffect(function () {
+      if (typeof IntersectionObserver === "undefined" || !items.length) return;
+      var els = items.map(function (it) { return document.getElementById(anchorId(it.target)); }).filter(Boolean);
+      var io = new IntersectionObserver(function (entries) { entries.forEach(function (en) { if (en.isIntersecting) setSeen(en.target.id); }); }, { rootMargin: "0px 0px -70% 0px" });
+      els.forEach(function (el) { io.observe(el); });
+      return function () { io.disconnect(); };
+    }, [items.map(function (it) { return it.target; }).join("|")]);
+    if (!items.length) return null;
+    var current = p.value ? anchorId(p.value) : seen;
+    return h("nav", { className: "kg-toc" + (p.sticky ? " kg-toc--sticky" : ""), "aria-label": p.title || "On this page" }, p.title ? h("p", { className: "kg-toc__title" }, p.title) : null,
+      h("ol", { className: "kg-toc__list" }, items.map(function (it, i) {
+        var id = anchorId(it.target);
+        return h("li", { key: i, className: "kg-toc__item kg-toc__item--l" + choice(it.level, [1, 2, 3], 1) }, h("a", { href: "#" + id, className: "kg-toc__link" + (current === id ? " kg-toc__link--on" : ""), "aria-current": current === id ? "location" : undefined,
+          onClick: function (e) {
+            fire(p.onSelect, { target: String(it.target) });
+            var el = typeof document !== "undefined" && document.getElementById(id); if (!el) return;
+            e.preventDefault();
+            var calm = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+            el.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" }); el.focus({ preventScroll: true });
+          } }, String(it.label == null ? it.target : it.label)));
+      })));
+  }
+
+  function mediaTracks(p) {
+    return (Array.isArray(p.captions) ? p.captions : []).slice(0, 8).map(function (c, i) { var src = c && mediaSource(c.src); return src ? h("track", { key: i, kind: "captions", src: src, srcLang: langTag(c.lang), label: String(c.label || c.lang || "Captions") }) : null; });
+  }
+  function transcript(p) { return p.transcript ? h("details", { className: "kg-media__transcript" }, h("summary", null, "Transcript"), h("p", null, String(p.transcript).slice(0, 20000))) : null; }
+  function CoreVideo(p) {
+    var src = mediaSource(p.src);
+    return h("figure", { className: "kg-media kg-media--video" }, src ? h("video", { controls: true, preload: "metadata", playsInline: true, src: src, poster: p.poster ? imageSource(p.poster) : undefined, "aria-label": p.label }, mediaTracks(p)) : h("div", { className: "kg-missing", role: "alert" }, "Video source must be an https URL or a local path."),
+      p.caption ? h("figcaption", null, p.caption) : null, transcript(p));
+  }
+  function CoreAudio(p) {
+    var src = mediaSource(p.src);
+    return h("figure", { className: "kg-media kg-media--audio" }, src ? h("audio", { controls: true, preload: "metadata", src: src, "aria-label": p.label }, mediaTracks(p)) : h("div", { className: "kg-missing", role: "alert" }, "Audio source must be an https URL or a local path."),
+      p.caption ? h("figcaption", null, p.caption) : null, transcript(p));
+  }
+
+  function CoreGallery(p) {
+    var R_ = R(), ref = R_.useRef(null), opener = R_.useRef(null);
+    var items = (Array.isArray(p.items) ? p.items : []).map(function (it) { return it && { src: imageSource(it.src), alt: String(it.alt == null ? "" : it.alt), caption: it.caption ? String(it.caption) : "" }; }).filter(function (it) { return it && it.src; }).slice(0, 60);
+    var at = typeof p.index === "number" && p.index >= 0 && p.index < items.length ? Math.floor(p.index) : -1, open = at >= 0;
+    // Focus the dialog on open and return it to the thumbnail that opened it,
+    // otherwise keyboard users land back at the top of the page.
+    R_.useEffect(function () {
+      if (!open || !ref.current) return;
+      ref.current.focus();
+      return function () { if (opener.current && opener.current.focus) opener.current.focus(); };
+    }, [open]);
+    if (!items.length) return h("p", null, p.empty || "No images");
+    function show(i) { fire(p.onChange, { index: (i + items.length) % items.length }); }
+    var cur = open ? items[at] : null;
+    return h("div", { className: "kg-gallery" }, h("ul", { className: "kg-gallery__grid", "aria-label": p.label }, items.map(function (it, i) {
+      return h("li", { key: i }, h("button", { type: "button", className: "kg-gallery__thumb", "aria-label": "View image " + (i + 1) + " of " + items.length + (it.alt ? ": " + it.alt : ""), onClick: function (e) { opener.current = e.currentTarget; show(i); } }, h("img", { src: it.src, alt: it.alt, loading: "lazy", decoding: "async" })));
+    })),
+    open ? h("div", { className: "kg-modal kg-gallery__lightbox", onClick: function (e) { if (e.target === e.currentTarget) fire(p.onChange, { index: -1 }); } },
+      h("div", { ref: ref, className: "kg-modal__dialog kg-gallery__dialog", role: "dialog", "aria-modal": "true", "aria-label": p.label, tabIndex: -1, onKeyDown: function (e) {
+        if (e.key === "Escape") { e.stopPropagation(); fire(p.onChange, { index: -1 }); } else if (e.key === "ArrowRight") { e.preventDefault(); show(at + 1); } else if (e.key === "ArrowLeft") { e.preventDefault(); show(at - 1); }
+      } }, h("img", { src: cur.src, alt: cur.alt }), cur.caption ? h("p", { className: "kg-gallery__caption" }, cur.caption) : null,
+        h("div", { className: "kg-gallery__bar" }, h("button", { type: "button", className: "kg-btn", onClick: function () { show(at - 1); } }, "Previous"), h("span", { "aria-live": "polite" }, (at + 1) + " / " + items.length), h("button", { type: "button", className: "kg-btn", onClick: function () { show(at + 1); } }, "Next"), h("button", { type: "button", className: "kg-btn", onClick: function () { fire(p.onChange, { index: -1 }); } }, "Close")))) : null);
+  }
+
+  var PANEL_SLOTS = {}; [1, 2, 3, 4, 5, 6].forEach(function (n) { PANEL_SLOTS["panel" + n] = {}; });
+  var SRC = S("string", { required: true }), MEDIA_EXTRA = { caption: S("string"), transcript: S("string"), captions: S("array", { items: S("object", { properties: { src: S("string"), lang: S("string"), label: S("string") }, requiredKeys: ["src"] }) }) };
+  var CONTENT = {
+    "tab-panel": { summary: "Tabs whose panels hold blocks: panel1..panel6 map to the tabs in order, and only the selected panel shows.", props: { label: S("string", { required: true }), tabs: S("array", { required: true, items: S("object", { properties: { id: S("string"), label: S("string") }, requiredKeys: ["id", "label"] }) }), value: S("string") }, slots: PANEL_SLOTS, local: { value: { type: "string", default: "" } }, events: { change: { payload: { id: "string" } } }, outputs: ["value"] },
+    "code-tabs": { summary: "One code listing in several languages behind tabs, with a copy button; code is displayed, never run.", props: { caption: S("string"), tabs: S("array", { required: true, items: S("object", { properties: { id: S("string"), label: S("string"), language: S("string"), code: S("string") }, requiredKeys: ["id", "label", "code"] }) }), value: S("string") }, local: { value: { type: "string", default: "" } }, events: { change: { payload: { id: "string" } } }, outputs: ["value"] },
+    anchor: { summary: "Invisible jump target; place it just before a heading so a table of contents can link to it.", props: { name: S("string", { required: true }) } },
+    toc: { summary: "On-this-page outline of links that scroll to anchors, highlighting the section in view.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), target: S("string"), level: S("number", { enum: [1, 2, 3] }) }, requiredKeys: ["label", "target"] }) }), sticky: S("boolean"), value: S("string") }, local: { value: { type: "string", default: "" } }, events: { select: { payload: { target: "string" } } }, outputs: ["value"] },
+    video: { summary: "Video with native controls, optional poster, captions and transcript; never autoplays.", props: Object.assign({ label: S("string", { required: true }), src: SRC, poster: S("string") }, MEDIA_EXTRA) },
+    audio: { summary: "Audio with native controls, optional captions and transcript; never autoplays.", props: Object.assign({ label: S("string", { required: true }), src: SRC }, MEDIA_EXTRA) },
+    gallery: { summary: "Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { src: S("string"), alt: S("string"), caption: S("string") }, requiredKeys: ["src", "alt"] }) }), index: S("number"), empty: S("string") }, local: { index: { type: "number", default: -1 } }, events: { change: { payload: { index: "number" } } }, outputs: ["index"] }
+  };
+  var CONTENT_NOTES = {
+    "tab-panel": "tabs: [{id,label}] (max 6); put each tab's blocks in slot panel1, panel2… in the same order. Empty value means the first tab. change emits {id}. Use for alternatives, not for sequence (use stepper).",
+    "code-tabs": "tabs: [{id,label,language?,code}]. Use for the same snippet in several languages or shells. Code is literal text; the copy button copies the visible tab.",
+    anchor: "name becomes a jump target (letters, digits, - and _). Put one before each heading you want to link to.",
+    toc: "items: [{label,target,level?}] where target is an anchor name defined by an `anchor` block on the same page. sticky keeps it in view while scrolling. Every target needs a matching anchor.",
+    video: "src is an https URL or local path. Add captions [{src,lang,label}] and a transcript for accessibility. No autoplay, no embeds of third-party players.",
+    audio: "src is an https URL or local path. Add a transcript for accessibility. No autoplay.",
+    gallery: "items: [{src,alt,caption?}] with the image block's source rules. Thumbnails open a lightbox; arrows navigate, Escape closes. index -1 means closed."
+  };
+  Object.assign(freeFlowExports, { CoreTabPanel: CoreTabPanel, CoreCodeTabs: CoreCodeTabs, CoreAnchor: CoreAnchor, CoreToc: CoreToc, CoreVideo: CoreVideo, CoreAudio: CoreAudio, CoreGallery: CoreGallery });
+  Object.keys(CONTENT).forEach(function (name) {
+    var I = CONTENT[name]; I.role = name; I.slots = I.slots || {}; I.events = I.events || {}; I.outputs = I.outputs || [];
+    interfaces["kages/" + name + "@1"] = I;
+    if (name === "tab-panel" || name === "code-tabs") DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "id" } }] };
+    if (name === "toc") DEFAULTS[name] = { select: [{ do: "setLocal", key: "value", value: { $event: "target" } }] };
+    if (name === "gallery") DEFAULTS[name] = { change: [{ do: "setLocal", key: "index", value: { $event: "index" } }] };
+    var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
+    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "accent-ink", "focus"], agent: { use: CONTENT_NOTES[name] } });
+  });
+
+/* Batch 5b: form extras — date range and a local file picker. Neither touches
+ * the network: the file picker reads chosen files in the browser and hands the
+ * document their name, size, type and (for small text files) text, as plain data.
+ * See oracle/rich-artifacts.feature. */
+  function isoDate(v) { return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(Date.parse(v + "T00:00:00Z")) ? v : ""; }
+
+  function CoreDateRange(p) {
+    var uid = R().useId(), v = p.value && typeof p.value === "object" ? p.value : {}, start = isoDate(v.start), end = isoDate(v.end);
+    // ISO dates order lexically, so the comparison needs no Date objects (and no timezone).
+    var bad = start && end && end < start ? "End date must be on or after the start date." : "", msg = p.error || bad;
+    function set(patch) { fire(p.onChange, { start: patch.start !== undefined ? patch.start : start, end: patch.end !== undefined ? patch.end : end }); }
+    return h("fieldset", { className: "kg-choice kg-daterange", disabled: p.disabled, "aria-invalid": msg ? true : undefined, "aria-describedby": msg ? uid + "-err" : undefined },
+      h("legend", { className: "kg-field__label" }, p.label),
+      h("div", { className: "kg-daterange__row" },
+        h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, "From"), h("input", { className: "kg-input", type: "date", name: p.name ? p.name + "_start" : undefined, value: start, min: isoDate(p.min) || undefined, max: end || isoDate(p.max) || undefined, required: p.required, "aria-invalid": bad ? true : undefined, onChange: function (e) { set({ start: e.target.value }); } })),
+        h("label", { className: "kg-field kg-free-field" }, h("span", { className: "kg-field__label" }, "To"), h("input", { className: "kg-input", type: "date", name: p.name ? p.name + "_end" : undefined, value: end, min: start || isoDate(p.min) || undefined, max: isoDate(p.max) || undefined, required: p.required, "aria-invalid": bad ? true : undefined, onChange: function (e) { set({ end: e.target.value }); } }))),
+      msg ? h("span", { id: uid + "-err", className: "kg-field__error", role: "alert" }, msg) : null);
+  }
+
+  function CoreFileUpload(p) {
+    var R_ = R(), uid = R_.useId(), st = R_.useState(""), note = st[0], setNote = st[1];
+    var limit = Math.max(1, Math.min(1000000, Math.floor(richNum(p.maxBytes, 100000)))), many = !!p.multiple;
+    var accept = typeof p.accept === "string" && /^[A-Za-z0-9.,/*+\-\s]{1,200}$/.test(p.accept) ? p.accept : undefined;
+    var current = Array.isArray(p.files) ? p.files : [];
+    function onPick(e) {
+      var list = Array.from(e.target.files || []).slice(0, many ? 5 : 1);
+      // Only small, text-like files are read: binary content in a document is
+      // neither useful nor safe to inline, so those report metadata only.
+      Promise.all(list.map(function (f) {
+        var meta = { name: String(f.name).slice(0, 200), size: f.size, type: String(f.type || "").slice(0, 100), text: null, error: "" };
+        var texty = /^text\//.test(f.type) || /json|xml|csv|javascript/.test(f.type) || /\.(txt|md|csv|json|tsv|log|yml|yaml)$/i.test(f.name);
+        if (f.size > limit) { meta.error = "Larger than " + limit + " bytes; not read."; return meta; }
+        if (p.readAs === "none" || !texty || typeof f.text !== "function") return meta;
+        return f.text().then(function (t) { meta.text = t.slice(0, limit); return meta; }, function () { meta.error = "Could not read this file."; return meta; });
+      })).then(function (files) { setNote(files.some(function (f) { return f.error; }) ? files.filter(function (f) { return f.error; }).map(function (f) { return f.name + ": " + f.error; }).join(" ") : files.length + (files.length === 1 ? " file" : " files") + " selected."); fire(p.onChange, { files: files }); });
+    }
+    return h("div", { className: "kg-field kg-free-field kg-fileupload" }, h("label", { className: "kg-field__label", htmlFor: uid + "-in" }, p.label),
+      h("input", { id: uid + "-in", className: "kg-input", type: "file", name: p.name, accept: accept, multiple: many, disabled: p.disabled, required: p.required, "aria-describedby": uid + "-note", onChange: onPick }),
+      h("span", { id: uid + "-note", className: "kg-field__help", role: "status" }, note || p.help || "Files are read in your browser and never uploaded."),
+      current.length ? h("ul", { className: "kg-fileupload__list" }, current.slice(0, 5).map(function (f, i) { return h("li", { key: i }, String(f && f.name), h("span", { className: "kg-legend__value" }, f && typeof f.size === "number" ? f.size + " B" : "")); })) : null,
+      p.error ? h("span", { className: "kg-field__error", role: "alert" }, String(p.error)) : null);
+  }
+
+  var FORMS = {
+    "date-range": { summary: "Start and end dates with native pickers; flags an end before the start. Value is {start,end} (ISO dates).", props: { label: S("string", { required: true }), value: S("object"), name: S("string"), min: S("string"), max: S("string"), required: S("boolean"), disabled: S("boolean"), error: S("string") }, local: { value: { type: "object", default: { start: "", end: "" } } }, events: { change: { payload: { start: "string", end: "string" } } }, outputs: ["value"] },
+    "file-upload": { summary: "Pick files read locally in the browser: reports name, size, type and the text of small text files; nothing is uploaded.", props: { label: S("string", { required: true }), accept: S("string"), multiple: S("boolean"), maxBytes: S("number", { default: 100000 }), readAs: S("string", { enum: ["text", "none"], default: "text" }), name: S("string"), help: S("string"), required: S("boolean"), disabled: S("boolean"), error: S("string"), files: S("array") }, local: { files: { type: "array", default: [] } }, events: { change: { payload: { files: "array" } } }, outputs: ["files"] }
+  };
+  var FORMS_NOTES = {
+    "date-range": "Use for periods and bookings. value is {start,end}; change emits {start,end}. An end before the start shows an inline message. min/max bound both dates.",
+    "file-upload": "Local read only. accept like '.csv,text/plain'; maxBytes up to 1,000,000 (default 100,000); multiple allows up to 5. change emits {files:[{name,size,type,text|null,error}]}. Bind the output into state to preview or parse it with blocks; there is no upload."
+  };
+  Object.assign(freeFlowExports, { CoreDateRange: CoreDateRange, CoreFileUpload: CoreFileUpload });
+  Object.keys(FORMS).forEach(function (name) {
+    var I = FORMS[name]; I.role = name; I.slots = {}; I.events = I.events || {}; I.outputs = I.outputs || [];
+    interfaces["kages/" + name + "@1"] = I;
+    DEFAULTS[name] = name === "date-range" ? { change: [{ do: "setLocal", key: "value", value: { start: { $event: "start" }, end: { $event: "end" } } }] } : { change: [{ do: "setLocal", key: "files", value: { $event: "files" } }] };
+    var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
+    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "line-control", "danger", "focus"], agent: { use: FORMS_NOTES[name] } });
+  });
+
   var ledger = {
     sidebar: contract("ledger", "sidebar", "2.0.0", "kages/nav@1", LedgerSidebar, { tokens: ["ledger-sunken", "ledger-line", "ledger-accent"], agent: { use: "Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers.", avoid: "Long labels; Ledger truncates at one line." } }),
     dropdown: contract("ledger", "dropdown", "2.0.0", "kages/select@1", LedgerDropdown, { limits: { maxOptions: 6 }, tokens: ["ledger-line-control", "ledger-accent", "ledger-accent-ink"], agent: { use: "Segmented control: every option visible, one tap. Up to 6 short options.", avoid: "Long or dynamic option lists — pin `core/dropdown@1` for those." } }),
@@ -1572,9 +1783,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.10.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.7.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.6.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.11.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.8.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.7.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:
