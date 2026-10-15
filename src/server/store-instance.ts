@@ -94,6 +94,10 @@ async function initStore(workspace: string): Promise<Store> {
   const loaded = await loadSnapshotRev(workspace);
   if (loaded) {
     const s = Store.restore(loaded.snapshot);
+    // A persisted workspace is only seeded once, so templates added by later
+    // releases would never appear. Create any that are missing and commit with
+    // the revision we read; losing that race just means another instance did it.
+    if (backfillExamples(s, workspace)) await casSave(workspace, s.snapshot(), loaded.rev);
     stores.set(workspace, s);
     await syncPublicShares(s); // registered shares may predate the public_shares table
     return s;
@@ -103,6 +107,20 @@ async function initStore(workspace: string): Promise<Store> {
   stores.set(workspace, store);
   await syncPublicShares(store);
   return store;
+}
+
+/** Add any shipped example documents that a persisted workspace lacks, into its
+ *  `templates` repo, as the principal that originally seeded it. Never touches an
+ *  existing document (users may have edited a template), so it is idempotent.
+ *  Returns whether anything was added. */
+function backfillExamples(store: Store, workspace: string): boolean {
+  const owner: Provenance = workspace === "acme" ? DEMO_PRINCIPAL : { principal: "user:" + workspace.replace(/^ws-/, ""), runtime: { framework: "next", adapter: "rest" } };
+  let added = false;
+  for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples()]) {
+    if (store.head(doc.id)) continue;
+    try { added = store.create("templates", doc, owner).ok || added; } catch { /* best-effort, like seeding */ }
+  }
+  return added;
 }
 
 /** Make sure every currently-public Kage in a workspace is in the global

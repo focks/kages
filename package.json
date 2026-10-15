@@ -15,7 +15,8 @@
     "tokens": "node scripts/kage-tokens.mjs",
     "ds-integrity": "node scripts/ds-integrity.mjs",
     "build:ds": "node scripts/build-ds.mjs && node scripts/extract-data.mjs && node scripts/golden.mjs && npm run tokens && npm run ds-integrity && npm run build:plugin",
-    "build:plugin": "node scripts/build-plugin-skills.mjs"
+    "build:plugin": "node scripts/build-plugin-skills.mjs",
+    "db:setup": "node scripts/db-setup.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -27,6 +28,7 @@
     "lucide-react": "^1.55.0",
     "next": "^15.1.0",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "shadcn": "^4.21.4",
@@ -36,6 +38,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.10.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "postcss": "^8.5.29",

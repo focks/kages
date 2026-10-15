@@ -19,13 +19,16 @@
 // stays a plain upsert — two cold starts seed identical content.
 
 import type { StoreSnapshot } from "../store/store.ts";
+import { pgEnabled, pool } from "./pg.ts";
 
 const BASE = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TABLE = "kages_state";
 
+/** Postgres (DATABASE_URL) wins over Supabase when both are set: it is the
+ *  explicit local/self-hosted choice, and the two must never both be written. */
 export function persistenceEnabled(): boolean {
-  return !!(BASE && KEY);
+  return pgEnabled() || !!(BASE && KEY);
 }
 
 function headers(extra: Record<string, string> = {}): Record<string, string> {
@@ -43,6 +46,13 @@ type Stored = StoreSnapshot & { _rev?: number };
  *  back to a fresh seed — a broken database never takes the app down. */
 export async function loadSnapshotRev(workspace: string): Promise<{ snapshot: StoreSnapshot; rev: number } | null> {
   if (!persistenceEnabled()) return null;
+  if (pgEnabled()) {
+    try {
+      const r = await pool().query("select snapshot from kages_state where id = $1", [workspace]);
+      const blob = r.rows[0]?.snapshot as Stored | undefined;
+      return blob ? { snapshot: blob, rev: typeof blob._rev === "number" ? blob._rev : 0 } : null;
+    } catch (e) { console.error("loadSnapshotRev (pg) failed:", e); return null; }
+  }
   try {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(workspace)}&select=snapshot`, { headers: headers() });
     if (!res.ok) { console.error(`loadSnapshotRev: ${res.status} ${await res.text()}`); return null; }
@@ -61,6 +71,15 @@ export async function loadSnapshotRev(workspace: string): Promise<{ snapshot: St
  *  content). Starts the revision at 1. */
 export async function saveSnapshot(workspace: string, snap: StoreSnapshot): Promise<void> {
   if (!persistenceEnabled()) return;
+  if (pgEnabled()) {
+    try {
+      await pool().query(
+        "insert into kages_state (id, snapshot, updated_at) values ($1, $2::jsonb, now()) on conflict (id) do update set snapshot = excluded.snapshot, updated_at = now()",
+        [workspace, JSON.stringify({ ...snap, _rev: 1 })],
+      );
+    } catch (e) { console.error("saveSnapshot (pg) failed:", e); }
+    return;
+  }
   try {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {
       method: "POST",
@@ -81,6 +100,21 @@ export async function casSave(workspace: string, snap: StoreSnapshot, expectedRe
   if (!persistenceEnabled()) return true;
   const blob: Stored = { ...snap, _rev: (expectedRev ?? 0) + 1 };
   const now = new Date().toISOString();
+  if (pgEnabled()) {
+    try {
+      // `is not distinct from` makes the legacy no-_rev row (expectedRev 0 → null)
+      // match exactly like the REST filter does; a moved rev updates zero rows.
+      if (expectedRev === null) {
+        const r = await pool().query("insert into kages_state (id, snapshot, updated_at) values ($1, $2::jsonb, now()) on conflict (id) do nothing", [workspace, JSON.stringify(blob)]);
+        return r.rowCount === 1;
+      }
+      const r = await pool().query(
+        "update kages_state set snapshot = $2::jsonb, updated_at = now() where id = $1 and (snapshot->>'_rev') is not distinct from $3::text",
+        [workspace, JSON.stringify(blob), expectedRev === 0 ? null : String(expectedRev)],
+      );
+      return r.rowCount === 1;
+    } catch (e) { console.error("casSave (pg) failed:", e); return false; }
+  }
   try {
     if (expectedRev === null) {
       const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {

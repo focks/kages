@@ -19,6 +19,7 @@ find a new reusable pattern, add it as a skill.
 | `comment-doctrine` | Writing or editing any code. Comment the *why* and the *failure mode*, never the *what*. |
 | `dashboard-over-adapters` | Building or changing any page that reads/writes Kages — UI talks to the store only through `/api/<op>`. |
 | `expressive-artifacts` | Changing repeats, computations, reusable compositions, visual blocks, or generation envelopes. |
+| `persistence-backends` | Changing how workspaces persist: Postgres/Supabase/in-memory, CAS writes, `db:setup`. |
 | `rich-artifacts` | Adding or changing a chart, disclosure, overlay or other rich block in `src/design-system/rich*.js`. |
 | `kages-cli` | Adding or changing a `kages` CLI command, or the file-backed workspace store. |
 | `testing-conventions` | Adding a test or a testable module (node --test, native TS, injected clocks). |
@@ -64,6 +65,7 @@ local workspace.
 - `node bin/kages.mjs help` (or `npx kages`) — the CLI; `kages validate <file>` works offline
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run dev` / `npm run build` — Next.js
+- `npm run db:setup` — create the local Postgres database and tables for `DATABASE_URL`
 
 ## The two rules that never bend
 

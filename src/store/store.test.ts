@@ -367,3 +367,15 @@ test("F5: a /blocks wholesale replace cannot bypass a block claim", () => {
   assert.equal(r.ok, false, "replacing /blocks touches the claimed block");
   assert.equal(r.error?.code, "claimed");
 });
+
+test("documents containing NUL are refused at the store boundary, not lost at persistence", () => {
+  const s = new Store({ workspace: "w" });
+  const a = { principal: "agent:a" };
+  s.grant("agent:a", "r", ["write", "publish", "review", "admin"]);
+  const doc: any = { kages: "1.0", id: "nul", title: "T", system: "core@1", root: "t", blocks: { t: { type: "text", props: { text: "ok" } } } };
+  assert.ok(s.create("r", doc, a).ok);
+  const bad = s.patch("nul", [{ op: "replace", path: "/blocks/t/props/text", value: "a\u0000b" }], a);
+  assert.equal(bad.ok, false); assert.equal(bad.error?.code, "invalid_content");
+  assert.equal(s.create("r", { ...doc, id: "nul2", title: "x\u0000y" }, a).ok, false);
+  assert.equal((s.head("nul")!.doc.blocks.t.props as any).text, "ok", "the failed patch changed nothing");
+});

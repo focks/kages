@@ -9,13 +9,14 @@
 
 import type { KageDoc } from "../engine/types.ts";
 import type { Store } from "../store/store.ts";
+import { pgEnabled, pool } from "./pg.ts";
 
 const BASE = process.env.SUPABASE_URL;
 const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const TABLE = "public_shares";
 
 export function sharesEnabled(): boolean {
-  return !!(BASE && KEY);
+  return pgEnabled() || !!(BASE && KEY);
 }
 
 function headers(extra: Record<string, string> = {}): Record<string, string> {
@@ -24,6 +25,10 @@ function headers(extra: Record<string, string> = {}): Record<string, string> {
 
 export async function getPublicShare(uuid: string): Promise<KageDoc | null> {
   if (!sharesEnabled()) return null;
+  if (pgEnabled()) {
+    try { return ((await pool().query("select doc from public_shares where uuid = $1", [uuid])).rows[0]?.doc as KageDoc | undefined) ?? null; }
+    catch (e) { console.error("getPublicShare (pg) failed:", e); return null; }
+  }
   try {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}?uuid=eq.${encodeURIComponent(uuid)}&select=doc`, { headers: headers() });
     if (!res.ok) { console.error(`getPublicShare: ${res.status} ${await res.text()}`); return null; }
@@ -34,6 +39,11 @@ export async function getPublicShare(uuid: string): Promise<KageDoc | null> {
 
 export async function putPublicShare(uuid: string, doc: KageDoc): Promise<void> {
   if (!sharesEnabled()) return;
+  if (pgEnabled()) {
+    try { await pool().query("insert into public_shares (uuid, doc, updated_at) values ($1, $2::jsonb, now()) on conflict (uuid) do update set doc = excluded.doc, updated_at = now()", [uuid, JSON.stringify(doc)]); }
+    catch (e) { console.error("putPublicShare (pg) failed:", e); }
+    return;
+  }
   try {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {
       method: "POST",
@@ -46,6 +56,11 @@ export async function putPublicShare(uuid: string, doc: KageDoc): Promise<void> 
 
 export async function delPublicShare(uuid: string): Promise<void> {
   if (!sharesEnabled()) return;
+  if (pgEnabled()) {
+    try { await pool().query("delete from public_shares where uuid = $1", [uuid]); }
+    catch (e) { console.error("delPublicShare (pg) failed:", e); }
+    return;
+  }
   try {
     const res = await fetch(`${BASE}/rest/v1/${TABLE}?uuid=eq.${encodeURIComponent(uuid)}`, { method: "DELETE", headers: headers() });
     if (!res.ok) console.error(`delPublicShare: ${res.status} ${await res.text()}`);

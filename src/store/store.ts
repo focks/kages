@@ -315,6 +315,11 @@ export class Store {
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
     if (!this.underQuota(author.principal)) return err("rate_limited", `${author.principal} exceeded ${this.quota} versions/hour`);
 
+    // U+0000 cannot be stored by jsonb-backed persistence (Postgres rejects the
+    // whole snapshot), and silently stripping it would break the signed digest.
+    // Refuse it up front, for every backend alike, rather than lose a write later.
+    if (JSON.stringify(doc).includes("\\u0000")) return err("invalid_content", "documents may not contain the NUL character (U+0000)");
+
     const v = validate(doc);
     if (!v.ok) return { ok: false, validation: v, error: { code: "invalid_content", msg: `${v.errors.length} validation errors` } };
 
