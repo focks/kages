@@ -17,6 +17,7 @@ import { systems, contracts } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { validate } from "../engine/validate.ts";
 import { review } from "../engine/advice.ts";
+import { outlineToKage } from "../engine/outline.ts";
 import { describe } from "../engine/describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
 import { KageSession } from "../engine/session.ts";
@@ -54,6 +55,9 @@ author  (operate on a .kage.json file, or a stored name; offline)
   describe <file|name> [-s sys] text view for agents
   preview  <file|name> [-s sys] headless render snapshot (visibility + outputs)
   convert  <file> --to envelope|doc [-s sys]
+  from-markdown <file.md> [-o out.kage.json] [--title t] [--id i] [-s sys] [--toc auto|always|never] [--create]
+                                write prose, get a Kage: headings → sections, > Note → alerts,
+                                tables, adjacent code → tabs, FAQ → accordion, 3+ sections → contents
 
 manage  (your CLOUD workspace when signed in, else the local ./.kages; --local forces local)
   init                          create the local workspace
@@ -225,6 +229,18 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
 
     // --- manage (workspace store) ---
     case "init": { initWorkspace(ctx.dir); out(`initialized workspace at ${ctx.dir}`); return 0; }
+    case "from-markdown": {
+      need(1, "from-markdown <file.md> [-o out.kage.json] [--title t] [--id i] [-s sys] [--toc auto|always|never] [--create]");
+      const built = outlineToKage(readFileSync(rest[0], "utf8"), { title: flag<string>(flags, "title"), id: flag<string>(flags, "id"), system: sys, toc: flag<"auto" | "always" | "never">(flags, "toc") });
+      const r = review(built.doc, sys?.split("@")[0]);
+      if (ctx.json) { printJson({ doc: built.doc, notes: built.notes, stats: built.stats, validation: { ok: r.ok, errors: r.errors, warnings: r.warnings }, advice: r.advice }); return r.ok ? 0 : 1; }
+      for (const n of built.notes) process.stderr.write(`  • ${n}\n`);
+      for (const a of r.advice) process.stderr.write(`  ${a.level === "lint" ? "◦" : "→"} ${a.at}  ${a.fix ?? a.msg}\n`);
+      if (!r.ok) { for (const e of r.errors) process.stderr.write(`  ✗ ${e.at}  ${e.code}  ${e.msg}\n`); return 1; }
+      if (flags.create) return report(await op("create_kage", { doc: built.doc }, true), (d) => out(`created ${(d as any).version.ref}`));
+      writeOut(flags, JSON.stringify(built.doc, null, 2));
+      return 0;
+    }
     case "create": {
       need(1, "create <file> [--repo r]");
       const doc = JSON.parse(readFileSync(rest[0], "utf8"));

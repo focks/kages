@@ -7,6 +7,8 @@ export { evaluate, getPath, setPath, clone, merge, isExpr, walkExpr, operatorOf,
 export { validate } from "./validate.ts";
 export { describe } from "./describe.ts";
 export { advise, lint, review, nearest } from "./advice.ts";
+export { outlineToKage } from "./outline.ts";
+export type { OutlineOptions, OutlineResult } from "./outline.ts";
 export type { Advice } from "./advice.ts";
 export { catalog } from "./catalog.ts";
 export { generationSchema, fromGenerated, toGenerated } from "./generate.ts";

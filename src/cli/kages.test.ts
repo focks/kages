@@ -162,3 +162,19 @@ test("discussion commands: comment, pin, reply, list as a thread, resolve, and t
   assert.notEqual((await run("comment", "ops-console", "-", "x", "--at", "banana")).code, 0);
   assert.match((await run("comments", "nothing-here")).err, /./);
 });
+
+test("from-markdown: prose to a Kage file, then stored with --create, with notes on stderr", async () => {
+  const dir = tmpWorkspace(), md = join(dir, "guide.md"), out = join(dir, "guide.kage.json");
+  writeFileSync(md, "# CLI guide\n\nHow to use it.\n\n## Install\n\n```sh\nnpm i\n```\n\n```py\npip install\n```\n\n## Use\n\n| a | b |\n| - | - |\n| 1 | 2 |\n\n## Done\n\n> **Tip:** that is all\n");
+  const run = (...a: string[]) => cli([...a, "--local", "-C", dir]);
+  await run("init");
+  const wrote = await run("from-markdown", md, "-o", out); assert.equal(wrote.code, 0, wrote.err);
+  assert.match(wrote.err, /became tabs/); assert.match(wrote.err, /sticky table of contents/);
+  const doc = JSON.parse(readFileSync(out, "utf8")); assert.equal(doc.id, "cli-guide"); assert.equal(doc.blocks.hero.props.description, "How to use it.");
+  assert.equal((await run("validate", out)).code, 0);
+  const made = await run("from-markdown", md, "--create"); assert.equal(made.code, 0, made.err); assert.match(made.out, /created kages:\/\/local\/kages\/cli-guide@v1/);
+  assert.equal((await run("from-markdown", md, "--title", "Renamed", "--id", "renamed", "--create")).code, 0);
+  assert.match((await run("ls")).out, /renamed/);
+  const empty = join(dir, "empty.md"); writeFileSync(empty, "  \n"); assert.notEqual((await run("from-markdown", empty)).code, 0);
+  const json = await run("from-markdown", md, "--json"); assert.equal(JSON.parse(json.out).validation.ok, true);
+});

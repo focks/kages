@@ -196,3 +196,17 @@ test("a rejected write explains itself: findings plus a fix for each, through ev
   // a success carries no error details
   assert.equal(JSON.stringify((run(ctx, "create_kage", { doc: { ...good, id: "good2" } }) as any).error), undefined);
 });
+
+test("outline_to_kage turns prose into a valid document without touching the store", async () => {
+  const { Store } = await import("../store/store.ts");
+  const { dispatch: run } = await import("./operations.ts");
+  const store = new Store({ workspace: "w" }), author = { principal: "agent:a" };
+  store.grant(author.principal, "kages", ["write", "publish", "review", "admin"]);
+  const ctx = { store, author, repo: "kages" };
+  const r: any = run(ctx, "outline_to_kage", { markdown: "# Guide\n\nIntro line.\n\n## One\n\n> **Note:** careful\n\n## Two\n\ntext\n\n## Three\n\nmore\n", id: "my-guide" });
+  assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.data.doc.id, "my-guide"); assert.equal(r.data.validation.ok, true); assert.deepEqual(r.data.advice, []);
+  assert.ok(r.data.notes.length >= 1); assert.equal(store.list().length, 0, "nothing is stored until the agent calls create_kage");
+  const made: any = run(ctx, "create_kage", { doc: r.data.doc }); assert.equal(made.ok, true);
+  assert.equal((run(ctx, "outline_to_kage", { markdown: "   " }) as any).error.code, "invalid_input");
+  assert.equal((run(ctx, "outline_to_kage", { markdown: "# T\n\nx", system: "ledger@2" }) as any).data.doc.system, "ledger@2");
+});

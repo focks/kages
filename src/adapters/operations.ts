@@ -8,6 +8,7 @@
 import { systems, contracts } from "../engine/data.ts";
 import { validate } from "../engine/validate.ts";
 import { advise, review, type Advice } from "../engine/advice.ts";
+import { outlineToKage } from "../engine/outline.ts";
 import { applyPatch } from "../collab/patch.ts";
 import { describe } from "../engine/describe.ts";
 import { catalog } from "../engine/catalog.ts";
@@ -189,6 +190,13 @@ export const OPERATIONS: OpSpec[] = [
   // --- check ---
   { name: "validate_kage", summary: "Validate a document; returns findings with JSON pointers, a fix for each, and pitfall lint", params: ["doc", "system?"], run: (_c, p) =>
     ok(review(p.doc as KageDoc, p.system)) },
+
+  { name: "outline_to_kage", summary: "Turn markdown prose into a valid Kage: headings become sections, callouts alerts, tables, code tabs, FAQ accordions and a contents sidebar. Returns the document, notes on the choices, and validation with advice (does not store it; pass the doc to create_kage)", params: ["markdown", "title?", "id?", "system?", "toc?"], run: (_c, p) => {
+    let built;
+    try { built = outlineToKage(String(p.markdown ?? ""), { title: p.title, id: p.id, system: p.system, toc: p.toc }); }
+    catch (e) { return fail("invalid_input", (e as Error).message); }
+    return ok({ doc: built.doc, notes: built.notes, stats: built.stats, ...(({ ok: valid, errors, warnings, advice }) => ({ validation: { ok: valid, errors, warnings }, advice }))(review(built.doc, p.system && String(p.system).split("@")[0])) });
+  } },
 
   { name: "preview_kage", summary: "Headless render snapshot: resolved outputs + visibility per block", params: ["name", "system?"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
