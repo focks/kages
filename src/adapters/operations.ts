@@ -62,6 +62,26 @@ function repair(s: string): string {
   return s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/,\s*([}\]])/g, "$1");
 }
 
+/** Block types that only arrange or carry prose. They are in nearly every Kage, so
+ *  listing them tells a browsing user nothing about what this one is for. */
+const STRUCTURAL = new Set(["page", "section", "stack", "grid", "split", "shell", "card", "divider", "composition", "text", "list", "rich-text", "code", "link", "image", "anchor"]);
+
+/** The few most characteristic block types in a document, most frequent first,
+ *  so a card can say "chart · table · form" without shipping the document. */
+export function kindsOf(doc: { blocks: Record<string, { type: string }> }): string[] {
+  const counts = new Map<string, number>();
+  for (const b of Object.values(doc.blocks)) if (!STRUCTURAL.has(b.type)) counts.set(b.type, (counts.get(b.type) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 4).map(([t]) => t);
+}
+
+/** A one-line description for a card: the document's own, else the first section
+ *  description. Plain text, bounded; the document is untrusted data. */
+export function describeCard(doc: { description?: string; blocks: Record<string, { type: string; props?: Record<string, unknown> }> }): string {
+  const own = typeof doc.description === "string" ? doc.description : "";
+  const fromSection = Object.values(doc.blocks).find((b) => b.type === "section" && typeof b.props?.description === "string")?.props?.description as string | undefined;
+  return String(own || fromSection || "").replace(/\s+/g, " ").trim().slice(0, 160);
+}
+
 export const OPERATIONS: OpSpec[] = [
   // --- learn a design system ---
   { name: "list_systems", summary: "List available design systems", params: [], run: () =>
@@ -107,7 +127,7 @@ export const OPERATIONS: OpSpec[] = [
       name: v.name, ref: v.ref, uuid: v.uuid, repo: c.store.repoOf(v.ref), title: v.doc.title, system: v.resolved.system,
       blocks: Object.keys(v.doc.blocks).length, version: v.v, state: v.state,
       visibility: v.visibility, lastAuthor: v.author.principal, createdAt: v.createdAt,
-      validation: v.validation,
+      validation: v.validation, description: describeCard(v.doc), kinds: kindsOf(v.doc),
     }))) },
 
   { name: "list_repos", summary: "Projects in the workspace: each repo with a Kage count", params: [], run: (c) =>

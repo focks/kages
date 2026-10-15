@@ -145,3 +145,14 @@ test("skill packs are generated per system and carry the untrusted-data rule", (
   }
   assert.match(skillMd("core"), /## Components/);
 });
+
+test("list_kages cards carry a bounded description and the characteristic block types", async () => {
+  const { kindsOf, describeCard } = await import("./operations.ts");
+  const doc = { blocks: { a: { type: "page" }, b: { type: "table" }, c: { type: "table" }, d: { type: "bar-chart" }, e: { type: "text" }, f: { type: "stat" }, g: { type: "stat" }, h: { type: "gauge" }, i: { type: "map" } } } as any;
+  assert.deepEqual(kindsOf(doc), ["stat", "table", "bar-chart", "gauge"], "structural blocks are ignored; most frequent first, ties alphabetical, at most four");
+  assert.deepEqual(kindsOf({ blocks: { a: { type: "page" }, b: { type: "text" } } }), []);
+  assert.equal(describeCard({ description: "  Own   description ", blocks: {} }), "Own description");
+  assert.equal(describeCard({ blocks: { s: { type: "section", props: { description: "From a section" } }, t: { type: "text" } } }), "From a section");
+  assert.equal(describeCard({ blocks: { s: { type: "section", props: { description: 42 } } } as any }), "");
+  assert.equal(describeCard({ description: "x".repeat(500), blocks: {} }).length, 160);
+});

@@ -73,7 +73,7 @@ export default function DashboardPage() {
             {!cards ? (
               <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
             ) : recent.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">No Kages yet. Ask an agent to build one, or import JSON in Artifacts.</p>
+              <p className="py-6 text-center text-sm text-muted-foreground">No Kages yet. Ask an agent to build one, or import JSON in the Library.</p>
             ) : (
               <Table>
                 <TableHeader>

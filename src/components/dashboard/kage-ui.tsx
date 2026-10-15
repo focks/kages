@@ -100,6 +100,8 @@ export interface KageCard {
   name: string; ref: string; uuid: string; repo: string; title: string; system: string; blocks: number;
   version: number; state: string; visibility: string; lastAuthor: string; createdAt: string;
   validation: { ok: boolean; errors: number; warnings: number };
+  /** One-line summary and the characteristic block types (chart · table …). */
+  description: string; kinds: string[];
 }
 
 /** The shared fetch for the one operation set over REST — UI is an adapter client. */

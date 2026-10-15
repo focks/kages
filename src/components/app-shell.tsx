@@ -13,12 +13,12 @@ import { AppSidebar } from "./app-sidebar";
 import { ThemeToggle } from "./theme-toggle";
 
 const TITLES: Record<string, string> = {
-  "/": "Dashboard", "/artifacts": "Artifacts", "/studio": "Studio", "/settings": "Settings",
+  "/": "Dashboard", "/artifacts": "Library", "/studio": "Studio", "/settings": "Settings",
 };
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const title = TITLES[pathname] ?? (pathname.startsWith("/artifacts") ? "Artifacts" : "Kages");
+  const title = TITLES[pathname] ?? (pathname.startsWith("/artifacts") ? "Library" : "Kages");
   return (
     <LucideProvider strokeWidth={1.5}>
       <SidebarProvider>

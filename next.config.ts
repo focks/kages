@@ -8,6 +8,15 @@ import type { NextConfig } from "next";
 // CSP (default-src 'none', scripts self + registry, base-uri/form-action locked).
 // That is deployment infrastructure, documented as not-yet-implemented in
 // src/runtime/KageRenderer.tsx. See oracle/runtime-security.feature.
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  // The library has been called "Kages" and "Artifacts" in turn; both old paths
+  // keep working (and keep any ?id= deep link) rather than 404.
+  async redirects() {
+    return [
+      { source: "/kages", destination: "/artifacts", permanent: false },
+      { source: "/library", destination: "/artifacts", permanent: false },
+    ];
+  },
+};
 
 export default nextConfig;

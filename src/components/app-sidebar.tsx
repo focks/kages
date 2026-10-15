@@ -17,7 +17,7 @@ import { WorkspaceLabel } from "@/components/dashboard/workspace-label";
 
 const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
-  { title: "Artifacts", href: "/artifacts", icon: Layers },
+  { title: "Library", href: "/artifacts", icon: Layers },
   { title: "Studio", href: "/studio", icon: SquarePen },
 ];
 

@@ -1,297 +1,306 @@
 "use client";
 
-// The Artifacts workbench: a master-detail view over the store, on shadcn.
-// Master (left) lists every Kage; selecting one opens a detail pane with
-// Overview / Versions / Describe tabs. Preview is a fullscreen overlay (from a
-// list card or the detail), and Share sets the permission level + hands out the
-// /k/<name> link. Every read and write is the one operation set over REST — the
-// dashboard holds no privileged access.
+// The Library: browse and organise every Kage. A facet rail (scope, project,
+// status, system — each with live counts) narrows a grid or list of rich cards;
+// search, sort, grouping and view are one toolbar; a card opens into a slide-over
+// detail panel. The whole view lives in the URL, so a filtered, sorted view is a
+// link you can share, and Back closes the panel. All reads and writes are the one
+// operation set over REST — this page holds no privileged access, and the
+// filtering/faceting logic is the pure, tested library-model.
 // See the dashboard-over-adapters skill.
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Search, Upload, Eye, SquarePen, Download, History, Layers, FolderPlus, Folder, Copy, Archive } from "lucide-react";
-import { KagePreview } from "@/components/dashboard/kage-preview";
-import { ShareMenu } from "@/components/dashboard/share-menu";
-import { StatusMenu } from "@/components/dashboard/status-menu";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { KagePreview } from "@/components/dashboard/kage-preview";
+import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
+import { FacetRail } from "@/components/dashboard/library/facet-rail";
+import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { StateBadge, SystemChip, ValidationStatus, relTime, op, type KageCard } from "@/components/dashboard/kage-ui";
+import { op, type KageCard } from "@/components/dashboard/kage-ui";
+import {
+  GROUP_LABEL, SORT_LABEL, activeChips, facetCounts, filterCards, groupCards, parsePins, parseQuery, resolveScope, serializeQuery, sortCards,
+  type Group, type Query, type Sort,
+} from "@/components/dashboard/library-model";
 import type { KageDoc } from "@/engine/types";
 
-interface VersionMeta {
-  ref: string; v: number; state: string; createdAt: string; digest: string;
-  author: { principal: string; runtime?: { framework?: string } };
-  change: { summary: string; ops: number; blocksTouched: string[] };
-  validation: { ok: boolean; errors: number; warnings: number };
-}
+const PINS_KEY = "kages.pins";
+const overline = "font-mono text-[11px] leading-[14px] font-medium uppercase tracking-[0.06em] text-muted-foreground";
 
-function ArtifactsInner() {
+function LibraryInner() {
   const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const paramString = params.toString();
+  const query = useMemo(() => parseQuery(new URLSearchParams(paramString)), [paramString]);
+  const openName = params.get("id");
+
   const [cards, setCards] = useState<KageCard[] | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [workspace, setWorkspace] = useState("workspace");
+  const [pins, setPins] = useState<Set<string>>(new Set());
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [versions, setVersions] = useState<VersionMeta[]>([]);
   const [describe, setDescribe] = useState("");
-  const [q, setQ] = useState("");
-  const [sysFilter, setSysFilter] = useState("all");
-  const [proj, setProj] = useState("all");
-  const [showArchived, setShowArchived] = useState(false);
-  const [repoInfo, setRepoInfo] = useState<{ workspace: string; projects: { repo: string; count: number }[] } | null>(null);
-  const [preview, setPreview] = useState<{ doc: KageDoc; ref: string } | null>(null);
+  const [fullscreen, setFullscreen] = useState<{ doc: KageDoc; ref: string } | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [text, setText] = useState(query.q);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Preview straight from a list card — fetch the document, then open the
-  // fullscreen overlay. No need to select/open the detail pane first.
-  // Identify the Kage to preview by its opaque uuid, never the name/title.
-  const previewByUuid = useCallback(async (uuid: string, ref: string) => {
-    try { setPreview({ doc: await op<KageDoc>("get_kage", { uuid }), ref }); }
-    catch (e) { toast.error(String((e as Error).message)); }
-  }, []);
+  // --- URL is the state ------------------------------------------------------
+  // Filters replace history (a filter tweak is not a place you navigate back to);
+  // opening a Kage pushes it, so Back closes the panel the way people expect.
+  const go = useCallback((next: URLSearchParams, push = false) => {
+    const qs = next.toString();
+    (push ? router.push : router.replace)(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router]);
+  const setQuery = useCallback((patch: Partial<Query>) => {
+    const next = serializeQuery({ ...query, ...patch });
+    if (openName) next.set("id", openName);
+    go(next);
+  }, [query, openName, go]);
+  const open = useCallback((name: string | null) => {
+    const next = serializeQuery(query);
+    if (name) next.set("id", name);
+    go(next, true);
+  }, [query, go]);
 
+  // Typing updates the box instantly and the URL after a short pause, so the
+  // address bar does not thrash and the history stays clean.
+  useEffect(() => { setText(query.q); }, [query.q]);
+  useEffect(() => {
+    if (text === query.q) return;
+    const t = setTimeout(() => setQuery({ q: text }), 180);
+    return () => clearTimeout(t);
+  }, [text, query.q, setQuery]);
+
+  // --- data ------------------------------------------------------------------
   const refresh = useCallback(async () => {
     try {
-      const [k, r] = await Promise.all([
-        op<KageCard[]>("list_kages"),
-        op<{ workspace: string; projects: { repo: string; count: number }[] }>("list_repos"),
-      ]);
-      setCards(k); setRepoInfo(r);
+      const [k, r] = await Promise.all([op<KageCard[]>("list_kages"), op<{ workspace: string; projects: { repo: string; count: number }[] }>("list_repos")]);
+      setCards(k); setWorkspace(r.workspace);
     } catch (e) { toast.error(String((e as Error).message)); }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
-  const openCard = useCallback(async (name: string) => {
-    setSelected(name); setDoc(null); setVersions([]); setDescribe("");
-    try {
-      const [d, v, desc] = await Promise.all([
-        op<KageDoc>("get_kage", { name }), op<VersionMeta[]>("list_versions", { name }), op<string>("describe_kage", { name }),
-      ]);
-      setDoc(d); setVersions(v); setDescribe(desc);
-    } catch (e) { toast.error(String((e as Error).message)); }
+  useEffect(() => { try { setPins(parsePins(localStorage.getItem(PINS_KEY))); } catch { /* storage unavailable: pins last for the session */ } }, []);
+  const togglePin = useCallback((name: string) => {
+    setPins((prev) => {
+      const next = new Set(prev); if (!next.delete(name)) next.add(name);
+      try { localStorage.setItem(PINS_KEY, JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
   }, []);
 
-  // Deep link: /artifacts?id=<name> opens that Kage once the list is loaded.
-  useEffect(() => { const id = params.get("id"); if (id && cards && !selected) openCard(id); }, [params, cards, selected, openCard]);
+  // Detail loads only for the open Kage: the document, history and text view.
+  useEffect(() => {
+    setDoc(null); setVersions([]); setDescribe("");
+    if (!openName) return;
+    let live = true;
+    Promise.all([op<KageDoc>("get_kage", { name: openName }), op<VersionMeta[]>("list_versions", { name: openName }), op<string>("describe_kage", { name: openName })])
+      .then(([d, v, desc]) => { if (live) { setDoc(d); setVersions(v); setDescribe(desc); } })
+      .catch((e) => { if (live) toast.error(String((e as Error).message)); });
+    return () => { live = false; };
+  }, [openName]);
 
-  // Archived Kages are hidden by default so the workbench stays about live work;
-  // the Archive toggle brings them back. The selected one always stays visible.
-  const filtered = useMemo(() => (cards ?? []).filter((c) =>
-    (showArchived || c.state !== "archived" || c.name === selected) &&
-    (!q || (c.title + c.name).toLowerCase().includes(q.toLowerCase())) &&
-    (sysFilter === "all" || c.system.startsWith(sysFilter)) &&
-    (proj === "all" || c.repo === proj)), [cards, q, sysFilter, proj, showArchived, selected]);
-  const archivedCount = useMemo(() => (cards ?? []).filter((c) => c.state === "archived").length, [cards]);
+  // --- derived view ----------------------------------------------------------
+  const all = cards ?? [];
+  const resolvedScope = resolveScope(query.scope, all);
+  const visible = useMemo(() => sortCards(filterCards(all, query, pins, openName ?? undefined), query.sort), [all, query, pins, openName]);
+  const groups = useMemo(() => groupCards(visible, query.group), [visible, query.group]);
+  const facets = useMemo(() => facetCounts(all, query, pins, openName ?? undefined), [all, query, pins, openName]);
+  const chips = activeChips(query);
+  const current = all.find((c) => c.name === openName) ?? null;
+  const templateCount = facets.scope.templates;
 
-  // Projects (repos) in the workspace, from list_repos; include a just-created
-  // empty project so it's selectable before it holds a Kage.
-  const projects = useMemo(() => {
-    const list = repoInfo?.projects ? [...repoInfo.projects] : [];
-    if (proj !== "all" && !list.some((p) => p.repo === proj)) list.push({ repo: proj, count: 0 });
-    return list.sort((a, b) => a.repo.localeCompare(b.repo));
-  }, [repoInfo, proj]);
-
-  // Group the visible cards by project for folder-like section headers.
-  const groups = useMemo(() => {
-    const m = new Map<string, KageCard[]>();
-    for (const c of filtered) (m.get(c.repo) ?? m.set(c.repo, []).get(c.repo)!).push(c);
-    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [filtered]);
-
-  const current = cards?.find((c) => c.name === selected) ?? null;
-
+  // --- actions ---------------------------------------------------------------
   function newProject() {
     const raw = window.prompt("New project name (a–z, 0–9, -):");
-    if (!raw) return;
-    const slug = raw.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+    const slug = (raw ?? "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
     if (!slug) return;
-    setProj(slug);
+    setQuery({ repo: slug, scope: "all" });
     toast.message(`Project “${slug}” — import or create a Kage to populate it`);
   }
-
   async function exportJson(name: string) {
     const json = await op<string>("export_kage", { name, format: "json" });
     const blob = new Blob([typeof json === "string" ? json : JSON.stringify(json, null, 2)], { type: "application/json" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${name}.kage.json`; a.click();
   }
   async function importFile(file: File) {
-    const repo = proj === "all" ? "kages" : proj; // import into the selected project
+    const repo = query.repo || "kages";
     try { await op("create_kage", { doc: JSON.parse(await file.text()), repo }); toast.success(`Imported ${file.name} into ${repo}`); await refresh(); }
     catch (e) { toast.error(`Import failed: ${(e as Error).message}`); }
   }
   async function cloneKage(name: string) {
     try {
       const r = await op<{ version?: { name: string } }>("clone_kage", { name });
-      toast.success("Cloned");
-      await refresh();
-      if (r?.version?.name) await openCard(r.version.name);
+      toast.success("Cloned"); await refresh();
+      if (r?.version?.name) open(r.version.name);
     } catch (e) { toast.error(String((e as Error).message)); }
   }
+  async function previewCard(card: KageCard) {
+    try { setFullscreen({ doc: await op<KageDoc>("get_kage", { uuid: card.uuid }), ref: card.ref }); }
+    catch (e) { toast.error(String((e as Error).message)); }
+  }
+
+  // --- keyboard --------------------------------------------------------------
+  // "/" jumps to search (the convention in every list-heavy tool); arrows move
+  // between cards in reading order. Both stand down while typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      const typing = !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+      if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey) { e.preventDefault(); searchRef.current?.focus(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  function onResultsKey(e: React.KeyboardEvent) {
+    if (!["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)) return;
+    const targets = Array.from(resultsRef.current?.querySelectorAll<HTMLElement>("[data-open]") ?? []);
+    const i = targets.indexOf(document.activeElement as HTMLElement);
+    if (i < 0) return;
+    const next = targets[i + (e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1)];
+    if (next) { e.preventDefault(); next.focus(); next.scrollIntoView({ block: "nearest" }); }
+  }
+
+  const rail = (
+    <FacetRail query={query} resolvedScope={resolvedScope} facets={facets} workspace={workspace} onChange={setQuery} onNewProject={newProject} />
+  );
+  const empty = cards !== null && cards.length === 0;
+
+  const renderCard = (c: KageCard) => {
+    const p = { card: c, selected: c.name === openName, pinned: pins.has(c.name), onOpen: open, onPin: togglePin, onPreview: previewCard };
+    return query.view === "list" ? <KageRow key={c.name} {...p} /> : <KageTile key={c.name} {...p} />;
+  };
 
   return (
-    <div className="grid h-[calc(100svh-3.5rem)] grid-cols-1 md:grid-cols-[360px_1fr]">
-      {/* Master */}
-      <div className="flex min-h-0 flex-col border-r">
-        {/* Workspace → the top of the organizing hierarchy */}
-        <div className="flex items-center gap-2 border-b px-3 py-2">
-          <Layers className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{repoInfo?.workspace ?? "workspace"}</span>
-          <span className="text-xs text-muted-foreground">· {projects.length} project{projects.length === 1 ? "" : "s"}</span>
-        </div>
-        {/* Search + project / system filters + import-into-project */}
-        <div className="space-y-2 border-b p-3">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Kages" className="pl-8" />
+    <div className="flex h-[calc(100svh-3.5rem)]">
+      <aside className="hidden w-64 shrink-0 overflow-y-auto border-r p-3 md:block">{rail}</aside>
+
+      <main className="flex min-w-0 flex-1 flex-col">
+        <header className="flex flex-wrap items-center gap-3 border-b px-4 py-3 md:px-6">
+          <div className="min-w-0">
+            <h2 className="font-display text-[22px] leading-7 font-[650] tracking-[-0.01em]">Library</h2>
+            <p className="text-sm text-muted-foreground">{cards ? `${visible.length} of ${all.length} Kages` : "Loading…"}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={proj} onValueChange={(v) => (v === "__new__" ? newProject() : setProj(v ?? "all"))}>
-              <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All projects</SelectItem>
-                {projects.map((p) => <SelectItem key={p.repo} value={p.repo}>{p.repo} ({p.count})</SelectItem>)}
-                <SelectItem value="__new__">＋ New project…</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sysFilter} onValueChange={(v) => setSysFilter(v ?? "all")}>
-              <SelectTrigger className="w-[104px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Any sys</SelectItem>
-                <SelectItem value="core">Core</SelectItem>
-                <SelectItem value="ledger">Ledger</SelectItem>
-                <SelectItem value="atelier">Atelier</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button size="icon" variant={showArchived ? "secondary" : "outline"} aria-label="Show archived" aria-pressed={showArchived}
-              title={archivedCount ? `${archivedCount} archived` : "No archived Kages"} onClick={() => setShowArchived((v) => !v)}><Archive /></Button>
-            <Button size="icon" variant="outline" aria-label={`New project`} onClick={newProject}><FolderPlus /></Button>
-            <Button size="icon" variant="outline" aria-label="Import JSON" nativeButton={false} render={<label />}>
+          <div className="ml-auto flex items-center gap-2">
+            <Button size="sm" variant="outline" nativeButton={false} render={<label />}>
               <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
-              <Upload />
+              <Upload /> Import
             </Button>
+            <Button size="sm" render={<Link href="/studio" />} nativeButton={false}><Plus /> New Kage</Button>
+          </div>
+        </header>
+
+        <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2.5 md:px-6">
+          <Button size="sm" variant="outline" className="md:hidden" onClick={() => setFiltersOpen(true)}><SlidersHorizontal /> Filters{chips.length ? ` (${chips.length})` : ""}</Button>
+          <div className="relative min-w-48 flex-1 md:max-w-md">
+            <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input ref={searchRef} value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") { setText(""); (e.target as HTMLInputElement).blur(); } }}
+              placeholder="Search Kages…" aria-label="Search Kages" className="pr-8 pl-8" />
+            {text ? (
+              <button type="button" aria-label="Clear search" onClick={() => { setText(""); searchRef.current?.focus(); }} className="absolute top-1/2 right-2 grid size-5 -translate-y-1/2 place-items-center rounded-sm text-muted-foreground hover:bg-accent"><X className="size-3.5" /></button>
+            ) : (
+              <kbd aria-hidden className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded-sm border px-1.5 font-mono text-[11px] text-muted-foreground">/</kbd>
+            )}
+          </div>
+          <Select value={query.sort} onValueChange={(v) => v && setQuery({ sort: v as Sort })}>
+            <SelectTrigger className="w-44" aria-label="Sort"><SelectValue>{SORT_LABEL[query.sort]}</SelectValue></SelectTrigger>
+            <SelectContent>{(Object.keys(SORT_LABEL) as Sort[]).map((s) => <SelectItem key={s} value={s}>{SORT_LABEL[s]}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={query.group} onValueChange={(v) => v && setQuery({ group: v as Group })}>
+            <SelectTrigger className="w-44" aria-label="Grouping"><SelectValue>{GROUP_LABEL[query.group]}</SelectValue></SelectTrigger>
+            <SelectContent>{(Object.keys(GROUP_LABEL) as Group[]).map((g) => <SelectItem key={g} value={g}>{GROUP_LABEL[g]}</SelectItem>)}</SelectContent>
+          </Select>
+          <div role="group" aria-label="View" className="flex rounded-md border border-input">
+            <Button size="icon" variant={query.view === "grid" ? "secondary" : "ghost"} aria-pressed={query.view === "grid"} aria-label="Grid view" className="rounded-r-none" onClick={() => setQuery({ view: "grid" })}><LayoutGrid /></Button>
+            <Button size="icon" variant={query.view === "list" ? "secondary" : "ghost"} aria-pressed={query.view === "list"} aria-label="List view" className="rounded-l-none" onClick={() => setQuery({ view: "list" })}><List /></Button>
           </div>
         </div>
-        <ScrollArea className="flex-1">
-          <div className="flex flex-col gap-3 p-3">
-            {!cards && [0, 1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
-            {cards && filtered.length === 0 && (
-              <p className="p-4 text-sm text-muted-foreground">
-                No Kages {proj === "all" ? "match" : `in “${proj}” yet`}{proj !== "all" && " — import one with the upload button."}
-              </p>
-            )}
-            {groups.map(([repo, items]) => (
-              <div key={repo} className="space-y-2">
-                <div className="flex items-center gap-1.5 px-1 text-xs font-medium text-muted-foreground">
-                  <Folder className="size-3.5" /><span className="font-mono">{repo}</span><span>· {items.length}</span>
-                </div>
-                {items.map((c) => (
-                  <div key={c.name} onClick={() => openCard(c.name)} role="button" tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCard(c.name); } }}
-                    className={cn("group relative cursor-pointer rounded-xl border bg-card p-3 transition-colors hover:bg-accent", c.name === selected && "border-primary bg-primary-soft hover:bg-primary-soft")}>
-                    <div className="flex items-center gap-2">
-                      <span className="flex-1 truncate font-medium">{c.title}</span>
-                      <StateBadge state={c.state} />
-                    </div>
-                    <div className="mt-1.5"><SystemChip system={c.system} /></div>
-                    <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{c.blocks} blocks</span><span className="font-mono">v{c.version}</span>
-                      <ValidationStatus validation={c.validation} short />
-                      <span className="ml-auto">{relTime(c.createdAt)}</span>
-                    </div>
-                    <Button size="icon" variant="outline" aria-label={`Preview ${c.title}`}
-                      onClick={(e) => { e.stopPropagation(); previewByUuid(c.uuid, c.ref); }}
-                      className="absolute right-2 top-2 size-7 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100">
-                      <Eye className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+
+        {chips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2 md:px-6" aria-label="Active filters">
+            {chips.map((c) => (
+              <button key={c.key} type="button" onClick={() => { if ("q" in c.clear) setText(""); setQuery(c.clear); }} aria-label={`Remove filter ${c.label}`}
+                className="inline-flex items-center gap-1 rounded-sm bg-muted py-0.5 pr-1 pl-2 text-xs hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+                {c.label}<X className="size-3.5 text-muted-foreground" aria-hidden />
+              </button>
             ))}
-          </div>
-        </ScrollArea>
-      </div>
-
-      {/* Detail */}
-      <div className="min-h-0 overflow-auto">
-        {!current ? (
-          <div className="grid h-full place-items-center p-6 text-sm text-muted-foreground">Select a Kage to explore its data, revisions and preview.</div>
-        ) : (
-          <div className="p-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-display text-[22px] leading-7 font-[650] tracking-[-0.01em]">{current.title}</h2>
-              <StateBadge state={current.state} />
-              <Badge variant="secondary" className="capitalize">{current.visibility}</Badge>
-              <div className="ml-auto flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" disabled={!doc} onClick={() => doc && setPreview({ doc, ref: current.ref })}><Eye className="size-4" /> Preview</Button>
-                <Button render={<Link href={`/studio?kage=${current.name}`} />} nativeButton={false} size="sm" variant="outline"><SquarePen className="size-4" /> Studio</Button>
-                <Button size="sm" variant="outline" onClick={() => cloneKage(current.name)}><Copy className="size-4" /> Clone</Button>
-                <Button size="sm" variant="outline" onClick={() => exportJson(current.name)}><Download className="size-4" /> Export</Button>
-                <ShareMenu name={current.name} uuid={current.uuid} state={current.state} visibility={current.visibility}
-                  onChanged={async () => { await refresh(); await openCard(current.name); }} />
-                <StatusMenu name={current.name} state={current.state}
-                  onChanged={async () => { await refresh(); await openCard(current.name); }}
-                  onDeleted={async () => { setSelected(null); setDoc(null); setVersions([]); setDescribe(""); await refresh(); }} />
-              </div>
-            </div>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">{current.ref}</p>
-
-            <Tabs defaultValue="overview" className="mt-5">
-              <TabsList variant="line" className="w-full justify-start gap-4 border-b">
-                <TabsTrigger value="overview" className="flex-none">Overview</TabsTrigger>
-                <TabsTrigger value="versions" className="flex-none">Versions <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{versions.length}</span></TabsTrigger>
-                <TabsTrigger value="describe" className="flex-none">Describe</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="mt-4">
-                <dl className="grid max-w-xl grid-cols-[150px_1fr] gap-y-3 text-sm">
-                  <dt className="text-muted-foreground">Project</dt>
-                  <dd className="inline-flex items-center gap-1.5 font-mono"><Folder className="size-3.5 text-muted-foreground" />{repoInfo?.workspace ?? "acme"} / {current.repo}</dd>
-                  <dt className="text-muted-foreground">System</dt><dd><SystemChip system={current.system} /></dd>
-                  <dt className="text-muted-foreground">Blocks</dt><dd>{current.blocks}</dd>
-                  <dt className="text-muted-foreground">Version</dt><dd className="font-mono">v{current.version}</dd>
-                  <dt className="text-muted-foreground">Visibility</dt><dd className="capitalize">{current.visibility}</dd>
-                  <dt className="text-muted-foreground">Validation</dt>
-                  <dd><ValidationStatus validation={current.validation} /></dd>
-                  <dt className="text-muted-foreground">Last author</dt><dd className="font-mono text-xs">{current.lastAuthor}</dd>
-                  <dt className="text-muted-foreground">Root block</dt><dd className="font-mono">{doc?.root ?? "…"}</dd>
-                  <dt className="text-muted-foreground">Lockfile</dt><dd>{doc?.resolved ? `${Object.keys(doc.resolved.blocks).length} pinned refs` : "…"}</dd>
-                </dl>
-              </TabsContent>
-
-              <TabsContent value="versions" className="mt-4">
-                <div className="divide-y">
-                  {[...versions].reverse().map((v) => (
-                    <div key={v.v} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3">
-                      <div className="flex items-center gap-1.5"><History className="size-4 text-muted-foreground" /><span className="font-mono font-semibold">v{v.v}</span></div>
-                      <div>
-                        <div className="text-sm">{v.change.summary} <span className="text-xs text-muted-foreground">· {v.change.ops} ops · {v.change.blocksTouched.length} blocks</span></div>
-                        <div className="font-mono text-xs text-muted-foreground">{v.author.principal}{v.author.runtime?.framework ? ` · ${v.author.runtime.framework}` : ""} · {v.digest.slice(0, 19)}…</div>
-                      </div>
-                      <div className="flex items-center gap-2"><StateBadge state={v.state} /><span className="text-xs text-muted-foreground">{relTime(v.createdAt)}</span></div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="describe" className="mt-4">
-                <pre className="overflow-auto rounded-xl border bg-muted p-4 font-mono text-[12.5px] leading-[18px]">{describe || "…"}</pre>
-              </TabsContent>
-
-            </Tabs>
+            <Button size="xs" variant="ghost" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [] }); }}>Clear all</Button>
           </div>
         )}
-      </div>
-      {preview && <KagePreview doc={preview.doc} kageRef={preview.ref} onClose={() => setPreview(null)} />}
+
+        <div ref={resultsRef} onKeyDown={onResultsKey} className="@container min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6" aria-live="polite" aria-busy={cards === null}>
+          {cards === null && (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-4">{[0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-44 rounded-xl" />)}</div>
+          )}
+
+          {empty && (
+            <div className="mx-auto mt-16 max-w-md text-center">
+              <h3 className="font-display text-lg font-[650]">Your library is empty</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Kages built by you or an agent show up here. Start in the Studio, or import a <span className="font-mono">.kage.json</span> file.</p>
+              <div className="mt-4 flex justify-center gap-2">
+                <Button render={<Link href="/studio" />} nativeButton={false}><Plus /> New Kage</Button>
+              </div>
+            </div>
+          )}
+
+          {cards !== null && !empty && visible.length === 0 && (
+            <div className="mx-auto mt-16 max-w-md text-center">
+              <h3 className="font-display text-lg font-[650]">No Kages match</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {resolvedScope === "pinned" ? "Pin a Kage with its star to keep it close." : chips.length ? "Nothing fits these filters." : resolvedScope === "mine" ? "You have no Kages of your own in this view yet." : "Nothing here yet."}
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {chips.length > 0 && <Button variant="outline" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [] }); }}>Clear filters</Button>}
+                {resolvedScope !== "templates" && templateCount > 0 && <Button variant="outline" onClick={() => setQuery({ scope: "templates", repo: "" })}>Browse {templateCount} templates</Button>}
+                {resolvedScope !== "all" && <Button variant="ghost" onClick={() => setQuery({ scope: "all", repo: "", states: [], systems: [] })}>Show everything</Button>}
+              </div>
+            </div>
+          )}
+
+          {groups.map((g) => (
+            <section key={g.key} aria-label={g.label || "Kages"} className={cn(g.label && "mb-8")}>
+              {g.label && (
+                <h3 className={cn(overline, "mb-3 flex items-center gap-1.5")}>
+                  {query.group === "project" && <Folder aria-hidden className="size-3.5" />}{g.label}<span className="font-normal normal-case tracking-normal">· {g.items.length}</span>
+                </h3>
+              )}
+              {query.view === "list" ? (
+                <div className="overflow-hidden rounded-xl border bg-card">{g.items.map(renderCard)}</div>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(17rem,1fr))] gap-4">{g.items.map(renderCard)}</div>
+              )}
+            </section>
+          ))}
+        </div>
+      </main>
+
+      <DetailSheet card={current} doc={doc} versions={versions} describe={describe} workspace={workspace}
+        onClose={() => open(null)} onFullscreen={() => doc && current && setFullscreen({ doc, ref: current.ref })}
+        onClone={cloneKage} onExport={exportJson}
+        onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
+
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="left" className="w-80 max-w-[85vw] overflow-y-auto">
+          <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
+          <div className="px-3 pb-4">{rail}</div>
+        </SheetContent>
+      </Sheet>
+
+      {fullscreen && <KagePreview doc={fullscreen.doc} kageRef={fullscreen.ref} onClose={() => setFullscreen(null)} />}
     </div>
   );
 }
 
 export default function ArtifactsPage() {
-  return <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading…</div>}><ArtifactsInner /></Suspense>;
+  return <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading…</div>}><LibraryInner /></Suspense>;
 }

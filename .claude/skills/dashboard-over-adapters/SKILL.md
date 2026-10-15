@@ -44,7 +44,29 @@ New summary op → `src/adapters/operations.ts` (it appears in REST/MCP/CLI/
 OpenAPI automatically, since surfaces are generated — see
 `how-to-extend-kages`).
 
-## The master-detail workbench
+## The Library (current dashboard)
+
+`/artifacts` (also `/kages`, `/library`) is the **Library**, not a master-detail
+pair. Logic is the pure `src/components/dashboard/library-model.ts`
+(`parseQuery`/`serializeQuery`, `filterCards`, `sortCards`, `groupCards`,
+`facetCounts`, `activeChips`), unit-tested without a browser; components are
+layout over it (`library/facet-rail`, `kage-tile`, `detail-sheet`).
+
+- **The URL is the state** (`q scope repo state sys sort group view id`); only
+  non-defaults are written; unknown values fall back. Filters `replace`, opening a
+  Kage `push`es so Back closes the panel.
+- **Scopes** split "My Kages" from the shipped `templates` repo (`auto` picks mine
+  when you have any). Facet counts exclude the facet's own selection, otherwise
+  choosing a value hides its siblings.
+- **A card is one button** whose `::after` stretches over it; pin/preview sit above.
+  Pins are per-viewer (`localStorage` `kages.pins`), never a server field.
+- **Summary fields come from the op.** `list_kages` returns `description` and
+  `kinds` (characteristic block types) so cards describe a Kage without shipping
+  documents; add new list fields there, not in the page.
+- Row/column density uses **container queries** (`@container`, `@2xl:`), because the
+  list sits beside two sidebars and viewport breakpoints lie.
+
+## The older master-detail workbench (superseded)
 
 The dashboard pattern (inspired by the devi artifacts workbench):
 
