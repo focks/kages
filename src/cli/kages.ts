@@ -12,12 +12,13 @@
 // load a persistent workspace (./.kages) and save it after a write.
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, dirname, resolve as resolvePath } from "node:path";
 import { systems, contracts } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { validate } from "../engine/validate.ts";
 import { review } from "../engine/advice.ts";
 import { outlineToKage } from "../engine/outline.ts";
+import { screenshotDoc, parseWidths, DEFAULTS as SHOT_DEFAULTS } from "./screenshot.ts";
 import { describe } from "../engine/describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
 import { KageSession } from "../engine/session.ts";
@@ -54,6 +55,11 @@ author  (operate on a .kage.json file, or a stored name; offline)
   validate <file|name> [-s sys] validate; exits 1 on errors
   describe <file|name> [-s sys] text view for agents
   preview  <file|name> [-s sys] headless render snapshot (visibility + outputs)
+  screenshot <file|name> [-o out.png|dir/] [--width 390,1200] [--height 900] [--dark] [--scale 1]
+             [--url http://localhost:3100] [-s sys] [--no-sandbox] [--strict]
+                                render in headless Chrome: a PNG per width plus checks for
+                                render failures, sideways scroll, broken images, console errors
+                                (needs Chrome and a running app; --strict exits 1 on any finding)
   convert  <file> --to envelope|doc [-s sys]
   from-markdown <file.md> [-o out.kage.json] [--title t] [--id i] [-s sys] [--toc auto|always|never] [--create]
                                 write prose, get a Kage: headings → sections, > Note → alerts,
@@ -229,6 +235,22 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
 
     // --- manage (workspace store) ---
     case "init": { initWorkspace(ctx.dir); out(`initialized workspace at ${ctx.dir}`); return 0; }
+    case "screenshot": {
+      need(1, "screenshot <file|name> [-o out.png|dir/] [--width 390,1200] [--dark] [--url u] [--no-sandbox] [--strict]");
+      const doc = resolveDoc(rest[0]);
+      const widths = parseWidths(flag(flags, "width"));
+      const shots = await screenshotDoc(doc, { ...SHOT_DEFAULTS, widths, height: Number(flag(flags, "height", SHOT_DEFAULTS.height)) || SHOT_DEFAULTS.height, dark: !!flags.dark, scale: Math.min(3, Math.max(1, Number(flag(flags, "scale", 1)) || 1)), system: sys, url: flag<string>(flags, "url"), noSandbox: !!flags["no-sandbox"] });
+      const target = flag<string>(flags, "out");
+      const single = target && /\.png$/i.test(target) && shots.length === 1;
+      const files = shots.map((r) => single ? resolvePath(target!) : resolvePath(target && !/\.png$/i.test(target) ? target : ".", `${doc.id}-${r.width}.png`));
+      shots.forEach((r, i) => { mkdirSync(dirname(files[i]), { recursive: true }); writeFileSync(files[i], r.png); });
+      if (ctx.json) printJson(shots.map((r, i) => ({ file: files[i], width: r.width, height: r.height, truncated: r.truncated, blocks: r.metrics.blocks, issues: r.issues, consoleErrors: r.consoleErrors })));
+      else for (const [i, r] of shots.entries()) {
+        out(`${r.issues.length ? "⚠" : "✓"} ${files[i]}  ${r.width}×${r.height}  ${r.metrics.blocks} blocks${r.issues.length ? "" : "  no problems found"}`);
+        for (const issue of r.issues) out(`    • ${issue}`);
+      }
+      return flags.strict && shots.some((r) => r.issues.length) ? 1 : 0;
+    }
     case "from-markdown": {
       need(1, "from-markdown <file.md> [-o out.kage.json] [--title t] [--id i] [-s sys] [--toc auto|always|never] [--create]");
       const built = outlineToKage(readFileSync(rest[0], "utf8"), { title: flag<string>(flags, "title"), id: flag<string>(flags, "id"), system: sys, toc: flag<"auto" | "always" | "never">(flags, "toc") });
@@ -355,8 +377,9 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
         ? `kages mcp: serving your cloud workspace (signed in as ${s.email})\n`
         : `kages mcp: serving the local workspace (${ctx.dir}) — run \`kages mcp login\` to use your cloud workspace\n`);
       const { createMcpServer } = await import("../adapters/mcp.ts");
+      const { renderTool } = await import("./render-tool.ts");
       const { StdioServerTransport } = await import("@modelcontextprotocol/sdk/server/stdio.js");
-      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name)));
+      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name)), renderTool((name) => resolveDoc(name)));
       await server.connect(new StdioServerTransport());
       await new Promise(() => {}); // run until the client closes stdin
       return 0;

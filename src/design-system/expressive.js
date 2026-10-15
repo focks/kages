@@ -75,10 +75,14 @@
 
   function finiteNumber(n, fallback) { return typeof n === "number" && isFinite(n) ? Math.max(-1000000, Math.min(1000000, n)) : fallback; }
   function paint(value, fallback) { return "var(--kg-" + choice(value, ["accent", "ink", "ink-muted", "line", "surface", "sunken", "paper", "success", "danger"], fallback) + ")"; }
+  // A wide figure is drawn in a fixed coordinate space and scaled to fit; on a
+  // phone that shrinks its labels to unreadable. Give it a minimum width of 80%
+  // of its drawing width inside a scrolling figure instead.
+  function wideStyle(w) { return w >= 480 ? { minWidth: Math.round(w * .8) } : undefined; }
   function CoreScene(p) {
     var width = Math.max(1, finiteNumber(p.width, 640)), height = Math.max(1, finiteNumber(p.height, 360));
-    return h("figure", { className: "kg-scene" }, h("figcaption", null, p.label),
-      h("svg", { viewBox: "0 0 " + width + " " + height, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label),
+    return h("figure", { className: "kg-scene" + (width >= 480 ? " kg-scene--wide" : "") }, h("figcaption", null, p.label),
+      h("svg", { style: wideStyle(width), viewBox: "0 0 " + width + " " + height, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label),
         (Array.isArray(p.shapes) ? p.shapes : []).slice(0, 2000).map(function (s, i) {
           if (!s || ["rect", "circle", "line", "path", "text"].indexOf(s.kind) < 0) return null;
           var attrs = { key: i, fill: s.kind === "line" || s.kind === "path" ? "none" : paint(s.fill, "surface"), stroke: paint(s.stroke, "ink"), strokeWidth: Math.max(0, finiteNumber(s.strokeWidth, 1)), "aria-label": s.label || undefined };

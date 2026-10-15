@@ -4,3 +4,7 @@
 .kg-funnel svg [role=button], .kg-treemap svg [role=button], .kg-map svg [role=button] { cursor: pointer; }
 .kg-funnel svg [role=button]:focus-visible, .kg-treemap svg [role=button]:focus-visible, .kg-map svg [role=button]:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
 .kg-map svg { max-height: 28rem; }
+/* Wide figures keep readable labels on narrow canvases by scrolling sideways
+ * inside their own box instead of shrinking; the page itself never scrolls. */
+.kg-scene--wide { overflow-x: auto; }
+.kg-scene--wide > svg { max-width: none; }

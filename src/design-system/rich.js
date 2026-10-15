@@ -28,8 +28,8 @@
     var base = r2(250 - (dy ? (0 - minY / sy) / dy : 0) * 210);
     var line = pts.map(function (pt, i) { return (i ? "L" : "M") + pt.x + " " + pt.y; }).join(" ");
     var area = line + " L" + pts[pts.length - 1].x + " " + base + " L" + pts[0].x + " " + base + " Z";
-    return h("figure", { className: "kg-scene kg-area" }, h("figcaption", null, p.label),
-      h("svg", { viewBox: "0 0 640 310", role: "img", "aria-label": p.label }, h("title", null, p.label),
+    return h("figure", { className: "kg-scene kg-scene--wide kg-area" }, h("figcaption", null, p.label),
+      h("svg", { style: wideStyle(640), viewBox: "0 0 640 310", role: "img", "aria-label": p.label }, h("title", null, p.label),
         h("line", { x1: 50, y1: 250, x2: 580, y2: 250, stroke: "var(--kg-ink-muted)" }), h("line", { x1: 50, y1: 40, x2: 50, y2: 250, stroke: "var(--kg-ink-muted)" }),
         h("path", { d: area, fill: "var(--kg-accent)", fillOpacity: .22, stroke: "none" }), h("path", { d: line, fill: "none", stroke: "var(--kg-accent)", strokeWidth: 3 }),
         h("text", { x: 50, y: 285, fill: "var(--kg-ink)", fontSize: 12 }, String(minX)), h("text", { x: 540, y: 285, fill: "var(--kg-ink)", fontSize: 12 }, String(maxX)), h("text", { x: 4, y: 36, fill: "var(--kg-ink)", fontSize: 12 }, String(maxY))),

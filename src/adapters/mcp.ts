@@ -84,11 +84,21 @@ async function callToolResult(exec: Exec, name: string, args: Record<string, unk
 
 // --- transport 1: stdio (SDK Server) ---
 
-export function createMcpServer(exec: Exec): Server {
+/** Tools only a local process can offer (they need a browser or the filesystem),
+ *  so they are not part of the shared operation table and never appear on the
+ *  hosted HTTP route. `call` returns MCP content blocks, images included. */
+export interface LocalTools {
+  tools: object[];
+  call(name: string, args: Record<string, unknown>): Promise<{ content: object[]; isError?: boolean } | undefined>;
+}
+
+export function createMcpServer(exec: Exec, local?: LocalTools): Server {
   const server = new Server(SERVER_INFO, { capabilities: CAPABILITIES });
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: mcpTools() }));
-  server.setRequestHandler(CallToolRequestSchema, async (req) =>
-    callToolResult(exec, req.params.name, (req.params.arguments ?? {}) as Record<string, unknown>));
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [...mcpTools(), ...(local?.tools ?? [])] }));
+  server.setRequestHandler(CallToolRequestSchema, async (req) => {
+    const args = (req.params.arguments ?? {}) as Record<string, unknown>;
+    return (await local?.call(req.params.name, args)) ?? callToolResult(exec, req.params.name, args);
+  });
   server.setRequestHandler(ListPromptsRequestSchema, async () => ({ prompts: promptList() }));
   server.setRequestHandler(GetPromptRequestSchema, async (req) => getPromptResult(req.params.name));
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: resourceList() }));

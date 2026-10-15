@@ -68,7 +68,7 @@
       }
     });
     shapes.push(h("line", { key: "zero", x1: f.left, y1: f.zero, x2: 628, y2: f.zero, stroke: "var(--kg-ink-muted)" }));
-    return h("figure", { className: "kg-scene kg-combo" }, h("figcaption", null, p.label), h("svg", { viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
+    return h("figure", { className: "kg-scene kg-scene--wide kg-combo" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
   }
 
   function CoreStackedBarChart(p) {
@@ -85,7 +85,7 @@
         shapes.push(h("rect", { key: i + "-" + si, x: r2(f.left + f.band * i + f.band * .15), y: r2(y2), width: r2(w), height: r2(Math.max(0, y1 - y2)), fill: seriesPaint(si), opacity: seriesOpacity(si), stroke: "var(--kg-paper)", strokeWidth: 1 }, h("title", null, s.name + " · " + c + ": " + raw)));
       });
     });
-    return h("figure", { className: "kg-scene kg-stacked" }, h("figcaption", null, p.label), h("svg", { viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
+    return h("figure", { className: "kg-scene kg-scene--wide kg-stacked" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
   }
 
   /** Selectable shape props shared by funnel, treemap and map: a button that
@@ -111,7 +111,7 @@
       var share = Math.round(s.value / first * 100);
       return h("g", { key: i }, h("path", a, h("title", null, s.label + ": " + s.value + " (" + share + "%)")), h("text", { x: cx, y: y + (rowH - 6) / 2 + 5, textAnchor: "middle", fill: "var(--kg-ink)", fontSize: 14, pointerEvents: "none" }, shortLabel(s.label, 28) + " · " + s.value + " (" + share + "%)"));
     });
-    return h("figure", { className: "kg-scene kg-funnel" }, h("figcaption", null, p.label), h("svg", { viewBox: "0 0 640 " + (stages.length * rowH + 8), role: "img", "aria-label": p.label }, h("title", null, p.label), shapes),
+    return h("figure", { className: "kg-scene kg-scene--wide kg-funnel" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 " + (stages.length * rowH + 8), role: "img", "aria-label": p.label }, h("title", null, p.label), shapes),
       dataTable(p.label, ["Stage", "Value", "Of first"], stages.map(function (s) { return [s.label, s.value, Math.round(s.value / first * 100) + "%"]; })));
   }
 
@@ -144,7 +144,7 @@
         big ? h("text", { x: r2(r.x + 8), y: r2(r.y + 20), fill: "var(--kg-ink)", fontSize: 13, pointerEvents: "none" }, shortLabel(it.label, Math.floor(r.w / 7.5))) : null,
         big ? h("text", { x: r2(r.x + 8), y: r2(r.y + 36), fill: "var(--kg-ink-muted)", fontSize: 12, pointerEvents: "none" }, String(it.value)) : null);
     });
-    return h("figure", { className: "kg-scene kg-treemap" }, h("figcaption", null, p.label), h("svg", { viewBox: "0 0 640 360", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes),
+    return h("figure", { className: "kg-scene kg-scene--wide kg-treemap" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 360", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes),
       dataTable(p.label, ["Label", "Value", "Share"], items.map(function (it) { return [it.label, it.value, Math.round(it.value / total * 100) + "%"]; })));
   }
 
@@ -179,7 +179,7 @@
       return h("path", { key: i, d: "M" + r2(x1) + " " + r2(y1) + "C" + r2(mx) + " " + r2(y1) + " " + r2(mx) + " " + r2(y2) + " " + r2(x2) + " " + r2(y2), fill: "none", stroke: seriesPaint(used.indexOf(a)), strokeOpacity: .35, strokeWidth: r2(w) }, h("title", null, a.label + " → " + b.label + ": " + l.value));
     });
     var boxes = used.map(function (n, i) { var left = n.layer === 0; return h("g", { key: "n" + i }, h("rect", { x: n.x, y: r2(n.y), width: colW, height: r2(n.h), fill: seriesPaint(i), rx: 2 }, h("title", null, n.label + ": " + Math.max(n.in, n.out))), h("text", { x: left ? r2(n.x + colW + 6) : r2(n.x - 6), y: r2(n.y + n.h / 2 + 4), textAnchor: left ? "start" : "end", fill: "var(--kg-ink)", fontSize: 12 }, shortLabel(n.label, 18))); });
-    return h("figure", { className: "kg-scene kg-sankey" }, h("figcaption", null, p.label), h("svg", { viewBox: "0 0 640 360", role: "img", "aria-label": p.label }, h("title", null, p.label), paths, boxes),
+    return h("figure", { className: "kg-scene kg-scene--wide kg-sankey" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 360", role: "img", "aria-label": p.label }, h("title", null, p.label), paths, boxes),
       dataTable(p.label, ["From", "To", "Value"], links.map(function (l) { return [byId[l.from].label, byId[l.to].label, l.value]; })));
   }
 
@@ -215,7 +215,7 @@
       return h("g", { key: i }, h("path", Object.assign(a, { key: undefined, d: d, fillRule: "evenodd", style: { fill: shade }, stroke: chosen ? "var(--kg-ink)" : "var(--kg-ink-muted)", strokeWidth: chosen ? 2.5 : .75, strokeLinejoin: "round" }), h("title", null, f.name + (f.value != null ? ": " + f.value : ""))),
         bw > f.name.length * 7 + 12 && bh > 22 ? h("text", { x: r2(ox + ((fx + fX) / 2 - minX) * kx * scale), y: r2((maxY - (fy + fY) / 2) * scale + 4), textAnchor: "middle", fill: "var(--kg-ink)", fontSize: 13, pointerEvents: "none" }, shortLabel(f.name, 20)) : null);
     });
-    return h("figure", { className: "kg-scene kg-map" }, h("figcaption", null, p.label), h("svg", { viewBox: "0 0 " + W + " " + Hh, role: "img", "aria-label": p.label }, h("title", null, p.label), shapes),
+    return h("figure", { className: "kg-scene kg-scene--wide kg-map" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(W), viewBox: "0 0 " + W + " " + Hh, role: "img", "aria-label": p.label }, h("title", null, p.label), shapes),
       dataTable(p.label, ["Region", "Value"], features.map(function (f) { return [f.name, f.value == null ? "–" : f.value]; })));
   }
 

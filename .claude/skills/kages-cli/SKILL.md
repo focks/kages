@@ -76,3 +76,11 @@ pins inside the block), `comments <name>` (indented thread with scores),
 `reply <name> <comment-id> <text>`, `resolve <comment-id> [--reopen]`,
 `vote <comment-id> up|down|clear`. Each is a thin translation of the matching
 operation; the rules are the store's (see `discussion-comments`).
+
+## Authoring and review commands
+
+`from-markdown <file.md> [--create]` writes a Kage from prose (see `outline_to_kage`);
+`validate` prints a fix for every finding and lint for pitfalls the validator allows;
+`screenshot <file|name> [--width 390,1200] [--dark] [--strict]` renders it (see
+`visual-review`). Boolean flags that must never swallow the next argument are listed
+in `BOOLEAN` in `src/cli/args.ts` (`--dark`, `--no-sandbox`, `--create`, `--reopen`).

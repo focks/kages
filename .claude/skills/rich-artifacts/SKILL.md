@@ -89,3 +89,12 @@ real defects that SSR passed (list markers, stretched grid rows, `\left` text).
 
 - Verified in a real browser in the light theme at desktop and 390px widths;
   dark theme relies on token inheritance (no hard-coded colours).
+
+## Wide figures on phones
+
+Charts and diagrams are drawn in a fixed coordinate space and scaled to fit, so on a
+phone their text shrinks with them. Any figure whose viewBox is 480+ wide gets
+`kg-scene--wide` and `style={{ minWidth: 0.8 × width }}` (`wideStyle()` in
+`expressive.js`) inside a figure that scrolls sideways, which keeps labels at ~9px+.
+New wide charts must do the same; `kages screenshot --width 390` reports
+"text is too small to read" if one forgets (see `visual-review`).

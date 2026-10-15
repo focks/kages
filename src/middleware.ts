@@ -1,6 +1,6 @@
 // Edge middleware: when auth is enabled, refresh the Supabase session on every
 // request and redirect signed-out users to /login — EXCEPT the public surfaces
-// (/login, /auth/*, /k/* share links, /api/* which gate themselves). When auth
+// (/login, /auth/*, /k/* share links, /render which only shows a document it is handed, /api/* which gate themselves). When auth
 // is OFF (no NEXT_PUBLIC Supabase vars, i.e. local/dev), this is a pass-through:
 // no login, exactly today's behaviour.
 //
@@ -14,7 +14,7 @@ function authEnabled(): boolean {
   return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
 
-const PUBLIC = ["/login", "/auth", "/k", "/api"];
+const PUBLIC = ["/login", "/auth", "/k", "/api", "/render"];
 
 export async function middleware(request: NextRequest) {
   if (!authEnabled()) return NextResponse.next();
