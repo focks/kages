@@ -66,6 +66,8 @@ export interface KageEvent {
     | "kage.deleted"
     | "kage.action.emitted"
     | "kage.comment.created"
+    | "kage.comment.resolved"
+    | "kage.comment.deleted"
     | "system.published";
   ref: string;
   at: string;

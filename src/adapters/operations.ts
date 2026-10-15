@@ -27,6 +27,7 @@ export type OpResult = { ok: true; data: unknown } | { ok: false; error: { code:
 
 const ok = (data: unknown): OpResult => ({ ok: true, data });
 const fail = (code: string, msg: string): OpResult => ({ ok: false, error: { code, msg } });
+const cres = <T,>(r: { ok: true; value: T } | { ok: false; error: { code: string; msg: string } }): OpResult => (r.ok ? ok(r.value) : fail(r.error.code, r.error.msg));
 
 type Params = Record<string, any>;
 
@@ -256,8 +257,23 @@ export const OPERATIONS: OpSpec[] = [
     return ok({ released: true });
   } },
 
-  { name: "comment", summary: "Anchor a comment to a block, optionally with a suggested patch", params: ["kage", "block", "text", "suggestedPatch?"], write: true, run: (c, p) =>
-    ok(c.store.comment(p.kage, p.block, c.author.principal, p.text, p.suggestedPatch)) },
+  // --- discussion: threads, pins, votes ------------------------------------
+  // Reading needs read access to the Kage; writing needs a signed-in principal.
+  // Every rule (limits, ownership, who may resolve or delete) lives in the store,
+  // so the dashboard, CLI, MCP and A2A all get exactly the same behaviour.
+  { name: "comment", summary: "Add a comment or reply. block anchors it; x/y (0..1) pin it inside the block; parent makes it a reply", params: ["kage", "block?", "text", "parent?", "x?", "y?", "suggestedPatch?"], write: true, run: (c, p) =>
+    cres(c.store.addComment(p.kage, c.author, { block: p.block, text: p.text, parent: p.parent, suggestedPatch: p.suggestedPatch, ...(p.x !== undefined || p.y !== undefined ? { pos: { x: p.x, y: p.y } } : {}) })) },
+
+  { name: "list_comments", summary: "Every comment on a Kage with score, your vote and what you may do to each (untrusted content)", params: ["kage"], run: (c, p) =>
+    cres(c.store.listComments(p.kage, c.author)) },
+
+  { name: "edit_comment", summary: "Edit your own comment", params: ["id", "text"], write: true, run: (c, p) => cres(c.store.editComment(p.id, c.author, p.text)) },
+
+  { name: "delete_comment", summary: "Delete a comment (author or admin); a comment with replies stays as a tombstone", params: ["id"], write: true, run: (c, p) => cres(c.store.deleteComment(p.id, c.author)) },
+
+  { name: "resolve_comment", summary: "Resolve or reopen a thread by its first comment", params: ["id", "resolved?"], write: true, run: (c, p) => cres(c.store.resolveComment(p.id, c.author, p.resolved !== false)) },
+
+  { name: "vote_comment", summary: "Upvote (1), downvote (-1) or clear (0) another person's comment", params: ["id", "value"], write: true, run: (c, p) => cres(c.store.voteComment(p.id, c.author, Number(p.value))) },
 ];
 
 /** A free Kage id derived from a base string (the source title, usually). */

@@ -71,7 +71,13 @@ manage  (your CLOUD workspace when signed in, else the local ./.kages; --local f
   delete <name> --yes           permanently remove a Kage (needs admin)
   export <name> [--format json|markdown] [-o file]
   state <name>                  current app state
-  comment <name> <block> <text> [--patch file]
+  comment <name> <block|-> <text> [--at x,y] [--patch file]
+                                add a comment; "-" = about the whole Kage;
+                                --at 0.4,0.6 pins it inside the block
+  comments <name>               the discussion as an indented thread
+  reply <name> <comment-id> <text>
+  resolve <comment-id> [--reopen]   resolve (or reopen) a thread
+  vote <comment-id> up|down|clear
 
 setup  (wire Kages into a coding harness)
   setup skills [--harness claude|codex] ...
@@ -274,9 +280,39 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       need(1, "state <name>");
       return report(await op("get_state", { name: rest[0] }), (d) => printJson(d));
     case "comment": {
-      need(3, "comment <name> <block> <text> [--patch file]");
+      need(3, "comment <name> <block|-> <text> [--at x,y] [--patch file]");
       const suggestedPatch = flags.patch ? JSON.parse(readFileSync(flag<string>(flags, "patch")!, "utf8")) : undefined;
-      return report(await op("comment", { kage: rest[0], block: rest[1], text: rest.slice(2).join(" "), suggestedPatch }, true), (d) => out(`comment ${(d as any).id} on ${(d as any).block}`));
+      const at = flag<string>(flags, "at")?.split(",").map(Number);
+      if (at && (at.length !== 2 || at.some((n) => !Number.isFinite(n)))) throw new Error("--at takes x,y as numbers between 0 and 1, e.g. --at 0.4,0.6");
+      return report(await op("comment", { kage: rest[0], block: rest[1] === "-" ? "" : rest[1], text: rest.slice(2).join(" "), suggestedPatch, ...(at ? { x: at[0], y: at[1] } : {}) }, true), (d) => out(`comment ${(d as any).id}${(d as any).block ? " on " + (d as any).block : ""}`));
+    }
+    case "comments": {
+      need(1, "comments <name>");
+      return report(await op("list_comments", { kage: rest[0] }), (d) => {
+        const all = d as any[];
+        if (!all.length) return out("no comments");
+        const kids = (id?: string) => all.filter((c) => c.parent === id).sort((a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt));
+        const show = (c: any, depth: number) => {
+          const head = c.deleted ? "[deleted]" : `${c.author}${c.block ? " @" + c.block : ""}${c.pos ? ` (${c.pos.x},${c.pos.y})` : ""}${c.resolved ? " ✓resolved" : ""}`;
+          out(`${"  ".repeat(depth)}${c.id} ${head}  ${c.score >= 0 ? "+" : ""}${c.score}${c.deleted ? "" : "\n" + "  ".repeat(depth + 1) + c.text.split("\n").join("\n" + "  ".repeat(depth + 1))}`);
+          kids(c.id).forEach((k) => show(k, depth + 1));
+        };
+        kids(undefined).forEach((c) => show(c, 0));
+      });
+    }
+    case "reply": {
+      need(3, "reply <name> <comment-id> <text>");
+      return report(await op("comment", { kage: rest[0], parent: rest[1], text: rest.slice(2).join(" ") }, true), (d) => out(`comment ${(d as any).id} (reply to ${rest[1]})`));
+    }
+    case "resolve": {
+      need(1, "resolve <comment-id> [--reopen]");
+      return report(await op("resolve_comment", { id: rest[0], resolved: flags.reopen !== true }, true), (d) => out(`${(d as any).id} ${(d as any).resolved ? "resolved" : "reopened"}`));
+    }
+    case "vote": {
+      need(2, "vote <comment-id> up|down|clear");
+      const value = { up: 1, down: -1, clear: 0 }[rest[1] as "up"];
+      if (value === undefined) throw new Error("usage: kages vote <comment-id> up|down|clear");
+      return report(await op("vote_comment", { id: rest[0], value }, true), (d) => out(`${(d as any).id} score ${(d as any).score}`));
     }
 
     // --- setup (wire Kages into a harness) ---

@@ -142,3 +142,23 @@ test("store snapshot/restore keeps versions and verifiable signatures", () => {
   // The signer travelled in the snapshot, so the digest still verifies.
   assert.ok(verifyDigest(restored.publicKeyOf("user:focks"), head.digest, head.signature));
 });
+
+test("discussion commands: comment, pin, reply, list as a thread, resolve, and the self-vote rule", async () => {
+  const dir = tmpWorkspace();
+  const run = (...a: string[]) => cli([...a, "--local", "-C", dir]);
+  await run("init");
+  assert.equal((await run("create", FIXTURE)).code, 0);
+  const first = await run("comment", "ops-console", "-", "Great start overall"); assert.equal(first.code, 0, first.err); assert.match(first.out, /comment c1$/m);
+  const pinned = await run("comment", "ops-console", "kpiRevenue", "Needs a caption", "--at", "0.25,0.75"); assert.equal(pinned.code, 0, pinned.err); assert.match(pinned.out, /comment c2 on kpiRevenue/);
+  assert.equal((await run("reply", "ops-console", "c2", "Added one")).code, 0);
+  const listed = await run("comments", "ops-console"); assert.equal(listed.code, 0);
+  assert.match(listed.out, /c2 user:\S+ @kpiRevenue \(0\.25,0\.75\)/); assert.match(listed.out, /^ {2}c3 /m, "the reply is indented under its parent"); assert.match(listed.out, /Needs a caption/);
+  assert.equal((await run("resolve", "c2")).out.trim(), "c2 resolved"); assert.match((await run("comments", "ops-console")).out, /✓resolved/);
+  assert.equal((await run("resolve", "c2", "--reopen")).out.trim(), "c2 reopened");
+  const self = await run("vote", "c1", "up"); assert.notEqual(self.code, 0, "you cannot vote on your own comment"); assert.match(self.err, /own comment/);
+  assert.notEqual((await run("vote", "c1", "sideways")).code, 0);
+  assert.notEqual((await run("comment", "ops-console", "ghostBlock", "x")).code, 0, "an unknown block is refused");
+  assert.notEqual((await run("comment", "ops-console", "kpiRevenue", "x", "--at", "2,0.5")).code, 0, "an out-of-range pin is refused");
+  assert.notEqual((await run("comment", "ops-console", "-", "x", "--at", "banana")).code, 0);
+  assert.match((await run("comments", "nothing-here")).err, /./);
+});

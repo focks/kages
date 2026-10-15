@@ -502,12 +502,144 @@ export class Store {
 
   // --- collaboration surface ----------------------------------------------
 
+  /** The unchecked, single-note form kept for internal callers and tests. Use
+   *  `addComment` for anything that crosses a trust boundary. */
   comment(kage: string, block: string, author: string, text: string, suggestedPatch?: PatchOp[]): Comment {
     const c = this.comments.add({ kage, block, author, text, suggestedPatch }, new Date(this.clock()).toISOString());
     this.emit("kage.comment.created", kage, { block, commentId: c.id });
     return c;
   }
+
+  // --- discussion: threaded, pinned, voted comments, all permission-checked ----
+
+  private commentTimes = new Map<string, number[]>();
+
+  /** Callers must be a real principal: reading a public Kage is open to anyone,
+   *  but writing into its discussion is not. */
+  private commenter(author: Provenance): CommentResult<null> {
+    if (!author.principal || author.principal === "anon" || author.principal.startsWith("anon:")) return cerr("forbidden", "sign in to take part in the discussion");
+    return { ok: true, value: null };
+  }
+
+  /** What a given viewer may do to each comment, decided here so the UI never
+   *  has to guess (and can never offer a button the server would refuse). */
+  private commentView(c: Comment, author: Provenance, repo: string): CommentView {
+    const { votes, ...rest } = c;
+    const mine = votes?.[author.principal] ?? 0;
+    const real = !!this.commenter(author).ok;
+    const own = real && c.author === author.principal;
+    const isRoot = !c.parent;
+    return {
+      ...rest,
+      score: Object.values(votes ?? {}).reduce<number>((a, b) => a + b, 0),
+      myVote: mine,
+      canEdit: own && !c.deleted,
+      canDelete: !c.deleted && real && (own || this.allowed(author, repo, "admin")),
+      canResolve: isRoot && !c.deleted && real && (own || this.allowed(author, repo, "write")),
+      canVote: real && !c.deleted && !own,
+    };
+  }
+
+  addComment(kage: string, author: Provenance, input: { block?: string; text: string; parent?: string; pos?: { x: number; y: number }; suggestedPatch?: PatchOp[] }): CommentResult<CommentView> {
+    const who = this.commenter(author); if (!who.ok) return who;
+    const read = this.authorizeRead(kage, author); if (!read.ok) return cerr(read.code, read.msg);
+    const text = typeof input.text === "string" ? input.text.replace(/\r\n/g, "\n").trim() : "";
+    if (!text) return cerr("invalid_comment", "a comment needs some text");
+    if (text.length > MAX_COMMENT_CHARS) return cerr("invalid_comment", `comments are limited to ${MAX_COMMENT_CHARS} characters`);
+    if (text.includes("\u0000")) return cerr("invalid_comment", "comments may not contain the NUL character");
+    if (this.comments.all(kage).length >= MAX_COMMENTS_PER_KAGE) return cerr("rate_limited", `this Kage already has ${MAX_COMMENTS_PER_KAGE} comments`);
+    const now = this.clock(), recent = (this.commentTimes.get(author.principal) ?? []).filter((t) => now - t < 3_600_000);
+    if (recent.length >= MAX_COMMENTS_PER_HOUR) return cerr("rate_limited", `at most ${MAX_COMMENTS_PER_HOUR} comments per hour`);
+
+    let block = typeof input.block === "string" ? input.block : "", parent: Comment | undefined;
+    if (input.parent) {
+      parent = this.comments.get(input.parent);
+      if (!parent || parent.kage !== kage) return cerr("not_found", "the comment you are replying to does not exist");
+      if (parent.deleted) return cerr("invalid_comment", "that comment was deleted");
+      if (this.comments.depth(parent.id) >= MAX_COMMENT_DEPTH) return cerr("invalid_comment", "this thread is nested too deeply; reply higher up");
+      block = parent.block; // a reply is about the same thing its parent is about
+    } else if (block && !read.record.doc.blocks[block]) return cerr("unknown_block", `no block '${block}' in ${kage}`);
+
+    let pos: { x: number; y: number } | undefined;
+    if (input.pos !== undefined && !parent) {
+      const x = Number(input.pos?.x), y = Number(input.pos?.y);
+      if (!block || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return cerr("invalid_comment", "a pin needs a block and x/y between 0 and 1");
+      pos = { x: Math.round(x * 1e4) / 1e4, y: Math.round(y * 1e4) / 1e4 };
+    }
+    if (input.suggestedPatch !== undefined && (!Array.isArray(input.suggestedPatch) || input.suggestedPatch.length > 50)) return cerr("invalid_comment", "a suggested patch is a list of at most 50 operations");
+
+    const c = this.comments.add({ kage, block, author: author.principal, text, version: read.record.v, ...(parent ? { parent: parent.id } : {}), ...(pos ? { pos } : {}), ...(input.suggestedPatch ? { suggestedPatch: input.suggestedPatch } : {}) }, new Date(now).toISOString());
+    this.commentTimes.set(author.principal, [...recent, now]);
+    this.emit("kage.comment.created", read.record.ref, { block, commentId: c.id, ...(parent ? { parent: parent.id } : {}) });
+    return { ok: true, value: this.commentView(c, author, Store.repoOfRef(read.record.ref)) };
+  }
+
+  listComments(kage: string, author: Provenance): CommentResult<CommentView[]> {
+    const read = this.authorizeRead(kage, author); if (!read.ok) return cerr(read.code, read.msg);
+    const repo = Store.repoOfRef(read.record.ref);
+    return { ok: true, value: this.comments.all(kage).map((c) => this.commentView(c, author, repo)) };
+  }
+
+  /** Find a comment the caller is allowed to see, with the repo for permission checks. */
+  private commentFor(id: string, author: Provenance): CommentResult<{ comment: Comment; repo: string; ref: string }> {
+    const c = this.comments.get(id); if (!c) return cerr("not_found", "no such comment");
+    const read = this.authorizeRead(c.kage, author); if (!read.ok) return cerr(read.code, read.msg);
+    return { ok: true, value: { comment: c, repo: Store.repoOfRef(read.record.ref), ref: read.record.ref } };
+  }
+
+  editComment(id: string, author: Provenance, text: string): CommentResult<CommentView> {
+    const who = this.commenter(author); if (!who.ok) return who;
+    const f = this.commentFor(id, author); if (!f.ok) return f;
+    const { comment, repo } = f.value;
+    if (comment.deleted) return cerr("invalid_comment", "that comment was deleted");
+    if (comment.author !== author.principal) return cerr("forbidden", "you can only edit your own comments");
+    const t = typeof text === "string" ? text.replace(/\r\n/g, "\n").trim() : "";
+    if (!t || t.length > MAX_COMMENT_CHARS || t.includes("\u0000")) return cerr("invalid_comment", `a comment needs 1–${MAX_COMMENT_CHARS} characters`);
+    this.comments.edit(id, t, new Date(this.clock()).toISOString());
+    return { ok: true, value: this.commentView(this.comments.get(id)!, author, repo) };
+  }
+
+  deleteComment(id: string, author: Provenance): CommentResult<{ id: string; tombstone: boolean }> {
+    const who = this.commenter(author); if (!who.ok) return who;
+    const f = this.commentFor(id, author); if (!f.ok) return f;
+    const { comment, repo, ref } = f.value;
+    if (comment.author !== author.principal && !this.allowed(author, repo, "admin")) return cerr("forbidden", "only the author or an admin can delete a comment");
+    const tombstone = this.comments.children(id).length > 0;
+    this.comments.remove(id);
+    this.emit("kage.comment.deleted", ref, { commentId: id });
+    return { ok: true, value: { id, tombstone } };
+  }
+
+  /** Resolve (or reopen) a whole thread: only a root comment carries the flag. */
+  resolveComment(id: string, author: Provenance, resolved = true): CommentResult<CommentView> {
+    const who = this.commenter(author); if (!who.ok) return who;
+    const f = this.commentFor(id, author); if (!f.ok) return f;
+    const { comment, repo, ref } = f.value;
+    if (comment.parent) return cerr("invalid_comment", "resolve the thread's first comment, not a reply");
+    if (comment.author !== author.principal && !this.allowed(author, repo, "write")) return cerr("forbidden", "only the author or someone who can edit this Kage can resolve a thread");
+    this.comments.resolve(id, author.principal, resolved, new Date(this.clock()).toISOString());
+    this.emit("kage.comment.resolved", ref, { commentId: id, resolved });
+    return { ok: true, value: this.commentView(this.comments.get(id)!, author, repo) };
+  }
+
+  voteComment(id: string, author: Provenance, value: number): CommentResult<CommentView> {
+    const who = this.commenter(author); if (!who.ok) return who;
+    const f = this.commentFor(id, author); if (!f.ok) return f;
+    const { comment, repo } = f.value;
+    if (value !== 1 && value !== -1 && value !== 0) return cerr("invalid_comment", "a vote is 1, -1 or 0");
+    if (comment.deleted) return cerr("invalid_comment", "that comment was deleted");
+    if (comment.author === author.principal) return cerr("invalid_comment", "you cannot vote on your own comment");
+    this.comments.vote(id, author.principal, value);
+    return { ok: true, value: this.commentView(this.comments.get(id)!, author, repo) };
+  }
 }
+
+const MAX_COMMENT_CHARS = 4000, MAX_COMMENT_DEPTH = 8, MAX_COMMENTS_PER_KAGE = 2000, MAX_COMMENTS_PER_HOUR = 60;
+
+/** A comment as one viewer sees it: scores and what they may do, never the raw votes. */
+export type CommentView = Omit<Comment, "votes"> & { score: number; myVote: number; canEdit: boolean; canDelete: boolean; canResolve: boolean; canVote: boolean };
+export type CommentResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; msg: string } };
+function cerr(code: string, msg: string): { ok: false; error: { code: string; msg: string } } { return { ok: false, error: { code, msg } }; }
 
 function err(code: string, msg: string): WriteResult { return { ok: false, error: { code, msg } }; }
 
