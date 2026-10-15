@@ -16,7 +16,8 @@ import { MadeWithKages } from "./made-with-kages";
 import { KageRenderer } from "@/runtime/KageRenderer";
 import type { KageDoc } from "@/engine/types";
 
-export function KagePreview({ doc, kageRef, onClose }: { doc: KageDoc; kageRef: string; onClose: () => void }) {
+/** `body` replaces the plain renderer (the library passes a commentable one). */
+export function KagePreview({ doc, kageRef, onClose, body }: { doc: KageDoc; kageRef: string; onClose: () => void; body?: React.ReactNode }) {
   // Esc closes — the keyboard affordance a fullscreen overlay owes the user.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -32,8 +33,8 @@ export function KagePreview({ doc, kageRef, onClose }: { doc: KageDoc; kageRef: 
         <span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">{kageRef}</span>
         <Button size="icon" variant="ghost" aria-label="Close preview" onClick={onClose}><X /></Button>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto">
-        <KageRenderer doc={doc} />
+      <div className={body ? "min-h-0 flex-1" : "min-h-0 flex-1 overflow-auto"}>
+        {body ?? <KageRenderer doc={doc} />}
       </div>
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>

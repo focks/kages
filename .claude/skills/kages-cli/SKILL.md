@@ -67,3 +67,12 @@ Output: human tables/`kv` by default (`src/cli/format.ts`), `--json` for the raw
 op result. Exit `1` on any operation error or validation failure; `0` otherwise.
 Tests live in `src/cli/kages.test.ts` — capture stdout, assert exit codes, and
 drive a temp `--workspace` to prove persistence.
+
+
+## Discussion commands
+
+`comment <name> <block|-> <text> [--at x,y]` (`-` = about the whole Kage; `--at`
+pins inside the block), `comments <name>` (indented thread with scores),
+`reply <name> <comment-id> <text>`, `resolve <comment-id> [--reopen]`,
+`vote <comment-id> up|down|clear`. Each is a thin translation of the matching
+operation; the rules are the store's (see `discussion-comments`).

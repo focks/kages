@@ -18,6 +18,8 @@ import { KagePreview } from "@/components/dashboard/kage-preview";
 import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
 import { FacetRail } from "@/components/dashboard/library/facet-rail";
 import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
+import { useComments } from "@/components/dashboard/comments/use-comments";
+import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +52,7 @@ function LibraryInner() {
   const [describe, setDescribe] = useState("");
   const [fullscreen, setFullscreen] = useState<{ doc: KageDoc; ref: string } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const comments = useComments(openName);
   const [text, setText] = useState(query.q);
   const searchRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -284,7 +287,7 @@ function LibraryInner() {
         </div>
       </main>
 
-      <DetailSheet card={current} doc={doc} versions={versions} describe={describe} workspace={workspace}
+      <DetailSheet card={current} doc={doc} versions={versions} describe={describe} comments={comments} workspace={workspace}
         onClose={() => open(null)} onFullscreen={() => doc && current && setFullscreen({ doc, ref: current.ref })}
         onClone={cloneKage} onExport={exportJson}
         onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
@@ -296,7 +299,8 @@ function LibraryInner() {
         </SheetContent>
       </Sheet>
 
-      {fullscreen && <KagePreview doc={fullscreen.doc} kageRef={fullscreen.ref} onClose={() => setFullscreen(null)} />}
+      {fullscreen && <KagePreview doc={fullscreen.doc} kageRef={fullscreen.ref} onClose={() => setFullscreen(null)}
+        body={openName && fullscreen.doc.id === openName ? <CommentStage doc={fullscreen.doc} api={comments} className="h-full" /> : undefined} />}
     </div>
   );
 }

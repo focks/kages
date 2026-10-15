@@ -147,9 +147,9 @@ export const OPERATIONS: OpSpec[] = [
     toResult(c.store.create(p.repo ?? c.repo ?? "kages", p.doc as KageDoc, c.author)) },
 
   { name: "clone_kage", summary: "Create an independent copy of a Kage (fresh id + uuid)", params: ["name", "title?", "repo?"], write: true, run: (c, p) => {
-    // Every Kage is clonable — there is no separate "template" type, a template
-    // is just a Kage you copy. The copy gets a new id (so a new uuid) and lands
-    // in the same project unless another is named.
+    // Templates are classified by their repo. Copying that destination would
+    // hide a user's new Kage in Templates, so default those copies to kages.
+    // Ordinary projects and explicitly requested destinations stay intact.
     const r = c.store.authorizeRead(String(p.name), c.author);
     if (!r.ok) return fail(r.code, r.msg);
     const src = r.record.doc;
@@ -157,7 +157,9 @@ export const OPERATIONS: OpSpec[] = [
     const { resolved, ...bare } = clone(src) as KageDoc & { resolved?: unknown };
     void resolved;
     const doc = { ...bare, id, title: String(p.title ?? (src.title ? src.title + " copy" : id)) } as KageDoc;
-    return toResult(c.store.create(p.repo ? String(p.repo) : c.store.repoOf(r.record.ref), doc, c.author));
+    const sourceRepo = c.store.repoOf(r.record.ref);
+    const repo = p.repo ? String(p.repo) : sourceRepo === "templates" ? "kages" : sourceRepo;
+    return toResult(c.store.create(repo, doc, c.author));
   } },
 
   { name: "patch_kage", summary: "Edit a Kage with RFC 6902 ops (tier A). Pass baseVersion for optimistic concurrency.", params: ["name", "ops", "baseVersion?"], write: true, run: (c, p) =>

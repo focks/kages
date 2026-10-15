@@ -50,6 +50,22 @@ test("tier B: generate from an envelope round-trips to a valid Kage", () => {
   assert.equal((r as any).data.validation.errors.length, 0);
 });
 
+test("cloning preserves ordinary projects and honors an explicit destination for templates", () => {
+  const c = ctx();
+  assert.ok(dispatch(c, "create_kage", { doc: ops(), repo: "reports" }).ok);
+  const ordinary = dispatch(c, "clone_kage", { name: "ops-console", title: "Report copy" }) as any;
+  assert.equal(ordinary.ok, true);
+  assert.equal(c.store.repoOf(ordinary.data.version.ref), "reports");
+
+  const template = { ...ops(), id: "starter" };
+  assert.ok(dispatch(c, "create_kage", { doc: template, repo: "templates" }).ok);
+  for (const repo of ["reports", "templates"]) {
+    const copied = dispatch(c, "clone_kage", { name: "starter", title: `Copy for ${repo}`, repo }) as any;
+    assert.equal(copied.ok, true);
+    assert.equal(c.store.repoOf(copied.data.version.ref), repo);
+  }
+});
+
 test("tier C: generate from raw text with prose + trailing commas", () => {
   const c = ctx();
   const envelope = toGenerated(ops(), "core");

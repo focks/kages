@@ -6,6 +6,7 @@
 // real KageRenderer inline (lazily, only on that tab); fullscreen is one button
 // away. Every action is an operation over REST, same as any other client.
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Copy, Download, Expand, Folder, History, SquarePen } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -16,7 +17,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShareMenu } from "@/components/dashboard/share-menu";
 import { StatusMenu } from "@/components/dashboard/status-menu";
 import { KageFrame, StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
-import { KageRenderer } from "@/runtime/KageRenderer";
+import { CommentStage } from "@/components/dashboard/comments/comment-stage";
+import { DiscussionPanel } from "@/components/dashboard/comments/discussion-panel";
+import { discussionStats } from "@/components/dashboard/comments/comment-model";
+import type { CommentsApi } from "@/components/dashboard/comments/use-comments";
 import type { KageDoc } from "@/engine/types";
 
 export interface VersionMeta {
@@ -31,6 +35,7 @@ interface Props {
   doc: KageDoc | null;
   versions: VersionMeta[];
   describe: string;
+  comments: CommentsApi;
   workspace: string;
   onClose: () => void;
   onFullscreen: () => void;
@@ -42,7 +47,15 @@ interface Props {
 
 const overline = "font-mono text-[11px] leading-[14px] font-medium uppercase tracking-[0.06em] text-muted-foreground";
 
-export function DetailSheet({ card, doc, versions, describe, workspace, onClose, onFullscreen, onClone, onExport, onChanged, onDeleted }: Props) {
+export function DetailSheet({ card, doc, versions, describe, comments, workspace, onClose, onFullscreen, onClone, onExport, onChanged, onDeleted }: Props) {
+  // Tabs are controlled so the Discussion tab can send you to the page: clicking
+  // a comment's @block chip switches to Preview and flashes that block.
+  const [tab, setTab] = useState("preview");
+  const [flash, setFlash] = useState<{ block: string; nonce: number } | null>(null);
+  useEffect(() => { setTab("preview"); setFlash(null); }, [card?.name]);
+  const stats = discussionStats(comments.comments);
+  const jump = (block: string) => { setTab("preview"); setFlash({ block, nonce: Date.now() }); };
+
   return (
     <Sheet open={!!card} onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent className="w-full gap-0 overflow-y-auto p-0 data-[side=right]:sm:max-w-2xl data-[side=right]:lg:max-w-3xl">
@@ -67,9 +80,10 @@ export function DetailSheet({ card, doc, versions, describe, workspace, onClose,
               </div>
             </SheetHeader>
 
-            <Tabs defaultValue="preview" className="p-5">
+            <Tabs value={tab} onValueChange={(v) => setTab(String(v))} className="p-5">
               <TabsList variant="line" className="w-full justify-start gap-4 border-b">
                 <TabsTrigger value="preview" className="flex-none">Preview</TabsTrigger>
+                <TabsTrigger value="discussion" className="flex-none">Discussion {stats.total > 0 && <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{stats.open > 0 ? `${stats.open} open` : stats.total}</span>}</TabsTrigger>
                 <TabsTrigger value="overview" className="flex-none">Overview</TabsTrigger>
                 <TabsTrigger value="versions" className="flex-none">Versions <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{versions.length}</span></TabsTrigger>
                 <TabsTrigger value="describe" className="flex-none">Describe</TabsTrigger>
@@ -78,9 +92,13 @@ export function DetailSheet({ card, doc, versions, describe, workspace, onClose,
               <TabsContent value="preview" className="mt-4">
                 {!doc ? <Skeleton className="h-64 w-full rounded-xl" /> : (
                   <KageFrame system={card.system} kageRef={card.ref} digest={versions.at(-1)?.digest}>
-                    <div className="max-h-[60svh] overflow-auto"><KageRenderer doc={doc} /></div>
+                    <CommentStage doc={doc} api={comments} flash={flash} className="max-h-[68svh]" />
                   </KageFrame>
                 )}
+              </TabsContent>
+
+              <TabsContent value="discussion" className="mt-4">
+                <DiscussionPanel api={comments} doc={doc} onJump={jump} />
               </TabsContent>
 
               <TabsContent value="overview" className="mt-4">
