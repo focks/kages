@@ -100,3 +100,41 @@ export function expressiveExamples(system = "core"): KageDoc[] {
   };
   return [collection, calculator, form];
 }
+
+/** Batch 1 of the rich roles: a data-viz board and a guided flow. Kept apart
+ * from expressiveExamples so existing tests that index those documents by
+ * position stay valid. */
+export function richExamples(system = "core"): KageDoc[] {
+  const base = (id: string, title: string): KageDoc => ({ kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} });
+  const board = base("metrics-board", "Metrics board — charts at a glance");
+  board.data = { weeks: [{ x: 1, y: 120 }, { x: 2, y: 180 }, { x: 3, y: 150 }, { x: 4, y: 240 }, { x: 5, y: 310 }, { x: 6, y: 280 }] };
+  board.blocks = {
+    root: { type: "page", props: { width: "wide", gap: 6 }, slots: { children: ["intro", "notice", "kpis", "trend", "mix"] } },
+    intro: { type: "section", props: { eyebrow: "Metrics board", title: "How the launch is going", description: "Trend, composition, capacity and intensity in one flowing page.", inset: 0 } },
+    notice: { type: "alert", props: { tone: "warning", title: "Preview data", text: "Figures are illustrative." } },
+    kpis: { type: "grid", props: { columns: 3, minSize: "small" }, slots: { children: ["signups", "capacity", "weekly"] } },
+    signups: { type: "stat", props: { label: "Signups", format: "number" }, bind: { value: { $count: { $data: "weeks" } } } },
+    capacity: { type: "gauge", props: { label: "Capacity used", value: 72, unit: "%", tone: "success" } },
+    weekly: { type: "section", props: { title: "Weekly signups", level: 3, tone: "surface" }, slots: { children: ["trendline"] } },
+    trendline: { type: "sparkline", props: { label: "Weekly signups", values: [120, 180, 150, 240, 310, 280] } },
+    trend: { type: "area-chart", props: { label: "Signups per week", xLabel: "Week", yLabel: "Signups" }, bind: { items: { $data: "weeks" } } },
+    mix: { type: "split", props: { ratio: "equal", gap: 6 }, slots: { start: ["channels"], end: ["activity"] } },
+    channels: { type: "donut-chart", props: { label: "Signups by channel", items: [{ label: "Search", value: 48 }, { label: "Referral", value: 31 }, { label: "Social", value: 21 }] } },
+    activity: { type: "heatmap", props: { label: "Activity by day and slot", rows: ["Mon", "Tue", "Wed"], columns: ["AM", "Noon", "PM"], values: [[3, 8, 5], [6, 9, 2], [1, 4, 7]] } },
+  };
+  const flow = base("launch-flow", "Launch flow — a guided checklist");
+  flow.state = { step: "plan", faq: "" };
+  flow.blocks = {
+    root: { type: "page", props: { width: "reading", gap: 6 }, slots: { children: ["intro", "stepper", "panel", "help", "history", "openConfirm", "dialog"] } },
+    intro: { type: "section", props: { title: "Ship it in three steps", description: "Move through the steps; the content below follows the current step.", inset: 0 } },
+    stepper: { type: "stepper", props: { label: "Launch steps", interactive: true, steps: [{ id: "plan", label: "Plan", description: "Scope the work" }, { id: "build", label: "Build" }, { id: "ship", label: "Ship" }] }, bind: { value: { $state: "step" } }, on: { change: [{ do: "set", path: "step", value: { $event: "value" } }] } },
+    panel: { type: "alert", props: { tone: "info" }, bind: { title: { $tpl: "Current step: {{state.step}}" } } },
+    help: { type: "accordion", props: { items: [{ id: "what", title: "What happens at launch?", body: "The artifact is published as an immutable version." }, { id: "undo", title: "Can I undo it?", body: "Publish a new version; earlier versions stay available." }] }, bind: { value: { $state: "faq" } }, on: { change: [{ do: "set", path: "faq", value: { $event: "value" } }] } },
+    history: { type: "timeline", props: { label: "Recent activity", items: [{ title: "Draft created", time: "Mon", tone: "accent" }, { title: "Review requested", time: "Tue", description: "Two reviewers assigned." }, { title: "Approved", time: "Wed", tone: "success" }] } },
+    openConfirm: { type: "button", props: { label: "Launch now", variant: "primary" }, on: { click: [{ do: "call", target: "dialog", command: "open" }] } },
+    dialog: { type: "modal", props: { label: "Launch this artifact?" }, slots: { children: ["sure", "go"] } },
+    sure: { type: "text", props: { text: "This publishes a new version for everyone with access." } },
+    go: { type: "button", props: { label: "Confirm", variant: "primary" }, on: { click: [{ do: "call", target: "dialog", command: "close" }] } },
+  };
+  return [board, flow];
+}

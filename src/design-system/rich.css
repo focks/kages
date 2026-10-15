@@ -1,0 +1,55 @@
+/* Rich roles: charts, disclosure and overlay. Geometry follows the artifact
+ * container; colour is token-only so all three systems and both themes work. */
+.kg-donut__body { display: grid; grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr); gap: var(--kg-space-6); align-items: center; }
+@container (max-width: 30rem) { .kg-donut__body { grid-template-columns: minmax(0, 1fr); } }
+.kg-donut svg, .kg-gauge svg { background: transparent; border: 0; max-width: 20rem; margin-inline: auto; }
+.kg-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--kg-space-2); }
+.kg-legend li { display: flex; gap: var(--kg-space-2); align-items: center; min-width: 0; overflow-wrap: anywhere; }
+.kg-legend__swatch { flex: none; width: .75rem; height: .75rem; border-radius: 2px; }
+.kg-legend__value { margin-inline-start: auto; color: var(--kg-ink-muted); font-variant-numeric: tabular-nums; }
+.kg-gauge__range { margin: 0; text-align: center; color: var(--kg-ink-muted); font-size: .875rem; }
+.kg-sparkline { display: inline-block; width: 7.5rem; max-width: 100%; vertical-align: middle; }
+.kg-sparkline svg { display: block; width: 100%; height: auto; }
+.kg-heatmap__scroll { max-width: 100%; overflow: auto; }
+.kg-heatmap__table { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; }
+.kg-heatmap__table :is(th, td) { padding: var(--kg-space-2) var(--kg-space-3); text-align: center; min-width: 2.5rem; border-radius: var(--kg-r-sm); color: var(--kg-ink); }
+.kg-heatmap__table th { font-weight: 600; color: var(--kg-ink-muted); background: none; }
+.kg-heatmap__table tbody th { text-align: start; }
+.kg-alert { display: grid; gap: var(--kg-space-1); padding: var(--kg-space-4); border: 1px solid var(--kg-line); border-inline-start: 4px solid var(--kg-wire); border-radius: var(--kg-r-md); background: var(--kg-surface); color: var(--kg-ink); }
+.kg-alert--success { border-inline-start-color: var(--kg-success); }
+.kg-alert--warning { border-inline-start-color: var(--kg-accent); }
+.kg-alert--danger { border-inline-start-color: var(--kg-danger); background: var(--kg-danger-soft); }
+.kg-alert p { margin: 0; }
+.kg-accordion { border: 1px solid var(--kg-line); border-radius: var(--kg-r-md); overflow: hidden; }
+.kg-accordion__item + .kg-accordion__item { border-top: 1px solid var(--kg-line); }
+.kg-accordion__heading { margin: 0; font: inherit; }
+.kg-accordion__trigger { display: flex; width: 100%; justify-content: space-between; gap: var(--kg-space-3); padding: var(--kg-space-4); background: var(--kg-surface); color: var(--kg-ink); border: 0; font: inherit; font-weight: 600; text-align: start; cursor: pointer; }
+.kg-accordion__trigger:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: -3px; }
+.kg-accordion__panel { padding: var(--kg-space-4); background: var(--kg-paper); overflow-wrap: anywhere; white-space: pre-wrap; }
+.kg-accordion__panel[hidden] { display: none; }
+.kg-stepper { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--kg-space-4); counter-reset: none; }
+.kg-stepper__step { flex: 1 1 10rem; min-width: 0; }
+.kg-stepper__btn { display: flex; gap: var(--kg-space-3); align-items: flex-start; width: 100%; padding: var(--kg-space-3); background: none; border: 0; border-top: 3px solid var(--kg-line); color: var(--kg-ink-muted); font: inherit; text-align: start; }
+button.kg-stepper__btn { cursor: pointer; }
+button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
+.kg-stepper__step--done .kg-stepper__btn { border-top-color: var(--kg-success); color: var(--kg-ink); }
+.kg-stepper__step--current .kg-stepper__btn { border-top-color: var(--kg-accent); color: var(--kg-ink); font-weight: 600; }
+.kg-stepper__num { flex: none; display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1px solid currentColor; font-size: .8125rem; }
+.kg-stepper__step--current .kg-stepper__num { background: var(--kg-accent); color: var(--kg-accent-ink); border-color: var(--kg-accent); }
+.kg-stepper__text { display: grid; gap: var(--kg-space-1); min-width: 0; overflow-wrap: anywhere; }
+.kg-stepper__desc { font-weight: 400; color: var(--kg-ink-muted); font-size: .875rem; }
+.kg-timeline { list-style: none; margin: 0; padding: 0 0 0 var(--kg-space-4); border-inline-start: 2px solid var(--kg-line); display: grid; gap: var(--kg-space-6); }
+.kg-timeline__item { position: relative; display: grid; gap: var(--kg-space-1); min-width: 0; overflow-wrap: anywhere; }
+.kg-timeline__item::before { content: ""; position: absolute; inset-inline-start: calc(-1 * var(--kg-space-4) - 6px); top: .35rem; width: 10px; height: 10px; border-radius: 50%; background: var(--kg-ink-muted); border: 2px solid var(--kg-paper); }
+.kg-timeline__item--accent::before { background: var(--kg-accent); }
+.kg-timeline__item--success::before { background: var(--kg-success); }
+.kg-timeline__item--danger::before { background: var(--kg-danger); }
+.kg-timeline__time { color: var(--kg-ink-muted); font-size: .8125rem; }
+.kg-timeline__desc { margin: 0; color: var(--kg-ink-muted); }
+.kg-modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: var(--kg-space-4); background: color-mix(in srgb, var(--kg-ink) 45%, transparent); }
+.kg-modal__dialog { width: min(100%, 34rem); max-height: 90dvh; overflow: auto; display: grid; gap: var(--kg-space-4); padding: var(--kg-space-6); background: var(--kg-paper); color: var(--kg-ink); border: 1px solid var(--kg-line); border-radius: var(--kg-r-lg); }
+.kg-modal__dialog:focus-visible { outline: 3px solid var(--kg-focus); }
+.kg-modal__head { display: flex; justify-content: space-between; align-items: center; gap: var(--kg-space-3); }
+.kg-modal__title { margin: 0; font-size: 1.125rem; }
+.kg-modal__close { background: none; border: 0; color: var(--kg-ink); font-size: 1.5rem; line-height: 1; cursor: pointer; padding: var(--kg-space-1) var(--kg-space-2); border-radius: var(--kg-r-sm); }
+.kg-modal__close:focus-visible { outline: 3px solid var(--kg-focus); }

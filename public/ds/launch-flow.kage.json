@@ -1,0 +1,194 @@
+{
+  "kages": "1.0",
+  "id": "launch-flow",
+  "title": "Launch flow — a guided checklist",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "stepper",
+          "panel",
+          "help",
+          "history",
+          "openConfirm",
+          "dialog"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Ship it in three steps",
+        "description": "Move through the steps; the content below follows the current step.",
+        "inset": 0
+      }
+    },
+    "stepper": {
+      "type": "stepper",
+      "props": {
+        "label": "Launch steps",
+        "interactive": true,
+        "steps": [
+          {
+            "id": "plan",
+            "label": "Plan",
+            "description": "Scope the work"
+          },
+          {
+            "id": "build",
+            "label": "Build"
+          },
+          {
+            "id": "ship",
+            "label": "Ship"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "step"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "panel": {
+      "type": "alert",
+      "props": {
+        "tone": "info"
+      },
+      "bind": {
+        "title": {
+          "$tpl": "Current step: {{state.step}}"
+        }
+      }
+    },
+    "help": {
+      "type": "accordion",
+      "props": {
+        "items": [
+          {
+            "id": "what",
+            "title": "What happens at launch?",
+            "body": "The artifact is published as an immutable version."
+          },
+          {
+            "id": "undo",
+            "title": "Can I undo it?",
+            "body": "Publish a new version; earlier versions stay available."
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "faq"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "faq",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "history": {
+      "type": "timeline",
+      "props": {
+        "label": "Recent activity",
+        "items": [
+          {
+            "title": "Draft created",
+            "time": "Mon",
+            "tone": "accent"
+          },
+          {
+            "title": "Review requested",
+            "time": "Tue",
+            "description": "Two reviewers assigned."
+          },
+          {
+            "title": "Approved",
+            "time": "Wed",
+            "tone": "success"
+          }
+        ]
+      }
+    },
+    "openConfirm": {
+      "type": "button",
+      "props": {
+        "label": "Launch now",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "call",
+            "target": "dialog",
+            "command": "open"
+          }
+        ]
+      }
+    },
+    "dialog": {
+      "type": "modal",
+      "props": {
+        "label": "Launch this artifact?"
+      },
+      "slots": {
+        "children": [
+          "sure",
+          "go"
+        ]
+      }
+    },
+    "sure": {
+      "type": "text",
+      "props": {
+        "text": "This publishes a new version for everyone with access."
+      }
+    },
+    "go": {
+      "type": "button",
+      "props": {
+        "label": "Confirm",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "call",
+            "target": "dialog",
+            "command": "close"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "step": "plan",
+    "faq": ""
+  }
+}

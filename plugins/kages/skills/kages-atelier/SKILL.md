@@ -1,6 +1,6 @@
 ---
 name: kages-atelier
-description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.2.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.3.0).
 ---
 
 # Kages — Atelier
@@ -9,7 +9,7 @@ Soft, editorial, serif system for consumer and storytelling artifacts.
 
 ## Components
 
-# Atelier 1.2.0 (atelier) extends core@1
+# Atelier 1.3.0 (atelier) extends core@1
 Soft, editorial, serif system for consumer and storytelling artifacts.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -124,6 +124,36 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - scatter-chart → core/scatter-chart@1.0.0 [kages/scatter-chart@1] Responsive numeric X/Y scatter plot with an accessible data table.
   props: label*:string, items*:array, xLabel:string, yLabel:string, empty:string
   use: items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations.
+- area-chart → core/area-chart@1.0.0 [kages/area-chart@1] Responsive filled area chart of numeric X/Y data with an accessible data table.
+  props: label*:string, items*:array, xLabel:string, yLabel:string, empty:string
+  use: items: [{x,y,label?}] with sorted x. Use for volume over time; prefer line-chart when several readings overlap.
+- donut-chart → core/donut-chart@1.0.0 [kages/donut-chart@1] Part-to-whole ring chart with a legend, percentages and an accessible data table.
+  props: label*:string, items*:array, hole:boolean, empty:string
+  use: items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many.
+- gauge → core/gauge@1.0.0 [kages/gauge@1] Single value on a half-ring scale between a minimum and maximum.
+  props: label*:string, value*:number, min:number, max:number, unit:string, tone:accent|success|danger|wire
+  use: value within min..max (clamped). tone is a token colour. Use for one KPI against a known scale, not for trends.
+- sparkline → core/sparkline@1.0.0 [kages/sparkline@1] Tiny inline trend line for a series of numbers; sits next to a stat or in a table cell.
+  props: label*:string, values*:array, tone:accent|success|danger|wire
+  use: values: number[]; no axes. Put beside a stat for trend. Provide a label that states what the series is.
+- heatmap → core/heatmap@1.0.0 [kages/heatmap@1] Row by column matrix whose cell shading shows magnitude, with every value readable as text.
+  props: label*:string, rows*:array, columns*:array, values*:array, empty:string
+  use: rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash.
+- alert → core/alert@1.0.0 [kages/alert@1] Inline callout for information, success, warning or danger with an optional title and content.
+  props: tone:info|success|warning|danger, title:string, text:string · slots: children
+  use: tone info|success|warning|danger; title and text, or children. danger and warning announce immediately.
+- accordion → core/accordion@1.0.0 [kages/accordion@1] Stack of headings that each reveal a panel; one open at a time with a public value.
+  props: items*:array, value:string · events: change · outputs: value
+  use: items: [{id,title,body}]; value is the open id (empty closes all). change emits {value}. Use for FAQs and optional detail.
+- stepper → core/stepper@1.0.0 [kages/stepper@1] Ordered progress through named steps; optionally clickable, with the current step public.
+  props: label*:string, steps*:array, value:string, interactive:boolean · events: change · outputs: value
+  use: steps: [{id,label,description?}]; value is the current id. interactive makes steps buttons; change emits {value}. Wire value to state to drive step content with visible.
+- timeline → core/timeline@1.0.0 [kages/timeline@1] Chronological list of events with optional times, descriptions and tone.
+  props: label*:string, items*:array
+  use: items: [{title,time?,description?,tone?}] in order. Use for history, roadmaps and activity logs.
+- modal → core/modal@1.0.0 [kages/modal@1] Dialog layered over the artifact; opened and closed by commands, Escape or the close button.
+  props: label*:string, open:boolean, closeLabel:string · slots: children · events: change · outputs: open · commands: open, close, toggle
+  use: Place content in children. Open with a button command {do:'call',target:modal,command:'open'}; Escape, the backdrop and the close button emit change {open:false}. Use sparingly for confirmations and detail.
 
 ## Expressions & actions
 
@@ -1209,6 +1239,423 @@ Event planner — a validated form:
   },
   "state": {
     "submitted": null
+  }
+}
+```
+
+Metrics board — charts at a glance:
+```json
+{
+  "kages": "1.0",
+  "id": "metrics-board",
+  "title": "Metrics board — charts at a glance",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "notice",
+          "kpis",
+          "trend",
+          "mix"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Metrics board",
+        "title": "How the launch is going",
+        "description": "Trend, composition, capacity and intensity in one flowing page.",
+        "inset": 0
+      }
+    },
+    "notice": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Preview data",
+        "text": "Figures are illustrative."
+      }
+    },
+    "kpis": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small"
+      },
+      "slots": {
+        "children": [
+          "signups",
+          "capacity",
+          "weekly"
+        ]
+      }
+    },
+    "signups": {
+      "type": "stat",
+      "props": {
+        "label": "Signups",
+        "format": "number"
+      },
+      "bind": {
+        "value": {
+          "$count": {
+            "$data": "weeks"
+          }
+        }
+      }
+    },
+    "capacity": {
+      "type": "gauge",
+      "props": {
+        "label": "Capacity used",
+        "value": 72,
+        "unit": "%",
+        "tone": "success"
+      }
+    },
+    "weekly": {
+      "type": "section",
+      "props": {
+        "title": "Weekly signups",
+        "level": 3,
+        "tone": "surface"
+      },
+      "slots": {
+        "children": [
+          "trendline"
+        ]
+      }
+    },
+    "trendline": {
+      "type": "sparkline",
+      "props": {
+        "label": "Weekly signups",
+        "values": [
+          120,
+          180,
+          150,
+          240,
+          310,
+          280
+        ]
+      }
+    },
+    "trend": {
+      "type": "area-chart",
+      "props": {
+        "label": "Signups per week",
+        "xLabel": "Week",
+        "yLabel": "Signups"
+      },
+      "bind": {
+        "items": {
+          "$data": "weeks"
+        }
+      }
+    },
+    "mix": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "channels"
+        ],
+        "end": [
+          "activity"
+        ]
+      }
+    },
+    "channels": {
+      "type": "donut-chart",
+      "props": {
+        "label": "Signups by channel",
+        "items": [
+          {
+            "label": "Search",
+            "value": 48
+          },
+          {
+            "label": "Referral",
+            "value": 31
+          },
+          {
+            "label": "Social",
+            "value": 21
+          }
+        ]
+      }
+    },
+    "activity": {
+      "type": "heatmap",
+      "props": {
+        "label": "Activity by day and slot",
+        "rows": [
+          "Mon",
+          "Tue",
+          "Wed"
+        ],
+        "columns": [
+          "AM",
+          "Noon",
+          "PM"
+        ],
+        "values": [
+          [
+            3,
+            8,
+            5
+          ],
+          [
+            6,
+            9,
+            2
+          ],
+          [
+            1,
+            4,
+            7
+          ]
+        ]
+      }
+    }
+  },
+  "data": {
+    "weeks": [
+      {
+        "x": 1,
+        "y": 120
+      },
+      {
+        "x": 2,
+        "y": 180
+      },
+      {
+        "x": 3,
+        "y": 150
+      },
+      {
+        "x": 4,
+        "y": 240
+      },
+      {
+        "x": 5,
+        "y": 310
+      },
+      {
+        "x": 6,
+        "y": 280
+      }
+    ]
+  }
+}
+```
+
+Launch flow — a guided checklist:
+```json
+{
+  "kages": "1.0",
+  "id": "launch-flow",
+  "title": "Launch flow — a guided checklist",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "stepper",
+          "panel",
+          "help",
+          "history",
+          "openConfirm",
+          "dialog"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Ship it in three steps",
+        "description": "Move through the steps; the content below follows the current step.",
+        "inset": 0
+      }
+    },
+    "stepper": {
+      "type": "stepper",
+      "props": {
+        "label": "Launch steps",
+        "interactive": true,
+        "steps": [
+          {
+            "id": "plan",
+            "label": "Plan",
+            "description": "Scope the work"
+          },
+          {
+            "id": "build",
+            "label": "Build"
+          },
+          {
+            "id": "ship",
+            "label": "Ship"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "step"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "panel": {
+      "type": "alert",
+      "props": {
+        "tone": "info"
+      },
+      "bind": {
+        "title": {
+          "$tpl": "Current step: {{state.step}}"
+        }
+      }
+    },
+    "help": {
+      "type": "accordion",
+      "props": {
+        "items": [
+          {
+            "id": "what",
+            "title": "What happens at launch?",
+            "body": "The artifact is published as an immutable version."
+          },
+          {
+            "id": "undo",
+            "title": "Can I undo it?",
+            "body": "Publish a new version; earlier versions stay available."
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "faq"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "faq",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "history": {
+      "type": "timeline",
+      "props": {
+        "label": "Recent activity",
+        "items": [
+          {
+            "title": "Draft created",
+            "time": "Mon",
+            "tone": "accent"
+          },
+          {
+            "title": "Review requested",
+            "time": "Tue",
+            "description": "Two reviewers assigned."
+          },
+          {
+            "title": "Approved",
+            "time": "Wed",
+            "tone": "success"
+          }
+        ]
+      }
+    },
+    "openConfirm": {
+      "type": "button",
+      "props": {
+        "label": "Launch now",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "call",
+            "target": "dialog",
+            "command": "open"
+          }
+        ]
+      }
+    },
+    "dialog": {
+      "type": "modal",
+      "props": {
+        "label": "Launch this artifact?"
+      },
+      "slots": {
+        "children": [
+          "sure",
+          "go"
+        ]
+      }
+    },
+    "sure": {
+      "type": "text",
+      "props": {
+        "text": "This publishes a new version for everyone with access."
+      }
+    },
+    "go": {
+      "type": "button",
+      "props": {
+        "label": "Confirm",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "call",
+            "target": "dialog",
+            "command": "close"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "step": "plan",
+    "faq": ""
   }
 }
 ```

@@ -12,7 +12,7 @@ import { toGenerated, fromGenerated } from "../engine/generate.ts";
 import { loadSnapshotRev, saveSnapshot, casSave, persistenceEnabled } from "./persistence.ts";
 import { putPublicShare, sharesEnabled } from "./public-shares.ts";
 import { introTemplates } from "./templates.ts";
-import { freeFlowExamples, expressiveExamples } from "../packs/examples.ts";
+import { freeFlowExamples, expressiveExamples, richExamples } from "../packs/examples.ts";
 import type { OpResult } from "../adapters/operations.ts";
 import type { Provenance } from "../store/types.ts";
 import type { KageDoc } from "../engine/types.ts";
@@ -129,7 +129,7 @@ function seedStarters(store: Store, workspace: string): void {
   try {
     // search_templates discovers the templates repo. Keep the free-flow
     // examples there so the guidance to fork a starter also works for agents.
-    const exampleIds = new Set([...freeFlowExamples(), ...expressiveExamples()].map((doc) => doc.id));
+    const exampleIds = new Set([...freeFlowExamples(), ...expressiveExamples(), ...richExamples()].map((doc) => doc.id));
     for (const t of introTemplates()) store.create(exampleIds.has(t.id) ? "templates" : "getting-started", t, owner);
   } catch {
     /* best-effort: an empty workspace is still valid */
@@ -145,7 +145,7 @@ function seed(store: Store): Store {
     for (const repo of ["ops", "finance", "growth", "templates"]) store.grant(p, repo, ["write", "publish", "review", "admin"]);
 
   try {
-    for (const doc of [...freeFlowExamples(), ...expressiveExamples()]) store.create("templates", doc, DEMO_PRINCIPAL);
+    for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples()]) store.create("templates", doc, DEMO_PRINCIPAL);
     const base = JSON.parse(readFileSync(join(process.cwd(), "public/ds/ops-console.kage.json"), "utf8")) as KageDoc;
 
     // ops · the reference console: a second version + published to the workspace.

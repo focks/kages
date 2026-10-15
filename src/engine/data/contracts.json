@@ -2618,6 +2618,751 @@
     },
     "limits": {}
   },
+  "core/area-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/area-chart",
+    "version": "1.0.0",
+    "ref": "core/area-chart@1.0.0",
+    "system": "core",
+    "name": "area-chart",
+    "implements": [
+      "kages/area-chart@1"
+    ],
+    "role": "area-chart",
+    "summary": "Responsive filled area chart of numeric X/Y data with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{x,y,label?}] with sorted x. Use for volume over time; prefer line-chart when several readings overlap."
+    },
+    "limits": {}
+  },
+  "core/donut-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/donut-chart",
+    "version": "1.0.0",
+    "ref": "core/donut-chart@1.0.0",
+    "system": "core",
+    "name": "donut-chart",
+    "implements": [
+      "kages/donut-chart@1"
+    ],
+    "role": "donut-chart",
+    "summary": "Part-to-whole ring chart with a legend, percentages and an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "hole": {
+        "type": "boolean",
+        "default": true
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many."
+    },
+    "limits": {}
+  },
+  "core/gauge@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/gauge",
+    "version": "1.0.0",
+    "ref": "core/gauge@1.0.0",
+    "system": "core",
+    "name": "gauge",
+    "implements": [
+      "kages/gauge@1"
+    ],
+    "role": "gauge",
+    "summary": "Single value on a half-ring scale between a minimum and maximum.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number",
+        "required": true
+      },
+      "min": {
+        "type": "number",
+        "default": 0
+      },
+      "max": {
+        "type": "number",
+        "default": 100
+      },
+      "unit": {
+        "type": "string"
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "accent"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "value within min..max (clamped). tone is a token colour. Use for one KPI against a known scale, not for trends."
+    },
+    "limits": {}
+  },
+  "core/sparkline@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/sparkline",
+    "version": "1.0.0",
+    "ref": "core/sparkline@1.0.0",
+    "system": "core",
+    "name": "sparkline",
+    "implements": [
+      "kages/sparkline@1"
+    ],
+    "role": "sparkline",
+    "summary": "Tiny inline trend line for a series of numbers; sits next to a stat or in a table cell.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "number"
+        }
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "accent"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "values: number[]; no axes. Put beside a stat for trend. Provide a label that states what the series is."
+    },
+    "limits": {}
+  },
+  "core/heatmap@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/heatmap",
+    "version": "1.0.0",
+    "ref": "core/heatmap@1.0.0",
+    "system": "core",
+    "name": "heatmap",
+    "implements": [
+      "kages/heatmap@1"
+    ],
+    "role": "heatmap",
+    "summary": "Row by column matrix whose cell shading shows magnitude, with every value readable as text.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "rows": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash."
+    },
+    "limits": {}
+  },
+  "core/alert@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/alert",
+    "version": "1.0.0",
+    "ref": "core/alert@1.0.0",
+    "system": "core",
+    "name": "alert",
+    "implements": [
+      "kages/alert@1"
+    ],
+    "role": "alert",
+    "summary": "Inline callout for information, success, warning or danger with an optional title and content.",
+    "props": {
+      "tone": {
+        "type": "string",
+        "enum": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "default": "info"
+      },
+      "title": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "tone info|success|warning|danger; title and text, or children. danger and warning announce immediately."
+    },
+    "limits": {}
+  },
+  "core/accordion@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/accordion",
+    "version": "1.0.0",
+    "ref": "core/accordion@1.0.0",
+    "system": "core",
+    "name": "accordion",
+    "implements": [
+      "kages/accordion@1"
+    ],
+    "role": "accordion",
+    "summary": "Stack of headings that each reveal a panel; one open at a time with a public value.",
+    "props": {
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "title"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{id,title,body}]; value is the open id (empty closes all). change emits {value}. Use for FAQs and optional detail."
+    },
+    "limits": {}
+  },
+  "core/stepper@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/stepper",
+    "version": "1.0.0",
+    "ref": "core/stepper@1.0.0",
+    "system": "core",
+    "name": "stepper",
+    "implements": [
+      "kages/stepper@1"
+    ],
+    "role": "stepper",
+    "summary": "Ordered progress through named steps; optionally clickable, with the current step public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "steps": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "steps: [{id,label,description?}]; value is the current id. interactive makes steps buttons; change emits {value}. Wire value to state to drive step content with visible."
+    },
+    "limits": {}
+  },
+  "core/timeline@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/timeline",
+    "version": "1.0.0",
+    "ref": "core/timeline@1.0.0",
+    "system": "core",
+    "name": "timeline",
+    "implements": [
+      "kages/timeline@1"
+    ],
+    "role": "timeline",
+    "summary": "Chronological list of events with optional times, descriptions and tone.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "time": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "tone": {
+              "type": "string",
+              "enum": [
+                "neutral",
+                "accent",
+                "success",
+                "danger"
+              ]
+            }
+          },
+          "requiredKeys": [
+            "title"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{title,time?,description?,tone?}] in order. Use for history, roadmaps and activity logs."
+    },
+    "limits": {}
+  },
+  "core/modal@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/modal",
+    "version": "1.0.0",
+    "ref": "core/modal@1.0.0",
+    "system": "core",
+    "name": "modal",
+    "implements": [
+      "kages/modal@1"
+    ],
+    "role": "modal",
+    "summary": "Dialog layered over the artifact; opened and closed by commands, Escape or the close button.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "open": {
+        "type": "boolean"
+      },
+      "closeLabel": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {
+      "open": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "open": "boolean"
+        }
+      }
+    },
+    "commands": {
+      "open": [
+        {
+          "do": "setLocal",
+          "key": "open",
+          "value": true
+        }
+      ],
+      "close": [
+        {
+          "do": "setLocal",
+          "key": "open",
+          "value": false
+        }
+      ],
+      "toggle": [
+        {
+          "do": "setLocal",
+          "key": "open",
+          "value": {
+            "$not": {
+              "$self": "open"
+            }
+          }
+        }
+      ]
+    },
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "open",
+          "value": {
+            "$event": "open"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "open"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "Place content in children. Open with a button command {do:'call',target:modal,command:'open'}; Escape, the backdrop and the close button emit change {open:false}. Use sparingly for confirmations and detail."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

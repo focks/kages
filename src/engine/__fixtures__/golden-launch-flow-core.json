@@ -1,0 +1,266 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Launch flow — a guided checklist\" · system core@1.7.0 · 10 blocks\nstate {\"step\":\"plan\",\"faq\":\"\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Ship it in three steps\"\n    - stepper [core/stepper@1.0.0] label=\"Launch steps\" value=\"plan\"\n        ↳ reads state:step · writes change→state.step\n    - panel [core/alert@1.0.0] title=\"Current step: plan\"\n    - help [core/accordion@1.0.0] items=what|undo\n        ↳ reads state:faq · writes change→state.faq\n    - history [core/timeline@1.0.0] label=\"Recent activity\" items=||\n    - openConfirm [core/button@1.1.0] label=\"Launch now\"\n        ↳ calls click→dialog.open\n    - dialog [core/modal@1.0.0] label=\"Launch this artifact?\"\n      - sure [core/text@1.0.0] text=\"This publishes a new version for everyone with access.\"\n      - go [core/button@1.1.0] label=\"Confirm\"\n          ↳ calls click→dialog.close",
+  "envelope": {
+    "title": "Launch flow — a guided checklist",
+    "root": "root",
+    "state_json": "{\"step\":\"plan\",\"faq\":\"\"}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "stepper",
+            "panel",
+            "help",
+            "history",
+            "openConfirm",
+            "dialog"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Ship it in three steps",
+          "eyebrow": null,
+          "description": "Move through the steps; the content below follows the current step.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "stepper",
+        "type": "stepper",
+        "props": {
+          "label": "Launch steps",
+          "steps": [
+            {
+              "id": "plan",
+              "label": "Plan",
+              "description": "Scope the work"
+            },
+            {
+              "id": "build",
+              "label": "Build",
+              "description": null
+            },
+            {
+              "id": "ship",
+              "label": "Ship",
+              "description": null
+            }
+          ],
+          "value": null,
+          "interactive": true
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"step\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"step\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "panel",
+        "type": "alert",
+        "props": {
+          "tone": "info",
+          "title": null,
+          "text": null
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$tpl\":\"Current step: {{state.step}}\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "help",
+        "type": "accordion",
+        "props": {
+          "items": [
+            {
+              "id": "what",
+              "title": "What happens at launch?",
+              "body": "The artifact is published as an immutable version."
+            },
+            {
+              "id": "undo",
+              "title": "Can I undo it?",
+              "body": "Publish a new version; earlier versions stay available."
+            }
+          ],
+          "value": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"faq\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"faq\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "history",
+        "type": "timeline",
+        "props": {
+          "label": "Recent activity",
+          "items": [
+            {
+              "title": "Draft created",
+              "time": "Mon",
+              "description": null,
+              "tone": "accent"
+            },
+            {
+              "title": "Review requested",
+              "time": "Tue",
+              "description": "Two reviewers assigned.",
+              "tone": null
+            },
+            {
+              "title": "Approved",
+              "time": "Wed",
+              "description": null,
+              "tone": "success"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "openConfirm",
+        "type": "button",
+        "props": {
+          "label": "Launch now",
+          "variant": "primary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"call\",\"target\":\"dialog\",\"command\":\"open\"}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "dialog",
+        "type": "modal",
+        "props": {
+          "label": "Launch this artifact?",
+          "open": null,
+          "closeLabel": null
+        },
+        "slots": {
+          "children": [
+            "sure",
+            "go"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "sure",
+        "type": "text",
+        "props": {
+          "text": "This publishes a new version for everyone with access.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "go",
+        "type": "button",
+        "props": {
+          "label": "Confirm",
+          "variant": "primary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"call\",\"target\":\"dialog\",\"command\":\"close\"}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

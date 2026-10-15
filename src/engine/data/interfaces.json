@@ -1466,5 +1466,404 @@
     "slots": {},
     "events": {},
     "outputs": []
+  },
+  "kages/area-chart@1": {
+    "summary": "Responsive filled area chart of numeric X/Y data with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "area-chart",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/donut-chart@1": {
+    "summary": "Part-to-whole ring chart with a legend, percentages and an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "hole": {
+        "type": "boolean",
+        "default": true
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "donut-chart",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/gauge@1": {
+    "summary": "Single value on a half-ring scale between a minimum and maximum.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number",
+        "required": true
+      },
+      "min": {
+        "type": "number",
+        "default": 0
+      },
+      "max": {
+        "type": "number",
+        "default": 100
+      },
+      "unit": {
+        "type": "string"
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "accent"
+      }
+    },
+    "role": "gauge",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/sparkline@1": {
+    "summary": "Tiny inline trend line for a series of numbers; sits next to a stat or in a table cell.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "number"
+        }
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "accent"
+      }
+    },
+    "role": "sparkline",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/heatmap@1": {
+    "summary": "Row by column matrix whose cell shading shows magnitude, with every value readable as text.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "rows": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "heatmap",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/alert@1": {
+    "summary": "Inline callout for information, success, warning or danger with an optional title and content.",
+    "props": {
+      "tone": {
+        "type": "string",
+        "enum": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "default": "info"
+      },
+      "title": {
+        "type": "string"
+      },
+      "text": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "role": "alert",
+    "events": {},
+    "outputs": []
+  },
+  "kages/accordion@1": {
+    "summary": "Stack of headings that each reveal a panel; one open at a time with a public value.",
+    "props": {
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "body": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "title"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "accordion",
+    "slots": {}
+  },
+  "kages/stepper@1": {
+    "summary": "Ordered progress through named steps; optionally clickable, with the current step public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "steps": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "stepper",
+    "slots": {}
+  },
+  "kages/timeline@1": {
+    "summary": "Chronological list of events with optional times, descriptions and tone.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "time": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "tone": {
+              "type": "string",
+              "enum": [
+                "neutral",
+                "accent",
+                "success",
+                "danger"
+              ]
+            }
+          },
+          "requiredKeys": [
+            "title"
+          ]
+        }
+      }
+    },
+    "role": "timeline",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/modal@1": {
+    "summary": "Dialog layered over the artifact; opened and closed by commands, Escape or the close button.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "open": {
+        "type": "boolean"
+      },
+      "closeLabel": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {
+      "open": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "open": "boolean"
+        }
+      }
+    },
+    "outputs": [
+      "open"
+    ],
+    "role": "modal"
   }
 }

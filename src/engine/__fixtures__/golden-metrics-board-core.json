@@ -1,0 +1,291 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Metrics board — charts at a glance\" · system core@1.7.0 · 12 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How the launch is going\"\n    - notice [core/alert@1.0.0] title=\"Preview data\" text=\"Figures are illustrative.\"\n    - kpis [core/grid@1.0.0]\n      - signups [core/stat@1.0.0] label=\"Signups\" value=6\n          ↳ reads data:weeks\n      - capacity [core/gauge@1.0.0] label=\"Capacity used\" value=72\n      - weekly [core/section@1.0.0] title=\"Weekly signups\"\n        children:\n          - trendline [core/sparkline@1.0.0] label=\"Weekly signups\"\n    - trend [core/area-chart@1.0.0] label=\"Signups per week\" items=|||||\n        ↳ reads data:weeks\n    - mix [core/split@1.0.0]\n      start:\n        - channels [core/donut-chart@1.0.0] label=\"Signups by channel\" items=||\n      end:\n        - activity [core/heatmap@1.0.0] label=\"Activity by day and slot\" rows=3",
+  "envelope": {
+    "title": "Metrics board — charts at a glance",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": "{\"weeks\":[{\"x\":1,\"y\":120},{\"x\":2,\"y\":180},{\"x\":3,\"y\":150},{\"x\":4,\"y\":240},{\"x\":5,\"y\":310},{\"x\":6,\"y\":280}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "notice",
+            "kpis",
+            "trend",
+            "mix"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "How the launch is going",
+          "eyebrow": "Metrics board",
+          "description": "Trend, composition, capacity and intensity in one flowing page.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "notice",
+        "type": "alert",
+        "props": {
+          "tone": "warning",
+          "title": "Preview data",
+          "text": "Figures are illustrative."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "kpis",
+        "type": "grid",
+        "props": {
+          "columns": 3,
+          "minSize": "small",
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "signups",
+            "capacity",
+            "weekly"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "signups",
+        "type": "stat",
+        "props": {
+          "label": "Signups",
+          "value": null,
+          "format": "number",
+          "delta": null,
+          "caption": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$count\":{\"$data\":\"weeks\"}}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "capacity",
+        "type": "gauge",
+        "props": {
+          "label": "Capacity used",
+          "value": 72,
+          "min": null,
+          "max": null,
+          "unit": "%",
+          "tone": "success"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "weekly",
+        "type": "section",
+        "props": {
+          "title": "Weekly signups",
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": "surface",
+          "inset": null,
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "trendline"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "trendline",
+        "type": "sparkline",
+        "props": {
+          "label": "Weekly signups",
+          "values": [
+            120,
+            180,
+            150,
+            240,
+            310,
+            280
+          ],
+          "tone": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "trend",
+        "type": "area-chart",
+        "props": {
+          "label": "Signups per week",
+          "items": null,
+          "xLabel": "Week",
+          "yLabel": "Signups",
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "{\"$data\":\"weeks\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "mix",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 6
+        },
+        "slots": {
+          "start": [
+            "channels"
+          ],
+          "end": [
+            "activity"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "channels",
+        "type": "donut-chart",
+        "props": {
+          "label": "Signups by channel",
+          "items": [
+            {
+              "label": "Search",
+              "value": 48
+            },
+            {
+              "label": "Referral",
+              "value": 31
+            },
+            {
+              "label": "Social",
+              "value": 21
+            }
+          ],
+          "hole": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "activity",
+        "type": "heatmap",
+        "props": {
+          "label": "Activity by day and slot",
+          "rows": [
+            "Mon",
+            "Tue",
+            "Wed"
+          ],
+          "columns": [
+            "AM",
+            "Noon",
+            "PM"
+          ],
+          "values": [
+            [
+              3,
+              8,
+              5
+            ],
+            [
+              6,
+              9,
+              2
+            ],
+            [
+              1,
+              4,
+              7
+            ]
+          ],
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

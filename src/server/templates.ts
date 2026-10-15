@@ -4,7 +4,7 @@
 // demonstrate editorial, landing and interactive compositions.
 
 import type { KageDoc } from "../engine/types.ts";
-import { freeFlowExamples, expressiveExamples } from "../packs/examples.ts";
+import { freeFlowExamples, expressiveExamples, richExamples } from "../packs/examples.ts";
 
 function page(children: string[]): KageDoc["blocks"][string] {
   return { type: "page", props: { width: "reading", gap: 6 }, slots: { children } };
@@ -56,6 +56,6 @@ export function introTemplates(): KageDoc[] {
       c2h: text("Share a link"),
       c2b: text("Publish a Kage and share a /k link. Anyone with the link sees a clean, full-page render in the Kage's own design system, with a Made-with-Kages badge."),
     }),
-    ...freeFlowExamples(), ...expressiveExamples(),
+    ...freeFlowExamples(), ...expressiveExamples(), ...richExamples(),
   ];
 }
