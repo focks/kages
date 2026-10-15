@@ -166,3 +166,42 @@ export function appExamples(system = "core"): KageDoc[] {
   };
   return [bench, read];
 }
+
+/** Batch 3: connected blocks. A chart selection filters a table, a declared
+ * source loads live data (falling back to its mock offline), and ordinary
+ * visible/disabled/when expressions act as conditional rules. */
+export function connectedExamples(system = "core"): KageDoc[] {
+  const base = (id: string, title: string): KageDoc => ({ kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} });
+  const explorer = base("region-explorer", "Region explorer — click a slice to filter");
+  explorer.data = { deals: [{ id: "d1", name: "Northwind", region: "North", value: 120 }, { id: "d2", name: "Contoso", region: "South", value: 80 }, { id: "d3", name: "Fabrikam", region: "North", value: 60 }, { id: "d4", name: "Tailspin", region: "West", value: 45 }] };
+  explorer.blocks = {
+    root: { type: "page", props: { width: "wide", gap: 6 }, slots: { children: ["intro", "layout"] } },
+    intro: { type: "section", props: { eyebrow: "Region explorer", title: "Where is the pipeline?", description: "Select a slice (or press Enter on it) to filter the deals; select it again to clear.", inset: 0 } },
+    layout: { type: "split", props: { ratio: "equal", gap: 6 }, slots: { start: ["mix"], end: ["table", "caption"] } },
+    mix: { type: "donut-chart", props: { label: "Pipeline value by region", interactive: true, items: [{ label: "North", value: 180 }, { label: "South", value: 80 }, { label: "West", value: 45 }] } },
+    table: { type: "data-grid", props: { label: "Deals", sortable: true, columns: [{ key: "name", label: "Deal" }, { key: "region", label: "Region" }, { key: "value", label: "Value" }] }, bind: { rows: { $filter: { list: { $data: "deals" }, field: "region", equals: { $block: "mix.selected" }, skipIf: "" } } } },
+    caption: { type: "text", props: { variant: "caption" }, bind: { text: { $concat: ["Showing ", { $count: { $filter: { list: { $data: "deals" }, field: "region", equals: { $block: "mix.selected" }, skipIf: "" } } }, " of 4 deals"] } } },
+  };
+  const feed = base("live-feed", "Live feed — a declared data source");
+  feed.state = { items: [], loading: false };
+  feed.sources = { headlines: { from: "url", url: "https://api.example.com/headlines.json", path: "items", maxItems: 20 } };
+  feed.blocks = {
+    root: { type: "page", props: { width: "reading", gap: 6 }, slots: { children: ["intro", "load", "list"] } },
+    intro: { type: "section", props: { title: "Headlines", description: "Loads from a declared source when the host allows it; otherwise shows the built-in sample.", inset: 0 } },
+    load: { type: "button", props: { label: "Load headlines", variant: "primary" }, bind: { disabled: { $state: "loading" } }, on: { click: [{ do: "fetch", source: "headlines", into: "items", pendingInto: "loading", mock: [{ title: "Sample headline one", time: "Now" }, { title: "Sample headline two", time: "1h ago" }] }] } },
+    list: { type: "timeline", props: { label: "Headlines" }, bind: { items: { $state: "items" } } },
+  };
+  const rules = base("signup-rules", "Signup rules — conditional behaviour");
+  rules.state = { age: null, consent: false, submitted: false };
+  const eligible: Expr = { $and: [{ $neq: [{ $state: "age" }, null] }, { $gte: [{ $state: "age" }, 18] }, { $state: "consent" }] };
+  rules.blocks = {
+    root: { type: "page", props: { width: "reading", gap: 6 }, slots: { children: ["intro", "age", "consent", "minor", "submit", "done"] } },
+    intro: { type: "section", props: { title: "Join the programme", description: "Rules: adults only, with consent. The button enables itself when both hold.", inset: 0 } },
+    age: { type: "number-input", props: { label: "Your age", min: 0, max: 120, step: 1 }, bind: { value: { $state: "age" } }, on: { change: [{ do: "set", path: "age", value: { $event: "value" } }] } },
+    consent: { type: "switch", props: { label: "I agree to the terms" }, bind: { checked: { $state: "consent" } }, on: { change: [{ do: "set", path: "consent", value: { $event: "checked" } }] } },
+    minor: { type: "alert", props: { tone: "warning", title: "Adults only", text: "You must be 18 or older to join." }, visible: { $and: [{ $neq: [{ $state: "age" }, null] }, { $lt: [{ $state: "age" }, 18] }] } },
+    submit: { type: "button", props: { label: "Join", variant: "primary" }, bind: { disabled: { $not: eligible } }, on: { click: [{ do: "set", path: "submitted", value: true, when: eligible }] } },
+    done: { type: "alert", props: { tone: "success", title: "You're in", text: "Welcome aboard." }, visible: { $state: "submitted" } },
+  };
+  return [explorer, feed, rules];
+}

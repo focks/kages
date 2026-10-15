@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Metrics board — charts at a glance\" · system atelier@1.4.0 · 12 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How the launch is going\"\n    - notice [core/alert@1.0.0] title=\"Preview data\" text=\"Figures are illustrative.\"\n    - kpis [core/grid@1.0.0]\n      - signups [atelier/stat@1.0.0] label=\"Signups\" value=6\n          ↳ reads data:weeks\n      - capacity [core/gauge@1.0.0] label=\"Capacity used\" value=72\n      - weekly [core/section@1.0.0] title=\"Weekly signups\"\n        children:\n          - trendline [core/sparkline@1.0.0] label=\"Weekly signups\"\n    - trend [core/area-chart@1.0.0] label=\"Signups per week\" items=|||||\n        ↳ reads data:weeks\n    - mix [core/split@1.0.0]\n      start:\n        - channels [core/donut-chart@1.0.0] label=\"Signups by channel\" items=||\n      end:\n        - activity [core/heatmap@1.0.0] label=\"Activity by day and slot\" rows=3",
+  "description": "Kage \"Metrics board — charts at a glance\" · system atelier@1.5.0 · 12 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How the launch is going\"\n    - notice [core/alert@1.0.0] title=\"Preview data\" text=\"Figures are illustrative.\"\n    - kpis [core/grid@1.0.0]\n      - signups [atelier/stat@1.0.0] label=\"Signups\" value=6\n          ↳ reads data:weeks\n      - capacity [core/gauge@1.0.0] label=\"Capacity used\" value=72\n      - weekly [core/section@1.0.0] title=\"Weekly signups\"\n        children:\n          - trendline [core/sparkline@1.0.0] label=\"Weekly signups\"\n    - trend [core/area-chart@1.0.0] label=\"Signups per week\" items=|||||\n        ↳ reads data:weeks\n    - mix [core/split@1.0.0]\n      start:\n        - channels [core/donut-chart@1.1.0] label=\"Signups by channel\" items=||\n      end:\n        - activity [core/heatmap@1.1.0] label=\"Activity by day and slot\" rows=3",
   "envelope": {
     "title": "Metrics board — charts at a glance",
     "root": "root",
@@ -237,7 +237,9 @@
             }
           ],
           "hole": null,
-          "empty": null
+          "empty": null,
+          "interactive": null,
+          "selected": null
         },
         "slots": {},
         "bind": [],
@@ -277,7 +279,9 @@
               7
             ]
           ],
-          "empty": null
+          "empty": null,
+          "interactive": null,
+          "selected_json": null
         },
         "slots": {},
         "bind": [],

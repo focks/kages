@@ -53,3 +53,8 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
 .kg-modal__title { margin: 0; font-size: 1.125rem; }
 .kg-modal__close { background: none; border: 0; color: var(--kg-ink); font-size: 1.5rem; line-height: 1; cursor: pointer; padding: var(--kg-space-1) var(--kg-space-2); border-radius: var(--kg-r-sm); }
 .kg-modal__close:focus-visible { outline: 3px solid var(--kg-focus); }
+.kg-donut svg [role=button] { cursor: pointer; }
+.kg-donut svg [role=button]:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
+.kg-heatmap__btn { width: 100%; padding: 0; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.kg-heatmap__btn:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
+.kg-heatmap__cell--on { outline: 2px solid var(--kg-ink); outline-offset: -2px; }

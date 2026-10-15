@@ -1,0 +1,176 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Signup rules — conditional behaviour\" · system ledger@2.6.0 · 7 blocks\nstate {\"age\":null,\"consent\":false,\"submitted\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Join the programme\"\n    - age [core/number-input@1.0.0] label=\"Your age\"\n        ↳ reads state:age · writes change→state.age\n    - consent [core/switch@1.0.0] label=\"I agree to the terms\"\n        ↳ reads state:consent · writes change→state.consent\n    - minor [core/alert@1.0.0] (hidden) title=\"Adults only\" text=\"You must be 18 or older to join.\"\n        ↳ reads state:age\n    - submit [ledger/button@2.1.0] label=\"Join\"\n        ↳ reads state:age, state:consent · writes click→state.submitted\n    - done [core/alert@1.0.0] (hidden) title=\"You're in\" text=\"Welcome aboard.\"\n        ↳ reads state:submitted",
+  "envelope": {
+    "title": "Signup rules — conditional behaviour",
+    "root": "root",
+    "state_json": "{\"age\":null,\"consent\":false,\"submitted\":false}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "age",
+            "consent",
+            "minor",
+            "submit",
+            "done"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Join the programme",
+          "eyebrow": null,
+          "description": "Rules: adults only, with consent. The button enables itself when both hold.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "age",
+        "type": "number-input",
+        "props": {
+          "label": "Your age",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "value_json": null,
+          "min": 0,
+          "max": 120,
+          "step": 1
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"age\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"age\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "consent",
+        "type": "switch",
+        "props": {
+          "label": "I agree to the terms",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"consent\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"consent\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "minor",
+        "type": "alert",
+        "props": {
+          "tone": "warning",
+          "title": "Adults only",
+          "text": "You must be 18 or older to join."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$neq\":[{\"$state\":\"age\"},null]},{\"$lt\":[{\"$state\":\"age\"},18]}]}",
+        "repeat_json": null
+      },
+      {
+        "id": "submit",
+        "type": "button",
+        "props": {
+          "label": "Join",
+          "variant": "primary",
+          "size": null,
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "disabled",
+            "expr_json": "{\"$not\":{\"$and\":[{\"$neq\":[{\"$state\":\"age\"},null]},{\"$gte\":[{\"$state\":\"age\"},18]},{\"$state\":\"consent\"}]}}"
+          }
+        ],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"submitted\",\"value\":true,\"when\":{\"$and\":[{\"$neq\":[{\"$state\":\"age\"},null]},{\"$gte\":[{\"$state\":\"age\"},18]},{\"$state\":\"consent\"}]}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "done",
+        "type": "alert",
+        "props": {
+          "tone": "success",
+          "title": "You're in",
+          "text": "Welcome aboard."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$state\":\"submitted\"}",
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

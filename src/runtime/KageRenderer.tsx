@@ -26,7 +26,7 @@ import { resolve } from "@/engine/resolve.ts";
 import { contracts } from "@/engine/data.ts";
 import { evaluate, clone, merge, setPath } from "@/engine/expr.ts";
 import { initLocals, makeCtx, materialize, runActions, systemOf, type Draft, type LogEntry, type HostTask } from "@/engine/runtime-core.ts";
-import { HostBridge } from "@/host/bridge.ts";
+import { HostBridge, type BridgeConfig } from "@/host/bridge.ts";
 import type { KageDoc, Json, Contract, Block } from "@/engine/types.ts";
 import { useDsBundle } from "./useDsBundle.ts";
 
@@ -73,9 +73,12 @@ export interface KageRendererProps {
   dsBase?: string;
   className?: string;
   onState?: (state: Record<string, Json>) => void;
+  /** Host capability policy (fetch allowlist, connectors…). Absent → every
+   *  fetch is denied: a Kage cannot reach the network unless its host opts in. */
+  host?: BridgeConfig;
 }
 
-export function KageRenderer({ doc, system, dsBase = "/ds", className, onState }: KageRendererProps) {
+export function KageRenderer({ doc, system, dsBase = "/ds", className, onState, host }: KageRendererProps) {
   const { kages, error } = useDsBundle(dsBase);
   const sysId = systemOf(doc, system);
 
@@ -86,7 +89,7 @@ export function KageRenderer({ doc, system, dsBase = "/ds", className, onState }
   // so their capability gates (billing, registered agents, allowlist, rate limit)
   // apply. The viewer auto-permits the first model call for the demo; a real host
   // would prompt. Created once per document.
-  const bridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer" }); b.permitAsk(); return b; }, [doc]);
+  const bridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer", ...host }); b.permitAsk(); return b; }, [doc, host]);
 
   if (error) return React.createElement(MissingBox, { id: "bundle", msg: error });
   if (!kages) return React.createElement("div", { className: "kg-loading" }, "Loading design system…");
@@ -143,8 +146,10 @@ export function KageRenderer({ doc, system, dsBase = "/ds", className, onState }
         const res = await bridge.invokeAgent(a.agent ?? "", task.input ?? null);
         result = a.mock !== undefined ? (a.mock as Json) : res.ok ? (res.value ?? null) : null;
       } else if (a.do === "fetch") {
-        bridge.fetch(a.source ?? "");
-        result = (a.mock as Json) ?? null;
+        // A live result wins; a denied or failed load falls back to the Kage's
+        // own `mock` so previews and offline hosts still show something.
+        const res = await bridge.load(a.source ?? "");
+        result = res.ok ? (res.value ?? null) : ((a.mock as Json) ?? null);
       } else if (a.do === "emit") {
         bridge.emit(a.name ?? "", task.args ?? null);
         return; // emit writes nothing back into state

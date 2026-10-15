@@ -1,0 +1,105 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "atelier",
+    "portable": true
+  },
+  "description": "Kage \"Live feed — a declared data source\" · system atelier@1.5.0 · 4 blocks\nstate {\"items\":[],\"loading\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Headlines\"\n    - load [atelier/button@1.0.0] label=\"Load headlines\"\n        ↳ reads state:loading · calls click→fetch⇒state.items\n    - list [core/timeline@1.0.0] label=\"Headlines\" items=\n        ↳ reads state:items",
+  "envelope": {
+    "title": "Live feed — a declared data source",
+    "root": "root",
+    "state_json": "{\"items\":[],\"loading\":false}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "load",
+            "list"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Headlines",
+          "eyebrow": null,
+          "description": "Loads from a declared source when the host allows it; otherwise shows the built-in sample.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "load",
+        "type": "button",
+        "props": {
+          "label": "Load headlines",
+          "variant": "primary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "disabled",
+            "expr_json": "{\"$state\":\"loading\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"fetch\",\"source\":\"headlines\",\"into\":\"items\",\"pendingInto\":\"loading\",\"mock\":[{\"title\":\"Sample headline one\",\"time\":\"Now\"},{\"title\":\"Sample headline two\",\"time\":\"1h ago\"}]}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "list",
+        "type": "timeline",
+        "props": {
+          "label": "Headlines",
+          "items": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "{\"$state\":\"items\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

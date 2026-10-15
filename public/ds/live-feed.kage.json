@@ -1,0 +1,86 @@
+{
+  "kages": "1.0",
+  "id": "live-feed",
+  "title": "Live feed — a declared data source",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "load",
+          "list"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Headlines",
+        "description": "Loads from a declared source when the host allows it; otherwise shows the built-in sample.",
+        "inset": 0
+      }
+    },
+    "load": {
+      "type": "button",
+      "props": {
+        "label": "Load headlines",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$state": "loading"
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "fetch",
+            "source": "headlines",
+            "into": "items",
+            "pendingInto": "loading",
+            "mock": [
+              {
+                "title": "Sample headline one",
+                "time": "Now"
+              },
+              {
+                "title": "Sample headline two",
+                "time": "1h ago"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "list": {
+      "type": "timeline",
+      "props": {
+        "label": "Headlines"
+      },
+      "bind": {
+        "items": {
+          "$state": "items"
+        }
+      }
+    }
+  },
+  "state": {
+    "items": [],
+    "loading": false
+  },
+  "sources": {
+    "headlines": {
+      "from": "url",
+      "url": "https://api.example.com/headlines.json",
+      "path": "items",
+      "maxItems": 20
+    }
+  }
+}

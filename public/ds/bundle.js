@@ -743,7 +743,15 @@
     if (!items.length || !isFinite(total) || total <= 0) return emptyChart(p);
     var angle = -Math.PI / 2, hole = p.hole === false ? 0 : 62, slices = items.map(function (it, i) {
       var a1 = angle + it.value / total * Math.PI * 2, d = ringSlice(110, 110, 100, hole, angle, a1); angle = a1;
-      return h("path", { key: i, d: d, fill: seriesPaint(i), stroke: "var(--kg-paper)", strokeWidth: 2 }, h("title", null, it.label + ": " + it.value));
+      var chosen = p.selected === it.label, attrs = { key: i, d: d, fill: seriesPaint(i), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 4 : 2, opacity: p.selected && !chosen ? .45 : 1 };
+      // Selection is data-out only: the slice reports its label, value and
+      // position and the document decides what that filters.
+      if (p.interactive) {
+        var pick = function () { fire(p.onSelect, { label: String(it.label), value: it.value, index: i }); };
+        attrs.role = "button"; attrs.tabIndex = 0; attrs["aria-pressed"] = chosen; attrs["aria-label"] = it.label + ": " + it.value; attrs.onClick = pick;
+        attrs.onKeyDown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } };
+      }
+      return h("path", attrs, h("title", null, it.label + ": " + it.value));
     });
     return h("figure", { className: "kg-scene kg-donut" }, h("figcaption", null, p.label),
       h("div", { className: "kg-donut__body" }, h("svg", { viewBox: "0 0 220 220", role: "img", "aria-label": p.label }, h("title", null, p.label), slices,
@@ -786,7 +794,10 @@
             var v = Array.isArray(grid[i]) ? grid[i][j] : undefined, ok = typeof v === "number" && isFinite(v);
             // Opacity (not a colour channel) carries the magnitude, so the cell
             // stays on the token palette and keeps text contrast via a floor.
-            return h("td", { key: j, style: ok ? { background: "color-mix(in srgb, var(--kg-accent) " + Math.round(12 + (span ? (v / sc - lo / sc) / span : .5) * 78) + "%, var(--kg-paper))" } : undefined, title: r + " / " + c + ": " + (ok ? v : "no data") }, ok ? v : "–");
+            var cell = ok ? { background: "color-mix(in srgb, var(--kg-accent) " + Math.round(12 + (span ? (v / sc - lo / sc) / span : .5) * 78) + "%, var(--kg-paper))" } : undefined;
+            var chosen = !!p.selected && p.selected.row === r && p.selected.column === c;
+            if (p.interactive && ok) return h("td", { key: j, style: cell && cell.background ? cell : undefined, className: chosen ? "kg-heatmap__cell--on" : undefined }, h("button", { type: "button", className: "kg-heatmap__btn", "aria-pressed": chosen, title: r + " / " + c + ": " + v, onClick: function () { fire(p.onSelect, { row: r, column: c, value: v }); } }, v));
+            return h("td", { key: j, style: cell, title: r + " / " + c + ": " + (ok ? v : "no data") }, ok ? v : "–");
           }));
         })))));
   }
@@ -845,10 +856,10 @@
   var XY_PROPS = { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { x: S("number"), y: S("number"), label: S("string") }, requiredKeys: ["x", "y"] }) }), xLabel: S("string"), yLabel: S("string"), empty: S("string") };
   var RICH = {
     "area-chart": { summary: "Responsive filled area chart of numeric X/Y data with an accessible data table.", props: XY_PROPS },
-    "donut-chart": { summary: "Part-to-whole ring chart with a legend, percentages and an accessible data table.", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), value: S("number") }, requiredKeys: ["label", "value"] }) }), hole: S("boolean", { default: true }), empty: S("string") } },
+    "donut-chart": { summary: "Part-to-whole ring chart with a legend, percentages and an accessible data table.", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), value: S("number") }, requiredKeys: ["label", "value"] }) }), hole: S("boolean", { default: true }), empty: S("string"), interactive: S("boolean"), selected: S("string") }, local: { selected: { type: "string", default: "" } }, events: { select: { payload: { label: "string", value: "number", index: "number" } } }, outputs: ["selected"] },
     gauge: { summary: "Single value on a half-ring scale between a minimum and maximum.", props: { label: S("string", { required: true }), value: S("number", { required: true }), min: S("number", { default: 0 }), max: S("number", { default: 100 }), unit: S("string"), tone: TONE4 } },
     sparkline: { summary: "Tiny inline trend line for a series of numbers; sits next to a stat or in a table cell.", props: { label: S("string", { required: true }), values: S("array", { required: true, items: S("number") }), tone: TONE4 } },
-    heatmap: { summary: "Row by column matrix whose cell shading shows magnitude, with every value readable as text.", props: { label: S("string", { required: true }), rows: S("array", { required: true, items: S("string") }), columns: S("array", { required: true, items: S("string") }), values: S("array", { required: true, items: S("array", { items: S("number") }) }), empty: S("string") } },
+    heatmap: { summary: "Row by column matrix whose cell shading shows magnitude, with every value readable as text.", props: { label: S("string", { required: true }), rows: S("array", { required: true, items: S("string") }), columns: S("array", { required: true, items: S("string") }), values: S("array", { required: true, items: S("array", { items: S("number") }) }), empty: S("string"), interactive: S("boolean"), selected: S("object") }, local: { selected: { type: "object|null", default: null } }, events: { select: { payload: { row: "string", column: "string", value: "number" } } }, outputs: ["selected"] },
     alert: { summary: "Inline callout for information, success, warning or danger with an optional title and content.", props: { tone: S("string", { enum: ["info", "success", "warning", "danger"], default: "info" }), title: S("string"), text: S("string") }, slots: { children: {} } },
     accordion: { summary: "Stack of headings that each reveal a panel; one open at a time with a public value.", props: { items: S("array", { required: true, items: S("object", { properties: { id: S("string"), title: S("string"), body: S("string") }, requiredKeys: ["id", "title"] }) }), value: S("string") }, local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
     stepper: { summary: "Ordered progress through named steps; optionally clickable, with the current step public.", props: { label: S("string", { required: true }), steps: S("array", { required: true, items: S("object", { properties: { id: S("string"), label: S("string"), description: S("string") }, requiredKeys: ["id", "label"] }) }), value: S("string"), interactive: S("boolean") }, local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
@@ -857,10 +868,10 @@
   };
   var RICH_NOTES = {
     "area-chart": "items: [{x,y,label?}] with sorted x. Use for volume over time; prefer line-chart when several readings overlap.",
-    "donut-chart": "items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many.",
+    "donut-chart": "items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many. Set interactive to make slices selectable: select emits {label,value,index} and the public output `selected` is the label (empty = none); filter other blocks with $filter on it.",
     gauge: "value within min..max (clamped). tone is a token colour. Use for one KPI against a known scale, not for trends.",
     sparkline: "values: number[]; no axes. Put beside a stat for trend. Provide a label that states what the series is.",
-    heatmap: "rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash.",
+    heatmap: "rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash. interactive makes cells buttons: select emits {row,column,value}; output `selected` is {row,column} or null.",
     alert: "tone info|success|warning|danger; title and text, or children. danger and warning announce immediately.",
     accordion: "items: [{id,title,body}]; value is the open id (empty closes all). change emits {value}. Use for FAQs and optional detail.",
     stepper: "steps: [{id,label,description?}]; value is the current id. interactive makes steps buttons; change emits {value}. Wire value to state to drive step content with visible.",
@@ -873,9 +884,12 @@
     var I = RICH[name]; I.role = name; I.slots = I.slots || {}; I.events = I.events || {}; I.outputs = I.outputs || [];
     interfaces["kages/" + name + "@1"] = I;
     if (name === "accordion" || name === "stepper") DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
+    if (name === "donut-chart") DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { $if: [{ $eq: [{ $self: "selected" }, { $event: "label" }] }, "", { $event: "label" }] } }] };
+    if (name === "heatmap") DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { row: { $event: "row" }, column: { $event: "column" } } }] };
     if (name === "modal") DEFAULTS[name] = { change: [{ do: "setLocal", key: "open", value: { $event: "open" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
-    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "wire", "success", "danger", "focus"], agent: { use: RICH_NOTES[name] } });
+    // Adding the optional select event/output to these two is a minor contract change.
+    core[name] = contract("core", name, name === "donut-chart" || name === "heatmap" ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "wire", "success", "danger", "focus"], agent: { use: RICH_NOTES[name] } });
   });
 
 /* Batch 2 of the rich-artifact roles: work-app, input and media blocks.
@@ -1152,9 +1166,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.8.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.5.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.4.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.9.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.6.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.5.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:

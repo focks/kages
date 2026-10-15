@@ -57,6 +57,26 @@ batches follow the same file pattern. Read `free-flow-composition` and
 - **Deterministic render.** No block reads the clock: calendar requires `month`.
 - **Hooks first.** Call hooks before any early return (modal returns null when closed).
 
+## Connected blocks (batch 3)
+
+- **Selection.** Interactive charts (`donut-chart`, `heatmap`) emit `select` and
+  expose a public `selected` output; clicking the same slice toggles it off. A
+  second block filters with `{ $filter: { list, field, equals: { $block: "chart.selected" }, skipIf: "" } }`.
+  Only *outputs* are readable across blocks — a prop like a grid's `rows` is not
+  (`private-output`). Bind both sides to state or repeat the expression.
+- **Live data.** `HostBridge.load(source)` is the only network path. The host opts
+  in with `<KageRenderer host={{ fetchAllowlist: [...] }}>`; with no allowlist every
+  fetch is denied and the action's `mock` lands instead, so previews stay offline-safe.
+  Never add a second fetch path or relax the https/no-credentials/size rules.
+- **Conditional rules** need no new engine surface: `visible`, bound `disabled`,
+  action `when` and `$if` already cover them. Guard both the control state *and*
+  the action, since an event can arrive without the button being clickable.
+- A new contract event/output on an existing role is a minor contract bump
+  (`donut-chart` and `heatmap` are 1.1.0).
+- **After every `build:ds`, re-read the example goldens** for errors: the oracle
+  validator misses things the pure engine catches (e.g. `$tpl` hides block reads).
+  `connected.test.ts` validates every example with the pure engine in all systems.
+
 ## Verify in a real browser
 
 SSR tests cannot click. Start the dev server, publish a template with

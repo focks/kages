@@ -53,8 +53,8 @@ export function referenceBundle() {
   }
   // Additive roles change catalog capabilities, so every inheriting system
   // advertises a minor release; the existing component refs stay immutable.
-  source = source.replace('version: "1.4.0", className: "kg-sys-core"', 'version: "1.8.0", className: "kg-sys-core"')
-    .replace('version: "2.1.0", className: "kg-sys-ledger"', 'version: "2.5.0", className: "kg-sys-ledger"')
-    .replace('version: "1.0.0", className: "kg-sys-atelier"', 'version: "1.4.0", className: "kg-sys-atelier"');
+  source = source.replace('version: "1.4.0", className: "kg-sys-core"', 'version: "1.9.0", className: "kg-sys-core"')
+    .replace('version: "2.1.0", className: "kg-sys-ledger"', 'version: "2.6.0", className: "kg-sys-ledger"')
+    .replace('version: "1.0.0", className: "kg-sys-atelier"', 'version: "1.5.0", className: "kg-sys-atelier"');
   return source;
 }

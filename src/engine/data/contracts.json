@@ -2691,11 +2691,11 @@
     },
     "limits": {}
   },
-  "core/donut-chart@1.0.0": {
+  "core/donut-chart@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/donut-chart",
-    "version": "1.0.0",
-    "ref": "core/donut-chart@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/donut-chart@1.1.0",
     "system": "core",
     "name": "donut-chart",
     "implements": [
@@ -2733,14 +2733,61 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
       }
     },
     "slots": {},
-    "local": {},
-    "events": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
     "commands": {},
-    "defaults": {},
-    "outputs": [],
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
     "tokens": [
       "paper",
       "surface",
@@ -2755,7 +2802,7 @@
       "focus"
     ],
     "agent": {
-      "use": "items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many."
+      "use": "items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many. Set interactive to make slices selectable: select emits {label,value,index} and the public output `selected` is the label (empty = none); filter other blocks with $filter on it."
     },
     "limits": {}
   },
@@ -2885,11 +2932,11 @@
     },
     "limits": {}
   },
-  "core/heatmap@1.0.0": {
+  "core/heatmap@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/heatmap",
-    "version": "1.0.0",
-    "ref": "core/heatmap@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/heatmap@1.1.0",
     "system": "core",
     "name": "heatmap",
     "implements": [
@@ -2928,14 +2975,51 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "object"
       }
     },
     "slots": {},
-    "local": {},
-    "events": {},
+    "local": {
+      "selected": {
+        "type": "object|null",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "row": "string",
+          "column": "string",
+          "value": "number"
+        }
+      }
+    },
     "commands": {},
-    "defaults": {},
-    "outputs": [],
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "row": {
+              "$event": "row"
+            },
+            "column": {
+              "$event": "column"
+            }
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
     "tokens": [
       "paper",
       "surface",
@@ -2950,7 +3034,7 @@
       "focus"
     ],
     "agent": {
-      "use": "rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash."
+      "use": "rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash. interactive makes cells buttons: select emits {row,column,value}; output `selected` is {row,column} or null."
     },
     "limits": {}
   },

@@ -38,3 +38,24 @@ Feature: Rich visual and disclosure blocks
     Then no raw HTML, script or executable URL reaches the page
     And only http(s), local, anchor and mailto links are active
     And unknown TeX commands render as text and nesting depth and length are bounded
+
+  Scenario: A chart selection drives other blocks
+    Given an interactive donut or heatmap
+    When a slice or cell is clicked, or focused and activated with Enter or Space
+    Then it emits select with its label/value or row/column/value
+    And its public selected output updates without author wiring
+    And selecting the same slice again clears it
+    And other blocks may filter on that output with $filter equals and skipIf
+
+  Scenario: Live data loads only through the host bridge
+    Given a document declares a source and a fetch action names it
+    Then the request is made only if the host allowlist permits the url
+    And only https GET requests without credentials, redirects or private hosts are made
+    And the response must be JSON within the size and time limits
+    And prototype-polluting keys are dropped and arrays are bounded by maxItems
+    And a denied or failed load leaves the action's mock (or null) in state
+
+  Scenario: Conditional behaviour uses ordinary expressions
+    Given visible, a bound disabled prop and an action when reference state
+    Then each updates as the state changes
+    And a guarded action does nothing if its condition fails, even when the event still arrives

@@ -1543,12 +1543,34 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
       }
     },
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
     "role": "donut-chart",
-    "slots": {},
-    "events": {},
-    "outputs": []
+    "slots": {}
   },
   "kages/gauge@1": {
     "summary": "Single value on a half-ring scale between a minimum and maximum.",
@@ -1651,12 +1673,34 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "object"
       }
     },
+    "local": {
+      "selected": {
+        "type": "object|null",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "row": "string",
+          "column": "string",
+          "value": "number"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
     "role": "heatmap",
-    "slots": {},
-    "events": {},
-    "outputs": []
+    "slots": {}
   },
   "kages/alert@1": {
     "summary": "Inline callout for information, success, warning or danger with an optional title and content.",

@@ -1,0 +1,166 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "atelier",
+    "portable": true
+  },
+  "description": "Kage \"Region explorer — click a slice to filter\" · system atelier@1.5.0 · 6 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Where is the pipeline?\"\n    - layout [core/split@1.0.0]\n      start:\n        - mix [core/donut-chart@1.1.0] label=\"Pipeline value by region\" items=||\n      end:\n        - table [core/data-grid@1.0.0] label=\"Deals\" rows=4\n            ↳ reads data:deals, block:mix.selected\n        - caption [core/text@1.0.0] text=\"Showing 4 of 4 deals\"\n            ↳ reads data:deals, block:mix.selected",
+  "envelope": {
+    "title": "Region explorer — click a slice to filter",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": "{\"deals\":[{\"id\":\"d1\",\"name\":\"Northwind\",\"region\":\"North\",\"value\":120},{\"id\":\"d2\",\"name\":\"Contoso\",\"region\":\"South\",\"value\":80},{\"id\":\"d3\",\"name\":\"Fabrikam\",\"region\":\"North\",\"value\":60},{\"id\":\"d4\",\"name\":\"Tailspin\",\"region\":\"West\",\"value\":45}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "layout"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Where is the pipeline?",
+          "eyebrow": "Region explorer",
+          "description": "Select a slice (or press Enter on it) to filter the deals; select it again to clear.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "layout",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 6
+        },
+        "slots": {
+          "start": [
+            "mix"
+          ],
+          "end": [
+            "table",
+            "caption"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "mix",
+        "type": "donut-chart",
+        "props": {
+          "label": "Pipeline value by region",
+          "items": [
+            {
+              "label": "North",
+              "value": 180
+            },
+            {
+              "label": "South",
+              "value": 80
+            },
+            {
+              "label": "West",
+              "value": 45
+            }
+          ],
+          "hole": null,
+          "empty": null,
+          "interactive": true,
+          "selected": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "table",
+        "type": "data-grid",
+        "props": {
+          "label": "Deals",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Deal"
+            },
+            {
+              "key": "region",
+              "label": "Region"
+            },
+            {
+              "key": "value",
+              "label": "Value"
+            }
+          ],
+          "rows_json": null,
+          "pageSize": null,
+          "filterable": null,
+          "sortable": true,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "rows",
+            "expr_json": "{\"$filter\":{\"list\":{\"$data\":\"deals\"},\"field\":\"region\",\"equals\":{\"$block\":\"mix.selected\"},\"skipIf\":\"\"}}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "caption",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[\"Showing \",{\"$count\":{\"$filter\":{\"list\":{\"$data\":\"deals\"},\"field\":\"region\",\"equals\":{\"$block\":\"mix.selected\"},\"skipIf\":\"\"}}},\" of 4 deals\"]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

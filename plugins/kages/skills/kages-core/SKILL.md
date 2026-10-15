@@ -1,6 +1,6 @@
 ---
 name: kages-core
-description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.8.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.9.0).
 ---
 
 # Kages — Kages Core
@@ -9,7 +9,7 @@ Neutral lattice system. The base every other system extends.
 
 ## Components
 
-# Kages Core 1.8.0 (core)
+# Kages Core 1.9.0 (core)
 Neutral lattice system. The base every other system extends.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -127,18 +127,18 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - area-chart → core/area-chart@1.0.0 [kages/area-chart@1] Responsive filled area chart of numeric X/Y data with an accessible data table.
   props: label*:string, items*:array, xLabel:string, yLabel:string, empty:string
   use: items: [{x,y,label?}] with sorted x. Use for volume over time; prefer line-chart when several readings overlap.
-- donut-chart → core/donut-chart@1.0.0 [kages/donut-chart@1] Part-to-whole ring chart with a legend, percentages and an accessible data table.
-  props: label*:string, items*:array, hole:boolean, empty:string
-  use: items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many.
+- donut-chart → core/donut-chart@1.1.0 [kages/donut-chart@1] Part-to-whole ring chart with a legend, percentages and an accessible data table.
+  props: label*:string, items*:array, hole:boolean, empty:string, interactive:boolean, selected:string · events: select · outputs: selected
+  use: items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many. Set interactive to make slices selectable: select emits {label,value,index} and the public output `selected` is the label (empty = none); filter other blocks with $filter on it.
 - gauge → core/gauge@1.0.0 [kages/gauge@1] Single value on a half-ring scale between a minimum and maximum.
   props: label*:string, value*:number, min:number, max:number, unit:string, tone:accent|success|danger|wire
   use: value within min..max (clamped). tone is a token colour. Use for one KPI against a known scale, not for trends.
 - sparkline → core/sparkline@1.0.0 [kages/sparkline@1] Tiny inline trend line for a series of numbers; sits next to a stat or in a table cell.
   props: label*:string, values*:array, tone:accent|success|danger|wire
   use: values: number[]; no axes. Put beside a stat for trend. Provide a label that states what the series is.
-- heatmap → core/heatmap@1.0.0 [kages/heatmap@1] Row by column matrix whose cell shading shows magnitude, with every value readable as text.
-  props: label*:string, rows*:array, columns*:array, values*:array, empty:string
-  use: rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash.
+- heatmap → core/heatmap@1.1.0 [kages/heatmap@1] Row by column matrix whose cell shading shows magnitude, with every value readable as text.
+  props: label*:string, rows*:array, columns*:array, values*:array, empty:string, interactive:boolean, selected:object · events: select · outputs: selected
+  use: rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash. interactive makes cells buttons: select emits {row,column,value}; output `selected` is {row,column} or null.
 - alert → core/alert@1.0.0 [kages/alert@1] Inline callout for information, success, warning or danger with an optional title and content.
   props: tone:info|success|warning|danger, title:string, text:string · slots: children
   use: tone info|success|warning|danger; title and text, or children. danger and warning announce immediately.
@@ -2016,6 +2016,454 @@ Math notes — markdown, math and slides:
         ]
       }
     }
+  }
+}
+```
+
+Region explorer — click a slice to filter:
+```json
+{
+  "kages": "1.0",
+  "id": "region-explorer",
+  "title": "Region explorer — click a slice to filter",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "layout"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Region explorer",
+        "title": "Where is the pipeline?",
+        "description": "Select a slice (or press Enter on it) to filter the deals; select it again to clear.",
+        "inset": 0
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "mix"
+        ],
+        "end": [
+          "table",
+          "caption"
+        ]
+      }
+    },
+    "mix": {
+      "type": "donut-chart",
+      "props": {
+        "label": "Pipeline value by region",
+        "interactive": true,
+        "items": [
+          {
+            "label": "North",
+            "value": 180
+          },
+          {
+            "label": "South",
+            "value": 80
+          },
+          {
+            "label": "West",
+            "value": 45
+          }
+        ]
+      }
+    },
+    "table": {
+      "type": "data-grid",
+      "props": {
+        "label": "Deals",
+        "sortable": true,
+        "columns": [
+          {
+            "key": "name",
+            "label": "Deal"
+          },
+          {
+            "key": "region",
+            "label": "Region"
+          },
+          {
+            "key": "value",
+            "label": "Value"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$filter": {
+            "list": {
+              "$data": "deals"
+            },
+            "field": "region",
+            "equals": {
+              "$block": "mix.selected"
+            },
+            "skipIf": ""
+          }
+        }
+      }
+    },
+    "caption": {
+      "type": "text",
+      "props": {
+        "variant": "caption"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "Showing ",
+            {
+              "$count": {
+                "$filter": {
+                  "list": {
+                    "$data": "deals"
+                  },
+                  "field": "region",
+                  "equals": {
+                    "$block": "mix.selected"
+                  },
+                  "skipIf": ""
+                }
+              }
+            },
+            " of 4 deals"
+          ]
+        }
+      }
+    }
+  },
+  "data": {
+    "deals": [
+      {
+        "id": "d1",
+        "name": "Northwind",
+        "region": "North",
+        "value": 120
+      },
+      {
+        "id": "d2",
+        "name": "Contoso",
+        "region": "South",
+        "value": 80
+      },
+      {
+        "id": "d3",
+        "name": "Fabrikam",
+        "region": "North",
+        "value": 60
+      },
+      {
+        "id": "d4",
+        "name": "Tailspin",
+        "region": "West",
+        "value": 45
+      }
+    ]
+  }
+}
+```
+
+Live feed — a declared data source:
+```json
+{
+  "kages": "1.0",
+  "id": "live-feed",
+  "title": "Live feed — a declared data source",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "load",
+          "list"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Headlines",
+        "description": "Loads from a declared source when the host allows it; otherwise shows the built-in sample.",
+        "inset": 0
+      }
+    },
+    "load": {
+      "type": "button",
+      "props": {
+        "label": "Load headlines",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$state": "loading"
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "fetch",
+            "source": "headlines",
+            "into": "items",
+            "pendingInto": "loading",
+            "mock": [
+              {
+                "title": "Sample headline one",
+                "time": "Now"
+              },
+              {
+                "title": "Sample headline two",
+                "time": "1h ago"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "list": {
+      "type": "timeline",
+      "props": {
+        "label": "Headlines"
+      },
+      "bind": {
+        "items": {
+          "$state": "items"
+        }
+      }
+    }
+  },
+  "state": {
+    "items": [],
+    "loading": false
+  },
+  "sources": {
+    "headlines": {
+      "from": "url",
+      "url": "https://api.example.com/headlines.json",
+      "path": "items",
+      "maxItems": 20
+    }
+  }
+}
+```
+
+Signup rules — conditional behaviour:
+```json
+{
+  "kages": "1.0",
+  "id": "signup-rules",
+  "title": "Signup rules — conditional behaviour",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "age",
+          "consent",
+          "minor",
+          "submit",
+          "done"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Join the programme",
+        "description": "Rules: adults only, with consent. The button enables itself when both hold.",
+        "inset": 0
+      }
+    },
+    "age": {
+      "type": "number-input",
+      "props": {
+        "label": "Your age",
+        "min": 0,
+        "max": 120,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "age"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "age",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "consent": {
+      "type": "switch",
+      "props": {
+        "label": "I agree to the terms"
+      },
+      "bind": {
+        "checked": {
+          "$state": "consent"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "consent",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "minor": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Adults only",
+        "text": "You must be 18 or older to join."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$neq": [
+              {
+                "$state": "age"
+              },
+              null
+            ]
+          },
+          {
+            "$lt": [
+              {
+                "$state": "age"
+              },
+              18
+            ]
+          }
+        ]
+      }
+    },
+    "submit": {
+      "type": "button",
+      "props": {
+        "label": "Join",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$not": {
+            "$and": [
+              {
+                "$neq": [
+                  {
+                    "$state": "age"
+                  },
+                  null
+                ]
+              },
+              {
+                "$gte": [
+                  {
+                    "$state": "age"
+                  },
+                  18
+                ]
+              },
+              {
+                "$state": "consent"
+              }
+            ]
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": true,
+            "when": {
+              "$and": [
+                {
+                  "$neq": [
+                    {
+                      "$state": "age"
+                    },
+                    null
+                  ]
+                },
+                {
+                  "$gte": [
+                    {
+                      "$state": "age"
+                    },
+                    18
+                  ]
+                },
+                {
+                  "$state": "consent"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "done": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "You're in",
+        "text": "Welcome aboard."
+      },
+      "visible": {
+        "$state": "submitted"
+      }
+    }
+  },
+  "state": {
+    "age": null,
+    "consent": false,
+    "submitted": false
   }
 }
 ```
