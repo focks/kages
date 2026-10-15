@@ -2,7 +2,7 @@
   "core": {
     "id": "core",
     "name": "Kages Core",
-    "version": "1.9.0",
+    "version": "1.10.0",
     "className": "kg-sys-core",
     "extends": null,
     "summary": "Neutral lattice system. The base every other system extends.",
@@ -62,13 +62,19 @@
       "calendar": "core/calendar@1.0.0",
       "carousel": "core/carousel@1.0.0",
       "markdown": "core/markdown@1.0.0",
-      "math": "core/math@1.0.0"
+      "math": "core/math@1.0.0",
+      "combo-chart": "core/combo-chart@1.0.0",
+      "stacked-bar-chart": "core/stacked-bar-chart@1.0.0",
+      "funnel-chart": "core/funnel-chart@1.0.0",
+      "treemap": "core/treemap@1.0.0",
+      "sankey": "core/sankey@1.0.0",
+      "map": "core/map@1.0.0"
     }
   },
   "ledger": {
     "id": "ledger",
     "name": "Ledger",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "className": "kg-sys-ledger",
     "extends": "core@1",
     "summary": "Dense, square, mono-numeral system for data and operations tools.",
@@ -128,13 +134,19 @@
       "calendar": "core/calendar@1.0.0",
       "carousel": "core/carousel@1.0.0",
       "markdown": "core/markdown@1.0.0",
-      "math": "core/math@1.0.0"
+      "math": "core/math@1.0.0",
+      "combo-chart": "core/combo-chart@1.0.0",
+      "stacked-bar-chart": "core/stacked-bar-chart@1.0.0",
+      "funnel-chart": "core/funnel-chart@1.0.0",
+      "treemap": "core/treemap@1.0.0",
+      "sankey": "core/sankey@1.0.0",
+      "map": "core/map@1.0.0"
     }
   },
   "atelier": {
     "id": "atelier",
     "name": "Atelier",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "className": "kg-sys-atelier",
     "extends": "core@1",
     "summary": "Soft, editorial, serif system for consumer and storytelling artifacts.",
@@ -194,7 +206,13 @@
       "calendar": "core/calendar@1.0.0",
       "carousel": "core/carousel@1.0.0",
       "markdown": "core/markdown@1.0.0",
-      "math": "core/math@1.0.0"
+      "math": "core/math@1.0.0",
+      "combo-chart": "core/combo-chart@1.0.0",
+      "stacked-bar-chart": "core/stacked-bar-chart@1.0.0",
+      "funnel-chart": "core/funnel-chart@1.0.0",
+      "treemap": "core/treemap@1.0.0",
+      "sankey": "core/sankey@1.0.0",
+      "map": "core/map@1.0.0"
     }
   }
 }

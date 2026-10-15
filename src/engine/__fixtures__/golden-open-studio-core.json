@@ -6,7 +6,7 @@
     "system": "core",
     "portable": true
   },
-  "description": "Kage \"Open studio — a landing page\" · system core@1.9.0 · 8 blocks\nstate {\"showDetails\":false}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.0.0] title=\"Create something that feels like yours\"\n      actions:\n        - explore [core/button@1.1.0] label=\"Explore the possibilities\"\n            ↳ writes click→state.showDetails\n    - features [core/grid@1.0.0]\n      - story [core/section@1.0.0] title=\"Tell a story\"\n      - tool [core/section@1.0.0] title=\"Build a tool\"\n      - gallery [core/section@1.0.0] title=\"Show the work\"\n    - closing [core/section@1.0.0] (hidden) title=\"Choose your own shape\"\n        ↳ reads state:showDetails",
+  "description": "Kage \"Open studio — a landing page\" · system core@1.10.0 · 8 blocks\nstate {\"showDetails\":false}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.0.0] title=\"Create something that feels like yours\"\n      actions:\n        - explore [core/button@1.1.0] label=\"Explore the possibilities\"\n            ↳ writes click→state.showDetails\n    - features [core/grid@1.0.0]\n      - story [core/section@1.0.0] title=\"Tell a story\"\n      - tool [core/section@1.0.0] title=\"Build a tool\"\n      - gallery [core/section@1.0.0] title=\"Show the work\"\n    - closing [core/section@1.0.0] (hidden) title=\"Choose your own shape\"\n        ↳ reads state:showDetails",
   "envelope": {
     "title": "Open studio — a landing page",
     "root": "root",

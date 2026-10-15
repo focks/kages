@@ -1,0 +1,301 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Quarterly report — six ways to see the data\" · system core@1.10.0 · 10 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How the quarter went\"\n    - trend [core/combo-chart@1.0.0] label=\"Revenue vs target\"\n    - stack [core/stacked-bar-chart@1.0.0] label=\"Revenue by product line\"\n    - pipeline [core/funnel-chart@1.0.0] label=\"Sales funnel\"\n    - split [core/split@1.0.0]\n      start:\n        - costs [core/treemap@1.0.0] label=\"Where the budget goes\" items=||||\n      end:\n        - picked [core/text@1.0.0] text=\"Selected area: \"\n    - flows [core/sankey@1.0.0] label=\"From budget to outcomes\"\n    - regions [core/map@1.0.0] label=\"Customers by region\"",
+  "envelope": {
+    "title": "Quarterly report — six ways to see the data",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 8
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "trend",
+            "stack",
+            "pipeline",
+            "split",
+            "flows",
+            "regions"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "How the quarter went",
+          "eyebrow": "Quarterly report",
+          "description": "Revenue against target, the mix behind it, the sales funnel, where costs go, how money moves and how regions compare.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "trend",
+        "type": "combo-chart",
+        "props": {
+          "label": "Revenue vs target",
+          "categories": [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun"
+          ],
+          "series_json": "[{\"name\":\"Revenue\",\"kind\":\"bar\",\"values\":[120,135,150,142,170,190]},{\"name\":\"Target\",\"kind\":\"line\",\"values\":[125,130,140,150,160,175]}]",
+          "xLabel": "Month",
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "stack",
+        "type": "stacked-bar-chart",
+        "props": {
+          "label": "Revenue by product line",
+          "percent": null,
+          "categories": [
+            "Q1",
+            "Q2",
+            "Q3",
+            "Q4"
+          ],
+          "series_json": "[{\"name\":\"Platform\",\"values\":[60,70,85,95]},{\"name\":\"Services\",\"values\":[30,32,35,38]},{\"name\":\"Support\",\"values\":[20,22,21,25]}]",
+          "xLabel": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "pipeline",
+        "type": "funnel-chart",
+        "props": {
+          "interactive": true,
+          "selected": null,
+          "label": "Sales funnel",
+          "stages": [
+            {
+              "label": "Visitors",
+              "value": 12000
+            },
+            {
+              "label": "Signups",
+              "value": 3400
+            },
+            {
+              "label": "Trials",
+              "value": 1200
+            },
+            {
+              "label": "Customers",
+              "value": 380
+            }
+          ],
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "split",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 6
+        },
+        "slots": {
+          "start": [
+            "costs"
+          ],
+          "end": [
+            "picked"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "costs",
+        "type": "treemap",
+        "props": {
+          "interactive": true,
+          "selected": null,
+          "label": "Where the budget goes",
+          "items": [
+            {
+              "label": "Engineering",
+              "value": 48
+            },
+            {
+              "label": "Sales",
+              "value": 24
+            },
+            {
+              "label": "Marketing",
+              "value": 14
+            },
+            {
+              "label": "Support",
+              "value": 9
+            },
+            {
+              "label": "Operations",
+              "value": 5
+            }
+          ],
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "picked",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$tpl\":\"Selected area: {{block.costs.selected}}\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "flows",
+        "type": "sankey",
+        "props": {
+          "label": "From budget to outcomes",
+          "nodes": [
+            {
+              "id": "budget",
+              "label": "Budget"
+            },
+            {
+              "id": "build",
+              "label": "Build"
+            },
+            {
+              "id": "grow",
+              "label": "Grow"
+            },
+            {
+              "id": "features",
+              "label": "Features"
+            },
+            {
+              "id": "fixes",
+              "label": "Fixes"
+            },
+            {
+              "id": "leads",
+              "label": "Leads"
+            }
+          ],
+          "links": [
+            {
+              "from": "budget",
+              "to": "build",
+              "value": 60
+            },
+            {
+              "from": "budget",
+              "to": "grow",
+              "value": 40
+            },
+            {
+              "from": "build",
+              "to": "features",
+              "value": 40
+            },
+            {
+              "from": "build",
+              "to": "fixes",
+              "value": 20
+            },
+            {
+              "from": "grow",
+              "to": "leads",
+              "value": 40
+            }
+          ],
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "regions",
+        "type": "map",
+        "props": {
+          "interactive": true,
+          "selected": null,
+          "label": "Customers by region",
+          "features_json": "[{\"id\":\"north\",\"name\":\"North\",\"value\":120,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[0,5],[10,5],[10,10],[0,10],[0,5]]]}},{\"id\":\"west\",\"name\":\"West\",\"value\":45,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-6,0],[0,0],[0,5],[-6,5],[-6,0]]]}},{\"id\":\"east\",\"name\":\"East\",\"value\":80,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[0,0],[6,0],[6,5],[0,5],[0,0]]]}},{\"id\":\"south\",\"name\":\"South\",\"value\":20,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-2,-5],[6,-5],[6,0],[-2,0],[-2,-5]]]}}]",
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

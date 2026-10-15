@@ -2309,5 +2309,302 @@
     "slots": {},
     "events": {},
     "outputs": []
+  },
+  "kages/combo-chart@1": {
+    "summary": "Grouped bars and lines on one shared axis for categories, with a legend and data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "categories": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "series": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "name",
+            "values"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "combo-chart",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/stacked-bar-chart@1": {
+    "summary": "Stacked columns of series per category, absolute or normalised to 100%.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "percent": {
+        "type": "boolean"
+      },
+      "categories": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "series": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "name",
+            "values"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "stacked-bar-chart",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/funnel-chart@1": {
+    "summary": "Ordered stages narrowing by value, with the share of the first stage; stages can be selected.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "stages": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "role": "funnel-chart",
+    "slots": {}
+  },
+  "kages/treemap@1": {
+    "summary": "Rectangles sized by value, packed to near-square, with optional selection.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "role": "treemap",
+    "slots": {}
+  },
+  "kages/sankey@1": {
+    "summary": "Flows between nodes in left-to-right layers, with widths proportional to value.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id"
+          ]
+        }
+      },
+      "links": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "from",
+            "to",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "role": "sankey",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/map@1": {
+    "summary": "Choropleth of GeoJSON Polygon/MultiPolygon regions shaded by value, with optional selection.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "features": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "geometry"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string",
+          "name": "string",
+          "value": "number|null"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "role": "map",
+    "slots": {}
   }
 }

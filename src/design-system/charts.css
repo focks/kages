@@ -1,0 +1,6 @@
+/* Batch 4 charts. Colour is token-only; geometry scales with the container. */
+.kg-legend--row { display: flex; flex-wrap: wrap; gap: var(--kg-space-2) var(--kg-space-4); }
+.kg-combo svg, .kg-stacked svg, .kg-funnel svg, .kg-treemap svg, .kg-sankey svg, .kg-map svg { background: transparent; }
+.kg-funnel svg [role=button], .kg-treemap svg [role=button], .kg-map svg [role=button] { cursor: pointer; }
+.kg-funnel svg [role=button]:focus-visible, .kg-treemap svg [role=button]:focus-visible, .kg-map svg [role=button]:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
+.kg-map svg { max-height: 28rem; }

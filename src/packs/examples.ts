@@ -208,3 +208,23 @@ export function connectedExamples(system = "core"): KageDoc[] {
   };
   return [explorer, feed, rules];
 }
+
+/** Batch 4: the richer charts together on one reporting page. */
+export function chartExamples(system = "core"): KageDoc[] {
+  const doc: KageDoc = { kages: "1.0", id: "quarterly-report", title: "Quarterly report — six ways to see the data", system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} };
+  const sq = (x: number, y: number, w: number, h: number) => ({ type: "Polygon", coordinates: [[[x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]]] });
+  doc.state = {};
+  doc.blocks = {
+    root: { type: "page", props: { width: "wide", gap: 8 }, slots: { children: ["intro", "trend", "stack", "pipeline", "split", "flows", "regions"] } },
+    intro: { type: "section", props: { eyebrow: "Quarterly report", title: "How the quarter went", description: "Revenue against target, the mix behind it, the sales funnel, where costs go, how money moves and how regions compare.", inset: 0 } },
+    trend: { type: "combo-chart", props: { label: "Revenue vs target", xLabel: "Month", categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], series: [{ name: "Revenue", kind: "bar", values: [120, 135, 150, 142, 170, 190] }, { name: "Target", kind: "line", values: [125, 130, 140, 150, 160, 175] }] } },
+    stack: { type: "stacked-bar-chart", props: { label: "Revenue by product line", categories: ["Q1", "Q2", "Q3", "Q4"], series: [{ name: "Platform", values: [60, 70, 85, 95] }, { name: "Services", values: [30, 32, 35, 38] }, { name: "Support", values: [20, 22, 21, 25] }] } },
+    pipeline: { type: "funnel-chart", props: { label: "Sales funnel", interactive: true, stages: [{ label: "Visitors", value: 12000 }, { label: "Signups", value: 3400 }, { label: "Trials", value: 1200 }, { label: "Customers", value: 380 }] } },
+    split: { type: "split", props: { ratio: "equal", gap: 6 }, slots: { start: ["costs"], end: ["picked"] } },
+    costs: { type: "treemap", props: { label: "Where the budget goes", interactive: true, items: [{ label: "Engineering", value: 48 }, { label: "Sales", value: 24 }, { label: "Marketing", value: 14 }, { label: "Support", value: 9 }, { label: "Operations", value: 5 }] } },
+    picked: { type: "text", props: { variant: "caption" }, bind: { text: { $tpl: "Selected area: {{block.costs.selected}}" } } },
+    flows: { type: "sankey", props: { label: "From budget to outcomes", nodes: [{ id: "budget", label: "Budget" }, { id: "build", label: "Build" }, { id: "grow", label: "Grow" }, { id: "features", label: "Features" }, { id: "fixes", label: "Fixes" }, { id: "leads", label: "Leads" }], links: [{ from: "budget", to: "build", value: 60 }, { from: "budget", to: "grow", value: 40 }, { from: "build", to: "features", value: 40 }, { from: "build", to: "fixes", value: 20 }, { from: "grow", to: "leads", value: 40 }] } },
+    regions: { type: "map", props: { label: "Customers by region", interactive: true, features: [{ id: "north", name: "North", value: 120, geometry: sq(0, 5, 10, 5) }, { id: "west", name: "West", value: 45, geometry: sq(-6, 0, 6, 5) }, { id: "east", name: "East", value: 80, geometry: sq(0, 0, 6, 5) }, { id: "south", name: "South", value: 20, geometry: sq(-2, -5, 8, 5) }] } },
+  };
+  return [doc];
+}

@@ -72,3 +72,12 @@ Feature: Rich visual and disclosure blocks
     Given visible, a bound disabled prop and an action when reference state
     Then each updates as the state changes
     And a guarded action does nothing if its condition fails, even when the event still arrives
+
+  Scenario: Richer charts stay finite and readable for any data
+    Given a combo, stacked bar, funnel, treemap, Sankey or map block receives data
+    Then values are clamped to a finite range before any geometry or axis is computed
+    And negative, missing, non-numeric and astronomically large values never produce NaN or Infinity
+    And combo and stacked charts share one labelled axis and a legend
+    And Sankey links that do not point forward, self links and dangling links are dropped
+    And map regions come from GeoJSON Polygon or MultiPolygon only, within a total point budget
+    And every chart keeps a data table and funnel, treemap and map regions can be selected by keyboard

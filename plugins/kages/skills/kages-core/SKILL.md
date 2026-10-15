@@ -1,6 +1,6 @@
 ---
 name: kages-core
-description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.9.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.10.0).
 ---
 
 # Kages — Kages Core
@@ -9,7 +9,7 @@ Neutral lattice system. The base every other system extends.
 
 ## Components
 
-# Kages Core 1.9.0 (core)
+# Kages Core 1.10.0 (core)
 Neutral lattice system. The base every other system extends.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -181,6 +181,24 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - math → core/math@1.0.0 [kages/math@1] TeX math (fractions, roots, scripts and limits, matrices, cases, accents, stretchy delimiters, Greek and symbols) rendered as accessible elements.
   props: tex*:string, display:boolean, label:string
   use: TeX math, not LaTeX documents: \frac \binom \sqrt[n]{} ^ _ \sum_{i}^{n} \int \lim, \left( \right), \begin{pmatrix|bmatrix|vmatrix|cases|aligned}…\end, \hat \vec \overline, \text{} \mathbb \mathcal \mathbf, Greek and common symbols. display:true stacks limits above and below. Unknown commands render as their name; no macros, no packages.
+- combo-chart → core/combo-chart@1.0.0 [kages/combo-chart@1] Grouped bars and lines on one shared axis for categories, with a legend and data table.
+  props: label*:string, categories*:array, series*:array, xLabel:string, empty:string
+  use: categories: string[]; series: [{name,kind:'bar'|'line',values:number[]}] aligned to categories (null gaps allowed). Use to compare a volume (bars) with a rate or target (line). One axis only.
+- stacked-bar-chart → core/stacked-bar-chart@1.0.0 [kages/stacked-bar-chart@1] Stacked columns of series per category, absolute or normalised to 100%.
+  props: label*:string, percent:boolean, categories*:array, series*:array, xLabel:string, empty:string
+  use: categories + series [{name,values}]. percent:true normalises each column to 100%. Negative values are ignored; use combo-chart for signed data.
+- funnel-chart → core/funnel-chart@1.0.0 [kages/funnel-chart@1] Ordered stages narrowing by value, with the share of the first stage; stages can be selected.
+  props: interactive:boolean, selected:string, label*:string, stages*:array, empty:string · events: select · outputs: selected
+  use: stages: [{label,value}] in order, values non-increasing for a true funnel. interactive: select emits {label,value,index}; output `selected` is the label (selecting again clears).
+- treemap → core/treemap@1.0.0 [kages/treemap@1] Rectangles sized by value, packed to near-square, with optional selection.
+  props: interactive:boolean, selected:string, label*:string, items*:array, empty:string · events: select · outputs: selected
+  use: items: [{label,value}] with positive values (up to 80). Use for part-to-whole with many parts; interactive select emits {label,value,index}; output `selected` is the label.
+- sankey → core/sankey@1.0.0 [kages/sankey@1] Flows between nodes in left-to-right layers, with widths proportional to value.
+  props: label*:string, nodes*:array, links*:array, empty:string
+  use: nodes [{id,label?}], links [{from,to,value>0}]. Layers are computed left to right; links must point forward (cycles are dropped). Use for flows such as budget or conversion paths.
+- map → core/map@1.0.0 [kages/map@1] Choropleth of GeoJSON Polygon/MultiPolygon regions shaded by value, with optional selection.
+  props: interactive:boolean, selected:string, label*:string, features*:array, empty:string · events: select · outputs: selected
+  use: features: [{id,name?,value?,geometry}] where geometry is GeoJSON Polygon or MultiPolygon in [lon,lat]. Shades by value; interactive select emits {id,name,value}; output `selected` is the id. Bring simplified boundaries: 20,000 points total.
 
 ## Expressions & actions
 
@@ -2492,6 +2510,405 @@ Signup rules — conditional behaviour:
     "consent": false,
     "submitted": false
   }
+}
+```
+
+Quarterly report — six ways to see the data:
+```json
+{
+  "kages": "1.0",
+  "id": "quarterly-report",
+  "title": "Quarterly report — six ways to see the data",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "trend",
+          "stack",
+          "pipeline",
+          "split",
+          "flows",
+          "regions"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Quarterly report",
+        "title": "How the quarter went",
+        "description": "Revenue against target, the mix behind it, the sales funnel, where costs go, how money moves and how regions compare.",
+        "inset": 0
+      }
+    },
+    "trend": {
+      "type": "combo-chart",
+      "props": {
+        "label": "Revenue vs target",
+        "xLabel": "Month",
+        "categories": [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun"
+        ],
+        "series": [
+          {
+            "name": "Revenue",
+            "kind": "bar",
+            "values": [
+              120,
+              135,
+              150,
+              142,
+              170,
+              190
+            ]
+          },
+          {
+            "name": "Target",
+            "kind": "line",
+            "values": [
+              125,
+              130,
+              140,
+              150,
+              160,
+              175
+            ]
+          }
+        ]
+      }
+    },
+    "stack": {
+      "type": "stacked-bar-chart",
+      "props": {
+        "label": "Revenue by product line",
+        "categories": [
+          "Q1",
+          "Q2",
+          "Q3",
+          "Q4"
+        ],
+        "series": [
+          {
+            "name": "Platform",
+            "values": [
+              60,
+              70,
+              85,
+              95
+            ]
+          },
+          {
+            "name": "Services",
+            "values": [
+              30,
+              32,
+              35,
+              38
+            ]
+          },
+          {
+            "name": "Support",
+            "values": [
+              20,
+              22,
+              21,
+              25
+            ]
+          }
+        ]
+      }
+    },
+    "pipeline": {
+      "type": "funnel-chart",
+      "props": {
+        "label": "Sales funnel",
+        "interactive": true,
+        "stages": [
+          {
+            "label": "Visitors",
+            "value": 12000
+          },
+          {
+            "label": "Signups",
+            "value": 3400
+          },
+          {
+            "label": "Trials",
+            "value": 1200
+          },
+          {
+            "label": "Customers",
+            "value": 380
+          }
+        ]
+      }
+    },
+    "split": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "costs"
+        ],
+        "end": [
+          "picked"
+        ]
+      }
+    },
+    "costs": {
+      "type": "treemap",
+      "props": {
+        "label": "Where the budget goes",
+        "interactive": true,
+        "items": [
+          {
+            "label": "Engineering",
+            "value": 48
+          },
+          {
+            "label": "Sales",
+            "value": 24
+          },
+          {
+            "label": "Marketing",
+            "value": 14
+          },
+          {
+            "label": "Support",
+            "value": 9
+          },
+          {
+            "label": "Operations",
+            "value": 5
+          }
+        ]
+      }
+    },
+    "picked": {
+      "type": "text",
+      "props": {
+        "variant": "caption"
+      },
+      "bind": {
+        "text": {
+          "$tpl": "Selected area: {{block.costs.selected}}"
+        }
+      }
+    },
+    "flows": {
+      "type": "sankey",
+      "props": {
+        "label": "From budget to outcomes",
+        "nodes": [
+          {
+            "id": "budget",
+            "label": "Budget"
+          },
+          {
+            "id": "build",
+            "label": "Build"
+          },
+          {
+            "id": "grow",
+            "label": "Grow"
+          },
+          {
+            "id": "features",
+            "label": "Features"
+          },
+          {
+            "id": "fixes",
+            "label": "Fixes"
+          },
+          {
+            "id": "leads",
+            "label": "Leads"
+          }
+        ],
+        "links": [
+          {
+            "from": "budget",
+            "to": "build",
+            "value": 60
+          },
+          {
+            "from": "budget",
+            "to": "grow",
+            "value": 40
+          },
+          {
+            "from": "build",
+            "to": "features",
+            "value": 40
+          },
+          {
+            "from": "build",
+            "to": "fixes",
+            "value": 20
+          },
+          {
+            "from": "grow",
+            "to": "leads",
+            "value": 40
+          }
+        ]
+      }
+    },
+    "regions": {
+      "type": "map",
+      "props": {
+        "label": "Customers by region",
+        "interactive": true,
+        "features": [
+          {
+            "id": "north",
+            "name": "North",
+            "value": 120,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    5
+                  ],
+                  [
+                    10,
+                    5
+                  ],
+                  [
+                    10,
+                    10
+                  ],
+                  [
+                    0,
+                    10
+                  ],
+                  [
+                    0,
+                    5
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "west",
+            "name": "West",
+            "value": 45,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -6,
+                    0
+                  ],
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    5
+                  ],
+                  [
+                    -6,
+                    5
+                  ],
+                  [
+                    -6,
+                    0
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "east",
+            "name": "East",
+            "value": 80,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    0,
+                    0
+                  ],
+                  [
+                    6,
+                    0
+                  ],
+                  [
+                    6,
+                    5
+                  ],
+                  [
+                    0,
+                    5
+                  ],
+                  [
+                    0,
+                    0
+                  ]
+                ]
+              ]
+            }
+          },
+          {
+            "id": "south",
+            "name": "South",
+            "value": 20,
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -2,
+                    -5
+                  ],
+                  [
+                    6,
+                    -5
+                  ],
+                  [
+                    6,
+                    0
+                  ],
+                  [
+                    -2,
+                    0
+                  ],
+                  [
+                    -2,
+                    -5
+                  ]
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "state": {}
 }
 ```
 

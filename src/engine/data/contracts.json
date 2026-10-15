@@ -4178,6 +4178,552 @@
     },
     "limits": {}
   },
+  "core/combo-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/combo-chart",
+    "version": "1.0.0",
+    "ref": "core/combo-chart@1.0.0",
+    "system": "core",
+    "name": "combo-chart",
+    "implements": [
+      "kages/combo-chart@1"
+    ],
+    "role": "combo-chart",
+    "summary": "Grouped bars and lines on one shared axis for categories, with a legend and data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "categories": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "series": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "name",
+            "values"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "categories: string[]; series: [{name,kind:'bar'|'line',values:number[]}] aligned to categories (null gaps allowed). Use to compare a volume (bars) with a rate or target (line). One axis only."
+    },
+    "limits": {}
+  },
+  "core/stacked-bar-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/stacked-bar-chart",
+    "version": "1.0.0",
+    "ref": "core/stacked-bar-chart@1.0.0",
+    "system": "core",
+    "name": "stacked-bar-chart",
+    "implements": [
+      "kages/stacked-bar-chart@1"
+    ],
+    "role": "stacked-bar-chart",
+    "summary": "Stacked columns of series per category, absolute or normalised to 100%.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "percent": {
+        "type": "boolean"
+      },
+      "categories": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "series": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "name",
+            "values"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "categories + series [{name,values}]. percent:true normalises each column to 100%. Negative values are ignored; use combo-chart for signed data."
+    },
+    "limits": {}
+  },
+  "core/funnel-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/funnel-chart",
+    "version": "1.0.0",
+    "ref": "core/funnel-chart@1.0.0",
+    "system": "core",
+    "name": "funnel-chart",
+    "implements": [
+      "kages/funnel-chart@1"
+    ],
+    "role": "funnel-chart",
+    "summary": "Ordered stages narrowing by value, with the share of the first stage; stages can be selected.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "stages": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "stages: [{label,value}] in order, values non-increasing for a true funnel. interactive: select emits {label,value,index}; output `selected` is the label (selecting again clears)."
+    },
+    "limits": {}
+  },
+  "core/treemap@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/treemap",
+    "version": "1.0.0",
+    "ref": "core/treemap@1.0.0",
+    "system": "core",
+    "name": "treemap",
+    "implements": [
+      "kages/treemap@1"
+    ],
+    "role": "treemap",
+    "summary": "Rectangles sized by value, packed to near-square, with optional selection.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{label,value}] with positive values (up to 80). Use for part-to-whole with many parts; interactive select emits {label,value,index}; output `selected` is the label."
+    },
+    "limits": {}
+  },
+  "core/sankey@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/sankey",
+    "version": "1.0.0",
+    "ref": "core/sankey@1.0.0",
+    "system": "core",
+    "name": "sankey",
+    "implements": [
+      "kages/sankey@1"
+    ],
+    "role": "sankey",
+    "summary": "Flows between nodes in left-to-right layers, with widths proportional to value.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id"
+          ]
+        }
+      },
+      "links": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "from",
+            "to",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes [{id,label?}], links [{from,to,value>0}]. Layers are computed left to right; links must point forward (cycles are dropped). Use for flows such as budget or conversion paths."
+    },
+    "limits": {}
+  },
+  "core/map@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/map",
+    "version": "1.0.0",
+    "ref": "core/map@1.0.0",
+    "system": "core",
+    "name": "map",
+    "implements": [
+      "kages/map@1"
+    ],
+    "role": "map",
+    "summary": "Choropleth of GeoJSON Polygon/MultiPolygon regions shaded by value, with optional selection.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "features": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "geometry"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string",
+          "name": "string",
+          "value": "number|null"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "id"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "id"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "features: [{id,name?,value?,geometry}] where geometry is GeoJSON Polygon or MultiPolygon in [lon,lat]. Shades by value; interactive select emits {id,name,value}; output `selected` is the id. Bring simplified boundaries: 20,000 points total."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",
