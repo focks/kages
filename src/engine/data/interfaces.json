@@ -1865,5 +1865,405 @@
       "open"
     ],
     "role": "modal"
+  },
+  "kages/switch@1": {
+    "summary": "Labelled on/off toggle with a public checked state.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "checked": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "checked": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "checked": "boolean"
+        }
+      }
+    },
+    "outputs": [
+      "checked"
+    ],
+    "role": "switch",
+    "slots": {}
+  },
+  "kages/combobox@1": {
+    "summary": "Type-to-filter single choice with a keyboard listbox; the value is always one of the options.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "options": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "combobox",
+    "slots": {}
+  },
+  "kages/tree@1": {
+    "summary": "Expandable hierarchy with keyboard navigation and a selected node id.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "expandAll": {
+        "type": "boolean"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "tree",
+    "slots": {}
+  },
+  "kages/data-grid@1": {
+    "summary": "Sortable, filterable, paged table whose rows can be selected.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "key",
+            "label"
+          ]
+        }
+      },
+      "rows": {
+        "type": "array",
+        "required": true
+      },
+      "pageSize": {
+        "type": "number",
+        "default": 10
+      },
+      "filterable": {
+        "type": "boolean"
+      },
+      "sortable": {
+        "type": "boolean",
+        "default": true
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "selected": {
+        "type": "object|null",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "payload": {
+          "row": "object",
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "role": "data-grid",
+    "slots": {}
+  },
+  "kages/kanban@1": {
+    "summary": "Columns of cards that move between columns with buttons; the moved board is public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "title"
+          ]
+        }
+      },
+      "cards": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "column"
+          ]
+        }
+      }
+    },
+    "local": {
+      "board": {
+        "type": "array|null",
+        "default": null
+      }
+    },
+    "events": {
+      "move": {
+        "payload": {
+          "id": "string",
+          "from": "string",
+          "to": "string",
+          "cards": "array"
+        }
+      }
+    },
+    "outputs": [
+      "board"
+    ],
+    "role": "kanban",
+    "slots": {}
+  },
+  "kages/calendar@1": {
+    "summary": "Month grid with event dots, month navigation and a selected ISO date.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "month": {
+        "type": "string",
+        "required": true
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "date",
+            "title"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "weekStart": {
+        "type": "number",
+        "enum": [
+          0,
+          1
+        ],
+        "default": 1
+      }
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "calendar",
+    "slots": {}
+  },
+  "kages/carousel@1": {
+    "summary": "One slide at a time with previous/next, dots and arrow keys; the slide index is public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "slides": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      "index": {
+        "type": "number"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "index": {
+        "type": "number",
+        "default": 0
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "index"
+    ],
+    "role": "carousel",
+    "slots": {}
+  },
+  "kages/markdown@1": {
+    "summary": "Markdown subset (headings, lists, quotes, code, emphasis, links, $math$) rendered as elements, never HTML.",
+    "props": {
+      "text": {
+        "type": "string",
+        "required": true
+      }
+    },
+    "role": "markdown",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/math@1": {
+    "summary": "TeX subset (fractions, roots, scripts, Greek, operators) rendered as accessible elements.",
+    "props": {
+      "tex": {
+        "type": "string",
+        "required": true
+      },
+      "display": {
+        "type": "boolean"
+      },
+      "label": {
+        "type": "string"
+      }
+    },
+    "role": "math",
+    "slots": {},
+    "events": {},
+    "outputs": []
   }
 }

@@ -38,7 +38,7 @@ test("create: immutable signed version with provenance and lockfile", () => {
   assert.equal(v.author.principal, agent.principal);
   assert.equal(v.author.runtime?.framework, "langgraph");
   assert.match(v.digest, /^sha256:[0-9a-f]{64}$/);
-  assert.equal(v.resolved.system, "core@1.7.0");
+  assert.equal(v.resolved.system, "core@1.8.0");
   assert.equal(v.resolved.blocks.app, "core/shell@1.0.0");
   assert.ok(verifyDigest(s.publicKeyOf(agent.principal), v.digest, v.signature), "signature verifies");
 });

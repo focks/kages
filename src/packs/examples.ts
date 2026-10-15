@@ -138,3 +138,31 @@ export function richExamples(system = "core"): KageDoc[] {
   };
   return [board, flow];
 }
+
+/** Batch 2 of the rich roles: a work-app board and a media-rich reading page. */
+export function appExamples(system = "core"): KageDoc[] {
+  const base = (id: string, title: string): KageDoc => ({ kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} });
+  const bench = base("team-workbench", "Team workbench — tasks, schedule and people");
+  bench.state = { owner: "", notify: true };
+  bench.data = { people: [{ value: "ada", label: "Ada Lovelace" }, { value: "alan", label: "Alan Turing" }, { value: "grace", label: "Grace Hopper" }], roster: [{ name: "Ada", team: "Engine", load: 70 }, { name: "Alan", team: "Runtime", load: 45 }, { name: "Grace", team: "Engine", load: 90 }] };
+  bench.blocks = {
+    root: { type: "page", props: { width: "full", gap: 6 }, slots: { children: ["intro", "controls", "board", "lower"] } },
+    intro: { type: "section", props: { eyebrow: "Team workbench", title: "Plan the sprint", description: "Move cards, pick dates, search people and sort the roster.", inset: 0 } },
+    controls: { type: "split", props: { ratio: "equal", gap: 6 }, slots: { start: ["owner"], end: ["notify"] } },
+    owner: { type: "combobox", props: { label: "Sprint owner", placeholder: "Search people", options: [{ value: "ada", label: "Ada Lovelace" }, { value: "alan", label: "Alan Turing" }, { value: "grace", label: "Grace Hopper" }] }, bind: { value: { $state: "owner" } }, on: { change: [{ do: "set", path: "owner", value: { $event: "value" } }] } },
+    notify: { type: "switch", props: { label: "Notify the team" }, bind: { checked: { $state: "notify" } }, on: { change: [{ do: "set", path: "notify", value: { $event: "checked" } }] } },
+    board: { type: "kanban", props: { label: "Sprint board", columns: [{ id: "todo", title: "To do" }, { id: "doing", title: "Doing" }, { id: "done", title: "Done" }], cards: [{ id: "c1", title: "Draft contracts", column: "todo", description: "Interfaces for each role" }, { id: "c2", title: "Build goldens", column: "doing" }, { id: "c3", title: "Ship docs", column: "done" }] } },
+    lower: { type: "grid", props: { columns: 3, minSize: "large", gap: 6 }, slots: { children: ["roster", "schedule", "areas"] } },
+    roster: { type: "data-grid", props: { label: "Roster", pageSize: 5, filterable: true, columns: [{ key: "name", label: "Name" }, { key: "team", label: "Team" }, { key: "load", label: "Load %" }] }, bind: { rows: { $data: "roster" } } },
+    schedule: { type: "calendar", props: { label: "Sprint calendar", month: "2026-03", events: [{ date: "2026-03-04", title: "Planning" }, { date: "2026-03-18", title: "Demo" }] } },
+    areas: { type: "tree", props: { label: "Work areas", expandAll: true, nodes: [{ id: "eng", label: "Engineering", children: [{ id: "engine", label: "Engine" }, { id: "runtime", label: "Runtime" }] }, { id: "design", label: "Design" }] } },
+  };
+  const read = base("math-notes", "Math notes — markdown, math and slides");
+  read.blocks = {
+    root: { type: "page", props: { width: "reading", gap: 6 }, slots: { children: ["body", "formula", "slides"] } },
+    body: { type: "markdown", props: { text: "## Why compounding wins\n\nA balance grows by a factor of **(1 + r)** each year, so after *n* years it is $P(1+r)^n$. Read more at [the docs](https://example.com/docs).\n\n- Start early\n- Be consistent\n\n> Time in the market beats timing the market.\n\n```\nbalance = principal * (1 + rate) ** years\n```" } },
+    formula: { type: "math", props: { display: true, label: "Compound growth", tex: "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}" } },
+    slides: { type: "carousel", props: { label: "Three habits", slides: [{ title: "Automate", text: "Pay yourself first." }, { title: "Diversify", text: "Spread the risk." }, { title: "Wait", text: "Let time do the work." }] } },
+  };
+  return [bench, read];
+}

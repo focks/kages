@@ -6,8 +6,10 @@ description: "How to add a rich block (chart, disclosure, overlay, work-app, med
 # Rich artifacts
 
 Batch 1 lives in `src/design-system/rich.js` + `rich.css` (area, donut, gauge,
-sparkline, heatmap, alert, accordion, stepper, timeline, modal). Later batches
-follow the same file pattern. Read `free-flow-composition` and
+sparkline, heatmap, alert, accordion, stepper, timeline, modal). Batch 2 is
+`apps.js` + `apps.css` (switch, combobox, tree, data-grid, kanban, calendar,
+carousel, markdown, math); radio group already exists as `choice`. Later
+batches follow the same file pattern. Read `free-flow-composition` and
 `expressive-artifacts` first; this skill is the recipe for one more block.
 
 ## Recipe
@@ -41,6 +43,27 @@ follow the same file pattern. Read `free-flow-composition` and
 - Charts also render `dataTable()` (or real table cells) so nothing is visual-only.
 - Overlays move focus in and restore it; Escape closes; backdrop click closes.
 - Layout uses container-relative CSS (`@container`), not viewport media queries.
+
+## Work-app and media patterns
+
+- **State without a merge operator.** There is none, so a block that changes a
+  collection (kanban) emits the *whole updated array* in its event and the
+  default handler stores it as a local (`board`). Transient view state (sort,
+  filter, page, expanded nodes, combobox query) stays in React `useState` and is
+  not public.
+- **Markdown and TeX are parsed into React elements**, never HTML. Links go
+  through `passiveLink`, images through `imageSource`. Bound every loop (input
+  length, depth, node counts) so a hostile document cannot hang the renderer.
+- **Deterministic render.** No block reads the clock: calendar requires `month`.
+- **Hooks first.** Call hooks before any early return (modal returns null when closed).
+
+## Verify in a real browser
+
+SSR tests cannot click. Start the dev server, publish a template with
+`publish_kage` + visibility `public`, then drive headless Chrome over the
+DevTools protocol (Node 22 has a global `WebSocket`). The dev store reseeds on
+route recompiles, so publish and read the uuid in one command. Screenshots caught
+real defects that SSR passed (list markers, stretched grid rows, `\left` text).
 
 ## Known limits
 

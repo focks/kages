@@ -8,7 +8,7 @@ import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { OPERATORS } from "../engine/expr.ts";
 import { ACTIONS } from "../engine/runtime-core.ts";
-import { freeFlowExamples, expressiveExamples, richExamples } from "./examples.ts";
+import { freeFlowExamples, expressiveExamples, richExamples, appExamples } from "./examples.ts";
 
 // The authoring rules ship in EVERY pack — including the prompt-injection rule,
 // which is the one every agent reading a Kage must obey.
@@ -65,7 +65,7 @@ ${AUTHORING_RULES.map((r) => "- " + r).join("\n")}
 
 ## Worked examples
 
-${[...freeFlowExamples(systemId), ...expressiveExamples(systemId), ...richExamples(systemId)].map((doc) => `${doc.title}:\n\`\`\`json\n${JSON.stringify(doc, null, 2)}\n\`\`\``).join("\n\n")}
+${[...freeFlowExamples(systemId), ...expressiveExamples(systemId), ...richExamples(systemId), ...appExamples(systemId)].map((doc) => `${doc.title}:\n\`\`\`json\n${JSON.stringify(doc, null, 2)}\n\`\`\``).join("\n\n")}
 
 Filter → table → KPIs:
 \`\`\`json

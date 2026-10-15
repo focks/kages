@@ -1,0 +1,82 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "atelier",
+    "portable": true
+  },
+  "description": "Kage \"Math notes — markdown, math and slides\" · system atelier@1.4.0 · 4 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - body [core/markdown@1.0.0] text=\"## Why compounding wins\\n\\nA balance grows by a factor o…\n    - formula [core/math@1.0.0] label=\"Compound growth\"\n    - slides [core/carousel@1.0.0] label=\"Three habits\"",
+  "envelope": {
+    "title": "Math notes — markdown, math and slides",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "body",
+            "formula",
+            "slides"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "body",
+        "type": "markdown",
+        "props": {
+          "text": "## Why compounding wins\n\nA balance grows by a factor of **(1 + r)** each year, so after *n* years it is $P(1+r)^n$. Read more at [the docs](https://example.com/docs).\n\n- Start early\n- Be consistent\n\n> Time in the market beats timing the market.\n\n```\nbalance = principal * (1 + rate) ** years\n```"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "formula",
+        "type": "math",
+        "props": {
+          "tex": "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}",
+          "display": true,
+          "label": "Compound growth"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "slides",
+        "type": "carousel",
+        "props": {
+          "label": "Three habits",
+          "slides_json": "[{\"title\":\"Automate\",\"text\":\"Pay yourself first.\"},{\"title\":\"Diversify\",\"text\":\"Spread the risk.\"},{\"title\":\"Wait\",\"text\":\"Let time do the work.\"}]",
+          "index": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

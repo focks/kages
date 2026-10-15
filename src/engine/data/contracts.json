@@ -3363,6 +3363,737 @@
     },
     "limits": {}
   },
+  "core/switch@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/switch",
+    "version": "1.0.0",
+    "ref": "core/switch@1.0.0",
+    "system": "core",
+    "name": "switch",
+    "implements": [
+      "kages/switch@1"
+    ],
+    "role": "switch",
+    "summary": "Labelled on/off toggle with a public checked state.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "checked": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "checked": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "checked": "boolean"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "checked",
+          "value": {
+            "$event": "checked"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "checked"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for an immediate on/off setting; change emits {checked}. Use checkbox for form-style choices."
+    },
+    "limits": {}
+  },
+  "core/combobox@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/combobox",
+    "version": "1.0.0",
+    "ref": "core/combobox@1.0.0",
+    "system": "core",
+    "name": "combobox",
+    "implements": [
+      "kages/combobox@1"
+    ],
+    "role": "combobox",
+    "summary": "Type-to-filter single choice with a keyboard listbox; the value is always one of the options.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "options": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "value",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "placeholder": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "required": {
+        "type": "boolean"
+      },
+      "disabled": {
+        "type": "boolean"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use when the option list is long enough to search. options [{value,label}]; change emits {value}. Free text is not accepted."
+    },
+    "limits": {}
+  },
+  "core/tree@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/tree",
+    "version": "1.0.0",
+    "ref": "core/tree@1.0.0",
+    "system": "core",
+    "name": "tree",
+    "implements": [
+      "kages/tree@1"
+    ],
+    "role": "tree",
+    "summary": "Expandable hierarchy with keyboard navigation and a selected node id.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "expandAll": {
+        "type": "boolean"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes: [{id,label,children?}] up to depth 8 and 500 nodes. select emits {id}; arrows move, Right/Left expand and collapse."
+    },
+    "limits": {}
+  },
+  "core/data-grid@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/data-grid",
+    "version": "1.0.0",
+    "ref": "core/data-grid@1.0.0",
+    "system": "core",
+    "name": "data-grid",
+    "implements": [
+      "kages/data-grid@1"
+    ],
+    "role": "data-grid",
+    "summary": "Sortable, filterable, paged table whose rows can be selected.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "key",
+            "label"
+          ]
+        }
+      },
+      "rows": {
+        "type": "array",
+        "required": true
+      },
+      "pageSize": {
+        "type": "number",
+        "default": 10
+      },
+      "filterable": {
+        "type": "boolean"
+      },
+      "sortable": {
+        "type": "boolean",
+        "default": true
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "object|null",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "row": "object",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "row"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "columns [{key,label}], rows objects. Sorts, filters (filterable) and pages in place; select emits {row,index} and the selected row is the public output."
+    },
+    "limits": {}
+  },
+  "core/kanban@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/kanban",
+    "version": "1.0.0",
+    "ref": "core/kanban@1.0.0",
+    "system": "core",
+    "name": "kanban",
+    "implements": [
+      "kages/kanban@1"
+    ],
+    "role": "kanban",
+    "summary": "Columns of cards that move between columns with buttons; the moved board is public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "title"
+          ]
+        }
+      },
+      "cards": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "column"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {
+      "board": {
+        "type": "array|null",
+        "default": null
+      }
+    },
+    "events": {
+      "move": {
+        "handler": "onMove",
+        "payload": {
+          "id": "string",
+          "from": "string",
+          "to": "string",
+          "cards": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "move": [
+        {
+          "do": "setLocal",
+          "key": "board",
+          "value": {
+            "$event": "cards"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "board"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "columns [{id,title}], cards [{id,title,column,description?}]. Buttons move a card; move emits {id,from,to,cards} and the new board is output `board` (null until moved)."
+    },
+    "limits": {}
+  },
+  "core/calendar@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/calendar",
+    "version": "1.0.0",
+    "ref": "core/calendar@1.0.0",
+    "system": "core",
+    "name": "calendar",
+    "implements": [
+      "kages/calendar@1"
+    ],
+    "role": "calendar",
+    "summary": "Month grid with event dots, month navigation and a selected ISO date.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "month": {
+        "type": "string",
+        "required": true
+      },
+      "events": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "date",
+            "title"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      },
+      "weekStart": {
+        "type": "number",
+        "enum": [
+          0,
+          1
+        ],
+        "default": 1
+      }
+    },
+    "slots": {},
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "value": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "value"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "month is YYYY-MM (required, so the render is deterministic). events [{date:YYYY-MM-DD,title}]. change emits {value}; weekStart 0 or 1."
+    },
+    "limits": {}
+  },
+  "core/carousel@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/carousel",
+    "version": "1.0.0",
+    "ref": "core/carousel@1.0.0",
+    "system": "core",
+    "name": "carousel",
+    "implements": [
+      "kages/carousel@1"
+    ],
+    "role": "carousel",
+    "summary": "One slide at a time with previous/next, dots and arrow keys; the slide index is public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "slides": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      "index": {
+        "type": "number"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "index": {
+        "type": "number",
+        "default": 0
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "index",
+          "value": {
+            "$event": "index"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "index"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "slides [{title?,text?,src?,alt?}]; image src follows the image block's passive rules. change emits {index}."
+    },
+    "limits": {}
+  },
+  "core/markdown@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/markdown",
+    "version": "1.0.0",
+    "ref": "core/markdown@1.0.0",
+    "system": "core",
+    "name": "markdown",
+    "implements": [
+      "kages/markdown@1"
+    ],
+    "role": "markdown",
+    "summary": "Markdown subset (headings, lists, quotes, code, emphasis, links, $math$) rendered as elements, never HTML.",
+    "props": {
+      "text": {
+        "type": "string",
+        "required": true
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "Subset only: #-### headings, lists, > quotes, ``` code, **bold**, *italic*, `code`, [links](https://…) and $tex$ / $block$ math. No raw HTML."
+    },
+    "limits": {}
+  },
+  "core/math@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/math",
+    "version": "1.0.0",
+    "ref": "core/math@1.0.0",
+    "system": "core",
+    "name": "math",
+    "implements": [
+      "kages/math@1"
+    ],
+    "role": "math",
+    "summary": "TeX subset (fractions, roots, scripts, Greek, operators) rendered as accessible elements.",
+    "props": {
+      "tex": {
+        "type": "string",
+        "required": true
+      },
+      "display": {
+        "type": "boolean"
+      },
+      "label": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "TeX subset: \\frac{a}{b}, \\sqrt{x}, ^ and _ with {groups}, Greek letters and common operators. Unknown commands render as their name."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

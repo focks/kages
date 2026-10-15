@@ -1,0 +1,57 @@
+{
+  "kages": "1.0",
+  "id": "math-notes",
+  "title": "Math notes — markdown, math and slides",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "body",
+          "formula",
+          "slides"
+        ]
+      }
+    },
+    "body": {
+      "type": "markdown",
+      "props": {
+        "text": "## Why compounding wins\n\nA balance grows by a factor of **(1 + r)** each year, so after *n* years it is $P(1+r)^n$. Read more at [the docs](https://example.com/docs).\n\n- Start early\n- Be consistent\n\n> Time in the market beats timing the market.\n\n```\nbalance = principal * (1 + rate) ** years\n```"
+      }
+    },
+    "formula": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Compound growth",
+        "tex": "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}"
+      }
+    },
+    "slides": {
+      "type": "carousel",
+      "props": {
+        "label": "Three habits",
+        "slides": [
+          {
+            "title": "Automate",
+            "text": "Pay yourself first."
+          },
+          {
+            "title": "Diversify",
+            "text": "Spread the risk."
+          },
+          {
+            "title": "Wait",
+            "text": "Let time do the work."
+          }
+        ]
+      }
+    }
+  }
+}

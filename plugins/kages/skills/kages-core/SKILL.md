@@ -1,6 +1,6 @@
 ---
 name: kages-core
-description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.7.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.8.0).
 ---
 
 # Kages — Kages Core
@@ -9,7 +9,7 @@ Neutral lattice system. The base every other system extends.
 
 ## Components
 
-# Kages Core 1.7.0 (core)
+# Kages Core 1.8.0 (core)
 Neutral lattice system. The base every other system extends.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -154,6 +154,33 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - modal → core/modal@1.0.0 [kages/modal@1] Dialog layered over the artifact; opened and closed by commands, Escape or the close button.
   props: label*:string, open:boolean, closeLabel:string · slots: children · events: change · outputs: open · commands: open, close, toggle
   use: Place content in children. Open with a button command {do:'call',target:modal,command:'open'}; Escape, the backdrop and the close button emit change {open:false}. Use sparingly for confirmations and detail.
+- switch → core/switch@1.0.0 [kages/switch@1] Labelled on/off toggle with a public checked state.
+  props: label*:string, checked:boolean, disabled:boolean · events: change · outputs: checked
+  use: Use for an immediate on/off setting; change emits {checked}. Use checkbox for form-style choices.
+- combobox → core/combobox@1.0.0 [kages/combobox@1] Type-to-filter single choice with a keyboard listbox; the value is always one of the options.
+  props: label*:string, options*:array, value:string, name:string, placeholder:string, empty:string, required:boolean, disabled:boolean · events: change · outputs: value
+  use: Use when the option list is long enough to search. options [{value,label}]; change emits {value}. Free text is not accepted.
+- tree → core/tree@1.0.0 [kages/tree@1] Expandable hierarchy with keyboard navigation and a selected node id.
+  props: label*:string, nodes*:array, value:string, expandAll:boolean, empty:string · events: select · outputs: value
+  use: nodes: [{id,label,children?}] up to depth 8 and 500 nodes. select emits {id}; arrows move, Right/Left expand and collapse.
+- data-grid → core/data-grid@1.0.0 [kages/data-grid@1] Sortable, filterable, paged table whose rows can be selected.
+  props: label*:string, columns*:array, rows*:array, pageSize:number, filterable:boolean, sortable:boolean, empty:string · events: select · outputs: selected
+  use: columns [{key,label}], rows objects. Sorts, filters (filterable) and pages in place; select emits {row,index} and the selected row is the public output.
+- kanban → core/kanban@1.0.0 [kages/kanban@1] Columns of cards that move between columns with buttons; the moved board is public.
+  props: label*:string, columns*:array, cards*:array · events: move · outputs: board
+  use: columns [{id,title}], cards [{id,title,column,description?}]. Buttons move a card; move emits {id,from,to,cards} and the new board is output `board` (null until moved).
+- calendar → core/calendar@1.0.0 [kages/calendar@1] Month grid with event dots, month navigation and a selected ISO date.
+  props: label*:string, month*:string, events:array, value:string, weekStart:0|1 · events: change · outputs: value
+  use: month is YYYY-MM (required, so the render is deterministic). events [{date:YYYY-MM-DD,title}]. change emits {value}; weekStart 0 or 1.
+- carousel → core/carousel@1.0.0 [kages/carousel@1] One slide at a time with previous/next, dots and arrow keys; the slide index is public.
+  props: label*:string, slides*:array, index:number, empty:string · events: change · outputs: index
+  use: slides [{title?,text?,src?,alt?}]; image src follows the image block's passive rules. change emits {index}.
+- markdown → core/markdown@1.0.0 [kages/markdown@1] Markdown subset (headings, lists, quotes, code, emphasis, links, $math$) rendered as elements, never HTML.
+  props: text*:string
+  use: Subset only: #-### headings, lists, > quotes, ``` code, **bold**, *italic*, `code`, [links](https://…) and $tex$ / $block$ math. No raw HTML.
+- math → core/math@1.0.0 [kages/math@1] TeX subset (fractions, roots, scripts, Greek, operators) rendered as accessible elements.
+  props: tex*:string, display:boolean, label:string
+  use: TeX subset: \frac{a}{b}, \sqrt{x}, ^ and _ with {groups}, Greek letters and common operators. Unknown commands render as their name.
 
 ## Expressions & actions
 
@@ -1656,6 +1683,339 @@ Launch flow — a guided checklist:
   "state": {
     "step": "plan",
     "faq": ""
+  }
+}
+```
+
+Team workbench — tasks, schedule and people:
+```json
+{
+  "kages": "1.0",
+  "id": "team-workbench",
+  "title": "Team workbench — tasks, schedule and people",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "full",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "controls",
+          "board",
+          "lower"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Team workbench",
+        "title": "Plan the sprint",
+        "description": "Move cards, pick dates, search people and sort the roster.",
+        "inset": 0
+      }
+    },
+    "controls": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "owner"
+        ],
+        "end": [
+          "notify"
+        ]
+      }
+    },
+    "owner": {
+      "type": "combobox",
+      "props": {
+        "label": "Sprint owner",
+        "placeholder": "Search people",
+        "options": [
+          {
+            "value": "ada",
+            "label": "Ada Lovelace"
+          },
+          {
+            "value": "alan",
+            "label": "Alan Turing"
+          },
+          {
+            "value": "grace",
+            "label": "Grace Hopper"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "owner"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "owner",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "notify": {
+      "type": "switch",
+      "props": {
+        "label": "Notify the team"
+      },
+      "bind": {
+        "checked": {
+          "$state": "notify"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "notify",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "board": {
+      "type": "kanban",
+      "props": {
+        "label": "Sprint board",
+        "columns": [
+          {
+            "id": "todo",
+            "title": "To do"
+          },
+          {
+            "id": "doing",
+            "title": "Doing"
+          },
+          {
+            "id": "done",
+            "title": "Done"
+          }
+        ],
+        "cards": [
+          {
+            "id": "c1",
+            "title": "Draft contracts",
+            "column": "todo",
+            "description": "Interfaces for each role"
+          },
+          {
+            "id": "c2",
+            "title": "Build goldens",
+            "column": "doing"
+          },
+          {
+            "id": "c3",
+            "title": "Ship docs",
+            "column": "done"
+          }
+        ]
+      }
+    },
+    "lower": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "large",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "roster",
+          "schedule",
+          "areas"
+        ]
+      }
+    },
+    "roster": {
+      "type": "data-grid",
+      "props": {
+        "label": "Roster",
+        "pageSize": 5,
+        "filterable": true,
+        "columns": [
+          {
+            "key": "name",
+            "label": "Name"
+          },
+          {
+            "key": "team",
+            "label": "Team"
+          },
+          {
+            "key": "load",
+            "label": "Load %"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$data": "roster"
+        }
+      }
+    },
+    "schedule": {
+      "type": "calendar",
+      "props": {
+        "label": "Sprint calendar",
+        "month": "2026-03",
+        "events": [
+          {
+            "date": "2026-03-04",
+            "title": "Planning"
+          },
+          {
+            "date": "2026-03-18",
+            "title": "Demo"
+          }
+        ]
+      }
+    },
+    "areas": {
+      "type": "tree",
+      "props": {
+        "label": "Work areas",
+        "expandAll": true,
+        "nodes": [
+          {
+            "id": "eng",
+            "label": "Engineering",
+            "children": [
+              {
+                "id": "engine",
+                "label": "Engine"
+              },
+              {
+                "id": "runtime",
+                "label": "Runtime"
+              }
+            ]
+          },
+          {
+            "id": "design",
+            "label": "Design"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "owner": "",
+    "notify": true
+  },
+  "data": {
+    "people": [
+      {
+        "value": "ada",
+        "label": "Ada Lovelace"
+      },
+      {
+        "value": "alan",
+        "label": "Alan Turing"
+      },
+      {
+        "value": "grace",
+        "label": "Grace Hopper"
+      }
+    ],
+    "roster": [
+      {
+        "name": "Ada",
+        "team": "Engine",
+        "load": 70
+      },
+      {
+        "name": "Alan",
+        "team": "Runtime",
+        "load": 45
+      },
+      {
+        "name": "Grace",
+        "team": "Engine",
+        "load": 90
+      }
+    ]
+  }
+}
+```
+
+Math notes — markdown, math and slides:
+```json
+{
+  "kages": "1.0",
+  "id": "math-notes",
+  "title": "Math notes — markdown, math and slides",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "body",
+          "formula",
+          "slides"
+        ]
+      }
+    },
+    "body": {
+      "type": "markdown",
+      "props": {
+        "text": "## Why compounding wins\n\nA balance grows by a factor of **(1 + r)** each year, so after *n* years it is $P(1+r)^n$. Read more at [the docs](https://example.com/docs).\n\n- Start early\n- Be consistent\n\n> Time in the market beats timing the market.\n\n```\nbalance = principal * (1 + rate) ** years\n```"
+      }
+    },
+    "formula": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Compound growth",
+        "tex": "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}"
+      }
+    },
+    "slides": {
+      "type": "carousel",
+      "props": {
+        "label": "Three habits",
+        "slides": [
+          {
+            "title": "Automate",
+            "text": "Pay yourself first."
+          },
+          {
+            "title": "Diversify",
+            "text": "Spread the risk."
+          },
+          {
+            "title": "Wait",
+            "text": "Let time do the work."
+          }
+        ]
+      }
+    }
   }
 }
 ```

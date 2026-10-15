@@ -1,0 +1,273 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "atelier",
+    "portable": true
+  },
+  "description": "Kage \"Team workbench — tasks, schedule and people\" · system atelier@1.4.0 · 10 blocks\nstate {\"owner\":\"\",\"notify\":true}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Plan the sprint\"\n    - controls [core/split@1.0.0]\n      start:\n        - owner [core/combobox@1.0.0] label=\"Sprint owner\" options=ada|alan|grace\n            ↳ reads state:owner · writes change→state.owner\n      end:\n        - notify [core/switch@1.0.0] label=\"Notify the team\"\n            ↳ reads state:notify · writes change→state.notify\n    - board [core/kanban@1.0.0] label=\"Sprint board\"\n    - lower [core/grid@1.0.0]\n      - roster [core/data-grid@1.0.0] label=\"Roster\" rows=3\n          ↳ reads data:roster\n      - schedule [core/calendar@1.0.0] label=\"Sprint calendar\"\n      - areas [core/tree@1.0.0] label=\"Work areas\"",
+  "envelope": {
+    "title": "Team workbench — tasks, schedule and people",
+    "root": "root",
+    "state_json": "{\"owner\":\"\",\"notify\":true}",
+    "data_json": "{\"people\":[{\"value\":\"ada\",\"label\":\"Ada Lovelace\"},{\"value\":\"alan\",\"label\":\"Alan Turing\"},{\"value\":\"grace\",\"label\":\"Grace Hopper\"}],\"roster\":[{\"name\":\"Ada\",\"team\":\"Engine\",\"load\":70},{\"name\":\"Alan\",\"team\":\"Runtime\",\"load\":45},{\"name\":\"Grace\",\"team\":\"Engine\",\"load\":90}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "full",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "controls",
+            "board",
+            "lower"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Plan the sprint",
+          "eyebrow": "Team workbench",
+          "description": "Move cards, pick dates, search people and sort the roster.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "controls",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 6
+        },
+        "slots": {
+          "start": [
+            "owner"
+          ],
+          "end": [
+            "notify"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "owner",
+        "type": "combobox",
+        "props": {
+          "label": "Sprint owner",
+          "options": [
+            {
+              "value": "ada",
+              "label": "Ada Lovelace"
+            },
+            {
+              "value": "alan",
+              "label": "Alan Turing"
+            },
+            {
+              "value": "grace",
+              "label": "Grace Hopper"
+            }
+          ],
+          "value": null,
+          "name": null,
+          "placeholder": "Search people",
+          "empty": null,
+          "required": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"owner\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"owner\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "notify",
+        "type": "switch",
+        "props": {
+          "label": "Notify the team",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"notify\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"notify\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "board",
+        "type": "kanban",
+        "props": {
+          "label": "Sprint board",
+          "columns": [
+            {
+              "id": "todo",
+              "title": "To do"
+            },
+            {
+              "id": "doing",
+              "title": "Doing"
+            },
+            {
+              "id": "done",
+              "title": "Done"
+            }
+          ],
+          "cards_json": "[{\"id\":\"c1\",\"title\":\"Draft contracts\",\"column\":\"todo\",\"description\":\"Interfaces for each role\"},{\"id\":\"c2\",\"title\":\"Build goldens\",\"column\":\"doing\"},{\"id\":\"c3\",\"title\":\"Ship docs\",\"column\":\"done\"}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "lower",
+        "type": "grid",
+        "props": {
+          "columns": 3,
+          "minSize": "large",
+          "gap": 6
+        },
+        "slots": {
+          "children": [
+            "roster",
+            "schedule",
+            "areas"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "roster",
+        "type": "data-grid",
+        "props": {
+          "label": "Roster",
+          "columns": [
+            {
+              "key": "name",
+              "label": "Name"
+            },
+            {
+              "key": "team",
+              "label": "Team"
+            },
+            {
+              "key": "load",
+              "label": "Load %"
+            }
+          ],
+          "rows_json": null,
+          "pageSize": 5,
+          "filterable": true,
+          "sortable": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "rows",
+            "expr_json": "{\"$data\":\"roster\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "schedule",
+        "type": "calendar",
+        "props": {
+          "label": "Sprint calendar",
+          "month": "2026-03",
+          "events": [
+            {
+              "date": "2026-03-04",
+              "title": "Planning"
+            },
+            {
+              "date": "2026-03-18",
+              "title": "Demo"
+            }
+          ],
+          "value": null,
+          "weekStart": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "areas",
+        "type": "tree",
+        "props": {
+          "label": "Work areas",
+          "nodes_json": "[{\"id\":\"eng\",\"label\":\"Engineering\",\"children\":[{\"id\":\"engine\",\"label\":\"Engine\"},{\"id\":\"runtime\",\"label\":\"Runtime\"}]},{\"id\":\"design\",\"label\":\"Design\"}]",
+          "value": null,
+          "expandAll": true,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

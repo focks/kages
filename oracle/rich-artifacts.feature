@@ -24,3 +24,17 @@ Feature: Rich visual and disclosure blocks
     Then value or open updates without author wiring
     And the document can read it through outputs or bind it to declared state
     And a button opens or closes a modal through its declared commands
+
+  Scenario: Work-app blocks keep interaction state public and transient state private
+    Given a combobox, tree, data-grid, kanban, calendar, carousel or switch
+    When the user selects, moves or toggles without author wiring
+    Then the declared output (value, selected, board, index, checked) updates
+    And sort order, filters, paging, expansion and the search query stay private
+    And keyboard use works: arrows, Enter and Escape for the combobox, arrows for the tree
+    And cells, card titles and labels render as literal text
+
+  Scenario: Markdown and math render as elements, never HTML
+    Given markdown text or TeX contains raw tags, script text or unsafe link schemes
+    Then no raw HTML, script or executable URL reaches the page
+    And only http(s), local, anchor and mailto links are active
+    And unknown TeX commands render as text and nesting depth and length are bounded
