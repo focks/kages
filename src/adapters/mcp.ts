@@ -20,7 +20,7 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { mcpTools, a2aCard } from "./surfaces.ts";
-import type { OpResult } from "./operations.ts";
+import { formatDetails, type OpResult } from "./operations.ts";
 import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { pack } from "../packs/packs.ts";
@@ -77,7 +77,7 @@ async function callToolResult(exec: Exec, name: string, args: Record<string, unk
   const r = await exec(name, args ?? {});
   // Operation/business errors come back as a result with isError so the model
   // can self-correct (per the MCP tool-error convention), not as a transport fault.
-  if (!r.ok) return { isError: true, content: [{ type: "text", text: `error ${r.error.code}: ${r.error.msg}` }] };
+  if (!r.ok) return { isError: true, content: [{ type: "text", text: `error ${r.error.code}: ${r.error.msg}${formatDetails((r.error as { details?: unknown }).details)}` }] };
   const text = typeof r.data === "string" ? r.data : JSON.stringify(r.data, null, 2);
   return { content: [{ type: "text", text }] };
 }

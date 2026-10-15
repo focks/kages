@@ -4,7 +4,7 @@
 // the spec names (validate/publish/export) are just operations; the generic
 // form reaches all of them. See oracle/agent-access.feature.
 
-import { dispatch, type OpContext } from "./operations.ts";
+import { formatDetails, dispatch, type OpContext } from "./operations.ts";
 
 /** Parse `--key value` / `--flag` / `--key @file.json` into a params object.
  *  A value that parses as JSON is used as JSON (so `--ops '[...]'` works);
@@ -36,5 +36,5 @@ export function runCli(ctx: OpContext, argv: string[]): CliResult {
   const r = dispatch(ctx, op, params);
   return r.ok
     ? { code: 0, out: JSON.stringify(r.data, null, 2) }
-    : { code: 1, out: `error ${r.error.code}: ${r.error.msg}` };
+    : { code: 1, out: `error ${r.error.code}: ${r.error.msg}${formatDetails((r.error as { details?: unknown }).details)}` };
 }

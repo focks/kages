@@ -16,6 +16,7 @@ import { join } from "node:path";
 import { systems, contracts } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { validate } from "../engine/validate.ts";
+import { review } from "../engine/advice.ts";
 import { describe } from "../engine/describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
 import { KageSession } from "../engine/session.ts";
@@ -189,10 +190,13 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     // --- author (offline, file or stored) ---
     case "validate": {
       need(1, "validate <file|name> [-s system]");
-      const r = validate(resolveDoc(rest[0]), sys);
+      const doc = resolveDoc(rest[0]);
+      const r = review(doc, sys);
       if (ctx.json) { printJson(r); return r.ok ? 0 : 1; }
       for (const e of r.errors) out(`  ✗ ${e.at}  ${e.code}  ${e.msg}`);
       for (const w of r.warnings) out(`  ⚠ ${w.at}  ${w.code}  ${w.msg}`);
+      // What to do about each finding, and pitfalls the validator allows.
+      for (const a of r.advice) out(`  ${a.level === "lint" ? "◦" : "→"} ${a.at}  ${a.level === "lint" ? a.code + "  " : ""}${a.fix ?? a.msg}`);
       out(`${r.ok ? "✓ valid" : "✗ invalid"} — ${r.errors.length} errors, ${r.warnings.length} warnings${r.portable !== undefined ? ` · portable: ${r.portable}` : ""}`);
       return r.ok ? 0 : 1;
     }

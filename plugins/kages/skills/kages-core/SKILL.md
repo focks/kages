@@ -2734,7 +2734,7 @@ Quarterly report — six ways to see the data:
       },
       "bind": {
         "text": {
-          "$tpl": "Selected area: {{block.costs.selected}}"
+          "$tpl": "Selected — budget area: {{block.costs.selected}} · funnel stage: {{block.pipeline.selected}} · region: {{block.regions.selected}}"
         }
       }
     },

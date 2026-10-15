@@ -7,6 +7,8 @@
 
 import { systems, contracts } from "../engine/data.ts";
 import { validate } from "../engine/validate.ts";
+import { advise, review, type Advice } from "../engine/advice.ts";
+import { applyPatch } from "../collab/patch.ts";
 import { describe } from "../engine/describe.ts";
 import { catalog } from "../engine/catalog.ts";
 import { generationSchema, fromGenerated } from "../engine/generate.ts";
@@ -23,10 +25,13 @@ export interface OpContext {
   repo?: string;
 }
 
-export type OpResult = { ok: true; data: unknown } | { ok: false; error: { code: string; msg: string } };
+/** `details` carries structured context for a failure (for a rejected write: the
+ *  validator's findings and what to do about each), so an agent can fix and retry
+ *  without a second round trip. */
+export type OpResult = { ok: true; data: unknown } | { ok: false; error: { code: string; msg: string; details?: unknown } };
 
 const ok = (data: unknown): OpResult => ({ ok: true, data });
-const fail = (code: string, msg: string): OpResult => ({ ok: false, error: { code, msg } });
+const fail = (code: string, msg: string, details?: unknown): OpResult => ({ ok: false, error: { code, msg, ...(details !== undefined ? { details } : {}) } });
 const cres = <T,>(r: { ok: true; value: T } | { ok: false; error: { code: string; msg: string } }): OpResult => (r.ok ? ok(r.value) : fail(r.error.code, r.error.msg));
 
 type Params = Record<string, any>;
@@ -144,7 +149,7 @@ export const OPERATIONS: OpSpec[] = [
 
   // --- write (three tiers) ---
   { name: "create_kage", summary: "Create a Kage from a full document (tier A)", params: ["doc", "repo?"], write: true, run: (c, p) =>
-    toResult(c.store.create(p.repo ?? c.repo ?? "kages", p.doc as KageDoc, c.author)) },
+    toResult(c.store.create(p.repo ?? c.repo ?? "kages", p.doc as KageDoc, c.author), p.doc as KageDoc) },
 
   { name: "clone_kage", summary: "Create an independent copy of a Kage (fresh id + uuid)", params: ["name", "title?", "repo?"], write: true, run: (c, p) => {
     // Templates are classified by their repo. Copying that destination would
@@ -163,7 +168,12 @@ export const OPERATIONS: OpSpec[] = [
   } },
 
   { name: "patch_kage", summary: "Edit a Kage with RFC 6902 ops (tier A). Pass baseVersion for optimistic concurrency.", params: ["name", "ops", "baseVersion?"], write: true, run: (c, p) =>
-    toResult(c.store.patch(p.name, p.ops, c.author, { baseVersion: p.baseVersion !== undefined ? Number(p.baseVersion) : undefined })) },
+    toResult(c.store.patch(p.name, p.ops, c.author, { baseVersion: p.baseVersion !== undefined ? Number(p.baseVersion) : undefined }), () => {
+      // The store does not hand back the rejected document, so rebuild the
+      // candidate from the head and the ops to advise on it.
+      const head = c.store.head(p.name);
+      try { return head ? applyPatch(head.doc, p.ops) : undefined; } catch { return undefined; }
+    }) },
 
   { name: "generate_kage", summary: "Create from a generation envelope (tier B) or raw text (tier C)", params: ["system", "envelope?", "text?", "repo?"], write: true, run: (c, p) => {
     if (!systems[p.system]) return fail("not_found", `no system '${p.system}'`);
@@ -177,8 +187,8 @@ export const OPERATIONS: OpSpec[] = [
   } },
 
   // --- check ---
-  { name: "validate_kage", summary: "Validate a document; returns findings with JSON pointers", params: ["doc", "system?"], run: (_c, p) =>
-    ok(validate(p.doc as KageDoc, p.system)) },
+  { name: "validate_kage", summary: "Validate a document; returns findings with JSON pointers, a fix for each, and pitfall lint", params: ["doc", "system?"], run: (_c, p) =>
+    ok(review(p.doc as KageDoc, p.system)) },
 
   { name: "preview_kage", summary: "Headless render snapshot: resolved outputs + visibility per block", params: ["name", "system?"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
@@ -286,8 +296,26 @@ function uniqueKageId(store: { exists: (name: string) => boolean }, base: string
   for (let i = 2; ; i++) { const cand = slug.slice(0, 36) + "-" + i; if (!store.exists(cand)) return cand; }
 }
 
-function toResult(w: { ok: boolean; version?: unknown; validation?: unknown; error?: { code: string; msg: string } }): OpResult {
-  return w.ok ? ok({ version: w.version, validation: w.validation }) : fail(w.error!.code, w.error!.msg);
+function toResult(w: { ok: boolean; version?: unknown; validation?: unknown; error?: { code: string; msg: string } }, candidate?: KageDoc | (() => KageDoc | undefined)): OpResult {
+  if (w.ok) return ok({ version: w.version, validation: w.validation });
+  // A rejection for invalid content explains itself: every finding, with a fix.
+  const validation = w.validation as { errors?: unknown[]; warnings?: unknown[] } | undefined;
+  if (w.error!.code !== "invalid_content" || !validation) return fail(w.error!.code, w.error!.msg);
+  let advice: Advice[] = [];
+  try { const doc = typeof candidate === "function" ? candidate() : candidate; if (doc) advice = advise(doc, validation as never); } catch { /* advice is a courtesy; never mask the real error */ }
+  return fail(w.error!.code, w.error!.msg, { errors: validation.errors ?? [], warnings: validation.warnings ?? [], advice });
+}
+
+/** One readable block for adapters that carry only text (MCP, CLI): each finding
+ *  on a line, with its fix underneath. */
+export function formatDetails(details: unknown): string {
+  const d = details as { errors?: { at: string; code: string; msg: string }[]; warnings?: { at: string; code: string; msg: string }[]; advice?: Advice[] } | undefined;
+  if (!d) return "";
+  const lines: string[] = [];
+  for (const e of d.errors ?? []) lines.push(`  ✗ ${e.at}  ${e.code}  ${e.msg}`);
+  for (const w of d.warnings ?? []) lines.push(`  ⚠ ${w.at}  ${w.code}  ${w.msg}`);
+  for (const a of d.advice ?? []) if (a.fix) lines.push(`  → ${a.at}  ${a.fix}`);
+  return lines.length ? "\n" + lines.join("\n") : "";
 }
 function toClaim(r: { ok: boolean; heldBy?: string }): OpResult {
   return r.ok ? ok({ claimed: true }) : fail("claimed", `already claimed by ${r.heldBy}`);

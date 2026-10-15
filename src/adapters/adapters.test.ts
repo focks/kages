@@ -172,3 +172,27 @@ test("list_kages cards carry a bounded description and the characteristic block 
   assert.equal(describeCard({ blocks: { s: { type: "section", props: { description: 42 } } } as any }), "");
   assert.equal(describeCard({ description: "x".repeat(500), blocks: {} }).length, 160);
 });
+
+test("a rejected write explains itself: findings plus a fix for each, through every adapter", async () => {
+  const { Store } = await import("../store/store.ts");
+  const { dispatch: run, formatDetails } = await import("./operations.ts");
+  const store = new Store({ workspace: "w" }), author = { principal: "agent:a" };
+  store.grant(author.principal, "kages", ["write", "publish", "review", "admin"]);
+  const ctx = { store, author, repo: "kages" };
+  const bad: any = { kages: "1.0", id: "bad", title: "Bad", system: "core@1", root: "r", blocks: { r: { type: "bar-chrt", props: { label: "x", items: [] } } } };
+  const r: any = run(ctx, "create_kage", { doc: bad });
+  assert.equal(r.ok, false); assert.equal(r.error.code, "invalid_content");
+  assert.ok(r.error.details.errors.length >= 1, "the findings travel with the error");
+  const fix = r.error.details.advice.find((a: any) => a.code === "unresolved-type"); assert.match(fix.fix, /Did you mean `bar-chart`/);
+  assert.match(formatDetails(r.error.details), /✗ \/blocks\/r\/type[\s\S]*→ \/blocks\/r\/type\s+Set \/blocks\/r\/type to "bar-chart"/);
+  // validate_kage returns the same advice plus lint without touching the store.
+  const v: any = run(ctx, "validate_kage", { doc: { ...bad, blocks: { r: { type: "button", props: { label: "Go" } } } } });
+  assert.equal(v.ok, true); assert.ok(v.data.advice.some((a: any) => a.code === "dead-button" && a.level === "lint"));
+  // a patch that breaks a stored Kage is advised against the patched document.
+  const good: any = { ...bad, id: "good", blocks: { r: { type: "button", props: { label: "Go" }, on: { click: [{ do: "set", path: "x", value: 1 }] } } }, state: { x: 0 } };
+  assert.equal((run(ctx, "create_kage", { doc: good }) as any).ok, true);
+  const p: any = run(ctx, "patch_kage", { name: "good", ops: [{ op: "replace", path: "/blocks/r/props/label", value: undefined }, { op: "remove", path: "/blocks/r/props/label" }] });
+  assert.equal(p.ok, false); assert.ok(p.error.details.advice.some((a: any) => a.code === "missing-prop" && /`label`/.test(a.msg)));
+  // a success carries no error details
+  assert.equal(JSON.stringify((run(ctx, "create_kage", { doc: { ...good, id: "good2" } }) as any).error), undefined);
+});

@@ -6,6 +6,8 @@ export { resolve, semverMatch, systemOf } from "./resolve.ts";
 export { evaluate, getPath, setPath, clone, merge, isExpr, walkExpr, operatorOf, OPERATORS } from "./expr.ts";
 export { validate } from "./validate.ts";
 export { describe } from "./describe.ts";
+export { advise, lint, review, nearest } from "./advice.ts";
+export type { Advice } from "./advice.ts";
 export { catalog } from "./catalog.ts";
 export { generationSchema, fromGenerated, toGenerated } from "./generate.ts";
 export { initLocals, makeCtx, runActions, materialize, ACTIONS } from "./runtime-core.ts";
