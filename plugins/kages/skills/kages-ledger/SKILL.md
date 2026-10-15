@@ -178,9 +178,9 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - markdown → core/markdown@1.0.0 [kages/markdown@1] Markdown subset (headings, lists, quotes, code, emphasis, links, $math$) rendered as elements, never HTML.
   props: text*:string
   use: Subset only: #-### headings, lists, > quotes, ``` code, **bold**, *italic*, `code`, [links](https://…) and $tex$ / $block$ math. No raw HTML.
-- math → core/math@1.0.0 [kages/math@1] TeX subset (fractions, roots, scripts, Greek, operators) rendered as accessible elements.
+- math → core/math@1.0.0 [kages/math@1] TeX math (fractions, roots, scripts and limits, matrices, cases, accents, stretchy delimiters, Greek and symbols) rendered as accessible elements.
   props: tex*:string, display:boolean, label:string
-  use: TeX subset: \frac{a}{b}, \sqrt{x}, ^ and _ with {groups}, Greek letters and common operators. Unknown commands render as their name.
+  use: TeX math, not LaTeX documents: \frac \binom \sqrt[n]{} ^ _ \sum_{i}^{n} \int \lim, \left( \right), \begin{pmatrix|bmatrix|vmatrix|cases|aligned}…\end, \hat \vec \overline, \text{} \mathbb \mathcal \mathbf, Greek and common symbols. display:true stacks limits above and below. Unknown commands render as their name; no macros, no packages.
 
 ## Expressions & actions
 
@@ -1978,6 +1978,9 @@ Math notes — markdown, math and slides:
         "children": [
           "body",
           "formula",
+          "series",
+          "matrix",
+          "piecewise",
           "slides"
         ]
       }
@@ -1994,6 +1997,30 @@ Math notes — markdown, math and slides:
         "display": true,
         "label": "Compound growth",
         "tex": "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}"
+      }
+    },
+    "series": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Sum of squares",
+        "tex": "\\sum_{i=1}^{n} i^{2} = \\frac{n(n+1)(2n+1)}{6}"
+      }
+    },
+    "matrix": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Rotation matrix",
+        "tex": "R(\\theta) = \\begin{pmatrix} \\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta \\end{pmatrix}"
+      }
+    },
+    "piecewise": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Absolute value",
+        "tex": "|x| = \\begin{cases} x & x \\geq 0 \\\\ -x & x < 0 \\end{cases}"
       }
     },
     "slides": {

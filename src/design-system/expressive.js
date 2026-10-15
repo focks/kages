@@ -92,16 +92,41 @@
   function CoreDiagram(p) {
     var nodes = (Array.isArray(p.nodes) ? p.nodes : []).filter(function (n) { return n && typeof n.id === "string"; }).slice(0, 200);
     var rows = Math.ceil(nodes.length / 3), width = 660, height = Math.max(140, rows * 140), positions = Object.create(null), shapes = [];
-    nodes.forEach(function (n, i) { positions[n.id] = { x: finiteNumber(n.x, 20 + (i % 3) * 220), y: finiteNumber(n.y, 30 + Math.floor(i / 3) * 140) }; });
-    (Array.isArray(p.edges) ? p.edges : []).forEach(function (edge) {
-      var from = positions[edge.from], to = positions[edge.to]; if (!from || !to) return;
-      shapes.push({ kind: "line", x: from.x + 90, y: from.y + 35, x2: to.x + 90, y2: to.y + 35, stroke: "ink-muted", strokeWidth: 2, label: edge.label || edge.from + " to " + edge.to });
+    // Labelled edges need a gap wider than their chip, or the label hides under the
+    // nodes it connects; widen the automatic columns only when labels exist.
+    var labelled = (Array.isArray(p.edges) ? p.edges : []).some(function (e) { return e && typeof e.label === "string" && e.label; }), colStep = labelled ? 300 : 220, labelShapes = [];
+    nodes.forEach(function (n, i) { positions[n.id] = { x: finiteNumber(n.x, 20 + (i % 3) * colStep), y: finiteNumber(n.y, 30 + Math.floor(i / 3) * 140) }; });
+    // Edges run between node boundaries (not centres, which hid every arrowhead
+    // under the boxes), end in a two-stroke arrowhead, and carry their label on
+    // a paper-coloured chip so text stays legible where it crosses the line.
+    (Array.isArray(p.edges) ? p.edges : []).slice(0, 400).forEach(function (edge) {
+      var from = positions[edge.from], to = positions[edge.to]; if (!from || !to || edge.from === edge.to) return;
+      var ax = from.x + 90, ay = from.y + 35, bx = to.x + 90, by = to.y + 35, dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy);
+      if (!isFinite(len) || len < 1) return;
+      var ux = dx / len, uy = dy / len;
+      // Distance from a rectangle's centre to its edge along the edge direction.
+      var clip = Math.min(ux ? 90 / Math.abs(ux) : Infinity, uy ? 35 / Math.abs(uy) : Infinity) + 4;
+      if (clip * 2 >= len) return; // boxes overlap or touch: no room for a line
+      var sx = ax + ux * clip, sy = ay + uy * clip, ex = bx - ux * clip, ey = by - uy * clip;
+      function r1(n) { return Math.round(n * 10) / 10; }
+      shapes.push({ kind: "line", x: r1(sx), y: r1(sy), x2: r1(ex), y2: r1(ey), stroke: "ink-muted", strokeWidth: 2, label: edge.label || edge.from + " to " + edge.to });
+      [.45, -.45].forEach(function (a) {
+        var c = Math.cos(a), sn = Math.sin(a);
+        shapes.push({ kind: "line", x: r1(ex), y: r1(ey), x2: r1(ex - (ux * c - uy * sn) * 12), y2: r1(ey - (ux * sn + uy * c) * 12), stroke: "ink-muted", strokeWidth: 2 });
+      });
+      if (typeof edge.label === "string" && edge.label) {
+        var text = edge.label.slice(0, 24), w = Math.max(24, text.length * 7 + 12), mx = (sx + ex) / 2, my = (sy + ey) / 2;
+        labelShapes.push({ kind: "rect", x: r1(mx - w / 2), y: r1(my - 11), width: w, height: 22, radius: 6, fill: "paper", stroke: "line", strokeWidth: 1 });
+        labelShapes.push({ kind: "text", x: r1(mx - w / 2 + 6), y: r1(my + 5), text: text, size: 13, fill: "ink" });
+      }
     });
     nodes.forEach(function (n) {
       var pos = positions[n.id]; width = Math.max(width, pos.x + 200); height = Math.max(height, pos.y + 100);
       shapes.push({ kind: "rect", id: n.id, x: pos.x, y: pos.y, width: 180, height: 70, fill: n.tone || "surface", label: n.label });
       shapes.push({ kind: "text", x: pos.x + 12, y: pos.y + 42, text: String(n.label || n.id).slice(0, 20), label: n.label });
     });
+    // Labels go on the top layer so a chip that is wider than the gap stays readable.
+    labelShapes.forEach(function (sh) { shapes.push(sh); });
     return CoreScene({ label: p.label, width: width, height: height, shapes: shapes, interactive: p.interactive, onSelect: p.onSelect });
   }
   function plot(p, scatter) {

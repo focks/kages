@@ -2292,7 +2292,7 @@
     "outputs": []
   },
   "kages/math@1": {
-    "summary": "TeX subset (fractions, roots, scripts, Greek, operators) rendered as accessible elements.",
+    "summary": "TeX math (fractions, roots, scripts and limits, matrices, cases, accents, stretchy delimiters, Greek and symbols) rendered as accessible elements.",
     "props": {
       "tex": {
         "type": "string",

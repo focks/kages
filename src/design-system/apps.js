@@ -145,42 +145,174 @@
         h("button", { type: "button", className: "kg-btn", "aria-controls": uid + "-s", onClick: function () { go(at + 1); } }, "Next")));
   }
 
-  /* ---- TeX subset -> React nodes. No HTML path exists, so nothing to escape. ---- */
-  var TEX_SYMBOLS = { alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ε", theta: "θ", lambda: "λ", mu: "μ", pi: "π", rho: "ρ", sigma: "σ", tau: "τ", phi: "φ", omega: "ω", Delta: "Δ", Sigma: "Σ", Omega: "Ω", Pi: "Π", cdot: "·", times: "×", pm: "±", leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠", approx: "≈", infty: "∞", sum: "∑", prod: "∏", int: "∫", to: "→", rightarrow: "→", partial: "∂", nabla: "∇", sqrt: "√" };
-  function parseTex(src) {
-    var i = 0, budget = 2000;
-    function group(depth) {
-      var out = [], key = 0;
-      while (i < src.length && budget-- > 0) {
-        var c = src[i];
-        if (c === "}") { return out; }
-        i++;
-        if (c === "{") { out.push(h("span", { key: key++ }, depth < 8 ? group(depth + 1) : null)); if (src[i] === "}") i++; continue; }
-        if (c === "^" || c === "_") { var arg = atom(depth); out.push(h(c === "^" ? "sup" : "sub", { key: key++ }, arg)); continue; }
-        if (c === "\\") {
-          var name = /^[A-Za-z]+/.exec(src.slice(i)); name = name ? name[0] : src[i] || ""; i += name.length || 0;
-          // Sizing and spacing commands carry no meaning here; rendering their
-          // name as text ("left", "right") is the visible failure to avoid.
-          if (name === "left" || name === "right" || name === "quad" || name === "qquad" || name === "displaystyle" || name === "limits") { if ((name === "left" || name === "right") && src[i] === ".") i++; else if (name === "quad" || name === "qquad") out.push(h("span", { key: key++ }, " ")); continue; }
-          if (name === "frac") { var a = atom(depth), b = atom(depth); out.push(h("span", { key: key++, className: "kg-math__frac" }, h("span", { className: "kg-math__num" }, a), h("span", { className: "kg-math__den" }, b))); }
-          else if (name === "sqrt") { out.push(h("span", { key: key++, className: "kg-math__sqrt" }, "√", h("span", { className: "kg-math__radicand" }, atom(depth)))); }
-          else out.push(h("span", { key: key++ }, TEX_SYMBOLS[name] || name));
-          continue;
-        }
-        out.push(h("span", { key: key++ }, c));
+  /* ---- TeX math -> React elements -------------------------------------------
+   * A real (subset) TeX math engine: parse to an AST, render to elements. There
+   * is no HTML path, so hostile input can only become text; every loop is
+   * budgeted (input length, node budget, nesting depth, matrix size) so a crafted
+   * string cannot hang the renderer; unknown commands render as their name. */
+  var TEX_GREEK = { alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ϵ", varepsilon: "ε", zeta: "ζ", eta: "η", theta: "θ", vartheta: "ϑ", iota: "ι", kappa: "κ", lambda: "λ", mu: "μ", nu: "ν", xi: "ξ", pi: "π", varpi: "ϖ", rho: "ρ", varrho: "ϱ", sigma: "σ", varsigma: "ς", tau: "τ", upsilon: "υ", phi: "ϕ", varphi: "φ", chi: "χ", psi: "ψ", omega: "ω" };
+  var TEX_SYMBOLS = { Gamma: "Γ", Delta: "Δ", Theta: "Θ", Lambda: "Λ", Xi: "Ξ", Pi: "Π", Sigma: "Σ", Upsilon: "Υ", Phi: "Φ", Psi: "Ψ", Omega: "Ω",
+    cdot: "⋅", times: "×", div: "÷", pm: "±", mp: "∓", ast: "∗", star: "⋆", circ: "∘", bullet: "∙", oplus: "⊕", otimes: "⊗", ominus: "⊖", odot: "⊙",
+    leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠", approx: "≈", equiv: "≡", sim: "∼", simeq: "≃", cong: "≅", propto: "∝", ll: "≪", gg: "≫", prec: "≺", succ: "≻",
+    in: "∈", notin: "∉", ni: "∋", subset: "⊂", supset: "⊃", subseteq: "⊆", supseteq: "⊇", cup: "∪", cap: "∩", setminus: "∖", emptyset: "∅", varnothing: "∅",
+    land: "∧", wedge: "∧", lor: "∨", vee: "∨", neg: "¬", lnot: "¬", forall: "∀", exists: "∃", nexists: "∄", therefore: "∴", because: "∵",
+    infty: "∞", partial: "∂", nabla: "∇", ell: "ℓ", hbar: "ℏ", Re: "ℜ", Im: "ℑ", aleph: "ℵ", prime: "′", angle: "∠", perp: "⊥", parallel: "∥", degree: "°", dagger: "†",
+    to: "→", rightarrow: "→", leftarrow: "←", leftrightarrow: "↔", Rightarrow: "⇒", Leftarrow: "⇐", Leftrightarrow: "⇔", implies: "⇒", iff: "⇔", mapsto: "↦", uparrow: "↑", downarrow: "↓", longrightarrow: "⟶", longleftarrow: "⟵",
+    ldots: "…", dots: "…", cdots: "⋯", vdots: "⋮", ddots: "⋱", lbrace: "{", rbrace: "}", langle: "⟨", rangle: "⟩", lfloor: "⌊", rfloor: "⌋", lceil: "⌈", rceil: "⌉", vert: "|", Vert: "‖", lvert: "|", rvert: "|", lVert: "‖", rVert: "‖", backslash: "\\", ",": "", "{": "{", "}": "}", "|": "‖", "%": "%", "$": "$", "&": "&", "#": "#", "_": "_" };
+  var TEX_BIGOPS = { sum: "∑", prod: "∏", coprod: "∐", int: "∫", iint: "∬", iiint: "∭", oint: "∮", bigcup: "⋃", bigcap: "⋂", bigoplus: "⨁", bigotimes: "⨂", bigvee: "⋁", bigwedge: "⋀" };
+  var TEX_NAMED_OPS = { sin: 0, cos: 0, tan: 0, cot: 0, sec: 0, csc: 0, arcsin: 0, arccos: 0, arctan: 0, sinh: 0, cosh: 0, tanh: 0, coth: 0, log: 0, ln: 0, lg: 0, exp: 0, deg: 0, dim: 0, ker: 0, hom: 0, arg: 0, lim: 1, limsup: 1, liminf: 1, max: 1, min: 1, sup: 1, inf: 1, det: 1, gcd: 1, Pr: 1 };
+  var TEX_ACCENT = { hat: "^", widehat: "^", bar: "‾", overline: "‾", vec: "→", overrightarrow: "→", tilde: "~", widetilde: "~", dot: "˙", ddot: "¨", underline: "_" };
+  var TEX_ENVS = { matrix: ["", ""], pmatrix: ["(", ")"], bmatrix: ["[", "]"], Bmatrix: ["{", "}"], vmatrix: ["|", "|"], Vmatrix: ["‖", "‖"], cases: ["{", ""], aligned: ["", ""], align: ["", ""], gather: ["", ""], split: ["", ""], array: ["", ""] };
+  var TEX_SPACE = { ",": .17, ":": .22, ";": .28, "!": -.17, " ": .28, quad: 1, qquad: 2 };
+  var TEX_DELIM = { "(": "(", ")": ")", "[": "[", "]": "]", "|": "|", ".": "", "/": "/", "<": "⟨", ">": "⟩", "{": "{", "}": "}", lbrace: "{", rbrace: "}", langle: "⟨", rangle: "⟩", lvert: "|", rvert: "|", vert: "|", lVert: "‖", rVert: "‖", "|\\": "‖", lfloor: "⌊", rfloor: "⌋", lceil: "⌈", rceil: "⌉" };
+  // Stretchy delimiters are drawn as non-uniformly scaled SVG paths so a fence
+  // grows with its content instead of staying one glyph tall.
+  var TEX_DELIM_PATH = { "(": "M8 0Q1 50 8 100", ")": "M2 0Q9 50 2 100", "[": "M8 1H2V99H8", "]": "M2 1H8V99H2", "|": "M5 0V100", "‖": "M3 0V100M7 0V100", "{": "M8 1Q4 1 4 20V40Q4 50 1 50Q4 50 4 60V80Q4 99 8 99", "}": "M2 1Q6 1 6 20V40Q6 50 9 50Q6 50 6 60V80Q6 99 2 99", "⟨": "M8 0L2 50L8 100", "⟩": "M2 0L8 50L2 100", "⌊": "M3 0V99H8", "⌋": "M7 0V99H2", "⌈": "M3 100V1H8", "⌉": "M7 100V1H2" };
+  var BB_EXC = { C: "ℂ", H: "ℍ", N: "ℕ", P: "ℙ", Q: "ℚ", R: "ℝ", Z: "ℤ" }, CAL_EXC = { B: "ℬ", E: "ℰ", F: "ℱ", H: "ℋ", I: "ℐ", L: "ℒ", M: "ℳ", R: "ℛ" }, FRAK_EXC = { C: "ℭ", H: "ℌ", I: "ℑ", R: "ℜ", Z: "ℨ" };
+  function texAlpha(c, style) {
+    var up = c >= "A" && c <= "Z", lo = c >= "a" && c <= "z"; if (!up && !lo) return c;
+    var k = c.charCodeAt(0) - (up ? 65 : 97);
+    if (style === "bb") return up ? (BB_EXC[c] || String.fromCodePoint(0x1D538 + k)) : String.fromCodePoint(0x1D552 + k);
+    if (style === "cal") return up ? (CAL_EXC[c] || String.fromCodePoint(0x1D49C + k)) : c;
+    if (style === "frak") return up ? (FRAK_EXC[c] || String.fromCodePoint(0x1D504 + k)) : String.fromCodePoint(0x1D51E + k);
+    return c;
+  }
+  function texParse(src) {
+    var i = 0, budget = 4000;
+    function ws() { while (i < src.length && /\s/.test(src[i])) i++; }
+    function name() { var m = /^[A-Za-z]+/.exec(src.slice(i, i + 24)); if (m) { i += m[0].length; return m[0]; } return i < src.length ? src[i++] : ""; }
+    // Raw (unparsed) braced text for \text{...}; depth-balanced and length-bounded.
+    function raw() { ws(); if (src[i] !== "{") return i < src.length ? src[i++] : ""; i++; var d = 1, out = ""; while (i < src.length && budget-- > 0) { var c = src[i++]; if (c === "{") d++; else if (c === "}") { if (--d === 0) break; } out += c; } return out.slice(0, 200); }
+    function group(depth) { return { t: "group", items: seq(depth + 1).items }; }
+    function arg(depth) {
+      ws(); if (i >= src.length) return { t: "group", items: [] };
+      if (src[i] === "{") { i++; return depth < 8 ? group(depth) : { t: "group", items: [] }; }
+      if (src[i] === "\\") { i++; return command(name(), depth) || { t: "group", items: [] }; }
+      return atom(src[i++]);
+    }
+    function atom(c) {
+      if (/[A-Za-z]/.test(c)) return { t: "var", v: c };
+      if (c === "+" || c === "-") return { t: "bin", v: c === "-" ? "−" : c };
+      if (c === "=" || c === "<" || c === ">") return { t: "rel", v: c };
+      if (c === "*") return { t: "bin", v: "∗" };
+      if (c === "," || c === ";") return { t: "punct", v: c };
+      return { t: "sym", v: c };
+    }
+    function attach(items, kind, node) {
+      var last = items[items.length - 1];
+      if (last && last.t === "scripts" && !last[kind]) { last[kind] = node; return; }
+      items.push({ t: "scripts", base: items.pop() || { t: "group", items: [] }, sup: kind === "sup" ? node : null, sub: kind === "sub" ? node : null });
+    }
+    function delim() { ws(); if (i >= src.length) return ""; var c = src[i++]; if (c === "\\") { var n = name(); return TEX_DELIM[n] !== undefined ? TEX_DELIM[n] : ""; } return TEX_DELIM[c] !== undefined ? TEX_DELIM[c] : ""; }
+    function environment(env, depth) {
+      var spec = TEX_ENVS[env.replace("*", "")]; if (!spec) return { t: "text", v: env };
+      if (env === "array") raw();
+      var rows = [], cur = [];
+      while (budget-- > 0 && rows.length < 50) {
+        var r = seq(depth + 1); cur.push({ t: "group", items: r.items });
+        if (r.end === "&") { if (cur.length >= 20) { rows.push(cur); i = src.length; break; } continue; }
+        if (r.end === "\\\\") { rows.push(cur); cur = []; continue; }
+        if (cur.length > 1 || cur[0].items.length) rows.push(cur);
+        break;
       }
-      return out;
+      return { t: "matrix", rows: rows, open: spec[0], close: spec[1], align: /^(aligned|align|split)/.test(env) ? "al" : env === "cases" ? "cases" : env === "gather" ? "gather" : "c" };
     }
-    function atom(depth) {
-      if (src[i] === "{") { i++; var g = depth < 8 ? group(depth + 1) : []; if (src[i] === "}") i++; return g; }
-      if (src[i] === "\\") { var m = /^\\[A-Za-z]+/.exec(src.slice(i)); var n = m ? m[0] : src.slice(i, i + 2); i += n.length; return TEX_SYMBOLS[n.slice(1)] || n.slice(1); }
-      return i < src.length ? src[i++] : "";
+    function command(n, depth) {
+      if (TEX_GREEK[n]) return { t: "var", v: TEX_GREEK[n] };
+      if (TEX_SPACE[n] !== undefined) return { t: "space", w: TEX_SPACE[n] };
+      if (TEX_BIGOPS[n]) return { t: "bigop", v: TEX_BIGOPS[n], limits: n !== "int" && n !== "iint" && n !== "iiint" && n !== "oint" };
+      if (TEX_NAMED_OPS[n] !== undefined) return { t: "op", v: n, limits: !!TEX_NAMED_OPS[n] };
+      if (TEX_ACCENT[n]) return { t: "accent", kind: n, body: arg(depth) };
+      if (TEX_SYMBOLS[n] !== undefined) { var v = TEX_SYMBOLS[n]; return /^(leq|le|geq|ge|neq|ne|approx|equiv|sim|simeq|cong|propto|ll|gg|prec|succ|in|notin|ni|subset|supset|subseteq|supseteq|to|rightarrow|leftarrow|leftrightarrow|Rightarrow|Leftarrow|Leftrightarrow|implies|iff|mapsto|longrightarrow|longleftarrow)$/.test(n) ? { t: "rel", v: v } : /^(pm|mp|times|div|cdot|ast|star|circ|bullet|oplus|otimes|ominus|odot|cup|cap|setminus|land|lor|wedge|vee)$/.test(n) ? { t: "bin", v: v } : { t: "sym", v: v }; }
+      switch (n) {
+        case "frac": case "dfrac": case "tfrac": case "cfrac": { var a = arg(depth), b = arg(depth); return { t: "frac", num: a, den: b }; }
+        case "binom": case "dbinom": { var a2 = arg(depth), b2 = arg(depth); return { t: "fenced", open: "(", close: ")", body: [{ t: "frac", num: a2, den: b2, bar: false }] }; }
+        case "sqrt": { ws(); var idx = null; if (src[i] === "[") { var e = src.indexOf("]", i); if (e > i && e - i < 12) { idx = src.slice(i + 1, e); i = e + 1; } } return { t: "sqrt", idx: idx, body: arg(depth) }; }
+        case "text": case "textrm": case "mbox": case "textit": case "textbf": case "operatorname": return { t: "text", v: raw(), style: n === "textit" ? "it" : n === "textbf" ? "bf" : n === "operatorname" ? "op" : "rm" };
+        case "mathrm": return { t: "styled", style: "rm", body: arg(depth) };
+        case "mathbf": case "boldsymbol": case "bm": return { t: "styled", style: "bf", body: arg(depth) };
+        case "mathit": return { t: "styled", style: "it", body: arg(depth) };
+        case "mathsf": return { t: "styled", style: "sf", body: arg(depth) };
+        case "mathtt": return { t: "styled", style: "tt", body: arg(depth) };
+        case "mathbb": return { t: "styled", style: "bb", body: arg(depth) };
+        case "mathcal": case "mathscr": return { t: "styled", style: "cal", body: arg(depth) };
+        case "mathfrak": return { t: "styled", style: "frak", body: arg(depth) };
+        case "left": { var open = delim(), r = seq(depth + 1); return { t: "fenced", open: open, close: r.end === "right" ? r.extra : "", body: r.items }; }
+        case "big": case "Big": case "bigg": case "Bigg": case "bigl": case "bigr": case "Bigl": case "Bigr": { var d = delim(); return { t: "sym", v: d }; }
+        case "begin": return environment(raw(), depth);
+        case "limits": case "nolimits": case "displaystyle": case "textstyle": case "scriptstyle": case "nonumber": case "notag": case "hline": return null;
+        case "\\": return { t: "break" };
+        default: return { t: "text", v: n, style: "rm" };
+      }
     }
-    return group(0);
+    function seq(depth) {
+      var items = [], end = "eof", extra = "";
+      while (i < src.length) {
+        if (budget-- <= 0) { i = src.length; break; }
+        var c = src[i];
+        if (/\s/.test(c)) { i++; continue; }
+        // A stray closer at the top level must not silently drop the rest of the formula.
+        if (c === "}") { i++; if (depth === 0) continue; end = "}"; break; }
+        if (c === "&") { i++; end = "&"; break; }
+        if (c === "{") { i++; if (depth < 8) items.push(group(depth)); continue; }
+        if (c === "^" || c === "_") { i++; attach(items, c === "^" ? "sup" : "sub", arg(depth)); continue; }
+        if (c === "'") { i++; attach(items, "sup", { t: "sym", v: "′" }); continue; }
+        if (c === "\\") {
+          i++; var n = name();
+          if (n === "\\") { end = "\\\\"; break; }
+          if (n === "end") { raw(); end = "end"; break; }
+          if (n === "right") { extra = delim(); end = "right"; break; }
+          var node = command(n, depth); if (node) items.push(node); continue;
+        }
+        items.push(atom(c)); i++;
+      }
+      return { items: items, end: end, extra: extra };
+    }
+    return seq(0).items;
+  }
+  function texFence(ch, key) {
+    var d = TEX_DELIM_PATH[ch]; if (!d) return ch ? h("span", { key: key, className: "kg-math__delim" }, ch) : null;
+    return h("svg", { key: key, className: "kg-math__fence", viewBox: "0 0 10 100", preserveAspectRatio: "none", "aria-hidden": "true", focusable: "false" }, h("path", { d: d, fill: "none", stroke: "currentColor", strokeWidth: 1.4, vectorEffect: "non-scaling-stroke" }));
+  }
+  function texRender(items, display, style) {
+    function many(list, st) { return list.map(function (n, k) { return h(R().Fragment, { key: k }, one(n, st)); }); }
+    function one(n, st) {
+      if (!n) return null;
+      switch (n.t) {
+        case "group": return many(n.items, st);
+        case "var": return h("span", { className: "kg-math__var" + (st === "rm" || st === "bf" || st === "sf" || st === "tt" ? " kg-math__rm" : "") + (st === "bf" ? " kg-math__bf" : "") + (st === "sf" ? " kg-math__sf" : "") + (st === "tt" ? " kg-math__tt" : "") }, texAlpha(n.v, st));
+        case "sym": return h("span", { className: "kg-math__sym" + (st === "bf" ? " kg-math__bf" : "") }, st === "bb" || st === "cal" || st === "frak" ? texAlpha(n.v, st) : n.v);
+        case "bin": return h("span", { className: "kg-math__bin" }, n.v);
+        case "rel": return h("span", { className: "kg-math__rel" }, n.v);
+        case "punct": return h("span", { className: "kg-math__punct" }, n.v);
+        case "space": return h("span", { className: "kg-math__space", style: { width: Math.max(-.3, Math.min(3, n.w)) + "em" } });
+        case "break": return h("br");
+        case "text": return h("span", { className: "kg-math__text" + (n.style === "it" ? " kg-math__it" : n.style === "bf" ? " kg-math__bf" : "") }, n.v);
+        case "styled": return many(n.body.t === "group" ? n.body.items : [n.body], n.style);
+        case "op": return h("span", { className: "kg-math__op" }, n.v);
+        case "bigop": return h("span", { className: "kg-math__bigop" }, n.v);
+        case "frac": return h("span", { className: "kg-math__frac" + (n.bar === false ? " kg-math__frac--nobar" : "") }, h("span", { className: "kg-math__num" }, one(n.num, st)), h("span", { className: "kg-math__den" }, one(n.den, st)));
+        case "sqrt": return h("span", { className: "kg-math__sqrt" }, n.idx ? h("sup", { className: "kg-math__rootidx" }, n.idx) : null, "√", h("span", { className: "kg-math__radicand" }, one(n.body, st)));
+        case "accent": return h("span", { className: "kg-math__accent kg-math__accent--" + n.kind }, h("span", { className: "kg-math__mark", "aria-hidden": "true" }, TEX_ACCENT[n.kind]), h("span", null, one(n.body, st)));
+        case "scripts": {
+          var stacked = display && n.base && (n.base.t === "bigop" || n.base.t === "op") && n.base.limits;
+          if (stacked) return h("span", { className: "kg-math__limits" }, n.sup ? h("span", { className: "kg-math__over" }, one(n.sup, st)) : null, h("span", null, one(n.base, st)), n.sub ? h("span", { className: "kg-math__under" }, one(n.sub, st)) : null);
+          return h(R().Fragment, null, one(n.base, st), n.sup && n.sub ? h("span", { className: "kg-math__ss" }, h("sup", null, one(n.sup, st)), h("sub", null, one(n.sub, st))) : n.sup ? h("sup", null, one(n.sup, st)) : h("sub", null, one(n.sub, st)));
+        }
+        case "fenced": return h("span", { className: "kg-math__fenced" }, texFence(n.open, "o"), h("span", { className: "kg-math__inner" }, many(n.body, st)), texFence(n.close, "c"));
+        case "matrix": {
+          var cols = n.rows.reduce(function (m, r) { return Math.max(m, r.length); }, 1);
+          var grid = h("span", { className: "kg-math__matrix kg-math__matrix--" + n.align, style: { gridTemplateColumns: "repeat(" + cols + ", auto)" } }, n.rows.map(function (r, ri) { return r.map(function (cell, ci) { return h("span", { key: ri + "-" + ci, className: "kg-math__cell" + (n.align === "al" ? (ci % 2 ? " kg-math__cell--l" : " kg-math__cell--r") : "") }, one(cell, st)); }); }));
+          return n.open || n.close ? h("span", { className: "kg-math__fenced" }, texFence(n.open, "o"), grid, texFence(n.close, "c")) : grid;
+        }
+        default: return null;
+      }
+    }
+    return many(items, style);
   }
   function CoreMath(p) {
     var tex = String(p.tex == null ? "" : p.tex).slice(0, 2000);
-    return h(p.display ? "div" : "span", { className: "kg-math" + (p.display ? " kg-math--display" : ""), role: "math", "aria-label": p.label || tex }, parseTex(tex));
+    return h(p.display ? "div" : "span", { className: "kg-math" + (p.display ? " kg-math--display" : ""), role: "math", "aria-label": p.label || tex }, texRender(texParse(tex), !!p.display));
   }
 
   function inlineMd(text, base) {
@@ -226,7 +358,7 @@
     calendar: { summary: "Month grid with event dots, month navigation and a selected ISO date.", props: { label: S("string", { required: true }), month: S("string", { required: true }), events: S("array", { items: S("object", { properties: { date: S("string"), title: S("string") }, requiredKeys: ["date", "title"] }) }), value: S("string"), weekStart: S("number", { enum: [0, 1], default: 1 }) }, local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
     carousel: { summary: "One slide at a time with previous/next, dots and arrow keys; the slide index is public.", props: { label: S("string", { required: true }), slides: S("array", { required: true, items: S("object") }), index: S("number"), empty: S("string") }, local: { index: { type: "number", default: 0 } }, events: { change: { payload: { index: "number" } } }, outputs: ["index"] },
     markdown: { summary: "Markdown subset (headings, lists, quotes, code, emphasis, links, $math$) rendered as elements, never HTML.", props: { text: S("string", { required: true }) } },
-    math: { summary: "TeX subset (fractions, roots, scripts, Greek, operators) rendered as accessible elements.", props: { tex: S("string", { required: true }), display: S("boolean"), label: S("string") } }
+    math: { summary: "TeX math (fractions, roots, scripts and limits, matrices, cases, accents, stretchy delimiters, Greek and symbols) rendered as accessible elements.", props: { tex: S("string", { required: true }), display: S("boolean"), label: S("string") } }
   };
   var APPS_NOTES = {
     "switch": "Use for an immediate on/off setting; change emits {checked}. Use checkbox for form-style choices.",
@@ -237,7 +369,7 @@
     calendar: "month is YYYY-MM (required, so the render is deterministic). events [{date:YYYY-MM-DD,title}]. change emits {value}; weekStart 0 or 1.",
     carousel: "slides [{title?,text?,src?,alt?}]; image src follows the image block's passive rules. change emits {index}.",
     markdown: "Subset only: #-### headings, lists, > quotes, ``` code, **bold**, *italic*, `code`, [links](https://…) and $tex$ / $$block$$ math. No raw HTML.",
-    math: "TeX subset: \\frac{a}{b}, \\sqrt{x}, ^ and _ with {groups}, Greek letters and common operators. Unknown commands render as their name."
+    math: "TeX math, not LaTeX documents: \\frac \\binom \\sqrt[n]{} ^ _ \\sum_{i}^{n} \\int \\lim, \\left( \\right), \\begin{pmatrix|bmatrix|vmatrix|cases|aligned}…\\end, \\hat \\vec \\overline, \\text{} \\mathbb \\mathcal \\mathbf, Greek and common symbols. display:true stacks limits above and below. Unknown commands render as their name; no macros, no packages."
   };
   Object.assign(freeFlowExports, { CoreSwitch: CoreSwitch, CoreCombobox: CoreCombobox, CoreTree: CoreTree, CoreDataGrid: CoreDataGrid, CoreKanban: CoreKanban, CoreCalendar: CoreCalendar, CoreCarousel: CoreCarousel, CoreMarkdown: CoreMarkdown, CoreMath: CoreMath });
   HANDLER.move = "onMove";

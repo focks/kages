@@ -60,3 +60,14 @@ test("new fields expose native types, names and validation constraints", () => {
   assert.match(render("CoreMultiselect", { label: "Options", options: [] }), /multiple=""/);
   assert.match(render("CoreScene", { label: "Pick", interactive: true, shapes: [{ kind: "circle", id: "node", label: "Choose node" }] }), /role="button" tabindex="0"/);
 });
+
+test("diagram edges end in arrowheads, carry readable labels on top, and tolerate bad edges", () => {
+  const nodes = [{ id: "a", label: "A", x: 20, y: 30 }, { id: "b", label: "B", x: 320, y: 30 }, { id: "c", label: "C", x: 20, y: 30 }];
+  const html = render("CoreDiagram", { label: "D", nodes, edges: [{ from: "a", to: "b", label: "publishes" }, { from: "a", to: "a", label: "self" }, { from: "a", to: "ghost", label: "x" }, { from: "a", to: "c", label: "overlap" }, { from: "b", to: "a", label: "<img src=x onerror=alert(1)>" }] });
+  assert.match(html, /publishes/); assert.doesNotMatch(html, /self|ghost|overlap/, "self, dangling and overlapping edges draw nothing");
+  assert.doesNotMatch(html, /<img|NaN|Infinity/); assert.match(html, /&lt;img/);
+  // line + two arrowhead strokes per drawn edge (a->b, b->a)
+  assert.equal((html.match(/<line/g) || []).length, 6);
+  assert.ok(html.lastIndexOf("publishes") > html.lastIndexOf(">A<"), "labels are layered above the nodes");
+  assert.doesNotMatch(render("CoreDiagram", { label: "D", nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }], edges: [{ from: "a", to: "b" }] }), /<rect[^>]*height="22"/, "an unlabelled edge adds no chip");
+});

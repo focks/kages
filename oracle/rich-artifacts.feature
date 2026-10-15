@@ -39,6 +39,19 @@ Feature: Rich visual and disclosure blocks
     And only http(s), local, anchor and mailto links are active
     And unknown TeX commands render as text and nesting depth and length are bounded
 
+  Scenario: TeX math is typeset, not echoed
+    Given display or inline TeX using fractions, roots, scripts, limits, accents, fonts, spacing,
+      \left...\right fences and matrix, cases or aligned environments
+    Then each construct becomes the matching structure, with limits stacked only in display style
+    And fences stretch to their content and never show the command names
+    And malformed input, stray closers and oversized matrices degrade without throwing or truncating the formula
+
+  Scenario: Diagram edges show direction and meaning
+    Given edges between positioned nodes with optional labels
+    Then each edge runs between node boundaries and ends in an arrowhead
+    And labels sit on a top layer so they stay readable where they cross a line
+    And self-edges, dangling edges and overlapping nodes draw nothing instead of failing
+
   Scenario: A chart selection drives other blocks
     Given an interactive donut or heatmap
     When a slice or cell is clicked, or focused and activated with Enter or Space

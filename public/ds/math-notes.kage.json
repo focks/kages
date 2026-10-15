@@ -15,6 +15,9 @@
         "children": [
           "body",
           "formula",
+          "series",
+          "matrix",
+          "piecewise",
           "slides"
         ]
       }
@@ -31,6 +34,30 @@
         "display": true,
         "label": "Compound growth",
         "tex": "A = P\\left(1 + \\frac{r}{n}\\right)^{nt}"
+      }
+    },
+    "series": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Sum of squares",
+        "tex": "\\sum_{i=1}^{n} i^{2} = \\frac{n(n+1)(2n+1)}{6}"
+      }
+    },
+    "matrix": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Rotation matrix",
+        "tex": "R(\\theta) = \\begin{pmatrix} \\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta \\end{pmatrix}"
+      }
+    },
+    "piecewise": {
+      "type": "math",
+      "props": {
+        "display": true,
+        "label": "Absolute value",
+        "tex": "|x| = \\begin{cases} x & x \\geq 0 \\\\ -x & x < 0 \\end{cases}"
       }
     },
     "slides": {

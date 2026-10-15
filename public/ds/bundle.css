@@ -559,9 +559,47 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
 .kg-markdown :is(h2, h3, h4) { margin: 0; font-weight: 650; }
 .kg-markdown :is(ul, ol) { padding-inline-start: 1.25rem; list-style: revert; }
 .kg-markdown hr { border: 0; border-top: 1px solid var(--kg-line); width: 100%; }
-.kg-math { font-family: var(--kg-font-body); font-style: italic; }
+/* TeX math. Italic variables, upright numbers/operators, TeX-like spacing; all
+ * geometry is em-relative so it scales with the surrounding text. */
+.kg-math { font-family: var(--kg-font-body); line-height: 1.3; white-space: nowrap; }
 .kg-math--display { display: block; text-align: center; font-size: 1.25rem; overflow-x: auto; padding-block: var(--kg-space-2); }
-.kg-math__frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .9em; }
-.kg-math__num { border-bottom: 1px solid currentColor; padding-inline: .15em; }
-.kg-math__den { padding-inline: .15em; }
-.kg-math__radicand { border-top: 1px solid currentColor; padding-inline: .1em; }
+.kg-math__var { font-style: italic; }
+.kg-math__rm, .kg-math__text, .kg-math__op, .kg-math__sym, .kg-math__bin, .kg-math__rel, .kg-math__bigop { font-style: normal; }
+.kg-math__var.kg-math__rm { font-style: normal; }
+.kg-math__bf { font-weight: 700; }
+.kg-math__it { font-style: italic; }
+.kg-math__sf { font-family: var(--kg-font-body); }
+.kg-math__tt { font-family: var(--kg-font-mono); }
+.kg-math__text { white-space: pre; }
+.kg-math__bin { margin-inline: .22em; }
+.kg-math__rel { margin-inline: .28em; }
+.kg-math__punct { margin-inline-end: .17em; }
+.kg-math__op { margin-inline: .1em .17em; }
+.kg-math__bigop { font-size: 1.35em; line-height: 1; margin-inline: .08em; vertical-align: -.1em; }
+.kg-math--display .kg-math__bigop { font-size: 1.7em; }
+.kg-math__space { display: inline-block; }
+.kg-math sup, .kg-math sub { font-size: .7em; line-height: 1; }
+.kg-math__ss { display: inline-flex; flex-direction: column; vertical-align: middle; font-size: .7em; line-height: 1.1; }
+.kg-math__ss > sup, .kg-math__ss > sub { font-size: 1em; vertical-align: baseline; }
+.kg-math__limits { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1.15; }
+.kg-math__over, .kg-math__under { font-size: .72em; line-height: 1.1; }
+.kg-math__frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: .92em; margin-inline: .1em; }
+.kg-math__num { border-bottom: 1px solid currentColor; padding-inline: .2em; }
+.kg-math__frac--nobar .kg-math__num { border-bottom: 0; }
+.kg-math__den { padding-inline: .2em; }
+.kg-math__sqrt { display: inline-flex; align-items: stretch; }
+.kg-math__rootidx { align-self: flex-start; margin-inline-end: -.3em; }
+.kg-math__radicand { border-top: 1px solid currentColor; padding-inline: .15em; margin-inline-start: .05em; }
+.kg-math__accent { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+.kg-math__mark { font-size: .8em; line-height: .7; }
+.kg-math__accent--underline { flex-direction: column-reverse; }
+.kg-math__fenced { display: inline-flex; align-items: stretch; vertical-align: middle; }
+.kg-math__inner { display: inline-block; padding-inline: .1em; align-self: center; }
+/* contain:size drops the SVG's intrinsic aspect-ratio height; without it a
+ * 1:10 viewBox makes every fence five em tall instead of stretching to content. */
+.kg-math__fence { width: .55em; min-height: 1.2em; align-self: stretch; overflow: visible; contain: size; }
+.kg-math__delim { align-self: center; }
+.kg-math__matrix { display: inline-grid; column-gap: .9em; row-gap: .25em; vertical-align: middle; padding-inline: .15em; }
+.kg-math__cell { text-align: center; }
+.kg-math__matrix--cases .kg-math__cell, .kg-math__cell--l { text-align: start; }
+.kg-math__cell--r { text-align: end; }
