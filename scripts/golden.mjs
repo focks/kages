@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import vm from "node:vm";
-import { referenceBundle } from "./ds-source.mjs";
+import { referenceBundle, referenceFile } from "./ds-source.mjs";
 import { freeFlowExamples, expressiveExamples } from "../src/packs/examples.ts";
 const code = referenceBundle();
 const noop = () => null;
@@ -12,7 +12,7 @@ const win = { React };
 const sandbox = { window: win, self: win, React, console, document: { createElement: () => ({}) } };
 sandbox.globalThis = sandbox; vm.createContext(sandbox); vm.runInContext(code, sandbox, { filename: "bundle.js" });
 const K = win.Kages;
-const ops = JSON.parse(fs.readFileSync("originals/project/assets/Schemas/ops-console.kage.json", "utf8"));
+const ops = JSON.parse(referenceFile("project/assets/Schemas/ops-console.kage.json"));
 const BAD = { kages: "1.0", system: "ledger@2", state: { tab: "a" }, root: "app", blocks: {
   app: { type: "shell", slots: { sidebar: ["nav", "nav2"], main: ["kpi", "picker", "chart"] } },
   nav: { type: "sidebar", props: { title: "Ops" } },

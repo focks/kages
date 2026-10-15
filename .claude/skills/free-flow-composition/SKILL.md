@@ -27,7 +27,7 @@ system's minor version for new capabilities. `authoring.guidance` updates the
 catalog's advice without rewriting published contracts; the pure engine's
 catalog must match the oracle's captured output.
 
-Run `npm run build:ds` with the reference originals available. It publishes the
+Run `npm run build:ds`; it reads `originals/` when present, else the tracked `reference/` snapshot (byte-identical to the pristine oracle, so a rebuild must leave `git status` clean). It publishes the
 extended bundle, extracts registries, captures goldens and examples, compiles
 tokens, updates SRI and regenerates plugin skills. Tests use the committed
 served assets and do not require originals. Add new goldens before adding

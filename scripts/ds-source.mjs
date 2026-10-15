@@ -2,13 +2,23 @@
 // resolved. Loading a second registry would let the validator accept blocks
 // the oracle renderer cannot resolve. Both goldens and the served bundle must
 // consume these same bytes. See oracle/free-flow.feature.
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+
+/** Resolve a reference-oracle file. A local originals/ checkout wins (it is the
+ * source of truth); otherwise fall back to the tracked reference/ snapshot so a
+ * fresh clone can run build:ds. The snapshot is byte-identical to the pristine
+ * oracle (recovered from the first commit), and a rebuild from it must
+ * reproduce the served bundle exactly. */
+export function referenceFile(rel) {
+  const live = "originals/" + rel;
+  return readFileSync(existsSync(live) ? live : "reference/" + rel, "utf8");
+}
 
 /** Keep the original contracts unchanged while giving the oracle and browser
  * the same additional implementations. Fail on a moved anchor rather than
  * silently shipping a bundle with missing roles. */
 export function referenceBundle() {
-  let source = readFileSync("originals/project/components/bundle.js", "utf8");
+  let source = referenceFile("project/components/bundle.js");
   const additions = readFileSync("src/design-system/free-flow.js", "utf8") + "\n" + readFileSync("src/design-system/expressive.js", "utf8");
   const capabilities = readFileSync("src/engine/advanced.js", "utf8").replace(/^export /gm, "");
   const operations = readFileSync("src/design-system/advanced-oracle.js", "utf8");

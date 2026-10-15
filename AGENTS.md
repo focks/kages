@@ -27,7 +27,8 @@ find a new reusable pattern, add it as a skill.
 
 ```
 oracle/            functional requirements, BDD/Gherkin — the acceptance criteria
-originals/         the reference implementation (the oracle); gitignored, source of truth
+originals/         the reference implementation (the oracle); gitignored, source of truth when present
+reference/         tracked snapshot of the pristine oracle — build:ds falls back to it, so originals/ is optional
 src/engine/        pure shared engine: resolve · evaluate · validate · describe · catalog · generation · session
 src/engine/data/   registry data extracted from the reference (generated)
 src/engine/__fixtures__/  fixtures + golden outputs captured from the reference
