@@ -488,6 +488,10 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
 .kg-heatmap__btn { width: 100%; padding: 0; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
 .kg-heatmap__btn:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
 .kg-heatmap__cell--on { outline: 2px solid var(--kg-ink); outline-offset: -2px; }
+/* rich-text inherits a global list reset, which removed bullets and numbers
+ * from every document using it; restore them and give headings real weight. */
+.kg-rich-text :is(ul, ol) { padding-inline-start: 1.25rem; list-style: revert; }
+.kg-rich-text :is(h2, h3, h4) { font-weight: 650; }
 
 /* Work-app, input and media roles. Container-relative geometry, token colours;
  * every interactive element has a visible focus ring. */
