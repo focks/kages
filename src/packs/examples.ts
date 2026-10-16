@@ -1,7 +1,20 @@
 // Complete examples are shared by packs, starter seeding and golden capture.
 // Isolated snippets encouraged agents to repeat the reference console's shape;
 // these documents demonstrate three independent compositions.
-import type { KageDoc, Expr } from "../engine/types.ts";
+import type { KageDoc, Expr, Mode } from "../engine/types.ts";
+
+/** Every shipped example declares what its visitor is trying to do, so the mode
+ *  facet, mode-gated lint and the critique rubric have real data from day one.
+ *  Read-only here: the engine goldens are unaffected because the generation
+ *  envelope does not carry `brief`. */
+const MODES: Record<string, Mode> = {
+  "field-notes": "read", "math-notes": "read", "docs-guide": "read",
+  "open-studio": "persuade", "media-gallery": "experience",
+  "idea-lab": "operate", "collection-lab": "operate", "growth-lab": "operate", "event-planner": "operate",
+  "metrics-board": "operate", "launch-flow": "operate", "team-workbench": "operate", "region-explorer": "operate",
+  "live-feed": "operate", "signup-rules": "operate", "quarterly-report": "operate",
+};
+const declared = (docs: KageDoc[]): KageDoc[] => docs.map((d) => (MODES[d.id] ? { ...d, brief: { mode: MODES[d.id] } } : d));
 
 /** Fresh documents on every call: studio edits and store lockfiles must never
  * mutate the examples embedded in another agent's pack. */
@@ -9,7 +22,7 @@ export function freeFlowExamples(system = "core"): KageDoc[] {
   const doc = (id: string, title: string, blocks: KageDoc["blocks"], state?: KageDoc["state"]): KageDoc => ({
     kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks, ...(state ? { state } : {}),
   });
-  return [
+  return declared([
     doc("field-notes", "Field notes — a reading page", {
       root: { type: "page", props: { width: "reading", gap: 8 }, slots: { header: ["title"], children: ["intro", "steps", "rule", "example"], footer: ["footer"] } },
       title: { type: "text", props: { variant: "display", text: "Make room for ideas" } },
@@ -42,7 +55,7 @@ export function freeFlowExamples(system = "core"): KageDoc[] {
       comparison: { type: "bar-chart", props: { label: "Possible directions" }, bind: { items: [{ label: "Story", value: 70 }, { label: "Interactive tool", value: { $state: "confidence" } }, { label: "Visual collection", value: 45 }] } },
       structured: { type: "code", props: { caption: "Your draft as data", wrap: true }, bind: { code: { $tpl: "Draft: {{state.draft}}\nConfidence: {{state.confidence}}" } }, visible: { $block: "details.checked" } },
     }, { draft: "A small tool for a big idea", confidence: 60 }),
-  ];
+  ]);
 }
 
 /** Examples exercise collections, formulas and composition outputs together;
@@ -98,7 +111,7 @@ export function expressiveExamples(system = "core"): KageDoc[] {
     activities: { type: "multiselect", props: { label: "Activities", name: "activities", options: [{ value: "talk", label: "A conversation" }, { value: "workshop", label: "A workshop" }, { value: "exhibition", label: "An exhibition" }] } },
     receipt: { type: "code", props: { caption: "Your plan", wrap: true }, bind: { code: { $tpl: "{{state.submitted}}" } }, visible: { $neq: [{ $state: "submitted" }, null] } },
   };
-  return [collection, calculator, form];
+  return declared([collection, calculator, form]);
 }
 
 /** Batch 1 of the rich roles: a data-viz board and a guided flow. Kept apart
@@ -136,7 +149,7 @@ export function richExamples(system = "core"): KageDoc[] {
     sure: { type: "text", props: { text: "This publishes a new version for everyone with access." } },
     go: { type: "button", props: { label: "Confirm", variant: "primary" }, on: { click: [{ do: "call", target: "dialog", command: "close" }] } },
   };
-  return [board, flow];
+  return declared([board, flow]);
 }
 
 /** Batch 2 of the rich roles: a work-app board and a media-rich reading page. */
@@ -167,7 +180,7 @@ export function appExamples(system = "core"): KageDoc[] {
     piecewise: { type: "math", props: { display: true, label: "Absolute value", tex: "|x| = \\begin{cases} x & x \\geq 0 \\\\ -x & x < 0 \\end{cases}" } },
     slides: { type: "carousel", props: { label: "Three habits", slides: [{ title: "Automate", text: "Pay yourself first." }, { title: "Diversify", text: "Spread the risk." }, { title: "Wait", text: "Let time do the work." }] } },
   };
-  return [bench, read];
+  return declared([bench, read]);
 }
 
 /** Batch 3: connected blocks. A chart selection filters a table, a declared
@@ -206,7 +219,7 @@ export function connectedExamples(system = "core"): KageDoc[] {
     submit: { type: "button", props: { label: "Join", variant: "primary" }, bind: { disabled: { $not: eligible } }, on: { click: [{ do: "set", path: "submitted", value: true, when: eligible }] } },
     done: { type: "alert", props: { tone: "success", title: "You're in", text: "Welcome aboard." }, visible: { $state: "submitted" } },
   };
-  return [explorer, feed, rules];
+  return declared([explorer, feed, rules]);
 }
 
 /** Batch 4: the richer charts together on one reporting page. */
@@ -226,7 +239,7 @@ export function chartExamples(system = "core"): KageDoc[] {
     flows: { type: "sankey", props: { label: "From budget to outcomes", nodes: [{ id: "budget", label: "Budget" }, { id: "build", label: "Build" }, { id: "grow", label: "Grow" }, { id: "features", label: "Features" }, { id: "fixes", label: "Fixes" }, { id: "leads", label: "Leads" }], links: [{ from: "budget", to: "build", value: 60 }, { from: "budget", to: "grow", value: 40 }, { from: "build", to: "features", value: 40 }, { from: "build", to: "fixes", value: 20 }, { from: "grow", to: "leads", value: 40 }] } },
     regions: { type: "map", props: { label: "Customers by region", interactive: true, features: [{ id: "north", name: "North", value: 120, geometry: sq(0, 5, 10, 5) }, { id: "west", name: "West", value: 45, geometry: sq(-6, 0, 6, 5) }, { id: "east", name: "East", value: 80, geometry: sq(0, 0, 6, 5) }, { id: "south", name: "South", value: 20, geometry: sq(-2, -5, 8, 5) }] } },
   };
-  return [doc];
+  return declared([doc]);
 }
 
 
@@ -266,5 +279,5 @@ export function contentExamples(system = "core"): KageDoc[] {
       { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABD0lEQVR42tXCaUcDAADH4d/HKVlSMiVNymSZkpLaTDPLzDKrmYkkkkgiGUkkkUQSSSSRsa51N9u6b9136VWf4/94iDVkSGfVnimdNUeWdNadBulsuLKls+nOkU7ckyudLW+edLZ9+dLZ8RulsxsokM5ea6F09kNF0jkIF0vnsM0knUR7iXSSHaXSSXWWSSfdZZbOUXe5dI57LNI56a2QzmmfVTpn/ZXSOR+oks7FYLV0LiM10rkaqpXO9XCddG5G6qVzO2qTzt2YXTr34w7pPEw0Sudx0imdpymXdJ6n3dJ5mWmSzuusRzpvc17pvM/7pPOx0Cydz0W/dL6WAtL5Xm6Rzs9KUDq/0ZB0/mJh6f+cUAf8Hy6sbAAAAABJRU5ErkJggg==", alt: "Warm orange gradient", caption: "Ember" }, { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCUlEQVR42tXCi0ZDAQDH4d+TJCOJJJKYRBJJJJGMSSSRmtb1OI61day1rXWbmdXMzKx7rdvWzMyqtaR36jn+n4+21R3ptHsM6TjWTOl0rFvS6dz0Sadr2y+dbiMgnR7Tlk6vFZROny8knX5/WDoDexHpOO1D6QwGj6QzFDqRznD4TDoj0bh0RmMJ6YwdJ6UzfpqSzkT8QjqTibR0ppIZ6UynstKZOc9JZzadl44rU5COO3spnbnctXTm87fSWSjcS2fx6lE6SzdF6SzfPUtn5eFVOp5iSTrep3fpbLxUpLP1VpWOUa5Jx6zUpWNVG9LZrX1IJ1D/ko7d+JbO/uePdA6av9KJtv6k/wM3+M3PnpzlbQAAAABJRU5ErkJggg==", alt: "Cool teal gradient", caption: "Lagoon" },
       { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABBklEQVR42tXCDUcDAQDH4f9nSiQSiZmVmV60NTOVKTNrzTnOWrO21rRWW6s5qzlrzXISySSSGUkiSfR1+hy/x6OxpAdd4ykvuibSPnRNGvPomjL96Jq2AuiaySygaza7hC5PbgVd3v0QuuaKYXT5SxF0BcpRdC1W1tC1XN1AV/A0hq7V+ha6Io04uqLNBLrW7SS6Yq0Uujav0uiKOwa6Eh0TXdtdC107vQy6jNssukw3hy7rLo+u3fsCuvYeDtCVfzxEV2FwhK7S0zG6ys8n6Kq81NBVfT1DV214jq7GqImuizcbXfb7JbpaH210tT8ddDlfHXRdf3fRdfPTQ1f/t48u989F/wdpg1XPpvn/wAAAAABJRU5ErkJggg==", alt: "Soft green gradient", caption: "Meadow" }, { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCElEQVR42tXCi0ZDAQDH4d+DJUmSmCSTLmZmZqqZmZnpYmZmpouZ7ThOzWmtmllm3WealElJSUmaKZM9R8/x/3wUhualYwwvSscccUnHGnVLZ3fMI53iuFc69oRPOvuTfukcOJalczgVkM7xdFA6lZmQdKrOsHRqsxHpnMxFpVNfiEmn4VqTzql7Qzrnnrh0Lr0J6Vz7ktJp+lPSaS2lpXOzkpFOO7glndvQjnTuwlnp3Edy0ulE89J5iBnSeVw1pfO0bknnOV6UzkvCls5rsiSdt1RZOu/pI+l8ZCrS+dysSudruyad72xdOt1cQzq9/Jl0fowL6fyaV9LpW03p/O21pDOw29L/Ad++j+3HCrdzAAAAAElFTkSuQmCC", alt: "Rose gradient", caption: "Dusk" }] } },
   };
-  return [docs, media];
+  return declared([docs, media]);
 }
