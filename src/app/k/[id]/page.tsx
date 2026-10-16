@@ -8,8 +8,9 @@
 // system — the system is fixed at creation and not swappable here.
 
 import { use, useEffect, useState } from "react";
-import { SystemChip } from "@/components/dashboard/kage-ui";
-import { KageRenderer } from "@/runtime/KageRenderer";
+import { CommentStage } from "@/components/dashboard/comments/comment-stage";
+import { useGuestComments } from "@/components/dashboard/comments/use-guest-comments";
+import { ShareFeedback } from "@/components/dashboard/share-feedback";
 import { MadeWithKages } from "@/components/dashboard/made-with-kages";
 import type { KageDoc } from "@/engine/types";
 
@@ -17,6 +18,8 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const guest = useGuestComments(id);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
 
   // Read through the dedicated public route (resolves across workspaces), not the
   // per-workspace operation dispatcher.
@@ -41,13 +44,16 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="relative flex min-h-svh flex-col bg-background">
-      <div className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
-        <span className="font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
-        <SystemChip system={doc.system} />
+      {/* One bar: the title on the left, the comment toggle on the right. The design system and version are machine detail, so they live in the tooltip, not the chrome. */}
+      <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
+        <span title={doc.system} className="min-w-0 flex-1 truncate font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
+        <div ref={setSlot} className="flex shrink-0 items-center gap-1" />
+      </header>
+      {/* Comment mode for visitors: click anything and a comment window opens there. They can only add notes. */}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" />
       </div>
-      <div className="min-h-0 flex-1 overflow-auto">
-        <KageRenderer doc={doc} />
-      </div>
+      <ShareFeedback uuid={id} doc={doc} />
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>
       </div>

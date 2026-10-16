@@ -74,7 +74,7 @@ export function CommentNode({ node, api, depth = 0, pinNumber, orphan, onJump, d
 
   return (
     <li className="flex gap-2" data-comment={c.id}>
-      {c.deleted ? <div className="w-6 shrink-0" /> : <Votes node={node} api={api} />}
+      {c.deleted || api.guest ? <div className="w-6 shrink-0" /> : <Votes node={node} api={api} />}
       <div className={cn("min-w-0 flex-1", depth > 0 && "pl-0")}>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
           <Button size="icon-xs" variant="ghost" aria-label={collapsed ? "Expand thread" : "Collapse thread"} aria-expanded={!collapsed} onClick={() => setCollapsed((v) => !v)}>{collapsed ? <Plus /> : <Minus />}</Button>
@@ -104,7 +104,7 @@ export function CommentNode({ node, api, depth = 0, pinNumber, orphan, onJump, d
 
             {!c.deleted && mode !== "edit" && (
               <div className="mt-1 flex flex-wrap items-center gap-0.5 text-xs">
-                <Button size="xs" variant="ghost" onClick={() => setMode(mode === "reply" ? "" : "reply")}><CornerDownRight /> Reply</Button>
+                {!api.guest && <Button size="xs" variant="ghost" onClick={() => setMode(mode === "reply" ? "" : "reply")}><CornerDownRight /> Reply</Button>}
                 {c.canResolve && <Button size="xs" variant="ghost" onClick={() => api.resolve(c.id, !c.resolved)}>{c.resolved ? <><RotateCcw /> Reopen</> : <><Check /> Resolve</>}</Button>}
                 {c.canEdit && <Button size="xs" variant="ghost" onClick={() => setMode("edit")}><Pencil /> Edit</Button>}
                 {c.canDelete && (confirmDelete

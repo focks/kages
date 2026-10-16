@@ -12,12 +12,13 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
+import { FileText, Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { KagePreview } from "@/components/dashboard/kage-preview";
 import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
 import { FacetRail } from "@/components/dashboard/library/facet-rail";
 import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
+import { BriefSheet, loadBrief, type BriefData } from "@/components/dashboard/brief/brief-sheet";
 import { useComments } from "@/components/dashboard/comments/use-comments";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,10 @@ function LibraryInner() {
   const [describe, setDescribe] = useState("");
   const [fullscreen, setFullscreen] = useState<{ doc: KageDoc; ref: string } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // undefined = not loaded; null = this person cannot see a brief (so no prompt to write one).
+  const [brief, setBrief] = useState<BriefData | null | undefined>(undefined);
+  const [briefOpen, setBriefOpen] = useState(false);
+  useEffect(() => { void loadBrief().then(setBrief); }, []);
   const comments = useComments(openName);
   const [text, setText] = useState(query.q);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -195,6 +200,7 @@ function LibraryInner() {
             <p className="text-sm text-muted-foreground">{cards ? `${visible.length} of ${all.length} Kages` : "Loading…"}</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            {brief !== null && <Button size="sm" variant="outline" onClick={() => setBriefOpen(true)}><FileText /> Brief{brief && !brief.brief ? <span aria-label="not set" className="size-1.5 rounded-full bg-primary" /> : null}</Button>}
             <Button size="sm" variant="outline" nativeButton={false} render={<label />}>
               <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
               <Upload /> Import
@@ -237,7 +243,14 @@ function LibraryInner() {
                 {c.label}<X className="size-3.5 text-muted-foreground" aria-hidden />
               </button>
             ))}
-            <Button size="xs" variant="ghost" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [] }); }}>Clear all</Button>
+            <Button size="xs" variant="ghost" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [], attention: false }); }}>Clear all</Button>
+          </div>
+        )}
+
+        {brief && !brief.brief && !empty && (
+          <div className="flex flex-wrap items-center gap-3 border-b bg-muted px-4 py-2.5 text-sm md:px-6">
+            <span className="min-w-0 flex-1">Agents here have no brief to work from. Add who this is for and what must never be invented.</span>
+            <Button size="sm" onClick={() => setBriefOpen(true)}>Add your brief</Button>
           </div>
         )}
 
@@ -263,9 +276,9 @@ function LibraryInner() {
                 {resolvedScope === "pinned" ? "Pin a Kage with its star to keep it close." : chips.length ? "Nothing fits these filters." : resolvedScope === "mine" ? "You have no Kages of your own in this view yet." : "Nothing here yet."}
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {chips.length > 0 && <Button variant="outline" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [] }); }}>Clear filters</Button>}
+                {chips.length > 0 && <Button variant="outline" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [], attention: false }); }}>Clear filters</Button>}
                 {resolvedScope !== "templates" && templateCount > 0 && <Button variant="outline" onClick={() => setQuery({ scope: "templates", repo: "" })}>Browse {templateCount} templates</Button>}
-                {resolvedScope !== "all" && <Button variant="ghost" onClick={() => setQuery({ scope: "all", repo: "", states: [], systems: [] })}>Show everything</Button>}
+                {resolvedScope !== "all" && <Button variant="ghost" onClick={() => setQuery({ scope: "all", repo: "", states: [], systems: [], modes: [], attention: false })}>Show everything</Button>}
               </div>
             </div>
           )}
@@ -291,6 +304,8 @@ function LibraryInner() {
         onClose={() => open(null)} onFullscreen={() => doc && current && setFullscreen({ doc, ref: current.ref })}
         onClone={cloneKage} onExport={exportJson}
         onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
+
+      <BriefSheet open={briefOpen} onOpenChange={setBriefOpen} onSaved={setBrief} />
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="left" className="w-80 max-w-[85vw] overflow-y-auto">

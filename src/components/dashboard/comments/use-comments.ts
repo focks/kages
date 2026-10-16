@@ -22,6 +22,8 @@ export interface CommentsApi {
   resolve: (id: string, resolved: boolean) => Promise<boolean>;
   vote: (id: string, value: 1 | -1 | 0) => Promise<boolean>;
   reload: () => Promise<void>;
+  /** Present for a visitor with no account: they can add notes and nothing else (no replies, votes or edits), and are asked for a name. */
+  guest?: { name: string; setName: (v: string) => void };
 }
 
 export function useComments(kage: string | null): CommentsApi {

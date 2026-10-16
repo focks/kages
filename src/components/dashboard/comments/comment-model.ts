@@ -73,7 +73,7 @@ export const isOrphan = (c: CommentItem, blockIds: ReadonlySet<string>): boolean
 /** "user:ada" → "ada", "agent:acme/a11y" → "acme/a11y". Display only; never trusted. */
 export function shortName(principal: string): string {
   if (!principal) return "deleted";
-  return principal.replace(/^(user|agent|service):/, "").slice(0, 40);
+  return principal.replace(/^(user|agent|service):/, "").replace(/^guest:(.*)$/, "$1 (guest)").slice(0, 40);
 }
 
 /** Where a comment's thread popover should open, kept inside the stage: prefer

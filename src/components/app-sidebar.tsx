@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Layers, SquarePen, Code2 } from "lucide-react";
+import { LayoutDashboard, Layers, SquarePen, Code2, BookOpen } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -22,6 +22,7 @@ const NAV = [
 ];
 
 const RESOURCES = [
+  { title: "Docs", href: "/docs", icon: BookOpen, external: true },
   { title: "API (OpenAPI)", href: "/api/openapi.json", icon: Code2, external: true },
 ];
 

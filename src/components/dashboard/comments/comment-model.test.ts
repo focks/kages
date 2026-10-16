@@ -54,7 +54,7 @@ test("visible pins hide orphans and (by default) resolved threads", () => {
 });
 
 test("display names drop the principal prefix and never throw on odd input", () => {
-  assert.equal(shortName("user:ada"), "ada"); assert.equal(shortName("agent:acme/a11y"), "acme/a11y"); assert.equal(shortName(""), "deleted"); assert.equal(shortName("x".repeat(100)).length, 40);
+  assert.equal(shortName("user:ada"), "ada"); assert.equal(shortName("agent:acme/a11y"), "acme/a11y"); assert.equal(shortName(""), "deleted"); assert.equal(shortName("x".repeat(100)).length, 40); assert.equal(shortName("guest:Priya N"), "Priya N (guest)");
 });
 
 test("popover placement stays inside the stage and flips near the right edge", () => {

@@ -12,6 +12,7 @@
 // picker; this surface is the pointer route. See oracle/comments.feature.
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, Eye, EyeOff, MessageSquarePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,24 +24,9 @@ import type { CommentsApi } from "./use-comments";
 
 interface Rect { left: number; top: number; width: number; height: number }
 const POP = { width: 340, height: 280 };
-const cssEscape = (s: string) => (typeof CSS !== "undefined" && CSS.escape ? CSS.escape(s) : s.replace(/["\\]/g, "\\$&"));
-
-/** A block's wrapper uses `display: contents` (no box of its own), so its rect is
- *  the union of its children's. Returns null for a block that renders nothing. */
-function rectOf(el: Element, depth = 0): Rect | null {
-  const r = el.getBoundingClientRect();
-  if (r.width > 0 || r.height > 0) return { left: r.left, top: r.top, width: r.width, height: r.height };
-  if (depth > 4) return null;
-  let l = Infinity, t = Infinity, rr = -Infinity, b = -Infinity;
-  for (const child of Array.from(el.children)) {
-    const cr = rectOf(child, depth + 1);
-    if (!cr) continue;
-    l = Math.min(l, cr.left); t = Math.min(t, cr.top); rr = Math.max(rr, cr.left + cr.width); b = Math.max(b, cr.top + cr.height);
-  }
-  return Number.isFinite(l) ? { left: l, top: t, width: rr - l, height: b - t } : null;
-}
-
-export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api: CommentsApi; className?: string; flash?: { block: string; nonce: number } | null }) {
+/** `toolbarSlot`: a host element (e.g. the page header) to receive a compact toggle instead of
+ *  the stage drawing its own second bar. Until the slot exists nothing is drawn, so the bar never flashes in twice. */
+export function CommentStage({ doc, api, className, flash, toolbarSlot }: { doc: KageDoc; api: CommentsApi; className?: string; flash?: { block: string; nonce: number } | null; toolbarSlot?: HTMLElement | null }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -55,6 +41,13 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
   const [flashRect, setFlashRect] = useState<Rect | null>(null);
   const [layout, setLayout] = useState<{ pins: Record<string, { x: number; y: number }>; width: number; height: number }>({ pins: {}, width: 0, height: 0 });
   const layoutKey = useRef("");
+  const [blockRects, setBlockRects] = useState<Array<Rect & { id: string }>>([]);
+  const onLayout = useCallback((rects: Array<Rect & { id: string }>) => setBlockRects(old => JSON.stringify(old) === JSON.stringify(rects) ? old : rects), []);
+  const frameRectOf = useCallback((id: string): Rect | null => {
+    const frame = contentRef.current?.querySelector("iframe")?.getBoundingClientRect();
+    const r = blockRects.find(r => r.id === id);
+    return frame && r ? { ...r, left: frame.left + r.left, top: frame.top + r.top } : null;
+  }, [blockRects]);
 
   const blockIds = useMemo(() => new Set(Object.keys(doc.blocks)), [doc]);
   const pins = useMemo(() => visiblePins(api.comments, blockIds, showResolved), [api.comments, blockIds, showResolved]);
@@ -72,8 +65,7 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
     if (!stage || !content) return;
     const sr = stage.getBoundingClientRect(), next: Record<string, { x: number; y: number }> = {};
     for (const p of pins) {
-      const el = content.querySelector(`[data-block="${cssEscape(p.block)}"]`);
-      const r = el && rectOf(el);
+      const r = frameRectOf(p.block);
       if (!r || !p.pos) continue; // a block that is hidden right now simply has no pin on the page
       next[p.id] = { x: Math.round((r.left - sr.left + p.pos.x * r.width) * 10) / 10, y: Math.round((r.top - sr.top + p.pos.y * r.height) * 10) / 10 };
     }
@@ -81,7 +73,7 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
     if (key === layoutKey.current) return; // unchanged: do not re-render (the observers below would loop)
     layoutKey.current = key;
     setLayout({ pins: next, width: sr.width, height: sr.height });
-  }, [pins]);
+  }, [pins, frameRectOf]);
 
   useLayoutEffect(() => { measure(); }, [measure]);
   useEffect(() => {
@@ -101,32 +93,24 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
   // A jump from the Discussion tab ("@block") flashes that block for a moment.
   useEffect(() => {
     if (!flash || !contentRef.current) return;
-    const el = contentRef.current.querySelector(`[data-block="${cssEscape(flash.block)}"]`);
-    const r = el && rectOf(el);
+    const r = frameRectOf(flash.block);
     if (!r) return;
-    (el as HTMLElement).scrollIntoView?.({ block: "center", behavior: "smooth" });
-    const t0 = setTimeout(() => { const r2 = rectOf(el); if (r2 && stageRef.current) setFlashRect(toStage(r2)); }, 250);
+    contentRef.current.querySelector("iframe")?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const t0 = setTimeout(() => { const r2 = frameRectOf(flash.block); if (r2 && stageRef.current) setFlashRect(toStage(r2)); }, 250);
     const t1 = setTimeout(() => setFlashRect(null), 2200);
     return () => { clearTimeout(t0); clearTimeout(t1); };
-  }, [flash, toStage]);
+  }, [flash, toStage, frameRectOf]);
 
   /** The innermost block under a point that exists in the stored document (a
    *  repeated item's runtime instance id does not, so we climb to its template). */
   const hit = useCallback((cx: number, cy: number): { id: string; rect: Rect } | null => {
-    const content = contentRef.current;
-    if (!content) return null;
-    for (const el of document.elementsFromPoint(cx, cy)) {
-      if (overlayRef.current?.contains(el) || pinsRef.current?.contains(el) || popRef.current?.contains(el)) continue;
-      let b = (el as HTMLElement).closest?.("[data-block]") as HTMLElement | null;
-      while (b && content.contains(b)) {
-        const id = b.getAttribute("data-block")!, rect = doc.blocks[id] ? rectOf(b) : null;
-        if (rect) return { id, rect };
-        b = b.parentElement?.closest("[data-block]") as HTMLElement | null;
-      }
-    }
-    const root = content.querySelector(`[data-block="${cssEscape(doc.root)}"]`), rect = root && rectOf(root);
-    return rect ? { id: doc.root, rect } : null;
-  }, [doc]);
+    // Geometry is data from the isolated frame; no dashboard code reads its DOM.
+    const hits = blockRects.flatMap(r => {
+      const rect = doc.blocks[r.id] ? frameRectOf(r.id) : null;
+      return rect && cx >= rect.left && cx <= rect.left + rect.width && cy >= rect.top && cy <= rect.top + rect.height ? [{ id: r.id, rect }] : [];
+    });
+    return hits.sort((a, b) => a.rect.width * a.rect.height - b.rect.width * b.rect.height)[0] ?? null;
+  }, [doc, blockRects, frameRectOf]);
 
   // Esc peels back one layer at a time (draft → open thread → comment mode) and
   // only then lets the surrounding panel close. Capture phase, so we run before
@@ -169,6 +153,7 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
     setDraft({ block: h.id, pos: fractionIn(h.rect, { x: e.clientX, y: e.clientY }), at: { x: e.clientX - s.left, y: e.clientY - s.top } });
   }
 
+  const toggleMode = () => { setMode((m) => !m); setDraft(null); setActiveId(null); };
   const active = activeId ? pins.find((p) => p.id === activeId) ?? api.comments.find((c) => c.id === activeId) : null;
   const activeNode = active ? buildThreads(api.comments, "best").find((t) => t.comment.id === active.id) : null;
   const activePos = activeId ? layout.pins[activeId] : null;
@@ -176,19 +161,25 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="flex flex-wrap items-center gap-2 border-b bg-card px-3 py-2">
-        <Button size="sm" variant={mode ? "default" : "outline"} aria-pressed={mode} onClick={() => { setMode((m) => !m); setDraft(null); setActiveId(null); }} title="Comment mode (C)">
-          <MessageSquarePlus /> Comment mode
-        </Button>
-        <Button size="sm" variant="ghost" aria-pressed={showResolved} onClick={() => setShowResolved((v) => !v)}>{showResolved ? <Eye /> : <EyeOff />} Resolved pins</Button>
-        <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
-          {mode ? "Click anywhere on the page to comment · Esc to exit" : `${stats.open} open thread${stats.open === 1 ? "" : "s"}`}
-        </span>
-      </div>
+      {toolbarSlot !== undefined ? (toolbarSlot && createPortal(
+        <Button size="sm" variant={mode ? "default" : "ghost"} aria-pressed={mode} onClick={toggleMode} title={mode ? "Click anywhere to comment · Esc to exit" : "Comment mode (C)"}>
+          <MessageSquarePlus /> <span className="max-sm:sr-only">{mode ? "Commenting" : "Comment"}</span>
+        </Button>, toolbarSlot)) : (
+        <div className="flex flex-wrap items-center gap-2 border-b bg-card px-3 py-2">
+          <Button size="sm" variant={mode ? "default" : "outline"} aria-pressed={mode} onClick={toggleMode} title="Comment mode (C)">
+            <MessageSquarePlus /> Comment mode
+          </Button>
+          {!api.guest && <Button size="sm" variant="ghost" aria-pressed={showResolved} onClick={() => setShowResolved((v) => !v)}>{showResolved ? <Eye /> : <EyeOff />} Resolved pins</Button>}
+          <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+            {mode ? "Click anywhere on the page to comment · Esc to exit" : api.guest ? "Turn on comment mode, then click anything to leave a note" : `${stats.open} open thread${stats.open === 1 ? "" : "s"}`}
+          </span>
+        </div>
+      )}
+      {toolbarSlot !== undefined && <span className="sr-only" aria-live="polite">{mode ? "Comment mode on. Click anywhere to comment." : ""}</span>}
 
       <div className="min-h-0 flex-1 overflow-auto">
         <div ref={stageRef} className="relative">
-          <div ref={contentRef}><KageRenderer doc={doc} /></div>
+          <div ref={contentRef}><KageRenderer doc={doc} onLayout={onLayout} /></div>
 
           {mode && (
             <div ref={overlayRef} className="absolute inset-0 z-10 cursor-crosshair bg-primary/[0.03]" aria-hidden onMouseMove={onOverlayMove} onMouseLeave={() => setHover(null)} onClick={onOverlayClick} />
@@ -220,7 +211,12 @@ export function CommentStage({ doc, api, className, flash }: { doc: KageDoc; api
                 <span>New comment on</span><span className="rounded-sm bg-wire-soft px-1.5 font-mono text-[11px] text-wire">@{draft.block}</span>
                 <Button size="icon-xs" variant="ghost" className="ml-auto" aria-label="Cancel" onClick={() => setDraft(null)}><X /></Button>
               </div>
-              <Composer autoFocus compact placeholder="Write a comment…" onCancel={() => setDraft(null)}
+              {api.guest && (
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">Your name
+                  <input autoFocus={!api.guest.name} value={api.guest.name} onChange={(e) => api.guest!.setName(e.target.value)} maxLength={40} autoComplete="name" className="min-w-0 flex-1 rounded-md border border-input bg-card px-2 py-1 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" />
+                </label>
+              )}
+              <Composer autoFocus={!api.guest || !!api.guest.name} compact placeholder="Write a comment…" onCancel={() => setDraft(null)}
                 onSubmit={async (text) => { const r = await api.post({ text, block: draft.block, pos: draft.pos }); if (r) { setDraft(null); setActiveId(r.id); } return !!r; }} />
             </div>
           )}

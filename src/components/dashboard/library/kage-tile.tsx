@@ -8,7 +8,7 @@
 import { Eye, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
+import { CritiqueChip, ModeChip, StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
 
 interface TileProps {
   card: KageCard;
@@ -44,6 +44,8 @@ export function KageTile({ card, selected, pinned, onOpen, onPin, onPreview }: T
     <article data-kage-card={card.name} className={cn("group relative flex flex-col gap-2.5 rounded-xl border bg-card p-4 transition-colors hover:bg-accent", ring, selected && "border-primary bg-primary-soft hover:bg-primary-soft")}>
       <div className="flex items-center gap-2">
         <SystemChip system={card.system.split("@")[0]} />
+        <ModeChip mode={card.mode} />
+        <CritiqueChip critique={card.critique} />
         <span className="ml-auto"><StateBadge state={card.state} /></span>
         <PinButton card={card} pinned={pinned} onPin={onPin} className="-mr-1.5" />
       </div>

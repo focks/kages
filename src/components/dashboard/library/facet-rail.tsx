@@ -8,7 +8,7 @@
 import { Boxes, Folder, FolderPlus, LayoutTemplate, Layers, Star, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { STATE_LABEL, STATE_ORDER, SYSTEM_ORDER, toggle, type Facets, type Query, type Scope } from "@/components/dashboard/library-model";
+import { MODE_LABEL, MODE_ORDER, STATE_LABEL, STATE_ORDER, SYSTEM_ORDER, toggle, type Facets, type Query, type Scope } from "@/components/dashboard/library-model";
 
 const overline = "px-2 font-mono text-[11px] leading-[14px] font-medium uppercase tracking-[0.06em] text-muted-foreground";
 
@@ -35,6 +35,7 @@ export function FacetRail({ query, resolvedScope, facets, workspace, onChange, o
   // can always be turned off even when its count has dropped to zero.
   const states = STATE_ORDER.filter((s) => (facets.states[s] ?? 0) > 0 || query.states.includes(s));
   const systems = SYSTEM_ORDER.filter((s) => (facets.systems[s] ?? 0) > 0 || query.systems.includes(s));
+  const modes = MODE_ORDER.filter((m) => (facets.modes[m] ?? 0) > 0 || query.modes.includes(m));
   return (
     <nav aria-label="Library filters" className={cn("flex flex-col gap-5", className)}>
       <div className="flex flex-col gap-0.5">
@@ -54,6 +55,18 @@ export function FacetRail({ query, resolvedScope, facets, workspace, onChange, o
         <p className={overline}>Status</p>
         {states.map((s) => <Item key={s} label={STATE_LABEL[s] ?? s} count={facets.states[s] ?? 0} active={query.states.includes(s)} onClick={() => onChange({ states: toggle(query.states, s) })} />)}
       </div>
+      {(facets.attention > 0 || query.attention) && (
+        <div className="flex flex-col gap-0.5">
+          <p className={overline}>Review</p>
+          <Item label="Open critique issues" count={facets.attention} active={query.attention} onClick={() => onChange({ attention: !query.attention })} />
+        </div>
+      )}
+      {modes.length > 0 && (
+        <div className="flex flex-col gap-0.5">
+          <p className={overline}>Mode</p>
+          {modes.map((m) => <Item key={m} label={MODE_LABEL[m] ?? m} count={facets.modes[m] ?? 0} active={query.modes.includes(m)} onClick={() => onChange({ modes: toggle(query.modes, m) })} />)}
+        </div>
+      )}
       {systems.length > 0 && (
         <div className="flex flex-col gap-0.5">
           <p className={overline}>Design system</p>

@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShareMenu } from "@/components/dashboard/share-menu";
 import { StatusMenu } from "@/components/dashboard/status-menu";
 import { KageFrame, StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
+import { CritiqueTab } from "@/components/dashboard/critique/critique-tab";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { DiscussionPanel } from "@/components/dashboard/comments/discussion-panel";
 import { discussionStats } from "@/components/dashboard/comments/comment-model";
@@ -84,6 +85,7 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
               <TabsList variant="line" className="w-full justify-start gap-4 border-b">
                 <TabsTrigger value="preview" className="flex-none">Preview</TabsTrigger>
                 <TabsTrigger value="discussion" className="flex-none">Discussion {stats.total > 0 && <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{stats.open > 0 ? `${stats.open} open` : stats.total}</span>}</TabsTrigger>
+                <TabsTrigger value="critique" className="flex-none">Critique{card.critique && <span className="ml-1.5 rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{card.critique.score}/{card.critique.max}</span>}</TabsTrigger>
                 <TabsTrigger value="overview" className="flex-none">Overview</TabsTrigger>
                 <TabsTrigger value="versions" className="flex-none">Versions <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{versions.length}</span></TabsTrigger>
                 <TabsTrigger value="describe" className="flex-none">Describe</TabsTrigger>
@@ -101,12 +103,20 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
                 <DiscussionPanel api={comments} doc={doc} onJump={jump} />
               </TabsContent>
 
+              <TabsContent value="critique" className="mt-4">
+                {tab === "critique" && <CritiqueTab name={card.name} onChanged={() => void onChanged()} />}
+              </TabsContent>
+
               <TabsContent value="overview" className="mt-4">
                 <dl className="grid max-w-xl grid-cols-[150px_1fr] gap-y-3 text-sm">
                   <dt className="text-muted-foreground">Project</dt>
                   <dd className="inline-flex items-center gap-1.5 font-mono"><Folder className="size-3.5 text-muted-foreground" />{workspace} / {card.repo}</dd>
                   <dt className="text-muted-foreground">Block types</dt>
                   <dd className="flex flex-wrap gap-1">{card.kinds.length ? card.kinds.map((k) => <span key={k} className="rounded-sm bg-muted px-1.5 font-mono text-[11px] leading-[18px] text-muted-foreground">{k}</span>) : <span className="text-muted-foreground">Layout and text only</span>}</dd>
+                  <dt className="text-muted-foreground">Mode</dt><dd>{doc?.brief?.mode ?? <span className="text-muted-foreground">Not declared</span>}</dd>
+                  {doc?.brief?.audience && <><dt className="text-muted-foreground">Audience</dt><dd>{doc.brief.audience}</dd></>}
+                  {doc?.brief?.job && <><dt className="text-muted-foreground">Their job</dt><dd>{doc.brief.job}</dd></>}
+                  {doc?.brief?.primaryAction && <><dt className="text-muted-foreground">Primary action</dt><dd>{doc.brief.primaryAction}</dd></>}
                   <dt className="text-muted-foreground">Blocks</dt><dd>{card.blocks}</dd>
                   <dt className="text-muted-foreground">Version</dt><dd className="font-mono">v{card.version}</dd>
                   <dt className="text-muted-foreground">Updated</dt><dd>{relTime(card.createdAt)}</dd>

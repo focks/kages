@@ -1,3 +1,4 @@
+import { chipFor } from "@/components/dashboard/critique/critique-model";
 import { Archive, CircleCheck, CircleDashed, CircleX, Eye, ShieldCheck, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -43,6 +44,20 @@ export function SystemChip({ system, className }: { system: string; className?: 
       {system}
     </span>
   );
+}
+
+/** What the visitor is trying to do on this Kage. Words only: it is a fact about
+ *  the content, not a status, so it takes no colour of its own. */
+export function ModeChip({ mode, className }: { mode?: string | null; className?: string }) {
+  if (!mode) return null;
+  return <span title={`Mode: ${mode}`} className={cn("rounded-sm border px-1.5 text-[11px] leading-[18px] text-muted-foreground", className)}>{mode}</span>;
+}
+
+/** The score of the last critique. Words and numbers only; it is information, not a status colour. */
+export function CritiqueChip({ critique, className }: { critique?: KageCard["critique"]; className?: string }) {
+  const chip = chipFor(critique);
+  if (!chip) return null;
+  return <span title={chip.title} className={cn("rounded-sm border px-1.5 font-mono text-[11px] leading-[18px] tabular-nums", chip.tone === "muted" ? "text-muted-foreground opacity-60" : chip.tone === "attention" ? "border-warning/60 text-foreground" : "text-muted-foreground", className)}>{chip.text}</span>;
 }
 
 // Validation always reads as icon + words. Warnings are their own tier: a Kage
@@ -102,6 +117,10 @@ export interface KageCard {
   validation: { ok: boolean; errors: number; warnings: number };
   /** One-line summary and the characteristic block types (chart · table …). */
   description: string; kinds: string[];
+  /** Declared in the Kage's brief; null when it has none. */
+  mode?: string | null;
+  /** The newest critique, for the card chip. */
+  critique?: { score: number; max: number; stale: boolean; open: { P0: number; P1: number } } | null;
 }
 
 /** The shared fetch for the one operation set over REST — UI is an adapter client. */

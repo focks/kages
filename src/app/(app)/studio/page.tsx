@@ -30,7 +30,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { KageDoc, Finding } from "@/engine/types";
-import { addBlock, duplicateBlock, deleteBlock, moveBlock, groupBlocks, docDiff, parentOf } from "@/studio/doc-ops";
+import { addBlock, duplicateBlock, deleteBlock, moveBlock, groupBlocks, docDiff, parentOf, setMode } from "@/studio/doc-ops";
+import { modeOf } from "@/engine/mode";
 import { BlockTree, type Severity } from "@/studio/BlockTree";
 import { AddBlockMenu } from "@/studio/AddBlockMenu";
 import { Inspector } from "@/studio/Inspector";
@@ -159,6 +160,11 @@ function StudioInner() {
         <Button size="sm" variant="outline" aria-expanded={showStarters} onClick={() => setShowStarters(!showStarters)}>New artifact</Button>
         <Button size="sm" variant="outline" aria-pressed={canvasOnly} onClick={() => setCanvasOnly(!canvasOnly)}>{canvasOnly ? "Show editors" : "Expand canvas"}</Button>
         <span className="font-mono text-xs text-muted-foreground">{doc.system}</span>
+        <label id="mode-label" className="text-xs text-muted-foreground">Mode</label>
+        <Select value={doc.brief?.mode ?? "none"} onValueChange={(v) => edit(() => setMode(doc, v === "none" || !v ? null : (v as "read" | "operate" | "persuade" | "experience")))}>
+          <SelectTrigger aria-labelledby="mode-label" className="h-8 w-44"><SelectValue>{doc.brief?.mode ?? `${modeOf(doc).mode} (inferred)`}</SelectValue></SelectTrigger>
+          <SelectContent><SelectItem value="none">Not declared</SelectItem><SelectItem value="read">Read: understand</SelectItem><SelectItem value="operate">Operate: do a task</SelectItem><SelectItem value="persuade">Persuade: decide</SelectItem><SelectItem value="experience">Experience: explore</SelectItem></SelectContent>
+        </Select>
         <div className="ml-auto flex items-center gap-3">
           {dirty && <span className="text-xs text-muted-foreground">● unsaved</span>}
           <span className={cn("text-xs", validation?.ok ? "text-success" : "text-destructive")}>
