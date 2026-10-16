@@ -1,0 +1,41 @@
+/* Browser surfaces: the parts nobody draws. Selection, caret, native controls,
+   scrollbars, list markers, link underlines and numerals ship with browser defaults
+   that belong to no design system; a page with a themed palette and a default blue
+   selection reads as assembled rather than built. Everything here is scoped to the
+   Kage root and driven by the active system's tokens (never :root, so it cannot touch
+   the app chrome), and uses low specificity so a component can still override it. */
+
+:where(.kg-kage, .kg-sys-core, .kg-sys-ledger, .kg-sys-atelier) {
+  /* color-scheme itself is emitted per theme into tokens.css so it follows the theme list. */
+  caret-color: var(--kg-accent);
+  accent-color: var(--kg-accent);
+  scrollbar-color: var(--kg-line-control) transparent;
+  scrollbar-width: thin;
+  /* A translucent accent reads on any ground (paper, surface, sunken, a soft fill),
+     and the text keeps its own colour, so contrast with the selected text holds. */
+  --kg-selection: color-mix(in srgb, var(--kg-accent) 22%, transparent);
+}
+:where(.kg-kage, .kg-sys-core, .kg-sys-ledger, .kg-sys-atelier) ::selection { background: var(--kg-selection); }
+
+/* Placeholders are secondary text: muted ink, never the browser's faded black. */
+:where(.kg-kage, .kg-sys-core, .kg-sys-ledger, .kg-sys-atelier) ::placeholder { color: var(--kg-ink-muted); opacity: 1; }
+
+/* List bullets and numbers are quiet; the text carries the weight. */
+:where(.kg-kage, .kg-sys-core, .kg-sys-ledger, .kg-sys-atelier) li::marker { color: var(--kg-ink-muted); }
+
+/* Underlines clear descenders instead of cutting through them. */
+:where(.kg-kage, .kg-sys-core, .kg-sys-ledger, .kg-sys-atelier) a { text-decoration-thickness: .08em; text-underline-offset: .2em; }
+
+/* Tab strips scroll sideways when they overflow; hiding the bar hid the only hint. */
+.kg-tabs, .lg-tabs, .at-tabs { scrollbar-width: thin; scrollbar-color: var(--kg-line-control) transparent; }
+
+/* Figures that must line up in columns or not jitter as they change. */
+.kg-stepper__num, .kg-tab__count, .lg-tab__count, .at-tab__count, .lg-side__count, .kg-kanban__count, .kg-calendar__day, .kg-timeline__time, .kg-grid-data__num, .kg-grid-data__pager { font-variant-numeric: tabular-nums; }
+
+/* High-contrast mode: keep boundaries and focus visible, let the system pick colours. */
+@media (forced-colors: active) {
+  :where(.kg-kage, .kg-sys-core, .kg-sys-ledger, .kg-sys-atelier) { forced-color-adjust: auto; }
+  :where(.kg-kage) :focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  .kg-btn, .lg-btn, .at-btn, .kg-input, .kg-card, .kg-table, .kg-switch__thumb, .kg-checkbox input { border: 1px solid CanvasText; }
+  .kg-switch__thumb { forced-color-adjust: none; background: Highlight; }
+}

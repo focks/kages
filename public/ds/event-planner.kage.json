@@ -153,5 +153,8 @@
   },
   "state": {
     "submitted": null
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

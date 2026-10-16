@@ -391,5 +391,8 @@
       }
     }
   },
-  "state": {}
+  "state": {},
+  "brief": {
+    "mode": "operate"
+  }
 }

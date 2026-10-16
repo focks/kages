@@ -155,5 +155,8 @@
         "value": 45
       }
     ]
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

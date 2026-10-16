@@ -82,5 +82,8 @@
       "path": "items",
       "maxItems": 20
     }
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

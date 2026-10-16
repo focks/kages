@@ -1,0 +1,17 @@
+/* Motion policy. Appended LAST so its global rule wins. The reference stylesheet is
+   frozen and still has a few transitions (the sidebar width, the dropdown chevron) that
+   know nothing about the reader's preference, so reduced motion is enforced here for the
+   whole Kage rather than by editing it. `!important` is deliberate: it must beat any
+   component value, including reference CSS we cannot change, and it is limited to
+   descendants of the Kage root. New motion in our own sources uses the --motion-* tokens
+   and no overshoot easing (motion.test.ts enforces both). */
+
+@media (prefers-reduced-motion: reduce) {
+  .kg-kage, .kg-kage *, .kg-kage *::before, .kg-kage *::after,
+  .kg-sys-core, .kg-sys-core *, .kg-sys-ledger, .kg-sys-ledger *, .kg-sys-atelier, .kg-sys-atelier * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "field-notes:quieter": {
+    "mode": "read",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/blocks/root/props/gap",
+        "value": 6
+      }
+    ],
+    "skipped": [],
+    "loudness": {
+      "before": 8.5,
+      "after": 7.5
+    }
+  },
+  "field-notes:bolder": {
+    "mode": "read",
+    "patch": [],
+    "skipped": [
+      "section-tone:read pages gain hierarchy, not decoration",
+      "all:already at the ceiling: nothing left to amplify"
+    ],
+    "loudness": {
+      "before": 8.5,
+      "after": 8.5
+    }
+  },
+  "metrics-board:quieter": {
+    "mode": "operate",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/blocks/weekly/props/tone",
+        "value": "plain"
+      },
+      {
+        "op": "replace",
+        "path": "/blocks/root/props/gap",
+        "value": 4
+      }
+    ],
+    "skipped": [],
+    "loudness": {
+      "before": 10,
+      "after": 6
+    }
+  },
+  "metrics-board:bolder": {
+    "mode": "operate",
+    "patch": [],
+    "skipped": [
+      "section-tone:operate pages gain hierarchy, not decoration",
+      "all:already at the ceiling: nothing left to amplify"
+    ],
+    "loudness": {
+      "before": 10,
+      "after": 10
+    }
+  },
+  "open-studio:quieter": {
+    "mode": "persuade",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/blocks/story/props/tone",
+        "value": "plain"
+      },
+      {
+        "op": "replace",
+        "path": "/blocks/tool/props/tone",
+        "value": "plain"
+      },
+      {
+        "op": "replace",
+        "path": "/blocks/gallery/props/tone",
+        "value": "plain"
+      },
+      {
+        "op": "replace",
+        "path": "/blocks/hero/props/inset",
+        "value": 6
+      },
+      {
+        "op": "replace",
+        "path": "/blocks/root/props/gap",
+        "value": 6
+      }
+    ],
+    "skipped": [
+      "section-tone:the hero keeps its tone at amount 1 on a persuasive page"
+    ],
+    "loudness": {
+      "before": 32,
+      "after": 21
+    }
+  },
+  "open-studio:bolder": {
+    "mode": "persuade",
+    "patch": [],
+    "skipped": [
+      "section-tone:already at the ceiling",
+      "all:already at the ceiling: nothing left to amplify"
+    ],
+    "loudness": {
+      "before": 32,
+      "after": 32
+    }
+  }
+}

@@ -71,5 +71,8 @@
         "text": "Built from portable blocks."
       }
     }
+  },
+  "brief": {
+    "mode": "read"
   }
 }

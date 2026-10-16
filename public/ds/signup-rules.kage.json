@@ -187,5 +187,8 @@
     "age": null,
     "consent": false,
     "submitted": false
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

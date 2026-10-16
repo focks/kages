@@ -180,5 +180,8 @@
   "state": {
     "draft": "A small tool for a big idea",
     "confidence": 60
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

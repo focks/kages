@@ -105,5 +105,8 @@
   },
   "state": {
     "showDetails": false
+  },
+  "brief": {
+    "mode": "persuade"
   }
 }

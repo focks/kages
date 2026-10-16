@@ -190,5 +190,8 @@
   "state": {
     "step": "plan",
     "faq": ""
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

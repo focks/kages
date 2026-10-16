@@ -6,7 +6,7 @@
     "system": "core",
     "portable": true
   },
-  "description": "Kage \"Quarterly report — six ways to see the data\" · system core@1.11.0 · 10 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How the quarter went\"\n    - trend [core/combo-chart@1.0.0] label=\"Revenue vs target\"\n    - stack [core/stacked-bar-chart@1.0.0] label=\"Revenue by product line\"\n    - pipeline [core/funnel-chart@1.0.0] label=\"Sales funnel\"\n    - split [core/split@1.0.0]\n      start:\n        - costs [core/treemap@1.0.0] label=\"Where the budget goes\" items=||||\n      end:\n        - picked [core/text@1.0.0] text=\"Selected — budget area:  · funnel stage:  · region: \"\n    - flows [core/sankey@1.0.0] label=\"From budget to outcomes\"\n    - regions [core/map@1.0.0] label=\"Customers by region\"",
+  "description": "Kage \"Quarterly report — six ways to see the data\" · system core@1.12.0 · 10 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How the quarter went\"\n    - trend [core/combo-chart@1.0.0] label=\"Revenue vs target\"\n    - stack [core/stacked-bar-chart@1.0.0] label=\"Revenue by product line\"\n    - pipeline [core/funnel-chart@1.0.0] label=\"Sales funnel\"\n    - split [core/split@1.0.0]\n      start:\n        - costs [core/treemap@1.0.0] label=\"Where the budget goes\" items=||||\n      end:\n        - picked [core/text@1.0.0] text=\"Selected — budget area:  · funnel stage:  · region: \"\n    - flows [core/sankey@1.0.0] label=\"From budget to outcomes\"\n    - regions [core/map@1.0.0] label=\"Customers by region\"",
   "envelope": {
     "title": "Quarterly report — six ways to see the data",
     "root": "root",

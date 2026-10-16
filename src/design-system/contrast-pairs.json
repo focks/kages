@@ -1,0 +1,25 @@
+{
+  "note": "Text-on-ground pairs every system must keep readable, per theme. Names are roles; a system's tokens carry its id as prefix (ledger-ink). min is the WCAG 2.x ratio: 4.5 for text, 3 for UI component boundaries and focus. A failing pair fails `npm run build:ds` unless it is waived here with a reason.",
+  "pairs": [
+    { "text": "ink", "on": "paper", "min": 4.5, "role": "body text on the page" },
+    { "text": "ink", "on": "surface", "min": 4.5, "role": "body text on cards, inputs, menus" },
+    { "text": "ink", "on": "sunken", "min": 4.5, "role": "body text on recessed regions" },
+    { "text": "ink-muted", "on": "paper", "min": 4.5, "role": "secondary text on the page" },
+    { "text": "ink-muted", "on": "surface", "min": 4.5, "role": "secondary text on cards" },
+    { "text": "ink-muted", "on": "sunken", "min": 4.5, "role": "secondary text on recessed regions" },
+    { "text": "accent-ink", "on": "accent", "min": 4.5, "role": "label on a filled accent button" },
+    { "text": "accent", "on": "paper", "min": 4.5, "role": "links and accent text on the page" },
+    { "text": "accent", "on": "surface", "min": 4.5, "role": "links and accent text on cards" },
+    { "text": "ink", "on": "accent-soft", "min": 4.5, "role": "text on soft accent fills" },
+    { "text": "danger", "on": "surface", "min": 4.5, "role": "error text" },
+    { "text": "ink", "on": "danger-soft", "min": 4.5, "role": "text on soft danger fills" },
+    { "text": "success", "on": "surface", "min": 4.5, "role": "success text" },
+    { "text": "line-control", "on": "paper", "min": 3, "role": "input and control borders on the page" },
+    { "text": "line-control", "on": "surface", "min": 3, "role": "input and control borders on cards" },
+    { "text": "focus", "on": "paper", "min": 3, "role": "keyboard focus ring on the page" },
+    { "text": "focus", "on": "surface", "min": 3, "role": "keyboard focus ring on cards" },
+    { "text": "wire", "on": "paper", "min": 3, "role": "diagram and wire strokes" },
+    { "text": "ink", "on": "wire-soft", "min": 4.5, "role": "text on soft wire fills" }
+  ],
+  "waivers": []
+}

@@ -1,0 +1,35 @@
+{
+  "core": {
+    "signatureMove": "Neutral lattice: structure from spacing steps and declared props, never from decoration.",
+    "rules": [
+      { "id": "one-primary-per-region", "name": "One Primary Per Region", "statement": "Give each region one primary button and label every button with a verb.", "why": "Two primaries ask the reader to guess which action matters; a noun label hides what pressing does.", "source": ["core/button@1.1.0"] },
+      { "id": "cards-earn-their-keep", "name": "Cards Earn Their Keep", "statement": "A card groups one topic. Never nest cards, and never wrap every section in one.", "why": "Containers inside containers add depth and noise; spacing and headings already group content.", "lint": ["nested-sections"], "source": ["core/card@1.0.0", "core/section@1.0.0"] },
+      { "id": "steps-not-pixels", "name": "Steps, Not Pixels", "statement": "Set layout with declared props and token spacing steps; never write pixel values.", "why": "Tokens keep every system and theme coherent; pixel values pin one rendering.", "source": ["core/stack@1.0.0"] },
+      { "id": "bind-dont-copy", "name": "Bind, Don't Copy", "statement": "Feed numbers and text from data and state with expressions instead of retyping them.", "why": "A retyped figure drifts from its source and cannot respond to filters.", "source": ["core/stat@1.0.0", "core/text@1.0.0"] },
+      { "id": "navigation-fits-the-shape", "name": "Navigation Fits The Shape", "statement": "Use a sidebar for 3–9 persistent sections and tabs for 2–6 sibling views; omit both when the page reads straight through.", "why": "Navigation is optional; extra chrome on a short page costs more than it helps.", "source": ["core/sidebar@1.2.0", "core/tabs@1.0.0", "core/shell@1.0.0"] },
+      { "id": "wire-every-control", "name": "Wire Every Control", "statement": "Every button, form and modal needs a handler or a command that reaches it.", "why": "A control that does nothing teaches readers the page is broken.", "lint": ["dead-button", "form-unwired", "modal-unreachable"], "source": ["core/button@1.1.0", "core/form@1.0.0", "core/modal@1.0.0"] },
+      { "id": "describe-the-picture", "name": "Describe The Picture", "statement": "Give every image alt text and every chart a label that states what it shows.", "why": "Assistive technology and screenshots depend on the label; a bare chart says nothing to them.", "source": ["core/image@1.0.0", "core/sparkline@1.0.0"] }
+    ]
+  },
+  "ledger": {
+    "signatureMove": "Dense, square and mono: every panel is an addressable ticker.",
+    "rules": [
+      { "id": "short-uppercase-labels", "name": "Short Uppercase Labels", "statement": "Keep tab labels under 15 characters and write button labels that still read in uppercase.", "why": "Ledger uppercases labels in a narrow mono face; long sentence-case text truncates or shouts.", "source": ["ledger/tabs@2.0.0", "ledger/button@2.1.0"] },
+      { "id": "segmented-choices-stay-short", "name": "Segmented Choices Stay Short", "statement": "Use the dropdown for up to six short options; pin core/dropdown@1 for long or dynamic lists.", "why": "Ledger shows every option at once as a segmented control, so a long list overflows the row.", "source": ["ledger/dropdown@2.0.0"] },
+      { "id": "panels-sit-flush", "name": "Panels Sit Flush", "statement": "Fill a card edge to edge and give it a short panel code such as PNL-01.", "why": "Dense grids depend on bodies sitting flush; padding-heavy content breaks the rhythm.", "source": ["ledger/card@2.0.0"] },
+      { "id": "trends-carry-data", "name": "Trends Carry Data", "statement": "Add a stat trend only with 8–30 real numbers behind it.", "why": "A sparkline with no data is decoration, and in a dense tool it reads as a measurement.", "source": ["ledger/stat@2.0.0"] },
+      { "id": "group-the-navigation", "name": "Group The Navigation", "statement": "Group sidebar items under headers, keep labels to one line and use 2–4 character codes.", "why": "Ledger truncates at one line; groups and tickers keep a long list scannable.", "source": ["ledger/sidebar@2.0.0"] }
+    ]
+  },
+  "atelier": {
+    "signatureMove": "Soft and editorial: one story at a time, set in serif with room to breathe.",
+    "rules": [
+      { "id": "short-navigation", "name": "Short Navigation", "statement": "Keep the sidebar to six items, each with a one-line description; leave dense tool navigation to Ledger.", "why": "Atelier is for reading and storytelling; a long menu turns a story into a tool.", "source": ["atelier/sidebar@1.0.0"] },
+      { "id": "four-tabs-at-most", "name": "Four Tabs At Most", "statement": "Switch between two to four views with pill tabs and never add a fifth.", "why": "The pill switcher is built for a few friendly choices; more belongs in a page of sections.", "source": ["atelier/tabs@1.0.0"] },
+      { "id": "friendly-choices", "name": "Friendly Choices", "statement": "Offer two to ten options of up to three words each.", "why": "Options render as wrapping chips, and long labels turn them into a wall of text.", "source": ["atelier/dropdown@1.0.0"] },
+      { "id": "one-primary-per-card", "name": "One Primary Per Card", "statement": "Put at most one primary pill button in a card; the rest are secondary or quiet.", "why": "The ink-filled primary is the page's one loud gesture.", "source": ["atelier/button@1.0.0"] },
+      { "id": "captions-in-sentences", "name": "Captions In Sentences", "statement": "Show up to three stats per row, each with a caption written as a sentence.", "why": "A big serif figure needs a sentence of context; a fourth stat crowds the row.", "source": ["atelier/stat@1.0.0"] },
+      { "id": "tables-leave-the-card", "name": "Tables Leave The Card", "statement": "Keep tables out of cards when the page must work on a narrow screen.", "why": "Atelier cards are padded and soft, so a table inside one overflows on phones.", "source": ["atelier/card@1.0.0"] }
+    ]
+  }
+}

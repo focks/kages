@@ -5,10 +5,9 @@
 .kg-switch__track--on { background: var(--kg-accent); border-color: var(--kg-accent); }
 .kg-switch__track:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
 .kg-switch__track:disabled { opacity: .5; cursor: not-allowed; }
-.kg-switch__thumb { position: absolute; top: 2px; inset-inline-start: 2px; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: var(--kg-paper); border: 1px solid var(--kg-line-control); transition: transform .15s; }
+.kg-switch__thumb { position: absolute; top: 2px; inset-inline-start: 2px; width: 1.1rem; height: 1.1rem; border-radius: 50%; background: var(--kg-paper); border: 1px solid var(--kg-line-control); transition: transform var(--motion-duration-fast) var(--motion-ease-out); }
 .kg-switch__track--on .kg-switch__thumb { transform: translateX(1.25rem); }
 [dir=rtl] .kg-switch__track--on .kg-switch__thumb { transform: translateX(-1.25rem); }
-@media (prefers-reduced-motion: reduce) { .kg-switch__thumb { transition: none; } }
 .kg-combobox { position: relative; }
 .kg-combobox__list { position: absolute; z-index: 20; inset-inline: 0; top: 100%; margin: var(--kg-space-1) 0 0; padding: var(--kg-space-1); list-style: none; max-height: 14rem; overflow: auto; background: var(--kg-surface); border: 1px solid var(--kg-line-control); border-radius: var(--kg-r-md); }
 .kg-combobox__opt, .kg-combobox__none { padding: var(--kg-space-2) var(--kg-space-3); border-radius: var(--kg-r-sm); color: var(--kg-ink); cursor: pointer; }

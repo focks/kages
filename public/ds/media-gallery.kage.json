@@ -74,5 +74,8 @@
         ]
       }
     }
+  },
+  "brief": {
+    "mode": "experience"
   }
 }

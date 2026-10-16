@@ -232,5 +232,8 @@
         "type": "string"
       }
     }
+  },
+  "brief": {
+    "mode": "operate"
   }
 }

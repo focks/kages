@@ -2,7 +2,7 @@
   "core": {
     "id": "core",
     "name": "Kages Core",
-    "version": "1.11.0",
+    "version": "1.12.0",
     "className": "kg-sys-core",
     "extends": null,
     "summary": "Neutral lattice system. The base every other system extends.",
@@ -83,7 +83,7 @@
   "ledger": {
     "id": "ledger",
     "name": "Ledger",
-    "version": "2.8.0",
+    "version": "2.9.0",
     "className": "kg-sys-ledger",
     "extends": "core@1",
     "summary": "Dense, square, mono-numeral system for data and operations tools.",
@@ -164,7 +164,7 @@
   "atelier": {
     "id": "atelier",
     "name": "Atelier",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "className": "kg-sys-atelier",
     "extends": "core@1",
     "summary": "Soft, editorial, serif system for consumer and storytelling artifacts.",

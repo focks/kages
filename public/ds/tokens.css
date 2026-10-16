@@ -1,5 +1,6 @@
 /* generated from public/ds/tokens.json by scripts/kage-tokens.mjs (do not edit) */
 .kg-kage {
+  color-scheme: light;
   --paper: #f4f2ec;
   --surface: #fffdf8;
   --sunken: #ebe7de;
@@ -67,6 +68,11 @@
   --z-sidebar: 20;
   --z-popover: 40;
   --z-overlay: 60;
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 180ms;
+  --motion-duration-slow: 280ms;
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
   --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -74,6 +80,7 @@
   --font-soft: "DM Sans", "IBM Plex Sans", system-ui, sans-serif;
 }
 .dark .kg-kage {
+  color-scheme: dark;
   --paper: #141513;
   --surface: #1c1e1b;
   --sunken: #232521;

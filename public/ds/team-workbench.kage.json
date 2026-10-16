@@ -264,5 +264,8 @@
         "load": 90
       }
     ]
+  },
+  "brief": {
+    "mode": "operate"
   }
 }
