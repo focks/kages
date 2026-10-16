@@ -1,6 +1,6 @@
 ---
 name: kages-decision-guide
-description: Turn a technical question into an interactive decision guide a customer can explore and share: an explanation with sources, a question-driven recommendation, a calculator with editable assumptions, setup steps and a checklist. Use when someone needs to explain a technical choice, cost or setup to another person, or to update such a guide.
+description: "Turn a technical question into an interactive decision guide a customer can explore and share: an explanation with sources, a question-driven recommendation, a calculator with editable assumptions, setup steps and a checklist. Use when someone needs to explain a technical choice, cost or setup to another person, or to update such a guide."
 ---
 
 # Technical decision guide

@@ -17,7 +17,6 @@ export function DocsView({ nav, doc, current, editHref, children }: { nav: NavGr
       <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
         <Link href="/docs" className="font-display text-[15px] font-[650] tracking-[-0.01em]">Kages docs</Link>
         <span className="ml-auto" />
-        {editHref && <a href={editHref} className="text-sm text-wire underline underline-offset-4" rel="noreferrer">Edit this page</a>}
         <Link href="/artifacts" className="text-sm text-muted-foreground hover:text-foreground">Open the app</Link>
       </header>
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:flex-row">
@@ -33,6 +32,11 @@ export function DocsView({ nav, doc, current, editHref, children }: { nav: NavGr
         <main className="min-w-0 flex-1">
           <KageRenderer key={doc.id} doc={doc} />
           {children && <div className="mt-6 rounded-xl border bg-card p-6">{children}</div>}
+          {editHref && (
+            <div className="mt-10 border-t pt-4 text-sm">
+              <a href={editHref} target="_blank" rel="noreferrer" className="text-wire underline underline-offset-4 hover:text-foreground">Edit this page on GitHub</a>
+            </div>
+          )}
         </main>
       </div>
       <footer className="flex justify-center py-6"><MadeWithKages /></footer>

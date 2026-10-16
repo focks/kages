@@ -5,6 +5,7 @@
 // quietly give the critic the answers.
 import { PROTOCOL_VERSION } from "./critique-protocol.ts";
 import { rubricMd } from "./rubric.ts";
+import { yamlStr } from "./frontmatter.ts";
 
 export interface AgentDef { file: string; name: string; description: string; tools: string[]; body: string }
 
@@ -37,5 +38,5 @@ State only what the evidence shows, and say "not available" for anything missing
 ];
 
 export function agentMd(a: AgentDef): string {
-  return `---\nname: ${a.name}\ndescription: ${a.description}\ntools: ${a.tools.join(", ")}\n---\n\n${a.body}\n`;
+  return `---\nname: ${a.name}\ndescription: ${yamlStr(a.description)}\ntools: ${a.tools.join(", ")}\n---\n\n${a.body}\n`;
 }

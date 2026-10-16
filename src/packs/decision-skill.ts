@@ -1,12 +1,15 @@
 // The agent-facing playbook of the Technical Decision Pack. One module feeds the installer and the
 // generated plugins, so the guidance an agent reads cannot differ between the two.
 import { EXAMPLES } from "./decision-guide-examples.ts";
+import { yamlStr } from "./frontmatter.ts";
 
 export const DECISION_SKILL_NAME = "kages-decision-guide";
 
+const DECISION_SKILL_DESC = "Turn a technical question into an interactive decision guide a customer can explore and share: an explanation with sources, a question-driven recommendation, a calculator with editable assumptions, setup steps and a checklist. Use when someone needs to explain a technical choice, cost or setup to another person, or to update such a guide.";
+
 export const decisionSkillMd = (): string => `---
 name: ${DECISION_SKILL_NAME}
-description: Turn a technical question into an interactive decision guide a customer can explore and share: an explanation with sources, a question-driven recommendation, a calculator with editable assumptions, setup steps and a checklist. Use when someone needs to explain a technical choice, cost or setup to another person, or to update such a guide.
+description: ${yamlStr(DECISION_SKILL_DESC)}
 ---
 
 # Technical decision guide

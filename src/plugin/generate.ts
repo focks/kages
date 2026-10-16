@@ -12,6 +12,7 @@ import { AGENTS, agentMd } from "../packs/agents.ts";
 import { COMMANDS, PLAYBOOKS, commandsMd, promptName } from "../packs/commands/commands.ts";
 import { LAUNCHER_SH } from "../hooks/manifest.ts";
 import { decisionSkillMd, DECISION_SKILL_NAME } from "../packs/decision-skill.ts";
+import { yamlStr } from "../packs/frontmatter.ts";
 import { VERSION } from "../version.ts";
 
 export const DEFAULT_MCP_URL = "https://kages-focks-projects.vercel.app/api/mcp";
@@ -35,7 +36,7 @@ function skillFiles(): Files {
 function claudeTarget(o: Required<PluginOptions>): Target {
   const files: Files = skillFiles();
   for (const a of AGENTS) files[`agents/${a.file}`] = agentMd(a);
-  for (const c of COMMANDS) files[`commands/${promptName(c.name)}.md`] = `---\ndescription: ${c.description}\nargument-hint: ${c.argumentHint}\n---\n\nApply the Kages improve move "${c.name}" to $ARGUMENTS. Call get_improve_packet {command:"${c.name}", kage:<the Kage name>} for the playbook and its context, then follow the playbook.\n\n${PLAYBOOKS[c.name]}\n`;
+  for (const c of COMMANDS) files[`commands/${promptName(c.name)}.md`] = `---\ndescription: ${yamlStr(c.description)}\nargument-hint: ${yamlStr(c.argumentHint)}\n---\n\nApply the Kages improve move "${c.name}" to $ARGUMENTS. Call get_improve_packet {command:"${c.name}", kage:<the Kage name>} for the playbook and its context, then follow the playbook.\n\n${PLAYBOOKS[c.name]}\n`;
   files["bin/kages-hook"] = LAUNCHER_SH;
   // ${CLAUDE_PLUGIN_ROOT} is the plugin's installed directory; quoted so a path with spaces stays one word.
   const cmd = (ev: string) => `"\${CLAUDE_PLUGIN_ROOT}"/bin/kages-hook --harness claude --event ${ev}`;

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { COMMANDS, PLAYBOOKS, commandsMd, promptName, commandMeta } from "./commands.ts";
+import { yamlStr } from "../frontmatter.ts";
 import { lintPlaybook, MAX_PLAYBOOK_CHARS } from "./lint.ts";
 import { IMPROVE_COMMANDS } from "../../engine/improve.ts";
 import { OPERATIONS, dispatch, type OpContext } from "../../adapters/operations.ts";
@@ -92,7 +93,7 @@ test("generated outputs equal the committed files (run npm run build:plugin)", (
   assert.match(read("skills/kages-improve/SKILL.md"), new RegExp(commandsMd().split("\n")[0]));
   for (const c of COMMANDS) {
     assert.equal(read(`skills/kages-improve/reference/${c.name}.md`), `# ${c.name}\n\n${c.description}.\n\n${PLAYBOOKS[c.name]}\n`);
-    assert.match(read(`commands/${promptName(c.name)}.md`), new RegExp(`^---\\ndescription: ${c.description.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\nargument-hint: `));
+    assert.match(read(`commands/${promptName(c.name)}.md`), new RegExp(`^---\\ndescription: ${yamlStr(c.description).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\nargument-hint: `));
   }
 });
 

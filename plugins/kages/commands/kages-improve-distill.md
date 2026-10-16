@@ -1,5 +1,5 @@
 ---
-description: Remove what the page does not need: fewer blocks, same job
+description: "Remove what the page does not need: fewer blocks, same job"
 argument-hint: <kage>
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: kages-evidence
-description: Evidence for a Kage critique (Assessment B): validation, lint findings, stats and render facts, summarised without opinion. Run alongside or after kages-critic.
+description: "Evidence for a Kage critique (Assessment B): validation, lint findings, stats and render facts, summarised without opinion. Run alongside or after kages-critic."
 tools: Read, mcp__kages__critique_kage, mcp__kages__validate_kage, mcp__kages__lint_kage, mcp__kages__get_kage
 ---
 
