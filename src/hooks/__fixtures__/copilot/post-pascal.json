@@ -1,0 +1,1 @@
+{"hook_event_name":"PostToolUse","session_id":"s1","timestamp":"2026-10-16T00:00:00Z","cwd":"/home/user/proj","tool_name":"create","tool_input":{"path":"/home/user/proj/pages/new.kage.json","file_text":"{}"},"tool_result":{"result_type":"success","text_result_for_llm":"ok"}}

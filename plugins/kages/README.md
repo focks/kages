@@ -1,11 +1,12 @@
 # Kages plugin
 
-Everything you need to author Kages from Claude Code, installed in one step:
+Everything you need to author, review and refine Kages from Claude Code, installed in one step (version 1.0.0):
 
-- **MCP tools** — the full Kages operation set (create, patch, list, publish, …),
-  served over the remote endpoint at `https://kages-focks-projects.vercel.app/api/mcp`.
-- **Skills** — one authoring guide per design system (`kages-core`, `kages-ledger`,
-  `kages-atelier`) with the catalog, expression/action reference, and rules.
+- **MCP tools**: the full Kages operation set, served over the remote endpoint at `https://kages-focks-projects.vercel.app/api/mcp`.
+- **Skills**: one authoring guide per design system (`kages-core`, `kages-ledger`, `kages-atelier`) with its system card, plus `kages-improve` with a playbook for each improvement move and `kages-decision-guide` for turning a technical question into an interactive guide.
+- **Commands**: `/kages:kages-improve-<move>` for critique, polish, distill, harden, clarify, onboard, adapt, quieter and bolder.
+- **Agents**: `kages-critic` and `kages-evidence` for isolated design reviews.
+- **Hook**: checks `*.kage.json` files as they are edited and reports problems once (needs the `kages` CLI on your PATH; silent without it).
 
 ## Install
 
@@ -14,17 +15,17 @@ Everything you need to author Kages from Claude Code, installed in one step:
 /plugin install kages@kages
 ```
 
-The MCP server and skills activate automatically — no `claude mcp add`, no file copying.
+The first time, Claude Code asks you to approve the hook; review it with `/hooks`.
 
 ## Access level
 
-Out of the box the endpoint is **anonymous**: you can read public Kages and try
-the tools against the demo workspace. To act on **your own** workspace, use one of:
+Out of the box the endpoint is **anonymous**: you can read public Kages and try the tools against the demo workspace. To act on **your own** workspace:
 
-- **Authenticated remote** — add an `Authorization: Bearer <token>` header to the
-  `kages` server (token from `kages auth login` → `~/.kages/config.json`).
-- **Local CLI (stdio)** — `kages auth login` then register the local server:
-  `claude mcp add kages -- kages mcp`. It routes to your cloud workspace when
-  signed in, else the local `./.kages`.
+- **Authenticated remote**: add an `Authorization: Bearer <token>` header to the `kages` server (token from `kages auth login` → `~/.kages/config.json`).
+- **Local CLI (stdio)**: `kages auth login`, then `claude mcp add kages -- kages mcp`. It routes to your cloud workspace when signed in, else the local `./.kages`.
 
-The bundled skills are generated from the engine; regenerate with `npm run build:plugin`.
+## Your own server
+
+Build the plugin against a private deployment: `KAGES_PLUGIN_MCP_URL=<your server>/api/mcp npm run build:plugins`.
+
+These files are generated from the engine; edit the sources in `src/`, never these, and regenerate with `npm run build:plugins`.

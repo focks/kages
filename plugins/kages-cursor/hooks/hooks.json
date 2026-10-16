@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "./bin/kages-hook --harness cursor --event post",
+        "timeout": 10
+      }
+    ],
+    "stop": [
+      {
+        "command": "./bin/kages-hook --harness cursor --event stop",
+        "timeout": 20
+      }
+    ]
+  }
+}

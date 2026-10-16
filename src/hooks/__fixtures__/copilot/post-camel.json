@@ -1,0 +1,1 @@
+{"sessionId":"s1","timestamp":1760000000000,"cwd":"/home/user/proj","toolName":"edit","toolArgs":{"path":"/home/user/proj/pages/pricing.kage.json","old_str":"a","new_str":"b"},"toolResult":{"resultType":"success","textResultForLlm":"ok"}}

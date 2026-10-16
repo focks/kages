@@ -1,0 +1,1 @@
+{"session_id":"abc123","cwd":"/home/user/proj","hook_event_name":"PostToolUse","tool_name":"MultiEdit","tool_input":{"file_path":"/home/user/proj/pages/pricing.kage.json","edits":[{"old_string":"a","new_string":"b"}]}}

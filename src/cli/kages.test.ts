@@ -6,12 +6,13 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, readFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "./args.ts";
-import { main } from "./kages.ts";
+import { runCli } from "../test-support/cli.ts";
+import { tmpDir } from "../test-support/tmp.ts";
 import { setupSkills } from "./setup.ts";
 import { Store } from "../store/store.ts";
 import { verifyDigest } from "../store/crypto.ts";
@@ -20,27 +21,8 @@ import type { KageDoc } from "../engine/types.ts";
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const FIXTURE = join(repoRoot, "public/ds/ops-console.kage.json");
 
-// Isolate from any real ~/.kages session so the CLI stays in local mode (never
-// hits the network) regardless of whether the test machine is signed in.
-process.env.KAGES_CONFIG_HOME = mkdtempSync(join(tmpdir(), "kages-cfg-"));
-
-/** Run the CLI capturing stdout/stderr and the exit code. */
-async function cli(argv: string[]): Promise<{ code: number; out: string; err: string }> {
-  const realOut = process.stdout.write.bind(process.stdout);
-  const realErr = process.stderr.write.bind(process.stderr);
-  let out = "", err = "";
-  (process.stdout.write as unknown as (s: string) => boolean) = (s: string) => { out += s; return true; };
-  (process.stderr.write as unknown as (s: string) => boolean) = (s: string) => { err += s; return true; };
-  try {
-    const code = await main(argv);
-    return { code, out, err };
-  } finally {
-    process.stdout.write = realOut;
-    process.stderr.write = realErr;
-  }
-}
-
-const tmpWorkspace = () => mkdtempSync(join(tmpdir(), "kages-cli-"));
+const cli = runCli;
+const tmpWorkspace = () => tmpDir("kages-cli-");
 
 test("parseArgs: positionals, flags, aliases, JSON values", () => {
   const p = parseArgs(["create", "a.json", "--repo", "kages", "-s", "ledger", "--json"]);
@@ -177,4 +159,175 @@ test("from-markdown: prose to a Kage file, then stored with --create, with notes
   assert.match((await run("ls")).out, /renamed/);
   const empty = join(dir, "empty.md"); writeFileSync(empty, "  \n"); assert.notEqual((await run("from-markdown", empty)).code, 0);
   const json = await run("from-markdown", md, "--json"); assert.equal(JSON.parse(json.out).validation.ok, true);
+});
+
+test("from-markdown: --json together with --create stores the Kage and reports it", async () => {
+  const dir = tmpWorkspace(), md = join(dir, "both.md");
+  writeFileSync(md, "# Both flags\n\nIntro.\n\n## One\n\nText.\n");
+  const run = (...a: string[]) => cli([...a, "--local", "-C", dir]);
+  await run("init");
+  const r = await run("--json", "from-markdown", md, "--create"); assert.equal(r.code, 0, r.err);
+  assert.match(JSON.parse(r.out).created.version.ref, /both-flags@v1/);
+  assert.match((await run("ls")).out, /both-flags/, "the Kage was actually stored, not only printed");
+});
+
+test("lint: --list names every rule, findings gate on P0/P1, waivers and ignoreRules apply", async () => {
+  const dir = tmpWorkspace(), ws = join(dir, ".kages");
+  const doc = (extra: object = {}) => JSON.stringify({ kages: "1.0", id: "l", title: "L", system: "core@1", root: "root", blocks: { root: { type: "stack", props: {}, slots: { children: ["b"] } }, b: { type: "button", props: { label: "Go" } } }, ...extra });
+  const file = join(dir, "l.kage.json");
+  writeFileSync(file, doc());
+  const list = await cli(["lint", "--list"]);
+  assert.equal(list.code, 0);
+  assert.match(list.out, /dead-button\s+P1/);
+  const r = await cli(["lint", file, "--json"]);
+  assert.equal(r.code, 2, "P1 finding exits 2");
+  assert.equal(JSON.parse(r.out).findings[0].rule, "dead-button");
+  writeFileSync(file, doc({ meta: { kages: { lint: { ignore: [{ rule: "dead-button", reason: "decorative preview" }] } } } }));
+  const waived = await cli(["lint", file]);
+  assert.equal(waived.code, 0);
+  assert.match(waived.out, /clean \(1 waived\)/);
+  writeFileSync(file, doc());
+  mkdirSync(ws, { recursive: true });
+  writeFileSync(join(ws, "config.json"), JSON.stringify({ version: 1, lint: { ignoreRules: ["dead-button"] } }));
+  assert.equal((await cli(["-C", ws, "lint", file])).code, 0, "workspace ignoreRules applies");
+  const explain = await cli(["lint", "--explain", "dead-button"]);
+  assert.match(explain.out, /Pressing it does nothing/);
+});
+
+test("brief: set → show → export → import round-trips, and a stale revision conflicts", async () => {
+  const dir = tmpWorkspace(), ws = ["-C", join(dir, ".kages")];
+  const jf = join(dir, "b.json"), md = join(dir, "brief.md");
+  writeFileSync(jf, JSON.stringify({ users: "Partners who query shared data", purpose: "Help them self-serve", constraints: ["WCAG AA"], absent: ["testimonials"] }));
+  assert.equal((await cli([...ws, "init"])).code, 0);
+  const set = await cli([...ws, "brief", "set", "--file", jf, "--local"]);
+  assert.equal(set.code, 0, set.out + set.err);
+  assert.match(set.out, /revision 1/);
+  assert.match((await cli([...ws, "brief", "show", "--local"])).out, /Partners who query shared data/);
+  assert.equal((await cli([...ws, "brief", "export", "-o", md, "--local"])).code, 0);
+  assert.match(readFileSync(md, "utf8"), /## Absent\n\n- testimonials/);
+  const again = await cli([...ws, "brief", "import", "--file", md, "--base-revision", "1", "--local"]);
+  assert.match(again.out, /revision 2/, again.out + again.err);
+  const same = await cli([...ws, "brief", "show", "--json", "--local"]);
+  assert.deepEqual(JSON.parse(same.out).brief, { schema: 1, users: "Partners who query shared data", purpose: "Help them self-serve", constraints: ["WCAG AA"], absent: ["testimonials"] });
+  const stale = await cli([...ws, "brief", "set", "--file", jf, "--base-revision", "1", "--local"]);
+  assert.equal(stale.code, 1);
+  assert.match(stale.err, /conflict/);
+});
+
+test("brief: show on an empty workspace says how to start", async () => {
+  const dir = tmpWorkspace();
+  const r = await cli(["-C", join(dir, ".kages"), "brief", "show", "--local"]);
+  assert.equal(r.code, 0);
+  assert.match(r.out, /no workspace brief yet/);
+});
+
+test("from-markdown --mode records a declared mode; describe labels declared and inferred", async () => {
+  const dir = tmpWorkspace(), md = join(dir, "g.md"), out = join(dir, "g.kage.json");
+  writeFileSync(md, "# Guide\n\nSome prose.\n\n## One\n\nText.\n");
+  assert.equal((await cli(["from-markdown", md, "-o", out, "--mode", "read"])).code, 0);
+  assert.equal(JSON.parse(readFileSync(out, "utf8")).brief.mode, "read");
+  assert.match((await cli(["describe", out])).out, /^mode: read \(declared\)\n/);
+  const plain = join(dir, "p.kage.json");
+  assert.equal((await cli(["from-markdown", md, "-o", plain])).code, 0);
+  assert.equal(JSON.parse(readFileSync(plain, "utf8")).brief, undefined, "no mode is recorded unless asked");
+  assert.match((await cli(["describe", plain])).out, /^mode: \w+ \(inferred, (low|medium) confidence\)\n/);
+  const bad = await cli(["from-markdown", md, "--mode", "loud"]);
+  assert.equal(bad.code, 1);
+  assert.match(bad.err, /mode must be one of/);
+});
+
+test("system card and contrast commands", async () => {
+  const card = await cli(["system", "card", "ledger"]);
+  assert.equal(card.code, 0);
+  assert.match(card.out, /^---\nsystem: ledger\nversion: /);
+  assert.match(card.out, /## Known issues\n\nNone/);
+  const tokens = await cli(["system", "card", "atelier", "--tokens"]);
+  assert.match(tokens.out, /^system: atelier/);
+  assert.doesNotMatch(tokens.out, /## Colour/);
+  const c = await cli(["system", "contrast", "core"]);
+  assert.equal(c.code, 0);
+  assert.match(c.out, /all declared pairs pass/);
+  assert.equal(JSON.parse((await cli(["system", "contrast", "core", "--json"])).out).failing, 0);
+  assert.equal((await cli(["system", "card", "nope"])).code, 1);
+});
+
+test("context: a fresh workspace says what to do first; a brief clears it; a Kage adds its findings", async () => {
+  const dir = tmpWorkspace(), ws = ["-C", join(dir, ".kages")];
+  const first = await cli([...ws, "context", "--local"]);
+  assert.equal(first.code, 0, first.err);
+  assert.match(first.out, /\[warn\] NO_BRIEF:/);
+  assert.match(first.out, /run: kages init/);
+  const jf = join(dir, "b.json");
+  writeFileSync(jf, JSON.stringify({ users: "Partners", purpose: "Self-serve" }));
+  await cli([...ws, "brief", "set", "--file", jf, "--local"]);
+  const kf = join(dir, "k.kage.json");
+  writeFileSync(kf, JSON.stringify({ kages: "1.0", id: "k", title: "K", system: "core@1", root: "root", blocks: { root: { type: "stack", props: {}, slots: { children: ["b"] } }, b: { type: "button", props: { label: "Go" } } } }));
+  await cli([...ws, "create", kf, "--local"]);
+  const j = JSON.parse((await cli([...ws, "context", "k", "--json", "--local"])).out);
+  assert.ok(!j.directives.some((d: { code: string }) => d.code === "NO_BRIEF"));
+  assert.deepEqual(j.kage.findings.top.map((f: { code: string }) => f.code), ["dead-button"]);
+  assert.ok(j.directives.some((d: { code: string }) => d.code === "LINT_P1"));
+});
+
+test("patch --dry-run reports the verdict and writes nothing", async () => {
+  const dir = tmpWorkspace(), ws = ["-C", join(dir, ".kages")];
+  const kf = join(dir, "k.kage.json"), pf = join(dir, "p.json"), bad = join(dir, "bad.json");
+  writeFileSync(kf, JSON.stringify({ kages: "1.0", id: "k", title: "K", system: "core@1", root: "root", blocks: { root: { type: "stack", props: {}, slots: { children: ["t"] } }, t: { type: "text", props: { text: "hi" } } } }));
+  writeFileSync(pf, JSON.stringify([{ op: "replace", path: "/blocks/t/props/text", value: "hello" }]));
+  writeFileSync(bad, JSON.stringify([{ op: "remove", path: "/blocks/ghost" }]));
+  await cli([...ws, "create", kf, "--local"]);
+  const ok = await cli([...ws, "patch", "k", pf, "--dry-run", "--local"]);
+  assert.equal(ok.code, 0, ok.out + ok.err);
+  assert.match(ok.out, /would create v2 \(nothing was written\)/);
+  assert.match(ok.out, /~1 changed \(t\)/);
+  const refused = await cli([...ws, "patch", "k", bad, "--dry-run", "--local"]);
+  assert.equal(refused.code, 1);
+  assert.match(refused.out, /would be refused: invalid_patch: op 0 \(remove \/blocks\/ghost\)/);
+  assert.match((await cli([...ws, "versions", "k", "--local"])).out, /^V\s.*\nv1 /m);
+  assert.doesNotMatch((await cli([...ws, "versions", "k", "--local"])).out, /v2/, "no version was created");
+});
+
+test("create and patch print new findings once; --advice quiet is silent when clean", async () => {
+  const dir = tmpWorkspace(), ws = ["-C", join(dir, ".kages")];
+  const kf = join(dir, "k.kage.json"), p1 = join(dir, "p1.json"), p2 = join(dir, "p2.json");
+  writeFileSync(kf, JSON.stringify({ kages: "1.0", id: "k", title: "K", system: "core@1", root: "root", blocks: { root: { type: "stack", props: {}, slots: { children: ["t"] } }, t: { type: "text", props: { text: "hi" } } } }));
+  writeFileSync(p1, JSON.stringify([{ op: "add", path: "/blocks/b", value: { type: "button", props: { label: "Go" } } }, { op: "add", path: "/blocks/root/slots/children/-", value: "b" }]));
+  writeFileSync(p2, JSON.stringify([{ op: "replace", path: "/blocks/t/props/text", value: "hello" }]));
+  const created = await cli([...ws, "create", kf, "--local"]);
+  assert.match(created.out, /created kages:\/\/local\/kages\/k@v1\n  ✓ no new findings/);
+  const bad = await cli([...ws, "patch", "k", p1, "--local"]);
+  assert.match(bad.out, /P1 \/blocks\/b {2}dead-button/);
+  const next = await cli([...ws, "patch", "k", p2, "--local"]);
+  assert.doesNotMatch(next.out, /dead-button/, "already reported, not repeated");
+  assert.match(next.out, /no new findings, 1 existing not repeated/);
+  const quiet = await cli([...ws, "patch", "k", p2, "--advice", "quiet", "--local"]);
+  assert.equal(quiet.out.trim().split("\n").length, 1, "quiet and clean prints only the result line");
+});
+
+test("help lists every command the CLI handles (a command nobody can discover is not shipped)", async () => {
+  const src = readFileSync(fileURLToPath(new URL("./kages.ts", import.meta.url)), "utf8");
+  const verbs = [...src.matchAll(/^\s*case "([a-z-]+)"/gm)].map((m) => m[1]).filter((v) => !["version", "help", "list"].includes(v));
+  const help = (await cli(["help"])).out;
+  const missing = [...new Set(verbs)].filter((v) => !new RegExp(`^\\s+${v}\\b`, "m").test(help) && !help.includes(` | ${v}`) && !new RegExp(`\\| ${v}\\b`).test(help));
+  assert.deepEqual(missing, []);
+});
+
+test("screenshot: -o file.png with several widths is refused before any browser starts", async () => {
+  const r = await cli(["screenshot", FIXTURE, "-o", join(tmpWorkspace(), "a.png"), "--width", "390,1200"]);
+  assert.notEqual(r.code, 0);
+  assert.match(r.err, /one --width/);
+});
+
+test("resolveDoc reads only regular *.kage.json files, so a Kage name cannot be used to probe other files", async () => {
+  const dir = tmpWorkspace();
+  const secret = join(dir, "notes.txt"); writeFileSync(secret, "not json but secret-token-123");
+  const probe = await cli(["validate", secret]);
+  assert.notEqual(probe.code, 0);
+  assert.doesNotMatch(probe.out + probe.err, /secret-token-123/, "the file's content must not appear in a parse error");
+  assert.match(probe.err, /no file or stored Kage/);
+  mkdirSync(join(dir, "ops.kage.json"));
+  const asDir = await cli(["validate", join(dir, "ops.kage.json")]);
+  assert.notEqual(asDir.code, 0);
+  assert.doesNotMatch(asDir.err, /EISDIR/, "a directory is not read as a file");
+  assert.equal((await cli(["validate", FIXTURE])).code, 0, "a real *.kage.json still works");
 });

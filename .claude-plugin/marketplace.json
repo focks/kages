@@ -1,12 +1,15 @@
 {
   "name": "kages",
-  "description": "Kages — an artifactory for agents.",
-  "owner": { "name": "Kages", "url": "https://github.com/focks/kages" },
+  "description": "Kages: an artifactory for agents.",
+  "owner": {
+    "name": "Kages",
+    "url": "https://github.com/focks/kages"
+  },
   "plugins": [
     {
       "name": "kages",
       "source": "./plugins/kages",
-      "description": "MCP tools for the Kages operation set + authoring skills for each design system.",
+      "description": "MCP tools for the Kages operation set, authoring skills for each design system, improvement moves and an edit hook.",
       "version": "1.0.0"
     }
   ]

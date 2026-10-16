@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "kages": {
+      "url": "https://kages-focks-projects.vercel.app/api/mcp"
+    }
+  }
+}

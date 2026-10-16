@@ -11,7 +11,7 @@
 import { spawn } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve as resolvePath } from "node:path";
 import type { KageDoc } from "../engine/types.ts";
 
 export interface ShotOptions {
@@ -122,48 +122,29 @@ export async function resolveBase(url: string | undefined, env: Record<string, s
     : "no running Kages app found on localhost:3000/3100/3001 — start one with `npm run dev`, or pass --url / set KAGES_URL");
 }
 
-async function launch(chrome: string, noSandbox: boolean): Promise<{ wsUrl: string; port: number; stop: () => void }> {
+export async function launch(chrome: string, noSandbox: boolean, timeoutMs = 15_000): Promise<{ wsUrl: string; port: number; stop: () => void }> {
   const profile = mkdtempSync(join(tmpdir(), "kages-shot-"));
   const args = ["--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-first-run", "--no-default-browser-check", "--remote-debugging-port=0", "--user-data-dir=" + profile, ...(noSandbox ? ["--no-sandbox"] : []), "about:blank"];
   const child = spawn(chrome, args, { stdio: ["ignore", "ignore", "pipe"] });
+  // The caller only gets `stop` after launch resolves, and calls launch before its
+  // try/finally. So every failure path here must release the child and the profile
+  // itself, or each retry leaks a headless Chrome and a temp dir.
+  const stop = () => { child.kill("SIGKILL"); try { rmSync(profile, { recursive: true, force: true }); } catch { /* best effort */ } };
   let stderr = "";
-  const ws = await new Promise<string>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Chrome did not start within 15 seconds")), 15_000);
-    child.stderr!.on("data", (d: Buffer) => { stderr += d; const m = /DevTools listening on (ws:\/\/\S+)/.exec(stderr); if (m) { clearTimeout(timer); resolve(m[1]); } });
-    child.on("error", (e) => { clearTimeout(timer); reject(new Error(`could not run Chrome (${chrome}): ${e.message}`)); });
-    child.on("exit", (code) => { clearTimeout(timer); reject(new Error(`Chrome exited early (code ${code})${/sandbox|namespace/i.test(stderr) ? " — it refused to start its sandbox; try --no-sandbox" : ""}`)); });
-  });
+  let ws: string;
+  try {
+    ws = await new Promise<string>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`Chrome did not start within ${Math.round(timeoutMs / 1000)} seconds`)), timeoutMs);
+      child.stderr!.on("data", (d: Buffer) => { stderr += d; const m = /DevTools listening on (ws:\/\/\S+)/.exec(stderr); if (m) { clearTimeout(timer); resolve(m[1]); } });
+      child.on("error", (e) => { clearTimeout(timer); reject(new Error(`could not run Chrome (${chrome}): ${e.message}`)); });
+      child.on("exit", (code) => { clearTimeout(timer); reject(new Error(`Chrome exited early (code ${code})${/sandbox|namespace/i.test(stderr) ? " — it refused to start its sandbox; try --no-sandbox" : ""}`)); });
+    });
+  } catch (e) { stop(); throw e; }
   const port = Number(new URL(ws).port);
-  return { wsUrl: ws, port, stop: () => { child.kill("SIGKILL"); try { rmSync(profile, { recursive: true, force: true }); } catch { /* best effort */ } } };
+  return { wsUrl: ws, port, stop };
 }
 
-const MEASURE = `(() => {
-  const de = document.documentElement, vw = window.innerWidth, root = document.querySelector('.kg-kage') || document.body;
-  const label = (e) => { const b = e.closest('[data-block]'); return b ? '@' + b.getAttribute('data-block') : e.tagName.toLowerCase(); };
-  const over = new Set();
-  for (const e of root.querySelectorAll('*')) { const r = e.getBoundingClientRect(); if (r.width > 0 && r.right > vw + 1 && getComputedStyle(e).position !== 'fixed') over.add(label(e)); if (over.size > 6) break; }
-  return {
-    innerWidth: vw, scrollWidth: de.scrollWidth,
-    // The tallest of three honest answers: a single read of scrollHeight taken
-    // while late layout was still settling once cut a page off mid-way.
-    scrollHeight: Math.ceil(Math.max(de.scrollHeight, document.body.scrollHeight, ...[...root.querySelectorAll('*')].map((e) => e.getBoundingClientRect().bottom + window.scrollY))),
-    blocks: document.querySelectorAll('[data-block]').length,
-    missing: [...document.querySelectorAll('.kg-missing')].map((e) => e.textContent.trim().slice(0, 160)),
-    brokenImages: [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => (i.currentSrc || i.src).slice(0, 80)),
-    overflowing: [...over],
-    tinyText: (() => {
-      // An SVG with a viewBox scales its text by (rendered width / viewBox width).
-      const out = [];
-      for (const svg of root.querySelectorAll('svg[viewBox]')) {
-        const vb = svg.viewBox.baseVal; if (!vb || !vb.width) continue;
-        const k = svg.getBoundingClientRect().width / vb.width; let min = Infinity;
-        for (const t of svg.querySelectorAll('text')) { const fs = parseFloat(t.getAttribute('font-size') || getComputedStyle(t).fontSize) || 16; min = Math.min(min, fs * k); }
-        if (min < ${MIN_TEXT_PX}) out.push(label(svg) + ' ' + (Math.round(min * 10) / 10) + 'px');
-      }
-      return out;
-    })(),
-  };
-})()`;
+const MEASURE = "window.__kages.metrics || {innerWidth:innerWidth,scrollWidth:innerWidth,scrollHeight:document.body.scrollHeight,blocks:0,missing:[],brokenImages:[],overflowing:[],tinyText:[]}";
 
 /** Render one document at each requested width. One browser, one page per width. */
 export async function screenshotDoc(doc: KageDoc, opts: ShotOptions): Promise<ShotResult[]> {
@@ -211,4 +192,16 @@ export async function screenshotDoc(doc: KageDoc, opts: ShotOptions): Promise<Sh
     }
   } finally { browser.stop(); }
   return results;
+}
+
+/** Where each width's PNG goes. `-o name.png` names one file, so it cannot hold several widths (it used
+ *  to be ignored and the files landed in the current directory). The document id comes from the input
+ *  file, so it is reduced to a plain filename: an id like `../../x` must not write outside `-o`. */
+export function shotFiles(target: string | undefined, widths: number[], docId: string): string[] {
+  if (target && /\.png$/i.test(target)) {
+    if (widths.length !== 1) throw new Error("-o with a .png file needs exactly one --width; pass a directory to write one file per width");
+    return [resolvePath(target)];
+  }
+  const id = String(docId).replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^[.-]+/, "") || "kage";
+  return widths.map((w) => resolvePath(target ?? ".", `${id}-${w}.png`));
 }

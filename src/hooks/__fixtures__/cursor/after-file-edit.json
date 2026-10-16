@@ -1,0 +1,1 @@
+{"conversation_id":"c1","generation_id":"g1","model":"x","hook_event_name":"afterFileEdit","cursor_version":"1.0","workspace_roots":["/home/user/proj"],"user_email":null,"file_path":"/home/user/proj/pages/pricing.kage.json","edits":[{"old_string":"a","new_string":"b"}]}

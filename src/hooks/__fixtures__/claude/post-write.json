@@ -1,0 +1,1 @@
+{"session_id":"abc123","cwd":"/home/user/proj","hook_event_name":"PostToolUse","tool_name":"Write","tool_input":{"file_path":"/home/user/proj/pages/new.kage.json","content":"{}"}}

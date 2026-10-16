@@ -1,0 +1,17 @@
+{
+  "name": "kages",
+  "version": "1.0.0",
+  "description": "Author interactive Kages from an agent: authoring guides per design system, improvement playbooks, MCP tools and an edit hook.",
+  "author": {
+    "name": "Kages"
+  },
+  "homepage": "https://github.com/focks/kages",
+  "repository": "https://github.com/focks/kages",
+  "license": "MIT",
+  "keywords": [
+    "kages",
+    "mcp",
+    "agents",
+    "design-systems"
+  ]
+}

@@ -13,6 +13,10 @@ import { join } from "node:path";
 import { systems } from "../engine/data.ts";
 import { pack } from "../packs/packs.ts";
 import { out, err } from "./format.ts";
+import { ALL_HARNESSES, setupHooks } from "../hooks/install.ts";
+import type { HarnessId } from "../hooks/harnesses.ts";
+import { createInterface } from "node:readline/promises";
+import { setKey } from "../config/write.ts";
 
 interface Harness {
   // Absolute path to write the skill for `systemId`, and the dirs it needs.
@@ -62,8 +66,28 @@ export function setupSkills(harnesses: string[]): number {
   return 0;
 }
 
+/** `kages setup hooks`: see src/hooks/install.ts. */
+async function setupHooksCmd(harnesses: string[], flags: Record<string, unknown>, workspace: string): Promise<number> {
+  const ids = (harnesses.length ? harnesses.flatMap((h) => h.split(",")) : ["claude"]) as HarnessId[];
+  for (const h of ids) if (!ALL_HARNESSES.includes(h)) { err(`unknown harness '${h}' for hooks (${ALL_HARNESSES.join(", ")}; grok has no verified hook format yet)`); return 1; }
+  const scope = flags.scope === "global" ? "global" : "project";
+  const tty = !!process.stdin.isTTY && !flags.yes;
+  const rl = tty ? createInterface({ input: process.stdin, output: process.stderr }) : null;
+  try {
+    const r = await setupHooks({
+      harnesses: ids, scope, projectDir: process.cwd(), homeDir: homedir(),
+      dryRun: flags["dry-run"] === true, yes: flags.yes === true, force: flags.force === true, uninstall: flags.uninstall === true, noHooks: flags["no-hooks"] === true,
+      confirm: rl ? async (q) => !/^n/i.test((await rl.question(`${q} [Y/n] `)).trim()) : undefined,
+      recordConsent: (v) => { try { setKey(join(workspace, "config.local.json"), "hook.consent", v); } catch { /* consent memory is a courtesy */ } },
+    });
+    for (const l of r.lines) out(l);
+    return r.exit;
+  } finally { rl?.close(); }
+}
+
 /** Dispatch the `setup` toolset. */
-export function setupCmd(rest: string[], harnesses: string[]): number {
-  if (rest[0] !== "skills") { err("usage: kages setup skills [--harness claude|codex] ..."); return 1; }
+export function setupCmd(rest: string[], harnesses: string[], flags: Record<string, unknown> = {}, workspace = ".kages"): number | Promise<number> {
+  if (rest[0] === "hooks") return setupHooksCmd(harnesses, flags, workspace);
+  if (rest[0] !== "skills") { err("usage: kages setup skills [--harness claude|codex] ... | kages setup hooks [--harness claude,cursor,codex,copilot] [--scope project|global] [--dry-run] [--yes] [--force] [--uninstall] [--no-hooks]"); return 1; }
   return setupSkills(harnesses.length ? harnesses : ["claude"]);
 }

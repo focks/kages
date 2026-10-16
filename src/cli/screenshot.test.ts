@@ -6,8 +6,10 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { findChrome, parseWidths, resolveBase, screenshotDoc, summarize, DEFAULTS, type PageMetrics } from "./screenshot.ts";
+import { chmodSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { findChrome, launch, parseWidths, shotFiles, resolveBase, screenshotDoc, summarize, DEFAULTS, type PageMetrics } from "./screenshot.ts";
 import { renderTool } from "./render-tool.ts";
 import type { KageDoc } from "../engine/types.ts";
 
@@ -76,4 +78,44 @@ test("tiny chart text is flagged, and wide figures scroll instead of shrinking o
   assert.ok((await shot(tiny, { widths: [390] }))[0].issues.some((i) => /too small to read/.test(i)));
   const chart = { kages: "1.0", id: "c", title: "C", system: "core@1", root: "r", blocks: { r: { type: "page", slots: { children: ["c"] } }, c: { type: "combo-chart", props: { label: "C", categories: ["a", "b", "c"], series: [{ name: "x", kind: "bar", values: [1, 2, 3] }] } } } };
   const [r] = await shot(chart, { widths: [390] }); assert.deepEqual(r.issues, [], "a chart stays legible and the page does not scroll sideways: " + r.issues.join("; "));
+});
+
+// F2: launch() owns a child process and a temp profile; every way it can fail
+// must release both, or each agent retry leaks a headless Chrome and a profile dir.
+test("launch: timeout, early exit and spawn error each kill the child and remove the profile", async () => {
+  const root = mkdtempSync(join(tmpdir(), "kages-launch-test-"));
+  const prevTmp = process.env.TMPDIR;
+  process.env.TMPDIR = root; // tmpdir() reads this per call, so profiles land in a dir we can inspect
+  try {
+    const fake = (name: string, body: string) => { const f = join(root, name); writeFileSync(f, `#!/bin/sh\n${body}\n`); chmodSync(f, 0o755); return f; };
+    const profiles = () => readdirSync(root).filter((n) => n.startsWith("kages-shot-"));
+    const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
+
+    const pidFile = join(root, "pid");
+    const hang = fake("hang.sh", `echo $$ > ${pidFile}\nexec sleep 30`);
+    await assert.rejects(launch(hang, false, 300), /did not start/);
+    const pid = Number(readFileSync(pidFile, "utf8"));
+    for (let i = 0; i < 50 && alive(pid); i++) await new Promise((r) => setTimeout(r, 20)); // SIGKILL is delivered asynchronously
+    assert.equal(alive(pid), false, "the hung child was killed on timeout");
+    assert.deepEqual(profiles(), [], "profile removed after timeout");
+
+    await assert.rejects(launch(fake("early.sh", "exit 3"), false, 5000), /exited early/);
+    assert.deepEqual(profiles(), [], "profile removed after early exit");
+
+    await assert.rejects(launch(join(root, "missing-binary"), false, 5000), /could not run Chrome/);
+    assert.deepEqual(profiles(), [], "profile removed after spawn error");
+  } finally {
+    if (prevTmp === undefined) delete process.env.TMPDIR; else process.env.TMPDIR = prevTmp;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("shotFiles: -o file.png needs one width, and a hostile document id cannot leave the output directory", () => {
+  assert.deepEqual(shotFiles("/o/a.png", [1200], "doc"), ["/o/a.png"]);
+  assert.throws(() => shotFiles("/o/a.png", [390, 1200], "doc"), /one --width/);
+  assert.deepEqual(shotFiles("/o", [390, 1200], "doc"), ["/o/doc-390.png", "/o/doc-1200.png"]);
+  const [f] = shotFiles("/o", [1200], "../../x"); assert.equal(dirname(f), "/o", f);
+  assert.ok(shotFiles("/o", [1200], "..")[0].startsWith("/o/"));
+  assert.ok(shotFiles("/o", [1200], "")[0].startsWith("/o/"));
+  assert.equal(dirname(shotFiles(undefined, [1200], "d")[0]), process.cwd());
 });

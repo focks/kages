@@ -1,0 +1,1 @@
+{"hook_event_name":"PostToolUse","tool_name":"apply_patch","tool_input":{"command":"*** Begin Patch\n*** Update File: pages/pricing.kage.json\n@@\n-a\n+b\n*** Add File: pages/new.kage.json\n+{}\n*** Update File: src/app.ts\n@@\n-x\n+y\n*** End Patch"},"turn_id":"t1","tool_use_id":"u1","session_id":"s1","cwd":"/home/user/proj"}
