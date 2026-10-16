@@ -11,7 +11,8 @@
 import { resolve, systemOf } from "../engine/resolve.ts";
 import { clone } from "../engine/expr.ts";
 import { applyPatch, type PatchOp } from "../collab/patch.ts";
-import type { KageDoc, Block } from "../engine/types.ts";
+import { briefIssues } from "../engine/brief.ts";
+import type { KageDoc, Block, KageBrief, Mode } from "../engine/types.ts";
 
 /** Where a block sits: its parent, which slot, and its index in that slot. */
 export interface Loc { parentId: string; slot: string; index: number; }
@@ -182,11 +183,26 @@ export function docDiff(oldDoc: KageDoc, newDoc: KageDoc): PatchOp[] {
     if (oldDoc[key] !== newDoc[key]) ops.push({ op: "replace", path: `/${key}`, value: newDoc[key] as never });
   // Definitions sit outside blocks; omitting them would show edits in preview
   // and then silently discard them when Save constructs its patch.
-  for (const key of ["state", "data", "compositions"] as const) {
+  for (const key of ["state", "data", "compositions", "brief"] as const) {
     if (JSON.stringify(oldDoc[key]) === JSON.stringify(newDoc[key])) continue;
     if (oldDoc[key] === undefined) ops.push({ op: "add", path: `/${key}`, value: clone(newDoc[key]) as never });
     else if (newDoc[key] === undefined) ops.push({ op: "remove", path: `/${key}` });
     else ops.push({ op: "replace", path: `/${key}`, value: clone(newDoc[key]) as never });
   }
   return ops;
+}
+
+/** Set (or with null, remove) the Kage's brief. Validated, because a bad brief
+ *  would be saved silently: the oracle validator ignores unknown top-level keys. */
+export function setBrief(doc: KageDoc, brief: KageBrief | null): KageDoc {
+  if (brief === null) { const { brief: _gone, ...rest } = doc; return rest as KageDoc; }
+  const issues = briefIssues(brief);
+  if (issues.length) throw new Error(issues.join("; "));
+  return { ...doc, brief: clone(brief) };
+}
+
+/** Change only the mode, keeping any audience/job/evidence already written. */
+export function setMode(doc: KageDoc, mode: Mode | null): KageDoc {
+  if (mode === null) return setBrief(doc, null);
+  return setBrief(doc, { ...(doc.brief ?? {}), mode });
 }

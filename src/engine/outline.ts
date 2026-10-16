@@ -40,7 +40,7 @@ const MAX_CHARS = 100_000, MAX_BLOCKS = 300, MAX_TEXT = 20_000;
 type Piece =
   | { kind: "heading"; level: number; text: string }
   | { kind: "text"; lines: string[] }
-  | { kind: "fence"; lang: string; title: string; code: string }
+  | { kind: "fence"; lang: string; title: string; code: string; unclosed?: boolean }
   | { kind: "table"; header: string[]; rows: string[][] }
   | { kind: "callout"; tone: "info" | "success" | "warning" | "danger"; title: string; text: string }
   | { kind: "image"; alt: string; src: string }
@@ -64,7 +64,12 @@ function frontMatter(text: string): { meta: Record<string, string>; body: string
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
   if (!m) return { meta: {}, body: text };
   const meta: Record<string, string> = {};
-  for (const line of m[1].split(/\r?\n/)) { const kv = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line); if (kv) meta[kv[1].toLowerCase()] = kv[2].replace(/^["']|["']$/g, "").trim().slice(0, 300); }
+  // A `---` paragraph `---` pair at the top is a thematic break around prose, not metadata.
+  // Treating it as front matter discarded the intro without a trace, so it counts only when every
+  // non-blank line is `key: value`.
+  const lines = m[1].split(/\r?\n/).filter((l) => l.trim());
+  if (!lines.every((l) => /^([A-Za-z_][\w-]*):\s*(.*)$/.test(l))) return { meta: {}, body: text };
+  for (const line of lines) { const kv = /^([A-Za-z_][\w-]*):\s*(.*)$/.exec(line); if (kv) meta[kv[1].toLowerCase()] = kv[2].replace(/^["']|["']$/g, "").trim().slice(0, 300); }
   return { meta, body: text.slice(m[0].length) };
 }
 
@@ -83,7 +88,7 @@ function tokenize(body: string): Piece[] {
       const fence = m[1], code: string[] = []; i++;
       while (i < lines.length && !new RegExp("^\\s*" + fence[0] + "{" + fence.length + ",}\\s*$").test(lines[i])) code.push(lines[i++]);
       const title = /title=["']([^"']+)["']/.exec(m[3])?.[1] ?? "";
-      out.push({ kind: "fence", lang: m[2].toLowerCase(), title, code: code.join("\n") });
+      out.push({ kind: "fence", lang: m[2].toLowerCase(), title, code: code.join("\n"), ...(i >= lines.length ? { unclosed: true } : {}) });
       continue;
     }
     if (/^\s*\$\$/.test(line)) { // display math stays in the prose, where the markdown block renders it
@@ -122,6 +127,7 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
   if (src.length > MAX_CHARS) { src = src.slice(0, MAX_CHARS); notes.push(`The text was cut at ${MAX_CHARS.toLocaleString("en-US")} characters.`); }
   const { meta, body } = frontMatter(src);
   const pieces = tokenize(body);
+  for (const p of pieces) if (p.kind === "fence" && p.unclosed) notes.push(`A code fence${p.lang ? ` (${p.lang})` : ""} was never closed, so everything after it became part of that code block.`);
   const stats = { blocks: 0, sections: 0, tables: 0, code: 0, callouts: 0, images: 0, faq: 0 };
 
   // --- title and hero ---
@@ -149,12 +155,14 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
   const blocks: Record<string, Block> = {};
   const content: string[] = [];
   let seq = 0;
+  let dropped = false; // a block was refused at the cap; the loop's own check may never see it (last piece)
   const add = (prefix: string, block: Block): string => {
-    if (stats.blocks >= MAX_BLOCKS) return "";
+    if (stats.blocks >= MAX_BLOCKS) { dropped = true; return ""; }
     const id = uid(`${prefix}-${++seq}`); blocks[id] = block; content.push(id); stats.blocks++; return id;
   };
   const tocItems: { label: string; target: string; level: number }[] = [];
   const anchorFor = (text: string, level: number) => {
+    if (stats.blocks >= MAX_BLOCKS) { dropped = true; return; } // an anchor is a block too; skipping the toc entry with it keeps links honest
     const name = uid("sec-" + (slug(text, 32) || "section")).replace(/^sec-/, "");
     blocks["a-" + name] = { type: "anchor", props: { name } }; content.push("a-" + name); stats.blocks++;
     tocItems.push({ label: plain(text).slice(0, 80), target: name, level });
@@ -173,7 +181,7 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
 
   for (let i = 0; i < pieces.length; i++) {
     const p = pieces[i];
-    if (stats.blocks >= MAX_BLOCKS) { notes.push(`Stopped at ${MAX_BLOCKS} blocks; the rest of the text was left out.`); break; }
+    if (stats.blocks >= MAX_BLOCKS) { dropped = true; break; }
 
     if (p.kind === "heading") {
       if (p.level === 2 && isFaq(p.text)) {
@@ -213,6 +221,8 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
     }
     if (p.kind === "table") {
       const cols = p.header.slice(0, 12).map((h, k) => ({ key: "c" + k, label: plain(h).slice(0, 60) || "Column " + (k + 1) }));
+      if (p.header.length > 12) notes.push(`A table had ${p.header.length} columns; only the first 12 were kept.`);
+      if (p.rows.length > 500) notes.push(`A table kept 500 of ${p.rows.length} rows; the rest were left out.`);
       const rows = p.rows.slice(0, 500).map((r) => Object.fromEntries(cols.map((c, k) => [c.key, plain(r[k] ?? "").slice(0, 400)])));
       const big = rows.length > 8;
       add(big ? "grid" : "tbl", big ? { type: "data-grid", props: { label: "Table", columns: cols, rows, pageSize: 10, filterable: true } } : { type: "table", props: { columns: cols, rows } });
@@ -224,6 +234,7 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
       // Blank lines between fences are separate (empty) text pieces; look through them.
       const nextFence = () => { let k = i + 1; while (pieces[k]?.kind === "text" && (pieces[k] as { lines: string[] }).lines.every((l) => !l.trim())) k++; return pieces[k]?.kind === "fence" ? k : -1; };
       for (let k = nextFence(); k >= 0 && (pieces[k] as { lang: string }).lang !== group[group.length - 1].lang; k = nextFence()) { group.push(pieces[k] as Extract<Piece, { kind: "fence" }>); i = k; }
+      if (group.length > 8) notes.push(`${group.length} adjacent code blocks: only the first 8 became tabs; the rest were left out.`);
       if (group.length >= 2) {
         const tabs = group.slice(0, 8).map((g) => ({ id: uid("t-" + (g.lang || "text")), label: LANG_LABEL[g.lang] ?? (g.lang || "Text"), language: g.lang || "text", code: g.code.slice(0, 20000) }));
         add("tabs", { type: "code-tabs", props: { ...(p.title ? { caption: p.title } : {}), tabs } }); stats.code++; notes.push(`${group.length} adjacent code blocks became tabs (${tabs.map((t) => t.label).join(", ")}).`);
@@ -232,6 +243,7 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
     }
   }
   flush();
+  if (dropped) notes.push(`Stopped at ${MAX_BLOCKS} blocks; the rest of the text was left out.`);
 
   // --- assemble ---
   const heroProps: Record<string, string | number> = { title, inset: 0 };
@@ -248,7 +260,9 @@ export function outlineToKage(markdown: string, opts: OutlineOptions = {}): Outl
   } else root.slots!.children.push(...content);
   blocks.root = root;
 
-  const id = (opts.id && /^[a-z0-9][a-z0-9-]{0,62}$/.test(opts.id) ? opts.id : slug(title, 48)) || "untitled";
+  const idOk = !!opts.id && /^[a-z0-9][a-z0-9-]{0,62}$/.test(opts.id);
+  const id = (idOk ? opts.id! : slug(title, 48)) || "untitled";
+  if (opts.id && !idOk) notes.push(`The id "${opts.id}" is not lowercase letters, digits and hyphens, so "${id}" was used instead.`);
   const doc: KageDoc = { kages: "1.0", id, title: title.slice(0, 160), system: opts.system ?? "core@1", root: "root", blocks };
   if (meta.description) (doc as { description?: string }).description = plain(meta.description).slice(0, 300);
   return { doc, notes, stats };

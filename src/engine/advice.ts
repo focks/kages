@@ -15,11 +15,17 @@
 // changes whether a document is valid. See oracle/advice.feature.
 
 import { ACTIONS } from "./runtime-core.ts";
-import { resolve, systemOf } from "./resolve.ts";
+import { resolve } from "./resolve.ts";
 import { systems } from "./data.ts";
 import { validate } from "./validate.ts";
-import { walkExpr } from "./expr.ts";
+import { buildContext } from "./rules/context.ts";
+import type { Deprecation } from "./deprecations.ts";
+import { RULES, ruleById } from "./rules/index.ts";
+import { nearest, list } from "./rules/text.ts";
+import type { Rule, Severity, Tier } from "./rules/types.ts";
 import type { Block, KageDoc, ValidateResult } from "./types.ts";
+
+export { nearest };
 
 export interface Advice {
   /** "hint" explains a validator finding; "lint" flags a pitfall the validator allows. */
@@ -29,34 +35,12 @@ export interface Advice {
   msg: string;
   /** What to change, in one sentence an agent can act on. */
   fix?: string;
+  /** Lint findings carry their rule's id, severity and tier (hints do not). */
+  rule?: string;
+  severity?: Severity;
+  tier?: Tier;
 }
 
-/** Edit distance, bounded: past `max` the answer no longer matters. */
-function distance(a: string, b: string, max: number): number {
-  if (Math.abs(a.length - b.length) > max) return max + 1;
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-  for (let i = 1; i <= a.length; i++) {
-    const row = [i];
-    for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    prev = row;
-  }
-  return prev[b.length];
-}
-
-/** The closest candidate, if it is close enough to be a plausible typo rather
- *  than a coincidence. Case-insensitive; a shared prefix/suffix also counts. */
-export function nearest(word: string, candidates: readonly string[]): string | undefined {
-  const w = word.toLowerCase();
-  let best: string | undefined, bestD = Infinity;
-  for (const c of candidates) {
-    const lc = c.toLowerCase();
-    const d = lc === w ? 0 : distance(w, lc, 4) - (lc.includes(w) || w.includes(lc) ? 1 : 0);
-    if (d < bestD) { bestD = d; best = c; }
-  }
-  return best !== undefined && bestD <= Math.max(2, Math.floor(w.length / 3)) ? best : undefined;
-}
-
-const list = (xs: readonly string[]) => (xs.length ? xs.map((x) => "`" + x + "`").join(", ") : "none");
 const blockOf = (doc: KageDoc, at: string): { id: string; block: Block } | undefined => {
   const id = /^\/blocks\/([^/]+)/.exec(at)?.[1];
   return id && doc.blocks[id] ? { id, block: doc.blocks[id] } : undefined;
@@ -163,103 +147,81 @@ export function advise(doc: KageDoc, result: ValidateResult): Advice[] {
   return out;
 }
 
-/** Every `on` handler as a flat list of actions. */
-function actionsOf(doc: KageDoc): { id: string; event: string; action: Record<string, unknown> }[] {
-  const out: { id: string; event: string; action: Record<string, unknown> }[] = [];
-  for (const [id, b] of Object.entries(doc.blocks))
-    for (const [event, h] of Object.entries(b.on && typeof b.on === "object" ? b.on : {})) for (const a of Array.isArray(h) ? h : [h]) if (a && typeof a === "object") out.push({ id, event, action: a as unknown as Record<string, unknown> });
-  return out;
-}
-
-/** Every expression-bearing value in a block, with its JSON pointer. */
-function exprsOf(id: string, b: Block): { at: string; value: unknown }[] {
-  const base = "/blocks/" + id;
-  return [{ at: base + "/props", value: b.props }, { at: base + "/bind", value: b.bind }, { at: base + "/visible", value: b.visible }, { at: base + "/on", value: b.on }, { at: base + "/repeat", value: b.repeat }].filter((e) => e.value !== undefined);
-}
-
-const CHARTS = new Set(["area-chart", "donut-chart", "heatmap", "combo-chart", "stacked-bar-chart", "funnel-chart", "treemap", "sankey", "map", "bar-chart", "line-chart", "scatter-chart"]);
-const SELECTABLE = new Set(["donut-chart", "heatmap", "funnel-chart", "treemap", "map"]);
-const DATA_PROP: Record<string, string> = { "area-chart": "items", "donut-chart": "items", "heatmap": "values", "combo-chart": "series", "stacked-bar-chart": "series", "funnel-chart": "stages", "treemap": "items", "sankey": "links", "map": "features", "bar-chart": "items", "line-chart": "items", "scatter-chart": "items" };
-
-/** Pitfalls a valid document can still have. Each finding names the block and a fix. */
+/** Pitfalls a valid document can still have. Each finding names the block and a
+ *  fix. The rules themselves live in ./rules; this is the thin pipeline over them. */
 export function lint(doc: KageDoc, override?: string): Advice[] {
-  const out: Advice[] = [];
-  const system = override ?? systemOf(doc);
-  const add = (at: string, code: string, msg: string, fix?: string) => out.push({ level: "lint", at, code, msg, ...(fix ? { fix } : {}) });
-  // Documents are untrusted: tolerate anything shaped wrongly rather than throw,
-  // since lint runs on drafts an agent is still assembling.
-  const raw = doc && typeof doc.blocks === "object" && doc.blocks ? doc.blocks : {};
-  const blocks: KageDoc["blocks"] = Object.fromEntries(Object.entries(raw).filter(([, b]) => b && typeof b === "object"));
-  doc = { ...doc, blocks };
-  const actions = actionsOf(doc);
-  const reads = new Set<string>(); // "block.output" strings that something reads
-  const stateKeys = new Set(Object.keys(doc.state ?? {}));
-  const handled = new Set(actions.map((a) => a.id + ":" + a.event));
+  return lintDetailed(doc, { system: override }).findings;
+}
 
-  // Pass 1: what is read anywhere, so a rule about block A can see a read in block Z.
-  for (const [id, b] of Object.entries(blocks)) {
-    for (const { at, value } of exprsOf(id, b)) {
-      walkExpr(value as never, (op, arg) => {
-        if (op === "$block") reads.add(String(arg));
-        if (op === "$tpl" && typeof arg === "string") {
-          for (const m of arg.matchAll(/\{\{\s*([a-zA-Z]+)\.([^}\s]+)\s*\}\}/g)) {
-            const [, ns, path] = m;
-            if (ns === "block") {
-              reads.add(path);
-              const [bid, ...rest] = path.split("."), tgt = blocks[bid];
-              if (!tgt) add(at, "tpl-missing-block", `A template reads \`{{block.${path}}}\` but there is no block \`${bid}\`.`, `Fix the id or add the block.`);
-              else {
-                const outs = resolve(system, tgt.type).contract?.outputs ?? [];
-                if (outs.length && !outs.includes(rest[0])) add(at, "tpl-private-read", `A template reads \`{{block.${path}}}\`, but \`${rest[0]}\` is not an output of ${tgt.type} (outputs: ${list(outs)}); it renders empty.`, "Read a declared output, or store the value in state and use {{state.key}}.");
-              }
-            } else if (ns === "state" && stateKeys.size && !stateKeys.has(path.split(".")[0])) {
-              const guess = nearest(path.split(".")[0], [...stateKeys]);
-              add(at, "tpl-undeclared-state", `A template reads \`{{state.${path}}}\`, but that state key is not declared; it renders empty.`, guess ? `Did you mean \`${guess}\`?` : `Declare it in \`state\`.`);
-            }
-          }
-        }
-      });
+export interface LintOptions {
+  system?: string;
+  /** Run only one tier; omitted = every rule. */
+  tier?: Tier;
+  /** Workspace-level rule ids that never report (config `lint.ignoreRules`). */
+  ignoreRules?: readonly string[];
+  /** The workspace brief's `absent` list: raises the severity of a claim it names. */
+  absent?: readonly string[];
+  /** The deprecation registry to check against (default: the shipped one). */
+  deprecations?: readonly Deprecation[];
+  /** Rules to run instead of the registry; for tests and embedders. */
+  rules?: readonly Rule[];
+  /** Per-rule severity overrides (config `lint.severity`). */
+  severity?: Readonly<Record<string, Severity>>;
+}
+
+export interface LintReport {
+  findings: Advice[];
+  /** Findings removed by a waiver, kept so the audit log and doctor can count them. */
+  waived: Advice[];
+  /** Rule ids that actually ran. */
+  ran: string[];
+}
+
+interface Waiver { rule: string; block?: string; reason: string }
+const SEV: Record<Severity, number> = { P0: 0, P1: 1, P2: 2, P3: 3 };
+const MIN_REASON = 8;
+
+function waiversOf(doc: KageDoc, out: Advice[]): Waiver[] {
+  const raw = ((doc?.meta as { kages?: { lint?: { ignore?: unknown } } } | undefined)?.kages?.lint?.ignore);
+  if (raw === undefined) return [];
+  const bad = (i: number, msg: string, fix: string) => out.push({ level: "lint", at: `/meta/kages/lint/ignore/${i}`, code: "bad-waiver", rule: "bad-waiver", severity: "P3", tier: "immediate", msg, fix });
+  if (!Array.isArray(raw)) { bad(0, "`meta.kages.lint.ignore` must be a list of {rule, block?, reason}.", "Make it an array."); return []; }
+  const ok: Waiver[] = [];
+  raw.forEach((w, i) => {
+    const x = w as Partial<Waiver> | null;
+    if (!x || typeof x.rule !== "string") return bad(i, "A lint waiver needs a `rule`.", "Name the rule id to waive.");
+    if (!ruleById(x.rule)) return bad(i, `The waiver names an unknown rule \`${x.rule}\`.`, "Use an id from `kages lint --list`.");
+    if (typeof x.reason !== "string" || x.reason.trim().length < MIN_REASON) return bad(i, `The waiver for \`${x.rule}\` needs a reason of at least ${MIN_REASON} characters.`, "Say why this finding is acceptable here; a waiver without a reason is just silence.");
+    ok.push({ rule: x.rule, ...(typeof x.block === "string" ? { block: x.block } : {}), reason: x.reason });
+  });
+  return ok;
+}
+
+/** Run the registry, apply waivers, and return findings sorted by severity then
+ *  location. Deterministic: same document, same ordered output. */
+export function lintDetailed(doc: KageDoc, opts: LintOptions = {}): LintReport {
+  const ctx = buildContext(doc, opts.system, opts.deprecations, opts.absent);
+  const findings: Advice[] = [], waived: Advice[] = [], ran: string[] = [];
+  const meta: Advice[] = [];
+  const waivers = waiversOf(ctx.doc, meta);
+  const ignored = new Set(opts.ignoreRules ?? []);
+  for (const rule of opts.rules ?? RULES) {
+    if (opts.tier && rule.tier !== opts.tier) continue;
+    if (rule.modes && (!ctx.mode || !rule.modes.includes(ctx.mode))) continue;
+    if (ignored.has(rule.id)) continue;
+    ran.push(rule.id);
+    const ruleSeverity = opts.severity?.[rule.id] ?? rule.severity;
+    for (const f of rule.check(ctx)) {
+      const severity = opts.severity?.[rule.id] ?? f.severity ?? ruleSeverity;
+      const advice: Advice = { level: "lint", at: f.at, code: rule.id, msg: f.msg, ...(f.fix ? { fix: f.fix } : {}), rule: rule.id, severity, tier: rule.tier };
+      const block = f.at.startsWith("/blocks/") ? f.at.split("/")[2] : undefined;
+      const hit = waivers.some((w) => w.rule === rule.id && (w.block === undefined || w.block === block));
+      (hit ? waived : findings).push(advice);
     }
   }
-
-  // Pass 2: per-block pitfalls.
-  for (const [id, b] of Object.entries(blocks)) {
-    const p = (b.props ?? {}) as Record<string, unknown>, base = "/blocks/" + id;
-
-    if (b.type === "button" && !handled.has(id + ":click")) add(base, "dead-button", `Button \`${id}\` has no click handler, so pressing it does nothing.`, `Add on.click, for example [{"do":"set","path":"…","value":…}] or a call to another block's command.`);
-    if (b.type === "form" && !handled.has(id + ":submit")) add(base, "form-unwired", `Form \`${id}\` has no submit handler; submitted values are discarded.`, `Add on.submit: [{"do":"set","path":"submitted","value":{"$event":"values"}}] and declare that state key.`);
-    if (b.type === "modal" && !actions.some((a) => a.action.do === "call" && a.action.target === id && (a.action.command === "open" || a.action.command === "toggle")) && b.visible === undefined)
-      add(base, "modal-unreachable", `Modal \`${id}\` is never opened: nothing calls its \`open\` command.`, `Give a button on.click: [{"do":"call","target":"${id}","command":"open"}].`);
-    if (b.type === "toc") for (const [i, it] of (Array.isArray(p.items) ? p.items : []).entries()) {
-      const target = String((it as { target?: unknown })?.target ?? "");
-      if (!Object.values(blocks).some((x) => x.type === "anchor" && String((x.props as { name?: unknown })?.name ?? "") === target)) add(`${base}/props/items/${i}`, "toc-missing-anchor", `The outline links to \`${target}\`, but no anchor block has that name; the link goes nowhere.`, `Add {"type":"anchor","props":{"name":"${target}"}} before the heading.`);
-    }
-    if (b.type === "tab-panel") {
-      const n = Array.isArray(p.tabs) ? p.tabs.length : 0, used = Object.keys(b.slots ?? {}).filter((s) => /^panel\d$/.test(s) && (b.slots![s] ?? []).length);
-      for (const s of used) if (Number(s.slice(5)) > n) add(`${base}/slots/${s}`, "tab-panel-extra-slot", `\`${s}\` has content but there are only ${n} tab(s); it will never show.`, "Add a tab for it or move the blocks.");
-      for (let i = 1; i <= Math.min(n, 6); i++) if (!used.includes("panel" + i)) add(`${base}/slots/panel${i}`, "tab-panel-empty", `Tab ${i} has no blocks in \`panel${i}\`; it will open to an empty panel.`, `Put blocks in slots.panel${i}.`);
-    }
-    for (const [k, v] of Object.entries(p)) if (Array.isArray(v) && v.length > 1 && v.every((x) => x && typeof x === "object" && typeof (x as { id?: unknown }).id === "string")) {
-      const ids = (v as { id: string }[]).map((x) => x.id), dup = ids.find((x, i) => ids.indexOf(x) !== i);
-      if (dup !== undefined) add(`${base}/props/${k}`, "duplicate-item-id", `\`${k}\` of \`${id}\` repeats the id "${dup}"; selecting one will select both.`, "Give each item a unique id.");
-    }
-    if ((b.type === "video" || b.type === "audio") && typeof p.src === "string" && /^http:\/\//i.test(p.src)) add(`${base}/props/src`, "insecure-media", `\`${id}\` uses an http:// source; media must be https or a local path, so it will not play.`, "Use the https:// URL.");
-    if (b.type === "gallery") for (const [i, it] of (Array.isArray(p.items) ? p.items : []).entries()) if (typeof (it as { src?: unknown })?.src === "string" && /^http:\/\//i.test((it as { src: string }).src)) add(`${base}/props/items/${i}/src`, "insecure-media", `Gallery image ${i + 1} uses http://; only https or local images render.`, "Use the https:// URL.");
-    if (CHARTS.has(b.type)) {
-      const key = DATA_PROP[b.type];
-      if (Array.isArray(p[key]) && (p[key] as unknown[]).length === 0 && !(b.bind && key in b.bind)) add(`${base}/props/${key}`, "empty-chart", `\`${id}\` (${b.type}) has an empty \`${key}\` and no binding, so it will only show "No data".`, `Provide ${key} or bind.${key} from data/state.`);
-      if (SELECTABLE.has(b.type) && p.interactive === true && !handled.has(id + ":select") && ![...reads].some((r) => r.split(".")[0] === id)) add(base, "selection-unused", `\`${id}\` is interactive but nothing reads its selection, so clicking it changes nothing visible.`, `Read {"$block":"${id}.selected"} in another block's bind, or add on.select.`);
-    }
-    if (b.type === "calendar" && typeof p.month === "string" && !/^\d{4}-(0[1-9]|1[0-2])$/.test(p.month) && !(b.bind && "month" in b.bind)) add(`${base}/props/month`, "calendar-month", `\`${id}\` has month "${p.month}"; it must look like 2026-03, otherwise the calendar shows an error.`, 'Use "YYYY-MM".');
-  }
-
-  // Blocks no slot leads to are leftovers: harmless to the validator, invisible to readers.
-  const reach = new Set<string>();
-  const visit = (id: string) => { if (reach.has(id) || !blocks[id]) return; reach.add(id); for (const kids of Object.values(blocks[id].slots ?? {})) if (Array.isArray(kids)) kids.forEach(visit); };
-  if (doc.root) visit(doc.root);
-  const referenced = new Set<string>(); for (const r of reads) referenced.add(r.split(".")[0]); for (const a of actions) if (typeof a.action.target === "string") referenced.add(a.action.target);
-  for (const id of Object.keys(blocks)) if (!reach.has(id) && !referenced.has(id)) add("/blocks/" + id, "unreachable-block", `Block \`${id}\` is not placed in any slot under the root, so it never renders.`, `Add "${id}" to a slot, or delete the block.`);
-  return out;
+  findings.push(...meta);
+  const order = (a: Advice, b: Advice) => SEV[a.severity ?? "P3"] - SEV[b.severity ?? "P3"] || (a.at < b.at ? -1 : a.at > b.at ? 1 : 0) || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0);
+  return { findings: findings.sort(order), waived: waived.sort(order), ran };
 }
 
 /** Validation plus advice and lint in one call: what adapters return. */

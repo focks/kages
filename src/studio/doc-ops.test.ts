@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { addBlock, duplicateBlock, deleteBlock, moveBlock, groupBlocks, docDiff, parentOf, subtree } from "./doc-ops.ts";
+import { addBlock, duplicateBlock, deleteBlock, moveBlock, groupBlocks, docDiff, parentOf, subtree, setBrief, setMode } from "./doc-ops.ts";
 import { applyPatch } from "../collab/patch.ts";
 import type { KageDoc } from "../engine/types.ts";
 
@@ -111,4 +111,23 @@ test("docDiff preserves additions, edits and removal of composition definitions"
   assert.deepEqual(applyPatch(added, docDiff(added, changed)), changed);
   const removed = structuredClone(changed); delete removed.compositions;
   assert.deepEqual(applyPatch(changed, docDiff(changed, removed)), removed);
+});
+
+test("setMode keeps the rest of the brief, and null removes it", () => {
+  const d = setBrief(base(), { mode: "read", audience: "Partners", evidence: ["a note"] });
+  const m = setMode(d, "operate");
+  assert.deepEqual(m.brief, { mode: "operate", audience: "Partners", evidence: ["a note"] });
+  assert.equal(d.brief!.mode, "read", "never mutates");
+  assert.equal("brief" in setMode(m, null), false);
+});
+
+test("setBrief refuses a malformed brief instead of saving it silently", () => {
+  assert.throws(() => setBrief(base(), { mode: "loud" } as never), /mode must be one of/);
+});
+
+test("a brief change diffs to a single /brief patch", () => {
+  const before = base(), after = setMode(before, "read");
+  assert.deepEqual(docDiff(before, after), [{ op: "add", path: "/brief", value: { mode: "read" } }]);
+  assert.deepEqual(docDiff(after, setMode(after, "operate")), [{ op: "replace", path: "/brief", value: { mode: "operate" } }]);
+  assert.deepEqual(docDiff(after, setMode(after, null)), [{ op: "remove", path: "/brief" }]);
 });

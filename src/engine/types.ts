@@ -110,6 +110,42 @@ export interface Composition {
   outputType?: PropSpec;
 }
 
+/** What the visitor's success looks like on this surface. Chosen per Kage, never per product. */
+export type Mode = "read" | "operate" | "persuade" | "experience";
+export type KageEvidence = string | { claim?: string; block?: string; source: string };
+/** Typed, optional, top-level input to judgement (lint applicability, critique rubric,
+ *  tune ladders). Lives beside `meta` rather than in it: `meta.kages.*` is tooling data. */
+export interface KageBrief {
+  mode: Mode;
+  audience?: string;
+  job?: string;
+  primaryAction?: string;
+  evidence?: KageEvidence[];
+  useScene?: string;
+  notes?: string;
+}
+
+export type EvidenceKind = "data" | "quote" | "asset" | "link";
+export interface Evidence { kind: EvidenceKind; ref: string; note?: string }
+
+/** Workspace-level product truth. Lives here (not in the store) so the pure engine can
+ *  describe it; storage, limits and permissions are in src/store/brief.ts. */
+export interface WorkspaceBrief {
+  schema: 1;
+  users: string;
+  purpose: string;
+  positioning?: string;
+  operatingContext?: string;
+  constraints?: string[];
+  voice?: string;
+  brandCommitments?: string;
+  evidence?: Evidence[];
+  absent?: string[];
+  principles?: string[];
+  openDecisions?: string[];
+  inferred?: string[];
+}
+
 export interface KageDoc {
   kages: string;
   id: string;
@@ -122,7 +158,8 @@ export interface KageDoc {
   data?: Record<string, Json>;
   sources?: Record<string, Json>;
   compositions?: Record<string, Composition>;
-  resolved?: { system: string; blocks: Record<string, string> };
+  resolved?: { system: string; blocks: Record<string, string>; assets?: { base: string; integrity: Record<string, string>; runtime?: { path: string; integrity: string } } };
+  brief?: KageBrief;
   meta?: Json;
 }
 

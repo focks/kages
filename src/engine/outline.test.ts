@@ -113,3 +113,53 @@ test("the generated page renders in every system with no missing blocks", () => 
     assert.match(html, /<table/); assert.match(html, /kg-math/); assert.equal(review(doc, system.split("@")[0]).advice.length, 0, system);
   }
 });
+
+// F6: nothing the outline drops or rewrites may pass without a note, because the notes are how an agent
+// learns to adjust its prose.
+test("a leading --- paragraph --- is body text, not front matter, and survives", () => {
+  const { doc, notes } = make("---\nIntro paragraph that matters.\n---\n# Title\n\nBody.\n");
+  assert.ok(JSON.stringify(doc).includes("Intro paragraph that matters."), JSON.stringify(notes));
+});
+
+test("real front matter is still read", () => {
+  const { doc } = make("---\ntitle: From meta\ndescription: Short\n---\n\n## One\n\ntext\n");
+  assert.equal(doc.title, "From meta");
+});
+
+test("a table cut to 500 rows or 12 columns says what was lost", () => {
+  const rows = Array.from({ length: 700 }, (_, i) => `| ${i} | x |`).join("\n");
+  const { notes } = make(`# T\n\n| a | b |\n| - | - |\n${rows}\n`);
+  assert.ok(notes.some((n) => /500 of 700 rows/.test(n)), notes.join(" | "));
+  const wide = Array.from({ length: 15 }, (_, i) => "c" + i);
+  const { notes: n2 } = make(`# T\n\n| ${wide.join(" | ")} |\n| ${wide.map(() => "-").join(" | ")} |\n| ${wide.map(() => "1").join(" | ")} |\n`);
+  assert.ok(n2.some((n) => /15 columns; only the first 12/.test(n)), n2.join(" | "));
+});
+
+test("more than 8 adjacent code blocks say how many did not become tabs", () => {
+  const fences = Array.from({ length: 10 }, (_, i) => "```l" + i + "\ncode " + i + "\n```").join("\n\n");
+  const { notes } = make("# T\n\n" + fences + "\n");
+  assert.ok(notes.some((n) => /only the first 8/i.test(n) && /10/.test(n)), notes.join(" | "));
+});
+
+test("an id that is replaced is reported", () => {
+  const { doc, notes } = make("# Hello\n\ntext\n", { id: "My_Doc" });
+  assert.equal(doc.id, "hello");
+  assert.ok(notes.some((n) => /My_Doc/.test(n) && /hello/.test(n)), notes.join(" | "));
+  assert.equal(make("# Hello\n\ntext\n", { id: "my-doc" }).notes.some((n) => /id/i.test(n)), false, "a valid id is silent");
+});
+
+test("an unclosed code fence is reported instead of silently swallowing the rest", () => {
+  const { notes, stats } = make("# T\n\n## A\n\n```sh\nnpm i\n\n## B\n\nmore\n");
+  assert.equal(stats.sections, 1);
+  assert.ok(notes.some((n) => /never closed/i.test(n)), notes.join(" | "));
+});
+
+test("anchors count against the block cap, and the cut is reported", () => {
+  const md = "# T\n\n" + Array.from({ length: 200 }, (_, i) => `## Section ${i}\n\ntext ${i}\n`).join("\n");
+  const { doc, stats, notes } = make(md, { toc: "always" });
+  const content = Object.keys(doc.blocks).filter((k) => !["hero", "root", "toc", "layout"].includes(k));
+  assert.ok(content.length <= 300, `${content.length} content blocks`);
+  assert.ok(stats.blocks <= 300);
+  assert.ok(notes.some((n) => /Stopped at 300 blocks/.test(n)), notes.join(" | "));
+  const r = review(doc); assert.deepEqual(r.errors, [], JSON.stringify(r.errors));
+});
