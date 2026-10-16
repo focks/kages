@@ -24,12 +24,12 @@ declare global {
   }
 }
 
-let loading: Promise<KagesGlobal> | null = null;
+const loading = new Map<string, Promise<KagesGlobal>>();
 
-function loadBundle(base: string): Promise<KagesGlobal> {
+function loadBundle(base: string, integrity?: Record<string, string>): Promise<KagesGlobal> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
-  if (window.Kages) return Promise.resolve(window.Kages);
-  if (loading) return loading;
+  const cached = loading.get(base);
+  if (cached) return cached;
 
   window.React = React;
   window.ReactDOM = ReactDOM;
@@ -38,16 +38,19 @@ function loadBundle(base: string): Promise<KagesGlobal> {
   // If bundle.js is swapped after a version was signed, the hash won't match and
   // the browser refuses to execute it — the lockfile's integrity guarantee,
   // enforced by the platform rather than trusted. Absent manifest → load plain.
-  loading = fetch(`${base}/integrity.json`)
-    .then((r) => (r.ok ? r.json() : {}))
-    .catch(() => ({}))
+  const pending = (integrity ? Promise.resolve(integrity) : fetch(`${base}/integrity.json`).then(r => {
+    if (!r.ok) throw new Error("design-system integrity manifest unavailable");
+    return r.json();
+  }))
     .then((sri: Record<string, string>) => new Promise<KagesGlobal>((resolve, reject) => {
+      if (!["bundle.js", "bundle.css", "tokens.css"].every(f => /^sha384-[A-Za-z0-9+/]+={0,2}$/.test(sri[f] ?? ""))) { reject(new Error("incomplete design-system integrity manifest")); return; }
       const withSri = (el: HTMLLinkElement | HTMLScriptElement, file: string) => {
         if (sri[file]) { el.integrity = sri[file]; el.crossOrigin = "anonymous"; }
       };
       // tokens.css (scoped to .kg-kage) must load BEFORE bundle.css: the bundle
       // reads --paper, --space-4, --font-display and the rest, which only this
       // generated sheet defines. Without it every --kg-* resolves to nothing.
+      const styles: Promise<void>[] = [];
       for (const file of ["tokens.css", "bundle.css"]) {
         if (document.querySelector(`link[data-ds-bundle="${file}"]`)) continue;
         const link = document.createElement("link");
@@ -55,30 +58,32 @@ function loadBundle(base: string): Promise<KagesGlobal> {
         link.href = `${base}/${file}`;
         link.setAttribute("data-ds-bundle", file);
         withSri(link, file);
+        styles.push(new Promise<void>((done, fail) => { link.onload = () => done(); link.onerror = () => fail(new Error(`failed to load ${file} (integrity?)`)); }));
         document.head.appendChild(link);
       }
       const script = document.createElement("script");
       script.src = `${base}/bundle.js`;
       script.async = true;
       withSri(script, "bundle.js");
-      script.onload = () => (window.Kages ? resolve(window.Kages) : reject(new Error("bundle loaded but window.Kages is missing")));
+      script.onload = () => { void Promise.all(styles).then(() => window.Kages ? resolve(window.Kages) : reject(new Error("bundle loaded but window.Kages is missing")), reject); };
       script.onerror = () => reject(new Error(`failed to load ${script.src} (integrity?)`));
       document.head.appendChild(script);
     }));
-  return loading;
+  loading.set(base, pending);
+  return pending;
 }
 
 /** Load the DS bundle served under `base` (default /ds). Returns window.Kages or null while loading. */
-export function useDsBundle(base = "/ds"): { kages: KagesGlobal | null; error: string | null } {
+export function useDsBundle(base = "/ds", integrity?: Record<string, string>): { kages: KagesGlobal | null; error: string | null } {
   const [kages, setKages] = useState<KagesGlobal | null>(typeof window !== "undefined" ? window.Kages ?? null : null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
-    loadBundle(base).then(
+    loadBundle(base, integrity).then(
       (k) => live && setKages(k),
       (e) => live && setError(String(e.message || e)),
     );
     return () => { live = false; };
-  }, [base]);
+  }, [base, integrity]);
   return { kages, error };
 }
