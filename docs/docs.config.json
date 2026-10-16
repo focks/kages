@@ -1,0 +1,71 @@
+{
+  "system": "atelier",
+  "editUrl": "https://github.com/focks/kages/edit/main/docs/",
+  "pages": [
+    {
+      "file": "getting-started.md",
+      "summary": "Install the CLI, create your first Kage and see it.",
+      "group": "Start"
+    },
+    {
+      "file": "concepts.md",
+      "summary": "Blocks, design systems, contracts, versions: the few ideas everything else uses.",
+      "group": "Start"
+    },
+    {
+      "file": "authoring-with-agents.md",
+      "summary": "How an agent builds a Kage well: context first, patches, advice, dry runs.",
+      "group": "Guides"
+    },
+    {
+      "file": "decision-guides.md",
+      "summary": "Turn a technical answer into an interactive guide with sources, a calculator and a checklist.",
+      "group": "Guides"
+    },
+    {
+      "file": "json-render.md",
+      "summary": "Move work between Kages and Vercel's json-render.",
+      "group": "Guides"
+    },
+    {
+      "file": "collaboration.md",
+      "summary": "Versions, claims, merges and threaded comments.",
+      "group": "Guides"
+    },
+    {
+      "file": "critique-and-improve.md",
+      "summary": "Review a Kage with a rubric, then refine it with named moves.",
+      "group": "Guides"
+    },
+    {
+      "file": "hooks.md",
+      "summary": "Edit hooks for Claude Code, Cursor, Codex and Copilot.",
+      "group": "Guides"
+    },
+    {
+      "file": "cli.md",
+      "summary": "Every command, generated from the CLI itself.",
+      "group": "Reference"
+    },
+    {
+      "file": "mcp.md",
+      "summary": "The operations an agent can call, generated from the operation table.",
+      "group": "Reference"
+    },
+    {
+      "file": "design-systems.md",
+      "summary": "Core, Ledger and Atelier, their cards, rules and contrast guarantees.",
+      "group": "Reference"
+    },
+    {
+      "file": "deployment.md",
+      "summary": "Run Kages locally, with Postgres, or hosted.",
+      "group": "Operate"
+    },
+    {
+      "file": "faq.md",
+      "summary": "Short answers to the questions people ask first.",
+      "group": "Operate"
+    }
+  ]
+}
