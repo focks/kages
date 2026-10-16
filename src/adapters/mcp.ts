@@ -24,6 +24,9 @@ import { formatDetails, type OpResult } from "./operations.ts";
 import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { pack } from "../packs/packs.ts";
+import { COMMANDS, playbook, promptName } from "../packs/commands/commands.ts";
+import { assemblePacket } from "../packs/improve-packet.ts";
+import { INIT_PROMPT, INIT_PROMPT_NAME } from "../packs/init-prompt.ts";
 
 export type Exec = (op: string, params: Record<string, unknown>) => Promise<OpResult>;
 
@@ -39,13 +42,22 @@ const systemOf = (name: string) => {
   return systems[id] ? id : undefined;
 };
 
-const promptList = () =>
-  Object.values(systems).map((s) => ({
+const promptList = () => [
+  ...Object.values(systems).map((s) => ({
     name: `kages-${s.id}`,
     description: `Author Kages in the ${s.name} design system (${s.id}@${s.version}).`,
-  }));
+  })),
+  ...COMMANDS.map((c) => ({ name: promptName(c.name), description: `${c.description}. Playbook for the improve command "${c.name}".`, arguments: [{ name: "target", description: "The stored Kage name this applies to", required: false }] })),
+  { name: INIT_PROMPT_NAME, description: "Set up the workspace brief: explore, ask at most three questions, then call set_brief." },
+];
 
-function getPromptResult(name: string) {
+function getPromptResult(name: string, args: Record<string, unknown> = {}) {
+  const cmd = COMMANDS.find((c) => promptName(c.name) === name);
+  if (cmd) {
+    const target = typeof args.target === "string" && /^[\w.-]{1,120}$/.test(args.target) ? args.target : undefined;
+    return { description: cmd.description, messages: [{ role: "user", content: { type: "text", text: assemblePacket({ meta: cmd, playbook: playbook(cmd.name)!, target }).text + (target ? `\n\nApply it to the Kage "${target}": call get_improve_packet {command:"${cmd.name}", kage:"${target}"} for its context.` : "") } }] };
+  }
+  if (name === INIT_PROMPT_NAME) return { description: "Set up the Kages workspace brief", messages: [{ role: "user", content: { type: "text", text: INIT_PROMPT } }] };
   const id = systemOf(name);
   if (!id) throw new Error(`unknown skill '${name}'`);
   return {
@@ -100,7 +112,7 @@ export function createMcpServer(exec: Exec, local?: LocalTools): Server {
     return (await local?.call(req.params.name, args)) ?? callToolResult(exec, req.params.name, args);
   });
   server.setRequestHandler(ListPromptsRequestSchema, async () => ({ prompts: promptList() }));
-  server.setRequestHandler(GetPromptRequestSchema, async (req) => getPromptResult(req.params.name));
+  server.setRequestHandler(GetPromptRequestSchema, async (req) => getPromptResult(req.params.name, (req.params.arguments ?? {}) as Record<string, unknown>));
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: resourceList() }));
   server.setRequestHandler(ReadResourceRequestSchema, async (req) => readResourceResult(req.params.uri));
   return server;
@@ -152,7 +164,7 @@ export async function handleMcpMessage(exec: Exec, msg: JsonRpc): Promise<object
       case "prompts/get": {
         const name = str(p.name);
         if (!name) return fail(-32602, "prompts/get requires string params.name");
-        return ok(getPromptResult(name));
+        return ok(getPromptResult(name, (p.arguments && typeof p.arguments === "object" ? p.arguments : {}) as Record<string, unknown>));
       }
       case "resources/list":
         return ok({ resources: resourceList() });

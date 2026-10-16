@@ -5,7 +5,7 @@
 // for now a fixed demo principal. No business logic — same as every adapter.
 // See oracle/agent-access.feature.
 
-import { dispatch, isWriteOp, type OpContext } from "./operations.ts";
+import { dispatch, isWriteOp, queryParams, type OpContext } from "./operations.ts";
 
 /** Handle POST /api/<op> (and GET for read-only ops). Returns a Web Response,
  *  so it works in Next route handlers and in tests without any Next import. A
@@ -13,14 +13,15 @@ import { dispatch, isWriteOp, type OpContext } from "./operations.ts";
  *  mutate, regardless of auth. */
 export async function handleRest(ctx: OpContext, op: string, req: Request): Promise<Response> {
   const method = req.method.toUpperCase();
-  if (method !== "POST" && isWriteOp(op)) {
-    return Response.json({ error: { code: "method_not_allowed", msg: `${op} is a write; use POST` } }, { status: 405, headers: { Allow: "POST" } });
-  }
   let params: Record<string, unknown> = {};
   if (method === "POST") {
     try { params = await req.json(); } catch { params = {}; }
   } else {
-    params = Object.fromEntries(new URL(req.url).searchParams.entries());
+    params = queryParams(op, new URL(req.url).searchParams);
+  }
+  // Decided from the params: a planning call (tune_kage without apply) is a read over GET, applying is not.
+  if (method !== "POST" && isWriteOp(op, params)) {
+    return Response.json({ error: { code: "method_not_allowed", msg: `${op} is a write; use POST` } }, { status: 405, headers: { Allow: "POST" } });
   }
   const r = dispatch(ctx, op, params);
   if (r.ok) return Response.json(r.data, { status: 200 });
@@ -33,6 +34,7 @@ export async function handleRest(ctx: OpContext, op: string, req: Request): Prom
  *  the Next route, which runs ops through executeOp and maps the result here. */
 export function httpStatus(code: string): number {
   switch (code) {
+    case "unavailable": return 503;
     case "unknown_operation": return 404;
     case "not_found": return 404;
     case "unauthorized": return 401;

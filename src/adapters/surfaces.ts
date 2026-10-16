@@ -4,23 +4,13 @@
 // implement. Hand-writing any of these would let them drift from the validator;
 // generation makes drift impossible. See oracle/agent-access.feature.
 
+import { operationSchema } from "./input-schema.ts";
 import { OPERATIONS, type OpSpec } from "./operations.ts";
 
 type Json = Record<string, unknown>;
 
 function paramSchema(spec: OpSpec): Json {
-  const properties: Json = {};
-  const required: string[] = [];
-  for (const raw of spec.params) {
-    const optional = raw.endsWith("?");
-    const name = optional ? raw.slice(0, -1) : raw;
-    // The table carries param NAMES, not types; the real contract is enforced
-    // by validate()/the engine, so the transport schema is intentionally
-    // permissive rather than falsely precise.
-    properties[name] = { description: `${name} parameter` };
-    if (!optional) required.push(name);
-  }
-  return { type: "object", properties, required, additionalProperties: true };
+  return operationSchema(spec.name, spec.params) as Json;
 }
 
 /** OpenAI-style function-calling tool definitions — one per operation. The REST

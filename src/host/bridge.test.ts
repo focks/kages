@@ -91,7 +91,7 @@ test("load: undeclared or off-allowlist sources never reach the network", async 
 test("load: refuses insecure, credentialed and private targets", async () => {
   const f = async () => reply("{}")();
   for (const [url, code] of [["http://api.shop.com/x", "insecure_url"], ["https://u:p@api.shop.com/x", "bad_url"], ["https://127.0.0.1/x", "private_host"], ["https://192.168.1.5/x", "private_host"], ["https://169.254.169.254/x", "private_host"], ["https://localhost/x", "private_host"], ["https://[::1]/x", "private_host"], ["not a url", "bad_url"]] as const) {
-    const b = new HostBridge(doc({ sources: { s: { from: "url", url } as any } }), { fetchAllowlist: ["https://", "http://", "not"], fetcher: f as any });
+    const b = new HostBridge(doc({ sources: { s: { from: "url", url } as any } }), { fetchAllowlist: ["https://api.shop.com/", "http://api.shop.com/", "https://127.0.0.1/", "https://192.168.1.5/", "https://169.254.169.254/", "https://localhost/", "https://[::1]/"], fetcher: f as any });
     assert.equal((await b.load("s")).error?.code, code, url);
   }
 });
@@ -120,4 +120,29 @@ test("load: strips prototype keys, bounds arrays and tolerates a missing path", 
   assert.equal(Object.prototype.hasOwnProperty.call(v, "constructor"), false); assert.deepEqual(v.ok, { v: 1 });
   assert.deepEqual(((await live(reply(body), { maxItems: 2 }).load("s")).value as any).rows, [1, 2]);
   assert.equal((await live(reply(body), { path: "nope.deeper" }).load("s")).value, null);
+});
+
+import { urlAllowed } from "./bridge.ts";
+test("allowlist: lookalike hosts, userinfo tricks and sibling paths are not covered by an allowed origin", () => {
+  const list = ["https://api.example.com"];
+  assert.equal(urlAllowed("https://api.example.com/data", list), true);
+  assert.equal(urlAllowed("https://api.example.com", list), true);
+  for (const bad of ["https://api.example.com.evil.test/data", "https://api.example.com@evil.test/data", "https://evil.test/https://api.example.com/", "https://api.example.comevil.test/", "http://api.example.com/data", "https://api.example.com:8443/data", "https://sub.api.example.com/data", "not a url", ""]) assert.equal(urlAllowed(bad, list), false, bad);
+  assert.equal(urlAllowed("https://API.example.com/x", list), true, "host case does not matter");
+  assert.equal(urlAllowed("https://api.example.com:443/x", list), true, "the default port is the same origin");
+});
+
+test("allowlist: a path entry matches whole segments only", () => {
+  const list = ["https://api.example.com/v1"];
+  for (const ok of ["https://api.example.com/v1", "https://api.example.com/v1/orders", "https://api.example.com/v1/"]) assert.equal(urlAllowed(ok, list), true, ok);
+  for (const bad of ["https://api.example.com/v10", "https://api.example.com/v1evil", "https://api.example.com/", "https://api.example.com/v2/v1", "https://api.example.com/v1/../v2"]) assert.equal(urlAllowed(bad, list), false, bad);
+  assert.equal(urlAllowed("https://api.example.com/v1/x", ["https://api.example.com/v1/"]), true);
+  assert.equal(urlAllowed("https://api.example.com/v1", ["https://api.example.com/v1/"]), false, "a directory entry does not cover the bare path");
+  assert.equal(urlAllowed("https://x.test/", ["https://", "http://", "not", "*"]), false, "degenerate entries allow nothing");
+  assert.equal(urlAllowed("https://x.test/", []), false);
+});
+
+test("fetch gate: a lookalike host is refused end to end", () => {
+  const b = new HostBridge(doc({ sources: { s: { from: "url", url: "https://api.shop.com.evil.test/orders" } as any } }), { fetchAllowlist: ["https://api.shop.com/"] });
+  assert.equal(b.fetch("s").error?.code, "not_allowlisted");
 });

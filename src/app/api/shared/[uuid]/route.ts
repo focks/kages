@@ -1,7 +1,6 @@
 // Public read for the /k/<uuid> share link — deliberately OUTSIDE the per-
 // workspace operation dispatcher, because a public link must resolve regardless
-// of which user's workspace holds the Kage. With Supabase it reads the global
-// public_shares registry; locally it falls back to the single "acme" store,
+// of which user's workspace holds the Kage. With persistence it reads the committed workspace head; locally it falls back to the single "acme" store,
 // gated to an anonymous principal (so only published link/public Kages resolve).
 
 import { getPublicShare, sharesEnabled } from "@/server/public-shares.ts";
@@ -13,8 +12,12 @@ export async function GET(_req: Request, ctx: { params: Promise<{ uuid: string }
   const { uuid } = await ctx.params;
 
   if (sharesEnabled()) {
-    const doc = await getPublicShare(uuid);
-    return doc ? Response.json(doc) : notFound();
+    try {
+      const doc = await getPublicShare(uuid);
+      return doc ? Response.json(doc) : notFound();
+    } catch {
+      return Response.json({ error: { code: "unavailable", msg: "share storage unavailable" } }, { status: 503 });
+    }
   }
 
   const store = await getStore("acme");

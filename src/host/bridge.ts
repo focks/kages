@@ -83,6 +83,24 @@ function bound(value: Json, max: number, depth = 0): Json {
 
 const deny = <T = Json>(code: string, msg: string): CapResult<T> => ({ ok: false, error: { code, msg } });
 
+/** Is `raw` covered by the allowlist? Entries are compared as parsed URLs, never as string prefixes: with
+ *  `https://api.example.com` allowed, `https://api.example.com.evil.test/x` and `https://api.example.com@evil.test/`
+ *  share the prefix but not the host. Scheme, host and port must match exactly; an entry's path, when it has one,
+ *  must match whole segments (`/v1` covers `/v1` and `/v1/orders`, not `/v10`). An entry that is not a URL allows nothing. */
+export function urlAllowed(raw: string, allowlist: readonly string[]): boolean {
+  let u: URL;
+  try { u = new URL(raw); } catch { return false; }
+  return allowlist.some((entry) => {
+    let e: URL;
+    try { e = new URL(entry); } catch { return false; }
+    if (u.protocol !== e.protocol || u.host !== e.host) return false;
+    const base = e.pathname;
+    if (base === "/" || base === "") return true;
+    const dir = base.endsWith("/") ? base : base + "/";
+    return u.pathname === base || u.pathname.startsWith(dir);
+  });
+}
+
 export class HostBridge {
   private personal = new Map<string, Json>();
   private shared = new Map<string, Json>();
@@ -161,7 +179,10 @@ export class HostBridge {
     const source = this.doc.sources?.[sourceKey] as { url?: string } | undefined;
     if (!source) return deny("unknown_source", `'${sourceKey}' is not in sources`);
     const url = source.url;
-    if (url && !(this.cfg.fetchAllowlist ?? []).some((prefix) => url.startsWith(prefix))) return deny("not_allowlisted", `'${url}' is not on the host allowlist`);
+    if (url !== undefined) {
+      try { new URL(String(url)); } catch { return deny("bad_url", "source url is not a valid URL"); }
+      if (!urlAllowed(String(url), this.cfg.fetchAllowlist ?? [])) return deny("not_allowlisted", `'${url}' is not on the host allowlist`);
+    }
     return { ok: true, value: null };
   }
 

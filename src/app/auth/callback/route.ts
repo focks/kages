@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStore } from "@/server/store-instance";
 import { workspaceOf } from "@/server/identity";
+import { safeNext } from "@/server/web-safety";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,7 +20,8 @@ export async function GET(request: Request) {
       // First login seeds the user's own workspace (templates); later logins are
       // a no-op because the workspace already exists.
       try { await getStore(workspaceOf(data.user.id)); } catch { /* onboarding is best-effort */ }
-      return NextResponse.redirect(`${origin}${next}`);
+      // `next` came from the query string: only a local path may be followed (see safeNext).
+      return NextResponse.redirect(safeNext(next, origin));
     }
   }
   return NextResponse.redirect(`${origin}/login?error=auth`);

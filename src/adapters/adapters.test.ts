@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { Store } from "../store/store.ts";
-import { dispatch, OPERATIONS, type OpContext } from "./operations.ts";
+import { dispatch, isWriteOp, asParams, OPERATIONS, type OpContext } from "./operations.ts";
 import { runCli } from "./cli.ts";
 import { handleRest } from "./rest.ts";
 import { toolDefs, mcpTools, openapi, a2aCard } from "./surfaces.ts";
@@ -169,6 +169,11 @@ test("list_kages cards carry a bounded description and the characteristic block 
   assert.deepEqual(kindsOf({ blocks: { a: { type: "page" }, b: { type: "text" } } }), []);
   assert.equal(describeCard({ description: "  Own   description ", blocks: {} }), "Own description");
   assert.equal(describeCard({ blocks: { s: { type: "section", props: { description: "From a section" } }, t: { type: "text" } } }), "From a section");
+  // Reading order from the root wins over the order of the map: the hero describes the Kage, a later chapter does not.
+  assert.equal(describeCard({ root: "r", blocks: { late: { type: "section", props: { description: "A later chapter" } }, hero: { type: "section", props: { description: "What this helps you do" } }, r: { type: "page", slots: { children: ["hero", "late"] } } } }), "What this helps you do");
+  // With no description anywhere, the first real sentence of prose stands in (markup stripped), and short labels do not.
+  assert.equal(describeCard({ root: "r", blocks: { r: { type: "page", slots: { children: ["t", "m"] } }, t: { type: "text", props: { text: "Hi" } }, m: { type: "markdown", props: { text: "## **Costs** and how they grow with usage over time" } } } }), "Costs and how they grow with usage over time");
+  assert.equal(describeCard({ blocks: { t: { type: "text", props: { text: "Hi" } } } }), "");
   assert.equal(describeCard({ blocks: { s: { type: "section", props: { description: 42 } } } as any }), "");
   assert.equal(describeCard({ description: "x".repeat(500), blocks: {} }).length, 160);
 });
@@ -209,4 +214,12 @@ test("outline_to_kage turns prose into a valid document without touching the sto
   const made: any = run(ctx, "create_kage", { doc: r.data.doc }); assert.equal(made.ok, true);
   assert.equal((run(ctx, "outline_to_kage", { markdown: "   " }) as any).error.code, "invalid_input");
   assert.equal((run(ctx, "outline_to_kage", { markdown: "# T\n\nx", system: "ledger@2" }) as any).data.doc.system, "ledger@2");
+});
+
+test("a request body that is not an object never reaches an apply-dependent write check", () => {
+  // `null` is valid JSON; the route used to hand it straight to isWriteOp, which threw for tune_kage/migrate_kage.
+  assert.equal(isWriteOp("tune_kage", null as never), true, "unknowable params are treated as a possible write");
+  assert.equal(isWriteOp("tune_kage", [] as never), true);
+  for (const body of [null, 5, "x", [], undefined]) assert.deepEqual(asParams(body), {});
+  assert.deepEqual(asParams({ a: 1 }), { a: 1 });
 });
