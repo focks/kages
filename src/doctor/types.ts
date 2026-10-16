@@ -6,7 +6,7 @@ import type { Store } from "../store/store.ts";
 
 /** auto = the next ordinary write fixes it anyway; mention = worth knowing; route = run the named command. */
 export type Severity = "auto" | "mention" | "route";
-export type Area = "config" | "brief" | "store" | "hooks" | "gitignore" | "skills" | "critique" | "deprecations" | "bundle" | "env";
+export type Area = "config" | "brief" | "store" | "hooks" | "gitignore" | "skills" | "deprecations" | "bundle" | "env";
 
 export interface DoctorFinding {
   id: string; severity: Severity; area: Area; message: string; evidence?: string;

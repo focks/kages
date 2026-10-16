@@ -217,9 +217,9 @@ test("outline_to_kage turns prose into a valid document without touching the sto
 });
 
 test("a request body that is not an object never reaches an apply-dependent write check", () => {
-  // `null` is valid JSON; the route used to hand it straight to isWriteOp, which threw for tune_kage/migrate_kage.
-  assert.equal(isWriteOp("tune_kage", null as never), true, "unknowable params are treated as a possible write");
-  assert.equal(isWriteOp("tune_kage", [] as never), true);
+  // `null` is valid JSON; the route used to hand it straight to isWriteOp, which threw for migrate_kage.
+  assert.equal(isWriteOp("migrate_kage", null as never), true, "unknowable params are treated as a possible write");
+  assert.equal(isWriteOp("migrate_kage", [] as never), true);
   for (const body of [null, 5, "x", [], undefined]) assert.deepEqual(asParams(body), {});
   assert.deepEqual(asParams({ a: 1 }), { a: 1 });
 });

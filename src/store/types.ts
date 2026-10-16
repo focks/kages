@@ -69,8 +69,6 @@ export interface KageEvent {
     | "kage.comment.created"
     | "kage.comment.resolved"
     | "kage.comment.deleted"
-    | "kage.critique.saved"
-    | "kage.critique.closed"
     | "workspace.brief.updated"
     | "system.published";
   ref: string;

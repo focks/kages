@@ -39,7 +39,7 @@ export function shownValue(key: string, value: unknown, include: boolean): strin
 }
 
 export function buildBundle(i: ReportInput, o: BundleOptions = {}): Bundle {
-  const excluded = ["environment variable values", "secrets and tokens (also redacted by pattern)", "email addresses and home-directory names", ...(o.includeConfigValues ? [] : ["config values (only keys and which layer set them)"]), ...(i.kage?.doc !== undefined ? [] : ["document text, comments, briefs and critiques"])];
+  const excluded = ["environment variable values", "secrets and tokens (also redacted by pattern)", "email addresses and home-directory names", ...(o.includeConfigValues ? [] : ["config values (only keys and which layer set them)"]), ...(i.kage?.doc !== undefined ? [] : ["document text, comments and briefs"])];
   const v = i.versions;
   const parts: string[] = [
     "> Nothing was sent anywhere. This was assembled locally. **Read it before you share it.**",

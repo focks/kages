@@ -31,10 +31,6 @@ import type { WorkspaceBrief } from "../store/brief.ts";
 import { installCmd } from "./install-cmd.ts";
 import { gitignoreCmd } from "./gitignore-cmd.ts";
 import { adviceLogCmd } from "./advice-log-cmd.ts";
-import { COMMANDS, commandMeta } from "../packs/commands/commands.ts";
-import { gatherRender, printPacket, type Shoot } from "./critique-cmd.ts";
-import { PROTOCOL } from "../packs/critique-protocol.ts";
-import type { CritiquePacket } from "../packs/critique-packet.ts";
 import { chooseSink } from "./advice-sinks.ts";
 import { loadConfig } from "../config/load.ts";
 import { kagesHome } from "./config.ts";
@@ -108,16 +104,9 @@ manage  (your CLOUD workspace when signed in, else the local ./.kages; --local f
   resolve <comment-id> [--reopen]   resolve (or reopen) a thread
   vote <comment-id> up|down|clear
 
-review & refine  (evidence for a design review, then controlled steps)
+inspect & migrate
   context [name] [--json] [--full] [-s sys]
                                 the one-call session boot: brief, system rules, a Kage's findings, and what to do next
-  critique <name> [--screens 390,1200] [--dark] [--json] | critique --print-protocol
-                                the evidence and rubric for a design review (you or your agent score it)
-  critique save <name> --file c.json | close <id> [--reason t] | export <id> [-o f]
-  critiques <name>              saved critiques, newest first, with the score trend
-  tune <name> --quieter|--bolder [--amount 1-3] [--scope id] [--apply]
-                                a controlled step in intensity; dry run unless --apply
-  improve [command] [kage]      the improvement moves; with a command, its playbook plus context
   migrate <name> [--apply] | migrate --all [--apply]
                                 move deprecated props, roles and values to their replacements
   system card <id> [--json|--tokens] | system contrast <id>
@@ -546,7 +535,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       const fixed: string[] = [];
       if (flags.fix) {
         for (const f of report.findings.filter((x) => x.fix?.safe)) {
-          if (f.id === "store-orphans" && store) { const n = store.pruneOrphans(); saveStore(ctx.dir, store); fixed.push(`removed ${n.comments} orphaned comment(s) and ${n.critiques} critique(s)`); }
+          if (f.id === "store-orphans" && store) { const n = store.pruneOrphans(); saveStore(ctx.dir, store); fixed.push(`removed ${n.comments} orphaned comment(s)`); }
           else if (f.id.startsWith("gitignore-block")) { const info = (await import("./gitignore.ts")).inspect(dirname(resolvePath(ctx.dir))); if (info) { (await import("./gitignore.ts")).writeBlock(info.file, (await import("./gitignore.ts")).renderBlock()); fixed.push(`rewrote the kages block in ${info.file}`); } }
         }
         report = await runDoctor(mk(), { areas, ignore: (cfg.value as { doctor?: { ignore?: string[] } }).doctor?.ignore });
@@ -587,65 +576,6 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       const r = await handleHook({ stdin: await readStdin(), fs: nodeFs, cwd: process.cwd(), home: process.env.HOME, env: process.env, harness: flag<string>(flags, "harness"), event: flag<string>(flags, "event") });
       if (r.stdout) process.stdout.write(r.stdout);
       return r.exit;
-    }
-    case "improve": {
-      if (!rest[0]) {
-        if (ctx.json) { printJson(COMMANDS); return 0; }
-        let cat = "";
-        for (const c of COMMANDS) { if (c.category !== cat) { cat = c.category; out(`\n${cat}`); } out(`  ${c.name.padEnd(10)} ${c.description}`); }
-        out("\nkages improve <command> [kage]   assemble the playbook with its context (nothing runs by itself)");
-        return 0;
-      }
-      if (!commandMeta(rest[0])) throw new Error(`no improve command '${rest[0]}' (${COMMANDS.map((c) => c.name).join(", ")})`);
-      const r = await op("get_improve_packet", { command: rest[0], kage: rest[1] });
-      return report(r, (d) => out((d as { text: string }).text));
-    }
-    case "tune": {
-      need(1, "tune <name> --quieter|--bolder [--amount 1-3] [--scope blockId] [--apply]");
-      const direction = flags.quieter ? "quieter" : flags.bolder ? "bolder" : undefined;
-      if (!direction || (flags.quieter && flags.bolder)) throw new Error("pass exactly one of --quieter or --bolder");
-      const amount = flags.amount === undefined ? 1 : Number(flags.amount);
-      const r = await op("tune_kage", { name: rest[0], direction, amount, scope: flag<string>(flags, "scope") ?? "doc", apply: flags.apply === true }, flags.apply === true);
-      return report(r, (d) => {
-        const t = d as { knobs: { block: string; prop: string; from: unknown; to: unknown; rule: string }[]; skipped: { block?: string; reason: string }[]; loudness: { before: number; after: number }; applied: boolean; wouldCreate: string | null; mode: string; modeSource: string; validation?: { ok: boolean } };
-        out(`${rest[0]}: ${direction} ×${amount} · mode ${t.mode} (${t.modeSource}) · loudness ${t.loudness.before} → ${t.loudness.after}`);
-        for (const k of t.knobs) out(`  ${k.block.padEnd(18)} ${k.prop.padEnd(9)} ${JSON.stringify(k.from ?? null)} → ${JSON.stringify(k.to)}   (${k.rule})`);
-        for (const s of t.skipped) out(`  skipped ${s.block ?? ""} ${s.reason}`);
-        if (!t.knobs.length) out("  nothing to change");
-        else out(t.applied ? "  applied as one new version" : `  dry run: nothing was written (re-run with --apply to create ${t.wouldCreate})`);
-      });
-    }
-    case "critiques": {
-      need(1, "critiques <name> [--json]");
-      return report(await op("list_critiques", { kage: rest[0] }), (d) => {
-        const r = d as { critiques: { id: string; version: number; total: number; max: number; counts: Record<string, number>; priorities: { sev: string; status: string }[]; method: string; state: string; stale: boolean; createdAt: string }[]; trend: { line: string } };
-        out(r.trend.line);
-        for (const c of r.critiques) out(`${c.id.padEnd(5)} v${String(c.version).padEnd(3)} ${c.total}/${c.max}  open P0 ${c.priorities.filter((p) => p.sev === "P0" && p.status === "open").length} P1 ${c.priorities.filter((p) => p.sev === "P1" && p.status === "open").length}  ${c.method}${c.stale ? "  (the Kage has changed since)" : ""}${c.state === "closed" ? "  closed" : ""}`);
-        if (!r.critiques.length) out(`no critiques yet: kages critique ${rest[0]}`);
-      });
-    }
-    case "critique": {
-      if (rest[0] === "save") {
-        need(2, "critique save <name> --file critique.json");
-        const file = flag<string>(flags, "file");
-        if (!file) throw new Error("usage: kages critique save <name> --file critique.json");
-        return report(await op("save_critique", { kage: rest[1], ...JSON.parse(readFileSync(file, "utf8")) }, true), (d) => { const c = d as { id: string; total: number; max: number; counts: Record<string, number> }; out(`saved ${c.id}: ${c.total}/${c.max} (P0 ${c.counts.P0}, P1 ${c.counts.P1}, P2 ${c.counts.P2}, P3 ${c.counts.P3})`); });
-      }
-      if (rest[0] === "close") {
-        need(2, "critique close <id> [--reason text]");
-        return report(await op("close_critique", { id: rest[1], reason: flag<string>(flags, "reason") ?? "" }, true), (d) => out(`closed ${(d as { id: string }).id}`));
-      }
-      if (rest[0] === "export") {
-        need(2, "critique export <id> [-o file]");
-        return report(await op("export_critique", { id: rest[1] }), (d) => writeOut(flags, String(d)));
-      }
-      if (flags["print-protocol"]) { out(PROTOCOL); return 0; }
-      need(1, "critique <name> [--screens 390,1200] [--dark] [--json] | critique --print-protocol");
-      const doc = resolveDoc(rest[0]);
-      const shoot: Shoot = (d, o) => screenshotDoc(d, { ...SHOT_DEFAULTS, widths: o.widths, dark: o.dark, system: sys, noSandbox: !!flags["no-sandbox"] || process.env.KAGES_CHROME_NO_SANDBOX === "1", url: flag<string>(flags, "url") });
-      const render = await gatherRender(doc, rest[0], ctx.dir, flags, shoot);
-      const r = await op("critique_kage", { name: rest[0], ...(render ? { render } : {}) });
-      return report(r, (d) => printPacket(d as CritiquePacket, false));
     }
     case "migrate": {
       need(flags.all ? 0 : 1, "migrate <name> [--apply] | migrate --all [--apply]");
@@ -752,7 +682,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       const { createMcpServer } = await import("../adapters/mcp.ts");
       const { renderTool } = await import("./render-tool.ts");
       const { StdioServerTransport } = await import("@modelcontextprotocol/sdk/server/stdio.js");
-      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name, params)), renderTool((name) => resolveDoc(name), (n, p) => op(n, p)));
+      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name, params)), renderTool((name) => resolveDoc(name)));
       await server.connect(new StdioServerTransport());
       await new Promise(() => {}); // run until the client closes stdin
       return 0;

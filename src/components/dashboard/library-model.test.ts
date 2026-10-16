@@ -129,17 +129,3 @@ test("mode facet: declared modes filter, count under other filters, round-trip t
   assert.deepEqual(parseQuery(new URLSearchParams("mode=operate,bogus")).modes, ["operate"]);
   assert.deepEqual(activeChips({ ...q, modes: ["persuade"] }).map((c) => c.label), ["Persuade"]);
 });
-
-test("critique filter: only current critiques with open P0/P1 count; the URL round-trips it", () => {
-  const c = (name: string, critique: LibraryCard["critique"]): LibraryCard => ({ name, repo: "kages", title: name, system: "core@1", blocks: 1, version: 1, state: "published", visibility: "private", lastAuthor: "u", createdAt: "2026-01-01T00:00:00Z", description: "", kinds: [], critique });
-  const cards = [c("open", { score: 20, max: 40, stale: false, open: { P0: 1, P1: 0 } }), c("clean", { score: 36, max: 40, stale: false, open: { P0: 0, P1: 0 } }), c("stale", { score: 10, max: 40, stale: true, open: { P0: 5, P1: 5 } }), c("none", null)];
-  const q = { ...DEFAULT_QUERY, scope: "all" as const, attention: true };
-  assert.deepEqual(filterCards(cards, q, new Set()).map((x) => x.name), ["open"]);
-  assert.equal(filterCards(cards, { ...q, attention: false }, new Set()).length, 4);
-  assert.equal(facetCounts(cards, { ...q, attention: false }, new Set()).attention, 1);
-  assert.equal(facetCounts(cards, q, new Set()).attention, 1, "its own selection does not hide the count");
-  assert.equal(serializeQuery(q).get("attention"), "1");
-  assert.equal(parseQuery(new URLSearchParams("attention=1")).attention, true);
-  assert.equal(parseQuery(new URLSearchParams("attention=yes")).attention, false);
-  assert.deepEqual(activeChips(q).map((x) => x.label), ["Open critique issues"]);
-});

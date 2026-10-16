@@ -55,12 +55,6 @@ export function FacetRail({ query, resolvedScope, facets, workspace, onChange, o
         <p className={overline}>Status</p>
         {states.map((s) => <Item key={s} label={STATE_LABEL[s] ?? s} count={facets.states[s] ?? 0} active={query.states.includes(s)} onClick={() => onChange({ states: toggle(query.states, s) })} />)}
       </div>
-      {(facets.attention > 0 || query.attention) && (
-        <div className="flex flex-col gap-0.5">
-          <p className={overline}>Review</p>
-          <Item label="Open critique issues" count={facets.attention} active={query.attention} onClick={() => onChange({ attention: !query.attention })} />
-        </div>
-      )}
       {modes.length > 0 && (
         <div className="flex flex-col gap-0.5">
           <p className={overline}>Mode</p>

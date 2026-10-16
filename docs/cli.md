@@ -67,18 +67,11 @@ Exit codes are meaningful: `lint` exits 2 on a P0 or P1 finding, `check` exits 1
   vote <comment-id> up|down|clear
 ```
 
-## Review & refine
+## Inspect & migrate
 
 ```text
   context [name] [--json] [--full] [-s sys]
                                 the one-call session boot: brief, system rules, a Kage's findings, and what to do next
-  critique <name> [--screens 390,1200] [--dark] [--json] | critique --print-protocol
-                                the evidence and rubric for a design review (you or your agent score it)
-  critique save <name> --file c.json | close <id> [--reason t] | export <id> [-o f]
-  critiques <name>              saved critiques, newest first, with the score trend
-  tune <name> --quieter|--bolder [--amount 1-3] [--scope id] [--apply]
-                                a controlled step in intensity; dry run unless --apply
-  improve [command] [kage]      the improvement moves; with a command, its playbook plus context
   migrate <name> [--apply] | migrate --all [--apply]
                                 move deprecated props, roles and values to their replacements
   system card <id> [--json|--tokens] | system contrast <id>

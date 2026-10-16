@@ -25,9 +25,6 @@ test("directive truth table: each code on and off", () => {
   assert.deepEqual(codes(base({ kage: kage({ validation: { errors: 2, warnings: 0 } }) })), ["VALIDATION_ERRORS"]);
   assert.deepEqual(codes(base({ kage: kage({ findings: [finding("P0"), finding("P1"), finding("P2")] }) })), ["LINT_P0", "LINT_P1"]);
   assert.deepEqual(codes(base({ kage: kage({ findings: [finding("P2"), finding("P3")] }) })), [], "advisory findings raise no directive");
-  assert.deepEqual(codes(base({ kage: kage({ latestCritique: { id: "q1", score: 24, max: 40, open: { P0: 0, P1: 0 }, stale: true } }) })), ["CRITIQUE_STALE"]);
-  assert.deepEqual(codes(base({ kage: kage({ latestCritique: { id: "q1", score: 24, max: 40, open: { P0: 1, P1: 0 }, stale: false } }) })), ["CRITIQUE_OPEN"]);
-  assert.deepEqual(codes(base({ kage: kage({ latestCritique: { id: "q1", score: 36, max: 40, open: { P0: 0, P1: 0 }, stale: false } }) })), []);
   assert.deepEqual(codes(base({ kage: kage({ pinnedSystem: "core@1.2.0", currentSystem: "core@1.11.0" }) })), ["SYSTEM_MISMATCH"]);
   assert.deepEqual(codes(base({ kage: kage({ pinnedSystem: "core@1.11.0", currentSystem: "core@1.11.0" }) })), []);
   assert.deepEqual(codes(base({ workspace: { name: "w", repos: [], kages: LARGE_WORKSPACE + 1 } })), ["LARGE_WORKSPACE"]);

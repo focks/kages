@@ -39,15 +39,8 @@ its current official plugin format is read from its docs** and a validator exist
 (VS Code, Codex and Grok are listed as planned). The Claude target is also checked with
 `claude plugin validate --strict` when that CLI is installed.
 
-## Interop and packs
-- `src/interop/json-render.ts`: both directions with Vercel's json-render (flat `{root, elements, state}`, shadcn
-  catalog). Every conversion returns `notes`; a silent substitution is the failure to avoid. Formats were read from the
-  json-render repo on 2026-10-16: re-check `packages/core/src/types.ts` and `packages/shadcn/src/catalog.ts` when it
-  releases, and update `REQUIRED` in the file with the catalog. Ops `from_json_render` / `to_json_render`; CLI `kages json-render`.
-- `src/packs/decision-guide.ts` + `decision-guide-examples.ts` + `decision-skill.ts`: the Technical Decision Pack. The
-  intake is the contract; add a subject as an intake, never as a hand-built page, and add it to `EXAMPLES` so the tests
-  exercise it. The skill text feeds both `kages install` and the generated plugins.
-- `src/pilot/funnel.ts` + `pilot/PROTOCOL.md`: pilot numbers derived from the participant's own store (counts and days only,
-  asserted free of titles/text/names). Add a measure only if it stays content-free; thresholds live in `summarize`.
-- Guided first use: `/docs/build-a-guide` (a docs lesson, not an app nav item: `src/app/docs/build-a-guide`, component `src/components/dashboard/guide/guide-builder.tsx`; `/guide` redirects; model in `src/components/dashboard/guide/guide-model.ts`) builds through the
-  same ops an agent uses; the example's facts stay marked unverified however the person renames it.
+## Packs
+- `src/packs/decision-guide.ts` + `decision-guide-examples.ts` + `decision-skill.ts`: the Technical Decision Pack, shipped as
+  the `kages-decision-guide` skill and the `decision_guide_to_kage` operation (no bespoke CLI verb). The intake is the
+  contract; add a subject as an intake, never as a hand-built page, and add it to `EXAMPLES` so the tests exercise it. The
+  skill text feeds both `kages install` and the generated plugins.

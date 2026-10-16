@@ -3,9 +3,7 @@
 Everything you need to author, review and refine Kages from Claude Code, installed in one step (version 1.0.0):
 
 - **MCP tools**: the full Kages operation set, served over the remote endpoint at `https://kages-focks-projects.vercel.app/api/mcp`.
-- **Skills**: one authoring guide per design system (`kages-core`, `kages-ledger`, `kages-atelier`) with its system card, plus `kages-improve` with a playbook for each improvement move and `kages-decision-guide` for turning a technical question into an interactive guide.
-- **Commands**: `/kages:kages-improve-<move>` for critique, polish, distill, harden, clarify, onboard, adapt, quieter and bolder.
-- **Agents**: `kages-critic` and `kages-evidence` for isolated design reviews.
+- **Skills**: one authoring guide per design system (`kages-core`, `kages-ledger`, `kages-atelier`) with its system card, plus `kages-decision-guide` for turning a technical question into an interactive guide.
 - **Hook**: checks `*.kage.json` files as they are edited and reports problems once (needs the `kages` CLI on your PATH; silent without it).
 
 ## Install

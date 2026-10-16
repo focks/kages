@@ -20,7 +20,6 @@ import { ClaimRegistry } from "../collab/claims.ts";
 import { CommentThread, type Comment } from "../collab/comments.ts";
 import { Collection, isCollectionError } from "./collection.ts";
 import assets from "../../public/ds/assets.json" with { type: "json" };
-import { validateCritique, openCounts, MAX_PER_KAGE, MAX_SAVES_PER_HOUR, type Critique, type CritiqueInput, type PriorityStatus } from "./critique.ts";
 import { mergeBrief, validateBrief, type WorkspaceBriefRecord } from "./brief.ts";
 import type {
   VersionRecord, Provenance, Grant, LifecycleState, Visibility, AuditEntry, KageEvent, WriteResult,
@@ -64,9 +63,6 @@ export interface StoreSnapshot {
   comments: Comment[];
   /** At most one record; optional so snapshots from before briefs existed still load. */
   briefs?: WorkspaceBriefRecord[];
-  /** Saved design critiques; optional so older snapshots load unchanged. */
-  critiques?: Critique[];
-  critiqueSequence?: number;
   /** Last comment id number handed out; absent in snapshots written before it was persisted. */
   commentSequence?: number;
   claims?: import("../collab/claims.ts").Claim[];
@@ -89,7 +85,6 @@ export class Store {
   readonly claims = new ClaimRegistry();
   readonly comments = new CommentThread();
   private brief: WorkspaceBriefRecord | null = null;
-  private critiques = new Collection<Critique>({ prefix: "q" });
   /** Dry-run timestamps per workspace and principal. Process-wide on purpose: a persistent deployment
    *  restores a fresh Store from the snapshot on every request, so an instance field would start each
    *  request at zero and enforce nothing. A dry run must stay a read (committing a counter would turn it
@@ -122,8 +117,6 @@ export class Store {
       comments: this.comments.dump(),
       ...(this.comments.sequence ? { commentSequence: this.comments.sequence } : {}),
       briefs: this.brief ? [JSON.parse(JSON.stringify(this.brief))] : [],
-      critiques: this.critiques.dump(),
-      ...(this.critiques.sequence ? { critiqueSequence: this.critiques.sequence } : {}),
       claims: this.claims.dump(),
       ...this.limitsSnapshot(),
     };
@@ -159,7 +152,6 @@ export class Store {
     store.events = snap.events;
     store.comments.load(snap.comments, snap.commentSequence);
     store.brief = snap.briefs?.[0] ? JSON.parse(JSON.stringify(snap.briefs[0])) : null;
-    store.critiques.load(snap.critiques, snap.critiqueSequence);
     store.claims.load(snap.claims);
     for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
@@ -312,98 +304,13 @@ export class Store {
 
   /** Rows that reference a Kage which no longer exists (a snapshot edited by hand, or a delete that
    *  predates purge-on-delete). Read-only; `pruneOrphans` removes them. */
-  orphans(): { comments: number; critiques: number } {
-    return {
-      comments: this.comments.dump().filter((c) => !this.kages.has(c.kage)).length,
-      critiques: this.critiques.where((c) => !this.kages.has(c.kage)).length,
-    };
+  orphans(): { comments: number } {
+    return { comments: this.comments.dump().filter((c) => !this.kages.has(c.kage)).length };
   }
-  pruneOrphans(): { comments: number; critiques: number } {
+  pruneOrphans(): { comments: number } {
     const found = this.orphans();
     for (const name of new Set(this.comments.dump().filter((c) => !this.kages.has(c.kage)).map((c) => c.kage))) this.comments.purge(name);
-    this.critiques.purgeWhere((c) => !this.kages.has(c.kage));
     return found;
-  }
-
-  // --- critiques -------------------------------------------------------------
-
-  private critiqueRepo(kage: string): string | null { const h = this.head(kage); return h ? Store.repoOfRef(h.ref) : null; }
-
-  /** Reading a critique needs to read its Kage; the report is as private as the Kage. */
-  private readableCritique(id: string, author: Provenance): { ok: true; c: Critique } | { ok: false; error: { code: string; msg: string } } {
-    const c = this.critiques.get(id);
-    if (!c) return { ok: false, error: { code: "not_found", msg: `no critique '${id}'` } };
-    const r = this.authorizeRead(c.kage, author);
-    return r.ok ? { ok: true, c } : { ok: false, error: { code: r.code, msg: r.msg } };
-  }
-
-  /** Save a design review of the CURRENT head. Totals are computed here, never trusted. */
-  saveCritique(kage: string, input: CritiqueInput, author: Provenance): CommentResult<Critique> {
-    const head = this.head(kage);
-    if (!head) return cerr("not_found", `no kage '${kage}'`);
-    const repo = Store.repoOfRef(head.ref);
-    if (!this.allowed(author, repo, "write")) return cerr("forbidden", `${author.principal} lacks write on ${repo}`);
-    if (input.fingerprint !== head.digest) return cerr("conflict", "the reviewed fingerprint is required and must match the current head; refresh the review before saving");
-    const checked = validateCritique(input, head.doc);
-    if (!checked.ok) return cerr("invalid_critique", checked.errors.join("; "));
-    const now = this.clock();
-    const recent = this.critiques.where((c) => c.author === author.principal && now - Date.parse(c.createdAt) < 3_600_000);
-    if (recent.length >= MAX_SAVES_PER_HOUR) return cerr("rate_limited", `at most ${MAX_SAVES_PER_HOUR} critiques per hour`);
-    // Retention: keep the newest 50 per Kage, dropping closed ones first.
-    const mine = this.critiques.where((c) => c.kage === kage).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-    if (mine.length >= MAX_PER_KAGE) this.critiques.remove((mine.find((c) => c.state === "closed") ?? mine[0]).id);
-    const row = this.critiques.add({ kage, version: head.v, fingerprint: head.digest, createdAt: new Date(now).toISOString(), author: author.principal, ...checked.value, state: "open" } as Omit<Critique, "id">);
-    if (isCollectionError(row)) return cerr("rate_limited", row.error);
-    this.record(author.principal, "critique.save", head.ref);
-    this.emit("kage.critique.saved", head.ref, { critiqueId: row.id, score: row.total, max: row.max });
-    return { ok: true, value: JSON.parse(JSON.stringify(row)) };
-  }
-
-  listCritiques(kage: string, author: Provenance, limit = 20): CommentResult<Critique[]> {
-    const r = this.authorizeRead(kage, author);
-    if (!r.ok) return cerr(r.code, r.msg);
-    return { ok: true, value: this.critiques.where((c) => c.kage === kage).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, Math.max(1, Math.min(limit, 50))).map((c) => JSON.parse(JSON.stringify(c))) };
-  }
-
-  getCritique(id: string, author: Provenance): CommentResult<{ critique: Critique; stale: boolean }> {
-    const r = this.readableCritique(id, author);
-    if (!r.ok) return { ok: false, error: r.error };
-    return { ok: true, value: { critique: JSON.parse(JSON.stringify(r.c)), stale: this.head(r.c.kage)?.digest !== r.c.fingerprint } };
-  }
-
-  /** The newest critique and whether the Kage has changed since it was written. */
-  latestCritique(kage: string, author: Provenance, opts: { openOnly?: boolean } = {}): CommentResult<{ critique: Critique; stale: boolean; open: { P0: number; P1: number } } | null> {
-    const r = this.authorizeRead(kage, author);
-    if (!r.ok) return cerr(r.code, r.msg);
-    const rows = this.critiques.where((c) => c.kage === kage && (!opts.openOnly || c.state === "open")).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    const c = rows[0];
-    return { ok: true, value: c ? { critique: JSON.parse(JSON.stringify(c)), stale: this.head(kage)?.digest !== c.fingerprint, open: openCounts(c) } : null };
-  }
-
-  /** Close ONE critique (the one polish worked from), never a newer one. */
-  closeCritique(id: string, reason: string, author: Provenance): CommentResult<Critique> {
-    const r = this.readableCritique(id, author);
-    if (!r.ok) return { ok: false, error: r.error };
-    const repo = this.critiqueRepo(r.c.kage);
-    if (!repo || !this.allowed(author, repo, "write")) return cerr("forbidden", `${author.principal} lacks write on ${repo}`);
-    const text = String(reason ?? "").trim();
-    if (text.length > 300 || text.includes("\u0000")) return cerr("invalid_critique", "the reason must be at most 300 characters");
-    const row = this.critiques.update(id, { state: "closed", closedAt: new Date(this.clock()).toISOString(), closedBy: author.principal, ...(text ? { closedReason: text } : {}) })!;
-    this.record(author.principal, "critique.close", this.head(r.c.kage)!.ref);
-    this.emit("kage.critique.closed", this.head(r.c.kage)!.ref, { critiqueId: id });
-    return { ok: true, value: JSON.parse(JSON.stringify(row)) };
-  }
-
-  /** Mark one backlog item fixed, won't-fix or open again. */
-  setCritiquePriority(id: string, index: number, status: PriorityStatus, author: Provenance): CommentResult<Critique> {
-    const r = this.readableCritique(id, author);
-    if (!r.ok) return { ok: false, error: r.error };
-    const repo = this.critiqueRepo(r.c.kage);
-    if (!repo || !this.allowed(author, repo, "write")) return cerr("forbidden", `${author.principal} lacks write on ${repo}`);
-    if (!Number.isInteger(index) || index < 0 || index >= r.c.priorities.length) return cerr("not_found", `no priority ${index}`);
-    if (status !== "open" && status !== "fixed" && status !== "wontfix") return cerr("invalid_critique", "status must be open, fixed or wontfix");
-    const priorities = r.c.priorities.map((p, i) => (i === index ? { ...p, status } : p));
-    return { ok: true, value: JSON.parse(JSON.stringify(this.critiques.update(id, { priorities })!)) };
   }
 
   // --- workspace brief ------------------------------------------------------
@@ -696,7 +603,6 @@ export class Store {
     // purged by the server layer via the returned uuid — it lives in Supabase.)
     this.claims.releaseAll(name);
     this.comments.purge(name);
-    this.critiques.purgeWhere((c) => c.kage === name);
     this.record(author.principal, "delete", head.ref);
     this.emit("kage.deleted", head.ref, { uuid: head.uuid });
     return { ok: true, version: head };

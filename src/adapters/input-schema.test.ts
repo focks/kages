@@ -1,10 +1,9 @@
 // The published contracts must reject malformed inputs before handlers run.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dispatch, OPERATIONS } from "./operations.ts";
+import { OPERATIONS } from "./operations.ts";
 import { operationSchema, inputErrors } from "./input-schema.ts";
 import { mcpTools } from "./surfaces.ts";
-import { Store } from "../store/store.ts";
 
 test("every operation publishes typed properties and the same executable schema", () => {
   const tools = mcpTools();
@@ -15,14 +14,7 @@ test("every operation publishes typed properties and the same executable schema"
   }
 });
 
-test("nested critique errors have field pointers and do not mutate storage", () => {
-  const store = new Store();
-  const before = JSON.stringify(store.snapshot());
-  const r = dispatch({ store, author: { principal: "a" } }, "save_critique", { kage: "k", fingerprint: "digest", scores: { 1: 8 }, priorities: [{ sev: "oops", title: "x", fix: "y" }] });
-  assert.ok(!r.ok && r.error.code === "invalid_params");
-  assert.match(JSON.stringify(r), /scores\/1/);
-  assert.match(JSON.stringify(r), /priorities\/0\/sev/);
-  assert.equal(JSON.stringify(store.snapshot()), before);
+test("input validation flags a bad typed value and accepts an omitted optional", () => {
   assert.ok(inputErrors(operationSchema("get_context", ["full?"]), { full: "false" }).length);
   assert.deepEqual(inputErrors(operationSchema("get_context", ["full?"]), { full: undefined }), []);
 });

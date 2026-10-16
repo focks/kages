@@ -45,13 +45,13 @@ const store: Check = (c) => {
   const out: DoctorFinding[] = [];
   const raw = c.fs.readText(join(c.dir, "store.json"));
   if (raw !== null) {
-    try { const j = JSON.parse(raw) as Record<string, unknown>; if (!("briefs" in j) || !("critiques" in j)) out.push({ id: "store-legacy-snapshot", severity: "auto", area: "store", message: "The workspace store predates briefs or critiques. The next write adds them; nothing is lost." }); } catch { out.push({ id: "store-unreadable", severity: "route", area: "store", message: `${join(c.dir, "store.json")} is not valid JSON.`, fix: { command: "restore it from version control or a backup; Kages will not guess", safe: false } }); }
+    try { const j = JSON.parse(raw) as Record<string, unknown>; if (!("briefs" in j)) out.push({ id: "store-legacy-snapshot", severity: "auto", area: "store", message: "The workspace store predates briefs. The next write adds them; nothing is lost." }); } catch { out.push({ id: "store-unreadable", severity: "route", area: "store", message: `${join(c.dir, "store.json")} is not valid JSON.`, fix: { command: "restore it from version control or a backup; Kages will not guess", safe: false } }); }
     const size = c.fs.size(join(c.dir, "store.json"));
     if (size !== null && size > 2 * 1024 * 1024) out.push({ id: "store-size", severity: "mention", area: "store", message: `store.json is ${(size / 1048576).toFixed(1)} MB. It is one document per workspace, so very large workspaces will slow every command.` });
   }
   if (c.store) {
     const o = c.store.orphans();
-    if (o.comments + o.critiques > 0) out.push({ id: "store-orphans", severity: "route", area: "store", message: `${o.comments} comment(s) and ${o.critiques} critique(s) refer to Kages that no longer exist.`, fix: { command: "kages doctor --fix", safe: true } });
+    if (o.comments > 0) out.push({ id: "store-orphans", severity: "route", area: "store", message: `${o.comments} comment(s) refer to Kages that no longer exist.`, fix: { command: "kages doctor --fix", safe: true } });
   }
   return out;
 };
@@ -93,18 +93,6 @@ const skills: Check = (c) => {
   return out;
 };
 
-const critiques: Check = (c) => {
-  if (!c.store) return [];
-  const out: DoctorFinding[] = [], me = { principal: c.author.principal } as never;
-  for (const v of c.store.list().slice(0, 200)) {
-    const r = c.store.latestCritique(v.name, me);
-    if (!r.ok || !r.value) continue;
-    if (r.value.stale) out.push({ id: "critique-stale", severity: "mention", area: "critique", message: `${v.name}: the last critique (${r.value.critique.total}/${r.value.critique.max}) predates the current version.`, fix: { command: `kages improve critique ${v.name}`, safe: false } });
-    else if (r.value.open.P0 > 0) out.push({ id: "critique-open-p0", severity: "mention", area: "critique", message: `${v.name}: ${r.value.open.P0} open P0 issue(s) from the last critique.`, fix: { command: `kages improve polish ${v.name}`, safe: false } });
-  }
-  return out;
-};
-
 const deprecations: Check = (c) => {
   if (!c.store || !REGISTRY.length) return [];
   const out: DoctorFinding[] = [];
@@ -129,5 +117,5 @@ const env: Check = async (c) => {
 
 export const CHECKS: { area: string; run: Check }[] = [
   { area: "config", run: config }, { area: "brief", run: brief }, { area: "store", run: store }, { area: "hooks", run: hooks }, { area: "gitignore", run: gitignore },
-  { area: "skills", run: skills }, { area: "critique", run: critiques }, { area: "deprecations", run: deprecations }, { area: "bundle", run: bundle }, { area: "env", run: env },
+  { area: "skills", run: skills }, { area: "deprecations", run: deprecations }, { area: "bundle", run: bundle }, { area: "env", run: env },
 ];

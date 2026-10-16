@@ -33,11 +33,6 @@
       "group": "Guides"
     },
     {
-      "file": "critique-and-improve.md",
-      "summary": "Review a Kage with a rubric, then refine it with named moves.",
-      "group": "Guides"
-    },
-    {
       "file": "hooks.md",
       "summary": "Edit hooks for Claude Code, Cursor, Codex and Copilot.",
       "group": "Guides"

@@ -29,7 +29,6 @@ export interface ContextInputs {
     deprecatedUses?: number;
     /** Claims in this Kage that nothing on record supports (persuade and experience only). */
     unsourcedClaims?: number;
-    latestCritique?: { id: string; score: number; max: number; open: { P0: number; P1: number }; stale: boolean };
   };
   full?: boolean;
 }
@@ -42,7 +41,6 @@ export interface Context {
   kage?: {
     name: string; version: number; state: string; blocks: number; validation: { errors: number; warnings: number };
     findings: { P0: number; P1: number; P2: number; P3: number; top: Advice[] };
-    latestCritique?: NonNullable<ContextInputs["kage"]>["latestCritique"];
     comments?: { open: number; threads: number };
   };
   directives: Directive[];
@@ -69,9 +67,6 @@ export function directivesFor(i: ContextInputs): Directive[] {
     }
     if (k.unsourcedClaims && (k.brief?.mode ?? k.modeGuess.mode) !== "read" && (k.brief?.mode ?? k.modeGuess.mode) !== "operate") out.push({ code: "UNSOURCED_CLAIMS", severity: "warn", message: `${k.unsourcedClaims} figure(s), count(s) or quote(s) have no source on record. Source them in the Kage brief, bind them to data, label the page illustrative, or remove them.`, command: `kages lint ${k.name}` });
     if (k.deprecatedUses) out.push({ code: "DEPRECATED_USED", severity: "info", message: `${k.deprecatedUses} use(s) of deprecated features. They still render, but new work should use the replacements.`, command: `kages migrate ${k.name}` });
-    const c = k.latestCritique;
-    if (c?.stale) out.push({ code: "CRITIQUE_STALE", severity: "info", message: `The latest critique (${c.score}/${c.max}) predates the current version.`, command: `kages improve critique ${k.name}` });
-    else if (c && (c.open.P0 || c.open.P1)) out.push({ code: "CRITIQUE_OPEN", severity: "warn", message: `The latest critique has ${c.open.P0} open P0 and ${c.open.P1} open P1 issue(s).`, command: `kages improve polish ${k.name}` });
     if (k.pinnedSystem && k.currentSystem && k.pinnedSystem !== k.currentSystem) out.push({ code: "SYSTEM_MISMATCH", severity: "info", message: `This Kage was built on ${k.pinnedSystem}; ${k.currentSystem} is installed now. It still renders as built.`, command: "kages doctor" });
   }
   if (i.workspace.kages > LARGE_WORKSPACE) out.push({ code: "LARGE_WORKSPACE", severity: "info", message: `${i.workspace.kages} Kages here; use search_kages before listing.` });
@@ -91,7 +86,7 @@ export function buildContext(i: ContextInputs): Context {
     const k = i.kage;
     const sorted = [...k.findings].sort((a, b) => SEV[a.severity ?? "P3"] - SEV[b.severity ?? "P3"]);
     const n = (s: keyof typeof SEV) => k.findings.filter((f) => (f.severity ?? "P3") === s).length;
-    ctx.kage = { name: k.name, version: k.version, state: k.state, blocks: k.blocks, validation: k.validation, findings: { P0: n("P0"), P1: n("P1"), P2: n("P2"), P3: n("P3"), top: sorted.slice(0, 5) }, ...(k.latestCritique ? { latestCritique: k.latestCritique } : {}), comments: k.comments };
+    ctx.kage = { name: k.name, version: k.version, state: k.state, blocks: k.blocks, validation: k.validation, findings: { P0: n("P0"), P1: n("P1"), P2: n("P2"), P3: n("P3"), top: sorted.slice(0, 5) }, comments: k.comments };
     ctx.brief.kage = k.brief ?? null;
     ctx.brief.mode = k.brief?.mode ?? k.modeGuess.mode;
     ctx.brief.modeSource = k.brief?.mode ? "declared" : "inferred";
@@ -173,7 +168,6 @@ export function renderContextText(c: Context): string {
     L.push(`  findings: P0 ${k.findings.P0}, P1 ${k.findings.P1}, P2 ${k.findings.P2}, P3 ${k.findings.P3}`);
     if (k.findings.top.length) L.push(fence(k.findings.top.map((f) => `${f.severity} ${f.at} ${f.code}: ${f.msg}`).join("\n")));
     if (k.comments) L.push(`  comments: ${k.comments.open} open in ${k.comments.threads} thread(s)`);
-    if (k.latestCritique) L.push(`  critique: ${k.latestCritique.score}/${k.latestCritique.max}${k.latestCritique.stale ? " (stale)" : ""}`);
   }
   L.push("", c.directives.length ? "Directives" : "Directives: none");
   for (const d of c.directives) L.push(`  [${d.severity}] ${d.code}: ${d.message}${d.command ? `\n        run: ${d.command}` : ""}`);

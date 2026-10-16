@@ -26,10 +26,6 @@ A successful write returns the findings it introduced, or a short "clean". A ref
 
 `kages screenshot` renders the page at phone and desktop widths and checks for sideways scroll, broken images and failed blocks.
 
-## 6. Review and refine
-
-Ask for a critique when the page matters. See [critique and improve](critique-and-improve.md).
-
 ## What agents must not do
 
 - Invent audience, customers, numbers or quotes. The brief's `absent` list names what must not be fabricated, and the claims check flags figures with no source.

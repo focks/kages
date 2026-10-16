@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShareMenu } from "@/components/dashboard/share-menu";
 import { StatusMenu } from "@/components/dashboard/status-menu";
 import { KageFrame, StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
-import { CritiqueTab } from "@/components/dashboard/critique/critique-tab";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { DiscussionPanel } from "@/components/dashboard/comments/discussion-panel";
 import { discussionStats } from "@/components/dashboard/comments/comment-model";
@@ -85,7 +84,6 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
               <TabsList variant="line" className="w-full justify-start gap-4 border-b">
                 <TabsTrigger value="preview" className="flex-none">Preview</TabsTrigger>
                 <TabsTrigger value="discussion" className="flex-none">Discussion {stats.total > 0 && <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{stats.open > 0 ? `${stats.open} open` : stats.total}</span>}</TabsTrigger>
-                <TabsTrigger value="critique" className="flex-none">Critique{card.critique && <span className="ml-1.5 rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{card.critique.score}/{card.critique.max}</span>}</TabsTrigger>
                 <TabsTrigger value="overview" className="flex-none">Overview</TabsTrigger>
                 <TabsTrigger value="versions" className="flex-none">Versions <span className="rounded-sm bg-muted px-1.5 font-mono text-[11px] text-muted-foreground">{versions.length}</span></TabsTrigger>
                 <TabsTrigger value="describe" className="flex-none">Describe</TabsTrigger>
@@ -101,10 +99,6 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
 
               <TabsContent value="discussion" className="mt-4">
                 <DiscussionPanel api={comments} doc={doc} onJump={jump} />
-              </TabsContent>
-
-              <TabsContent value="critique" className="mt-4">
-                {tab === "critique" && <CritiqueTab name={card.name} onChanged={() => void onChanged()} />}
               </TabsContent>
 
               <TabsContent value="overview" className="mt-4">

@@ -39,10 +39,9 @@ test("every check can run on an empty directory and finds nothing", async () => 
 function seeded(): { root: string; home: string } {
   const repo = gitRepo({ "README.md": "x", ".kages/screenshots/a.png": "png", ".claude/keep": "", "public/ds/bundle.js": "// old bundle" }, { commit: true })!;
   const root = repo.dir, ws = join(root, ".kages"), home = fakeHome().home;
-  // A store with a kage, a stale critique and a comment, then damaged by hand.
+  // A store with a kage and a comment, then damaged by hand.
   const store = new Store(); store.grant(owner().principal, "kages", ["read", "write", "admin"]);
   store.create("kages", sampleKage({ id: "k" }), owner());
-  store.saveCritique("k", { fingerprint: store.head("k")!.digest, scores: { 1: 2, 2: 2, 3: 2 } }, owner());
   store.patch("k", [{ op: "replace", path: "/title", value: "Changed" }], owner());
   store.comment("k", "", owner().principal, "hello");
   saveStore(ws, store);
@@ -66,9 +65,8 @@ test("seeded corruption: each planted fault is reported with the right id, sever
   store.setBrief({ users: "u", purpose: "p" }, owner());
   const r = await runDoctor(ctxFor(root, store, { home }));
   const got = new Map(r.findings.map((f) => [f.id, f]));
-  for (const id of ["config-invalid-json", "config-secret-in-tracked", "config-unknown-key", "brief-store-mismatch", "store-legacy-snapshot", "store-orphans", "hooks-missing", "hooks-stale", "gitignore-block-missing", "tracked-runtime-file", "critique-stale", "skills-stale", "bundle-drift"]) assert.ok(got.has(id), `missing ${id}; got ${ids(r)}`);
+  for (const id of ["config-invalid-json", "config-secret-in-tracked", "config-unknown-key", "brief-store-mismatch", "store-legacy-snapshot", "store-orphans", "hooks-missing", "hooks-stale", "gitignore-block-missing", "tracked-runtime-file", "skills-stale", "bundle-drift"]) assert.ok(got.has(id), `missing ${id}; got ${ids(r)}`);
   assert.equal(got.get("store-legacy-snapshot")!.severity, "auto");
-  assert.equal(got.get("critique-stale")!.severity, "mention");
   assert.equal(got.get("config-unknown-key")!.severity, "mention");
   assert.equal(got.get("store-orphans")!.fix!.safe, true);
   assert.equal(got.get("gitignore-block-missing")!.fix!.command, "kages gitignore --write");
@@ -154,13 +152,13 @@ test("doctorLite is cheap and leaves out the slow and the merely informational",
   assert.ok(Date.now() - t0 < 500);
   const got = lite.map((f) => f.id);
   assert.ok(got.includes("gitignore-block-missing"));
-  assert.ok(!got.includes("store-orphans") && !got.includes("critique-stale"), "no store walk");
+  assert.ok(!got.includes("store-orphans"), "no store walk");
 });
 
 test("the formatter groups by area, shows the fix and says which are safe", async () => {
   const text = formatDoctor({ version: 1, ran: ["x"], findings: [
     { id: "gitignore-block-missing", severity: "route", area: "gitignore", message: "no block", fix: { command: "kages gitignore --write", safe: true } },
-    { id: "critique-stale", severity: "mention", area: "critique", message: "old" },
+    { id: "store-size", severity: "mention", area: "store", message: "old" },
     { id: "store-legacy-snapshot", severity: "auto", area: "store", message: "later" },
   ] });
   assert.match(text, /^gitignore\n  ✗ gitignore-block-missing: no block\n      → kages gitignore --write   \(doctor --fix does this\)/);

@@ -12,7 +12,7 @@ First public release candidate.
   events and quotas; one operation table behind REST, MCP, A2A, the CLI and OpenAPI.
 - Three design systems (Core, Ledger, Atelier) rendered from one portable document.
 - The `kages` CLI, a local workspace, `kages push`, and plugins for Claude Code and Cursor.
-- Decision guides, a guided first-use builder in the docs, and json-render import and export.
+- Decision guides: turn a technical answer into an interactive guide (a skill and operation).
 - Threaded comments, pinned comment mode, share links with guest feedback.
 - Documentation site served as Kages at `/docs`.
 

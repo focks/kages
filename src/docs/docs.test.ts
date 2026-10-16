@@ -78,8 +78,8 @@ test("the generated references equal the committed pages (run npm run docs:gen)"
 
 test("the CLI reference lists every command group and every operation appears in the operations page", () => {
   const cli = readFileSync(dir + "cli.md", "utf8"), mcp = readFileSync(dir + "mcp.md", "utf8");
-  for (const h of ["## Author", "## Manage", "## Review & refine", "## Workspace", "## Install", "## Global flags"]) assert.ok(cli.includes(h), h);
-  for (const op of ["get_context", "validate_patch", "critique_kage", "tune_kage", "get_improve_packet", "set_brief", "migrate_kage"]) assert.ok(mcp.includes(`\`${op}\``), op);
+  for (const h of ["## Author", "## Manage", "## Inspect & migrate", "## Workspace", "## Install", "## Global flags"]) assert.ok(cli.includes(h), h);
+  for (const op of ["get_context", "validate_patch", "set_brief", "migrate_kage"]) assert.ok(mcp.includes(`\`${op}\``), op);
 });
 
 test("no page claims a command the CLI does not have", async () => {

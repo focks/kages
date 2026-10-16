@@ -12,8 +12,6 @@ export interface LibraryCard {
   description: string; kinds: string[];
   /** The Kage's declared mode, or null/absent when it has no brief. */
   mode?: string | null;
-  /** The newest critique, if any (score, whether the Kage changed since, open P0/P1). */
-  critique?: { score: number; max: number; stale: boolean; open: { P0: number; P1: number } } | null;
 }
 
 export type Scope = "auto" | "mine" | "templates" | "pinned" | "all";
@@ -28,13 +26,12 @@ export interface Query {
   states: string[];      // empty = default (everything except archived)
   systems: string[];     // empty = any
   modes: string[];       // empty = any (declared modes only)
-  attention: boolean;    // only Kages whose current critique has open P0/P1 issues
   sort: Sort;
   group: Group;
   view: View;
 }
 
-export const DEFAULT_QUERY: Query = { q: "", scope: "auto", repo: "", states: [], systems: [], modes: [], attention: false, sort: "updated", group: "none", view: "grid" };
+export const DEFAULT_QUERY: Query = { q: "", scope: "auto", repo: "", states: [], systems: [], modes: [], sort: "updated", group: "none", view: "grid" };
 
 /** The repo that holds shipped example Kages. They are real Kages, but a person
  *  browsing for their own work should not have to wade through them. */
@@ -68,7 +65,6 @@ export function parseQuery(sp: { get(name: string): string | null }): Query {
     states: pickMany(sp.get("state"), STATE_ORDER),
     systems: pickMany(sp.get("sys"), SYSTEM_ORDER),
     modes: pickMany(sp.get("mode"), MODE_ORDER),
-    attention: sp.get("attention") === "1",
     sort: pickOne(sp.get("sort"), SORTS, "updated"),
     group: pickOne(sp.get("group"), GROUPS, "none"),
     view: pickOne(sp.get("view"), VIEWS, "grid"),
@@ -84,7 +80,6 @@ export function serializeQuery(q: Query): URLSearchParams {
   if (q.states.length) p.set("state", q.states.join(","));
   if (q.systems.length) p.set("sys", q.systems.join(","));
   if (q.modes.length) p.set("mode", q.modes.join(","));
-  if (q.attention) p.set("attention", "1");
   if (q.sort !== "updated") p.set("sort", q.sort);
   if (q.group !== "none") p.set("group", q.group);
   if (q.view !== "grid") p.set("view", q.view);
@@ -97,9 +92,6 @@ export function resolveScope(scope: Scope, cards: readonly LibraryCard[]): Exclu
   if (scope !== "auto") return scope;
   return cards.some((c) => !isTemplate(c) && c.state !== "archived") ? "mine" : "all";
 }
-
-/** A current (not stale) critique with open P0 or P1 issues. A stale one is history, not a to-do. */
-export const hasOpenIssues = (c: LibraryCard): boolean => !!c.critique && !c.critique.stale && c.critique.open.P0 + c.critique.open.P1 > 0;
 
 const systemId = (c: LibraryCard) => c.system.split("@")[0];
 
@@ -114,7 +106,7 @@ function matchesText(c: LibraryCard, q: string): boolean {
 /** Each facet can be left out of the test, which is how counts are computed: a
  *  facet's own selection must not hide its siblings, or you could never see what
  *  else there is to pick (the standard faceted-search rule). */
-type FacetName = "scope" | "repo" | "state" | "system" | "mode" | "attention";
+type FacetName = "scope" | "repo" | "state" | "system" | "mode";
 function passes(c: LibraryCard, q: Query, scope: Exclude<Scope, "auto">, pins: ReadonlySet<string>, keep: string | undefined, skip?: FacetName): boolean {
   if (!matchesText(c, q.q)) return false;
   if (skip !== "scope") {
@@ -124,7 +116,6 @@ function passes(c: LibraryCard, q: Query, scope: Exclude<Scope, "auto">, pins: R
   }
   if (skip !== "repo" && q.repo && c.repo !== q.repo) return false;
   if (skip !== "system" && q.systems.length && !q.systems.includes(systemId(c))) return false;
-  if (skip !== "attention" && q.attention && !hasOpenIssues(c)) return false;
   if (skip !== "mode" && q.modes.length && !(c.mode && q.modes.includes(c.mode))) return false;
   if (skip !== "state") {
     // Archived Kages stay out of the way unless asked for (or open right now).
@@ -176,8 +167,6 @@ export interface Facets {
   systems: Record<string, number>;
   /** Declared modes only; Kages with no brief are not counted under any mode. */
   modes: Record<string, number>;
-  /** Kages whose current critique has open P0/P1 issues, under the other filters. */
-  attention: number;
 }
 
 /** Counts for every facet value under the *other* active filters. */
@@ -185,7 +174,6 @@ export function facetCounts(cards: readonly LibraryCard[], q: Query, pins: Reado
   const scope = resolveScope(q.scope, cards);
   const scopeCounts = { mine: 0, templates: 0, pinned: 0, all: 0 };
   const repos = new Map<string, number>(), states: Record<string, number> = {}, systems: Record<string, number> = {}, modes: Record<string, number> = {};
-  let attention = 0;
   for (const c of cards) {
     // Scope counts ignore the scope facet itself so the tabs show what each would contain.
     if (passes(c, q, "all", pins, keep, "scope")) {
@@ -197,13 +185,12 @@ export function facetCounts(cards: readonly LibraryCard[], q: Query, pins: Reado
     if (passes(c, q, scope, pins, keep, "repo")) repos.set(c.repo, (repos.get(c.repo) ?? 0) + 1);
     if (passes(c, q, scope, pins, keep, "state")) states[c.state] = (states[c.state] ?? 0) + 1;
     if (passes(c, q, scope, pins, keep, "system")) systems[systemId(c)] = (systems[systemId(c)] ?? 0) + 1;
-    if (hasOpenIssues(c) && passes(c, q, scope, pins, keep, "attention")) attention++;
     if (c.mode && passes(c, q, scope, pins, keep, "mode")) modes[c.mode] = (modes[c.mode] ?? 0) + 1;
   }
   return {
     scope: scopeCounts,
     repos: [...repos.entries()].map(([repo, count]) => ({ repo, count })).sort((a, b) => (a.repo === TEMPLATE_REPO ? 1 : 0) - (b.repo === TEMPLATE_REPO ? 1 : 0) || a.repo.localeCompare(b.repo)),
-    states, systems, modes, attention,
+    states, systems, modes,
   };
 }
 
@@ -216,7 +203,6 @@ export function activeChips(q: Query): Chip[] {
   if (q.repo) chips.push({ key: "repo", label: `Project: ${q.repo}`, clear: { repo: "" } });
   for (const s of q.states) chips.push({ key: "state:" + s, label: STATE_LABEL[s] ?? s, clear: { states: q.states.filter((x) => x !== s) } });
   for (const s of q.systems) chips.push({ key: "sys:" + s, label: s[0].toUpperCase() + s.slice(1), clear: { systems: q.systems.filter((x) => x !== s) } });
-  if (q.attention) chips.push({ key: "attention", label: "Open critique issues", clear: { attention: false } });
   for (const m of q.modes) chips.push({ key: "mode:" + m, label: MODE_LABEL[m] ?? m, clear: { modes: q.modes.filter((x) => x !== m) } });
   return chips;
 }

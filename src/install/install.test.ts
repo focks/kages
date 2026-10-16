@@ -33,20 +33,17 @@ test("nothing detected and nothing named: a helpful message, no writes", async (
   assert.deepEqual(tree(e.project), []);
 });
 
-test("install for claude writes skills, the improve skill, commands, agents, hooks and a manifest; a second run changes nothing", async () => {
+test("install for claude writes skills, hooks and a manifest; a second run changes nothing", async () => {
   const e = env();
   mkdirSync(join(e.project, ".claude"));
   const r = await install(e.o());
   assert.equal(r.exit, 0, r.lines.join("\n"));
   for (const id of Object.keys(systems)) assert.match(readFileSync(join(e.project, `.claude/skills/kages-${id}/SKILL.md`), "utf8"), new RegExp(`^---\\nkages-version: ${VERSION.replace(/\./g, "\\.")}\\nname: kages-${id}`));
-  assert.ok(existsSync(join(e.project, ".claude/skills/kages-improve/reference/polish.md")));
-  assert.ok(existsSync(join(e.project, ".claude/commands/kages-improve-polish.md")));
-  assert.ok(existsSync(join(e.project, ".claude/agents/kages-critic.md")));
   assert.ok(readFileSync(join(e.project, ".claude/settings.local.json"), "utf8").includes("kages-hook"));
   const m = readManifest("project", { project: e.project, home: e.home })!;
   assert.equal(m.version, VERSION);
   assert.deepEqual(m.providers, ["claude"]);
-  assert.ok(m.files.length > 20 && m.files.every((f) => f.sha256.length === 64));
+  assert.ok(m.files.length >= 4 && m.files.every((f) => f.sha256.length === 64));
   assert.match(r.lines.join("\n"), /wire the tools: claude mcp add kages -- kages mcp/);
   const before = snapshot(e.project);
   const again = await install(e.o());
@@ -102,10 +99,10 @@ test("check: not installed, current, a hand edit (reported, not failing), a miss
   const edited = check("project", b);
   assert.equal(edited.exit, 0);
   assert.match(edited.lines.join("\n"), /edited by hand/);
-  rmSync(join(e.project, ".claude/agents/kages-critic.md"));
+  rmSync(join(e.project, ".claude/skills/kages-decision-guide/SKILL.md"));
   const missing = check("project", b);
   assert.equal(missing.exit, 1);
-  assert.match(missing.lines.join("\n"), /missing: .*kages-critic\.md/);
+  assert.match(missing.lines.join("\n"), /missing: .*kages-decision-guide/);
   const m = readManifest("project", b)!;
   writeFileSync(join(e.project, ".kages/install.json"), JSON.stringify({ ...m, version: "0.9.0" }));
   assert.match(check("project", b).lines.join("\n"), /installed 0\.9\.0, this CLI is/);
@@ -173,7 +170,7 @@ test("no network is used: fetch throws and install still works", async () => {
 
 test("generated files agree with the packs and stamp their version", () => {
   const f = filesFor("claude", "project", { project: "/p", home: "/h" }).files;
-  assert.ok(f.some((x) => x.path === "/p/.claude/agents/kages-critic.md"));
+  assert.ok(f.some((x) => x.path === "/p/.claude/skills/kages-decision-guide/SKILL.md"));
   assert.match(stamp("---\nname: x\n---\n"), /^---\nkages-version: /);
   assert.equal(planFiles(["claude"], "project", { project: tmpDir(), home: tmpDir() }, null).writes.every((w) => w.status === "new"), true);
 });

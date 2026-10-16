@@ -243,7 +243,7 @@ function LibraryInner() {
                 {c.label}<X className="size-3.5 text-muted-foreground" aria-hidden />
               </button>
             ))}
-            <Button size="xs" variant="ghost" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [], attention: false }); }}>Clear all</Button>
+            <Button size="xs" variant="ghost" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [] }); }}>Clear all</Button>
           </div>
         )}
 
@@ -276,9 +276,9 @@ function LibraryInner() {
                 {resolvedScope === "pinned" ? "Pin a Kage with its star to keep it close." : chips.length ? "Nothing fits these filters." : resolvedScope === "mine" ? "You have no Kages of your own in this view yet." : "Nothing here yet."}
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                {chips.length > 0 && <Button variant="outline" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [], attention: false }); }}>Clear filters</Button>}
+                {chips.length > 0 && <Button variant="outline" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [] }); }}>Clear filters</Button>}
                 {resolvedScope !== "templates" && templateCount > 0 && <Button variant="outline" onClick={() => setQuery({ scope: "templates", repo: "" })}>Browse {templateCount} templates</Button>}
-                {resolvedScope !== "all" && <Button variant="ghost" onClick={() => setQuery({ scope: "all", repo: "", states: [], systems: [], modes: [], attention: false })}>Show everything</Button>}
+                {resolvedScope !== "all" && <Button variant="ghost" onClick={() => setQuery({ scope: "all", repo: "", states: [], systems: [], modes: [] })}>Show everything</Button>}
               </div>
             </div>
           )}

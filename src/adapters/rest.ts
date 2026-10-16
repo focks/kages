@@ -19,7 +19,7 @@ export async function handleRest(ctx: OpContext, op: string, req: Request): Prom
   } else {
     params = queryParams(op, new URL(req.url).searchParams);
   }
-  // Decided from the params: a planning call (tune_kage without apply) is a read over GET, applying is not.
+  // Decided from the params: a planning call (migrate_kage without apply) is a read over GET, applying is not.
   if (method !== "POST" && isWriteOp(op, params)) {
     return Response.json({ error: { code: "method_not_allowed", msg: `${op} is a write; use POST` } }, { status: 405, headers: { Allow: "POST" } });
   }
