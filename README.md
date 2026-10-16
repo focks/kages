@@ -6,7 +6,26 @@ published **contracts** — they never write HTML. Each result is an immutable,
 signed document with full provenance, rendered live in the browser and shareable
 by link.
 
-🔗 **Live:** https://kages-focks-projects.vercel.app
+[![CI](https://github.com/focks/kages/actions/workflows/ci.yml/badge.svg)](https://github.com/focks/kages/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+🔗 **Live:** https://kages-focks-projects.vercel.app · 📖 **Docs:** [`docs/`](docs/getting-started.md), or `/docs` in the running app
+
+## Quick start
+
+```bash
+git clone https://github.com/focks/kages.git && cd kages
+nvm use            # Node 24 (22.18+ also works); see CONTRIBUTING.md
+npm ci
+npm run dev        # http://localhost:3000 — in-memory, no login
+```
+
+Then open **Docs → Build your first guide**, or drive it from the terminal:
+
+```bash
+node bin/kages.mjs help
+node bin/kages.mjs validate public/ds/ops-console.kage.json
+```
 
 ---
 
@@ -53,11 +72,13 @@ and conventions live as skills under `.claude/skills/` — see `AGENTS.md`.
 ## Running locally
 
 ```bash
-npm install
-npm run dev        # http://localhost:3000 — no login, in-memory store
+npm ci
+npm run dev        # http://localhost:3000 — no login, in-memory store (local mode; a built app needs KAGES_LOCAL_MODE=1)
 npm test           # node:test suite
 npm run typecheck
 ```
+
+### Authoring notes
 
 The Studio opens an interactive split example. **New artifact** offers a blank
 canvas and six starters, including a searchable collection of reusable cards, a
@@ -132,8 +153,9 @@ the local `./.kages`.
 
 ## Deploying
 
-The app deploys to Vercel from this repo (auto-deploys on push to `main`). Set
-the Supabase env vars in the Vercel project; run the migrations against your
+The app is a standard Next.js app and deploys to Vercel or any Node host. Set
+the Supabase env vars in the project (or `DATABASE_URL` for plain Postgres; see
+[deployment](docs/deployment.md)); run the migrations against your
 Supabase project; enable the Google provider in Supabase Auth with a Google
 Cloud OAuth client (redirect `https://<project>.supabase.co/auth/v1/callback`).
 
@@ -150,3 +172,28 @@ src/server/     process store, Supabase persistence, identity
 oracle/         BDD feature files — the behavioural spec
 .claude/skills/ load-bearing patterns, captured as skills
 ```
+
+## Review and runtime guarantees
+
+Saved critiques require `fingerprint` from the reviewed `critique_kage` packet's `target.digest`. If the head changes, saving returns a conflict; refresh the evidence and review the new version. Never fetch a new digest solely to bypass that check.
+
+Artifact code runs inside an opaque-origin sandbox. Host integrations cross a checked message port, and direct fetch is denied. New stored versions pin the renderer and design-system asset hashes; builds retain those immutable files. Legacy versions without asset pins use current assets. Google Fonts remain external resources.
+
+Persistent storage fails closed on outages, initializes through compare-and-swap, and reloads committed state for reads. Public links check committed visibility, so an old public-share mirror cannot undo revocation. Apply the latest database migrations with `npm run db:setup`.
+
+## Contributing
+
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+first: it covers setup, the checks to run, and the few rules that do not bend
+(the oracle wins; the engine stays pure; one operation table).
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+Report vulnerabilities privately; see [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE) © 2026 focks. Design-system fonts (Bricolage Grotesque, DM Sans,
+Fraunces, IBM Plex) are loaded from Google Fonts under their own open licenses and
+are not bundled in this repository.

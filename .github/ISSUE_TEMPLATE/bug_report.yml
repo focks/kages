@@ -1,0 +1,21 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened, description: "And what you expected instead." }
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes: { label: Steps to reproduce, description: "Commands, a Kage document or a link help most. Remove anything private." }
+    validations: { required: true }
+  - type: textarea
+    id: report
+    attributes:
+      label: Report bundle
+      description: "Run `kages report` and paste the output. It redacts secrets, and contains no Kage content."
+      render: text
+  - type: input
+    id: env
+    attributes: { label: "Environment", placeholder: "kages version, Node version, OS, local / Postgres / Supabase" }

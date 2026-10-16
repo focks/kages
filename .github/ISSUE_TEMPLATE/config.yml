@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/focks/kages/security/advisories/new
+    about: Please report security problems privately, not as a public issue.
+  - name: Read the docs
+    url: https://github.com/focks/kages/tree/main/docs
+    about: Getting started, concepts, the CLI and the operation reference.
