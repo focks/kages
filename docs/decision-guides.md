@@ -1,16 +1,10 @@
 # Decision guides
 
-A decision guide turns a technical answer into something a customer can explore: an explanation with sources, a question that leads to a recommendation, a calculator with numbers they can change, setup steps, and a checklist. You write an **intake**; Kages builds the page, so the same process works for any subject. To see one before writing any intake, [build your first guide](/docs/build-a-guide) in the browser from an example.
+A decision guide turns a technical answer into something a customer can explore: an explanation with sources, a question that leads to a recommendation, a calculator with numbers they can change, setup steps, and a checklist. You write an **intake**; Kages builds the page, so the same process works for any subject.
 
 ## Build one
 
-```sh
-kages decision-guide --list
-kages decision-guide --example queue-choice -o intake.json
-kages decision-guide intake.json --create
-```
-
-Three examples ship with Kages: Snowflake reader accounts, choosing a message queue, and self-hosting Redis. Copy one, change the facts, and build.
+Decision guides are a skill and an operation, not a built-in command. An agent with the `kages-decision-guide` skill asks for the intake, then calls the `decision_guide_to_kage` operation (an MCP tool, or `kages remote decision_guide_to_kage` when signed in): it validates the intake and returns the document, or `problems` naming what is missing. Pass that document to `create_kage` to store it. Example intakes — Snowflake reader accounts, choosing a message queue, self-hosting Redis — ship with the skill; copy one, change the facts, and build.
 
 ## What the intake holds
 
@@ -27,8 +21,4 @@ Starting values are labelled illustrative on the page. A guide says **Not yet ve
 
 ## Share and update
 
-```sh
-kages push intake-name --server http://localhost:3000 --publish
-```
-
-To change a fact, edit the intake and rebuild, then re-push with `--replace`; history is kept. See [getting started](getting-started.md) for the first run and [collaboration](collaboration.md) for how edits merge.
+Once the guide is stored, publish it to a link and share it like any Kage — see [lifecycle and sharing](lifecycle-and-sharing.md). To change a fact, rebuild from the edited intake and patch the Kage; history is kept. See [collaboration](collaboration.md) for how edits merge.

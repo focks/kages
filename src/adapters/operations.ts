@@ -25,7 +25,6 @@ import { diffFindings, blockDiff, adviceOnSuccess, parsePolicy, type AdvicePolic
 import { briefIssues } from "../engine/brief.ts";
 import { modeOf } from "../engine/mode.ts";
 import { outlineToKage } from "../engine/outline.ts";
-import { fromJsonRender, toJsonRender, checkJsonRender, type JrSpec } from "../interop/json-render.ts";
 import { buildDecisionGuide, type Intake } from "../packs/decision-guide.ts";
 import { applyPatch } from "../collab/patch.ts";
 import { describe } from "../engine/describe.ts";
@@ -461,34 +460,11 @@ export const OPERATIONS: OpSpec[] = [
   } },
 
   { name: "decision_guide_to_kage", summary: "Build an interactive technical decision guide (explanation with sources, a question-driven recommendation, a calculator with editable assumptions, setup steps and a checklist) from an intake. Returns the document and its validation, or `problems` naming what the intake lacks (no sources, an unanswered combination, an unknown assumption). Does not store it; pass the doc to create_kage. Author must verify the facts: pass `verified` {by,on} only once a person has", params: ["intake"], run: (_c, p) => {
-    if (!p.intake || typeof p.intake !== "object") return fail("invalid_input", "intake must be an object; see `kages decision-guide --example`");
+    if (!p.intake || typeof p.intake !== "object") return fail("invalid_input", "intake must be an object; see the kages-decision-guide skill for the shape and examples");
     const r = buildDecisionGuide(p.intake as Intake);
     if (!r.doc) return ok({ doc: null, problems: r.problems });
     const rv = review(r.doc, "atelier");
     return ok({ doc: r.doc, problems: [], validation: { ok: rv.ok, errors: rv.errors, warnings: rv.warnings }, advice: rv.advice });
-  } },
-
-  { name: "from_json_render", summary: "Convert a Vercel json-render spec ({root, elements, state}, shadcn catalog) into a Kage. Returns the document, its validation, and `notes` naming everything that was approximated or left out. Does not store it; pass the doc to create_kage", params: ["spec", "system?"], run: (_c, p) => {
-    let built;
-    try { built = fromJsonRender(p.spec as JrSpec); } catch (e) { return fail("invalid_input", (e as Error).message); }
-    const doc = p.system ? { ...built.value, system: String(p.system).includes("@") ? String(p.system) : `${p.system}@1` } : built.value;
-    const rv = review(doc, String(doc.system).split("@")[0]);
-    return ok({ doc, notes: built.notes, validation: { ok: rv.ok, errors: rv.errors, warnings: rv.warnings }, advice: rv.advice });
-  } },
-
-  { name: "to_json_render", summary: "Export a stored Kage as a Vercel json-render spec ({root, elements, state}, shadcn catalog). Returns the spec, `problems` (structural, empty when it will load) and `notes` naming what could not be carried (calculations are frozen at their initial values; charts, diagrams and contents lists are left out)", params: ["name", "version?"], run: (c, p) => {
-    // A requested version is honoured or refused, never silently replaced by the head: 0, a fraction or
-    // text would fall through authorizeRead's truthiness check and export the current document as if it had been asked for.
-    let version: number | undefined;
-    if (p.version !== undefined) {
-      version = Number(p.version);
-      if (!Number.isInteger(version) || version < 1) return fail("invalid_params", "version must be a whole number from 1");
-    }
-    const r = c.store.authorizeRead(p.name, c.author, version);
-    // Only a Kage that exists and is readable has "versions" to be missing; for anything else keep the plain not-found text.
-    if (!r.ok) return fail(r.code, version && r.code === "not_found" && c.store.head(p.name) ? `no version ${version} of '${p.name}'` : r.msg);
-    const built = toJsonRender(r.record.doc);
-    return ok({ version: r.record.v, spec: built.value, problems: checkJsonRender(built.value), notes: built.notes });
   } },
 
   { name: "preview_kage", summary: "Headless render snapshot: resolved outputs + visibility per block", params: ["name", "system?"], run: (c, p) => {

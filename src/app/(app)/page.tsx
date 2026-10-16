@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { X, Layers, CheckCircle2, FileEdit, Boxes, ArrowRight, Eye, SquarePen, Sparkles } from "lucide-react";
+import { Layers, CheckCircle2, FileEdit, Boxes, ArrowRight, Eye, SquarePen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,11 +16,6 @@ import { StateBadge, SystemChip, relTime, op, type KageCard } from "@/components
 export default function DashboardPage() {
   const [cards, setCards] = useState<KageCard[] | null>(null);
   const [error, setError] = useState("");
-  // A first-use prompt, not a fixture: once dismissed it stays away. Storage can be blocked, so it fails open to "shown".
-  const [hint, setHint] = useState(true);
-  useEffect(() => { try { if (localStorage.getItem("kages.hint.guide") === "off") setHint(false); } catch { /* private window */ } }, []);
-  const dismissHint = () => { setHint(false); try { localStorage.setItem("kages.hint.guide", "off"); } catch { /* ignore */ } };
-
   useEffect(() => { op<KageCard[]>("list_kages").then(setCards).catch((e) => setError(String(e.message))); }, []);
 
   const total = cards?.length ?? 0;
@@ -43,19 +38,6 @@ export default function DashboardPage() {
         <h2 className="font-display text-[22px] leading-7 font-[650] tracking-[-0.01em]">Overview</h2>
         <p className="text-sm text-muted-foreground">An artifactory for agents — build, version, and ship interactive Kages.</p>
       </div>
-
-      {hint && <Card className="border-primary/40 bg-primary-soft">
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
-          <div>
-            <div className="font-display text-[15px] font-[650]">Turn a technical answer into an interactive guide</div>
-            <p className="text-sm text-muted-foreground">Start from an example: readers answer a question, change the numbers and follow the setup.</p>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button render={<Link href="/docs/build-a-guide" />} nativeButton={false}><Sparkles className="size-4" /> Create a guide</Button>
-            <Button variant="ghost" size="icon-sm" aria-label="Dismiss" onClick={dismissHint}><X aria-hidden /></Button>
-          </div>
-        </CardContent>
-      </Card>}
 
       {error && <Card className="border-destructive"><CardContent className="pt-6 text-sm text-destructive">{error}</CardContent></Card>}
 

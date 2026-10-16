@@ -130,9 +130,6 @@ workspace  (the files Kages keeps next to your project)
   brief show | set --file b.json | import --file b.md | export [-o f]   [--base-revision n] [--merge]
                                 the workspace brief: product truth every agent should load first
   doctor [--fix] [--strict] [--online] [--area a,b] [--json]
-  pilot [stats] [--json] | summarize <stats.json…>   content-free workspace numbers for the pilot; nothing is sent
-  json-render import <spec.json> [--create] | export <name|file> [-o f]   convert to and from a Vercel json-render spec
-  decision-guide [<intake.json> | --example name | --list] [--create] [-o file]   build an interactive decision guide from an intake
   push <file|name> [--server url] [--token t] [--replace] [--publish [--visibility link|public|workspace]]   send a local Kage to a running app so it shows in the Library
   report [--kage <name>] [--include-doc] [--include-config-values] [--out <file>] [--force] [--verify] [--open]   a redacted diagnostic bundle; nothing is sent
                                 drift between Kages' files and this version (config, brief, store, hooks, git, skills…)
@@ -410,62 +407,6 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       if (!r.ok) { for (const e of r.errors) process.stderr.write(`  ✗ ${e.at}  ${e.code}  ${e.msg}\n`); return 1; }
       if (flags.create) return report(await op("create_kage", { doc: built.doc }, true), (d) => { out(`created ${(d as any).version.ref}`); adviceLines(d); });
       writeOut(flags, JSON.stringify(built.doc, null, 2));
-      return 0;
-    }
-    case "pilot": {
-      // Content-free numbers about your own workspace, for the pilot. See src/pilot/funnel.ts.
-      const { pilotStats, summarize, parseStats } = await import("../pilot/funnel.ts");
-      if (rest[0] === "summarize") {
-        need(2, "pilot summarize <stats.json> [more.json ...]");
-        const r = summarize(rest.slice(1).map((f) => parseStats(readFileSync(f, "utf8"))));
-        if (ctx.json) printJson(r); else { out(`${r.participants} participant(s)`); for (const t of r.thresholds) out(`${t.met ? "✓" : "✗"} ${t.got}/${t.need}  ${t.label}`); out(r.allMet ? "All thresholds met." : "Not all thresholds met: read the interviews before deciding."); }
-        return r.allMet ? 0 : 1;
-      }
-      const stats = pilotStats(loadStore(ctx.dir));
-      if (ctx.json) printJson(stats);
-      else { out(`guides ${stats.guides} · shared ${stats.shared} · with feedback ${stats.withFeedback} (${stats.guestComments} comments) · revised after sharing ${stats.revisedAfterShare} · active days ${stats.activeDays} · second guide after ${stats.daysToSecondGuide ?? "n/a"} day(s)`); out("Nothing here contains titles, text or names. Share it only if you choose to: kages pilot stats --json"); }
-      return 0;
-    }
-    case "json-render": {
-      // Interop with Vercel's json-render. See src/interop/json-render.ts.
-      need(2, "json-render import <spec.json> [--create] [-o file] [-s sys] | export <name|file> [-o file]");
-      const [dir, target] = rest;
-      if (dir === "import") {
-        const { fromJsonRender } = await import("../interop/json-render.ts");
-        const built = fromJsonRender(JSON.parse(readFileSync(target, "utf8")));
-        const doc = sys ? { ...built.value, system: sys.includes("@") ? sys : `${sys}@1` } : built.value;
-        for (const n of built.notes) process.stderr.write(`  • ${n}\n`);
-        const rv = review(doc, String(doc.system).split("@")[0]);
-        if (!rv.ok) { for (const e of rv.errors) process.stderr.write(`  ✗ ${e.at}  ${e.code}  ${e.msg}\n`); return 1; }
-        if (flags.create) return report(await op("create_kage", { doc }, true), (d) => { out(`created ${(d as any).version.ref}`); adviceLines(d); });
-        writeOut(flags, JSON.stringify(doc, null, 2));
-        return 0;
-      }
-      if (dir === "export") {
-        const { toJsonRender, checkJsonRender } = await import("../interop/json-render.ts");
-        const built = toJsonRender(resolveDoc(target));
-        for (const n of built.notes) process.stderr.write(`  • ${n}\n`);
-        const problems = checkJsonRender(built.value);
-        for (const pr of problems) process.stderr.write(`  ✗ ${pr}\n`);
-        writeOut(flags, JSON.stringify(built.value, null, 2));
-        return problems.length ? 1 : 0;
-      }
-      throw new Error("usage: kages json-render import|export");
-    }
-    case "decision-guide": {
-      // The Technical Decision Pack: an intake in, an interactive guide out. See src/packs/decision-guide.ts.
-      const { EXAMPLES } = await import("../packs/decision-guide-examples.ts");
-      const example = flag<string>(flags, "example");
-      if (flags.list === true || (!rest[0] && !example)) { out("Examples (copy one as your intake):\n" + Object.keys(EXAMPLES).map((k) => `  kages decision-guide --example ${k}`).join("\n") + "\n\nBuild:  kages decision-guide <intake.json> [--create]"); return 0; }
-      if (example && !rest[0]) { if (!EXAMPLES[example]) throw new Error(`no example '${example}'; try --list`); writeOut(flags, JSON.stringify(EXAMPLES[example], null, 2)); return 0; }
-      const { buildDecisionGuide } = await import("../packs/decision-guide.ts");
-      const d = buildDecisionGuide(JSON.parse(readFileSync(rest[0], "utf8")));
-      if (!d.doc) { for (const pr of d.problems) process.stderr.write(`  ✗ ${pr}\n`); return 1; }
-      const rv = review(d.doc, "atelier");
-      for (const a of rv.advice) process.stderr.write(`  ${a.level === "lint" ? "◦" : "→"} ${a.at}  ${a.fix ?? a.msg}\n`);
-      if (!rv.ok) { for (const e of rv.errors) process.stderr.write(`  ✗ ${e.at}  ${e.code}  ${e.msg}\n`); return 1; }
-      if (flags.create) return report(await op("create_kage", { doc: d.doc }, true), (r) => { out(`created ${(r as any).version.ref}`); adviceLines(r); });
-      writeOut(flags, JSON.stringify(d.doc, null, 2));
       return 0;
     }
     case "create": {

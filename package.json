@@ -86,8 +86,7 @@
     "artifacts",
     "design-system",
     "nextjs",
-    "interactive",
-    "json-render"
+    "interactive"
   ],
   "publishConfig": {
     "access": "public"

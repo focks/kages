@@ -28,11 +28,6 @@
       "group": "Guides"
     },
     {
-      "file": "json-render.md",
-      "summary": "Move work between Kages and Vercel's json-render.",
-      "group": "Guides"
-    },
-    {
       "file": "collaboration.md",
       "summary": "Versions, claims, merges and threaded comments.",
       "group": "Guides"

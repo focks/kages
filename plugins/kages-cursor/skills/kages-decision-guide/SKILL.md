@@ -19,11 +19,8 @@ Collect, from the person or their notes:
 Never invent a price, limit or version. If you do not know a number, make it an assumption the reader sets, and say so. Starting values are labelled illustrative on the page.
 
 ## 2. Build
-```
-kages decision-guide --list                      # examples: snowflake-reader-accounts, queue-choice, redis-hosting
-kages decision-guide --example queue-choice -o intake.json   # a template to edit
-kages decision-guide intake.json --create        # or MCP: decision_guide_to_kage, then create_kage
-```
+Call the `decision_guide_to_kage` operation — an MCP tool, or `kages remote decision_guide_to_kage` when signed in — with the intake. It returns the document and its validation, or `problems` naming what the intake lacks. Pass the returned document to `create_kage` to store it. Worked example intakes: snowflake-reader-accounts, queue-choice, redis-hosting.
+
 Problems come back as a list naming what the intake lacks; fix the intake, not the output. Then call `get_context`, read the findings, and `kages screenshot <name> --width 390,1200` to look at it.
 
 ## 3. Verify before it is shared

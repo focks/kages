@@ -64,10 +64,6 @@ kages push notes --server http://localhost:3000
 
 It creates the Kage in the running app and prints the link to open. Run it again with `--replace` to update the app's copy (history is kept; nothing is deleted) and `--publish` to make it shareable. For an app with hosted accounts, pass `--token` or set `KAGES_TOKEN`; `kages auth login` signs the whole CLI in so it writes to your cloud workspace directly.
 
-## The quickest first guide
-
-If you want to see the benefit before the machinery, start the app and open [Build your first guide](/docs/build-a-guide) in these docs. Pick an example, change the title, who it is for and the summary, and build it. You get an interactive guide with a question, a calculator and setup steps. The same page shows how to connect your own agent to write one from your notes. See [decision guides](decision-guides.md) for what goes into one.
-
 ## Next
 
 - [Concepts](concepts.md) explains the few ideas everything is built from.

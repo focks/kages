@@ -94,9 +94,6 @@ Exit codes are meaningful: `lint` exits 2 on a P0 or P1 finding, `check` exits 1
   brief show | set --file b.json | import --file b.md | export [-o f]   [--base-revision n] [--merge]
                                 the workspace brief: product truth every agent should load first
   doctor [--fix] [--strict] [--online] [--area a,b] [--json]
-  pilot [stats] [--json] | summarize <stats.json…>   content-free workspace numbers for the pilot; nothing is sent
-  json-render import <spec.json> [--create] | export <name|file> [-o f]   convert to and from a Vercel json-render spec
-  decision-guide [<intake.json> | --example name | --list] [--create] [-o file]   build an interactive decision guide from an intake
   push <file|name> [--server url] [--token t] [--replace] [--publish [--visibility link|public|workspace]]   send a local Kage to a running app so it shows in the Library
   report [--kage <name>] [--include-doc] [--include-config-values] [--out <file>] [--force] [--verify] [--open]   a redacted diagnostic bundle; nothing is sent
                                 drift between Kages' files and this version (config, brief, store, hooks, git, skills…)
