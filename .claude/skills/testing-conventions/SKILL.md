@@ -60,3 +60,21 @@ test("named behaviour, not 'it works'", () => {
 
 Name the behaviour and tie it to the requirement it covers
 (`oracle/<file>.feature`), so a reader knows which rule a red test broke.
+
+## Shared helpers — `src/test-support/`
+
+Import these instead of re-implementing them in a test file (they are not
+`*.test.ts`, so `npm test` never runs them as tests):
+
+| Helper | Use |
+| --- | --- |
+| `runCli(argv, {env?, cwd?})` | In-process CLI with captured stdout/stderr. Isolates `KAGES_CONFIG_HOME`; restores streams, env and cwd in `finally`. |
+| `tmpDir(prefix)` / `withTmp(fn)` | Temp dirs removed when the file's tests finish / immediately. |
+| `gitRepo(files?, {commit?})` | Real repo with pinned identity and no global config; `null` when git is missing — use `{ skip: gitRepo() === null }`. `isIgnored`, `trackedFiles`. |
+| `fakeHome({claude, cursor, …})` | Throwaway `HOME` with harness dirs and pre-existing settings; proves code never touches the real machine. |
+| `readNdjson(path)` | Strict reader; a torn last line throws. |
+| `sampleKage(over?)` / `seedWorkspace(dir, n)` | Minimal valid documents. |
+| `spawnKages(args, {stdin?, timeoutMs?})` | The real `bin/kages.mjs` as a child, killed as a process group on timeout — for stdin/exit-code/process-boundary behaviour. |
+
+`runCli` swaps `process.stdout.write` and `process.chdir`s: tests in one file run
+sequentially so this is safe, but never `await`-interleave two `runCli` calls.

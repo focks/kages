@@ -50,3 +50,10 @@ Feature: Multi-agent collaboration
   Scenario: In-Kage actions never use the author's credentials
     When ask, agent or emit runs inside a viewed Kage
     Then it runs with the viewer's or the workspace's budget and permissions, as configured
+
+  Scenario: A proposed patch can be checked without being applied
+    When validate_patch is called with the ops of a patch
+    Then it returns the verdict patch_kage would give, the validation, the advice and a block diff
+    And no version, quota, audit entry or event is created
+    And an invalid op is reported with its position (opIndex) and a message naming it
+    And findings the patch would introduce are listed as regressions, existing ones are not

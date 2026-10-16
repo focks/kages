@@ -78,3 +78,37 @@ Behaviour lives in the engine and store; everything else is generated or
 translated from them. If you're tempted to put logic in an adapter, a component,
 or a UI, it belongs one layer down — and the pattern you just used belongs in a
 skill here.
+
+## A new design system needs named rules
+
+Add an entry to `src/design-system/system-rules.json`: a `signatureMove` and 5–8 named
+rules, each with a `source` (contract refs whose `agent.use`/`avoid` it distils) and/or a
+`lint` link to a registered rule. `node scripts/rules-audit.mjs <system>` prints the
+guidance to draft from. Packs embed them; `catalog()` never does (it is pinned to the
+oracle). `src/packs/system-rules.test.ts` rejects a rule that cites nothing.
+
+## A new design system needs a card that passes contrast
+
+`systemCard(id)` (`src/packs/system-card.ts`) is generated from `public/ds/tokens.json`,
+`systems.json` and the named rules; it ships as `SYSTEM.md` in the pack, as
+`/packs/<id>/SYSTEM.md`, and in the plugin skill (`reference/system.md`, regenerate with
+`npm run build:plugin`). Every colour token needs `usage` text, and the pairs in
+`src/design-system/contrast-pairs.json` (text on ground, controls, focus) must clear WCAG
+2.x in light and dark: `npm run build:ds` runs `check:contrast` and fails otherwise. A
+failing pair is fixed in the token, or waived in that file's `waivers` with a reason.
+Golden cards live in `src/packs/__fixtures__/`; regenerate with
+`UPDATE_GOLDEN=1 node --test src/packs/system-card.test.ts` and review the diff.
+
+## How to deprecate something
+
+Deprecated means *absent for authoring*: it is hidden from guidance and flagged in new
+work, but stored versions keep rendering with the contract they pinned. The mechanism is
+`src/engine/deprecations.ts`; `REGISTRY` is empty until a product decision fills it.
+Checklist for an entry: stable `id`; `kind` (prop, role, enum-value, doc-field); `target`;
+`since` (and optional informational `removeIn`); a one-sentence `reason`; the `replacement`;
+a `migration` (rename-prop, remove-prop, map-value, change-role, remove-field) with
+`auto: true` only for pure renames and removals; a test with an injected registry; a
+changelog line. It then appears as a P2 `deprecated-usage` finding, under "Do not use" in
+packs, as `DEPRECATED_USED` in `get_context`, and in `kages migrate`. Config
+`lint.deprecations: block-new` refuses a write that adds more of it (legacy in untouched
+blocks stays allowed). Never edit a frozen oracle contract to retire something.

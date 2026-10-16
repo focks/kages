@@ -48,3 +48,26 @@ Supabase uses) and records them in `schema_migrations`; re-running is a no-op.
 `src/server/persistence.test.ts` runs only when `KAGES_TEST_DATABASE_URL` points
 at a throwaway database (create one with `db:setup`); otherwise it skips. It
 deletes the rows it uses, so never aim it at data you care about.
+
+## Adding a persisted collection (briefs, critiques, …)
+
+Use `src/store/collection.ts` (`Collection<T>`): optional snapshot field, tolerant
+`load(undefined)`, ids reseeded from the highest surviving suffix plus a persisted sequence high-water mark, a hard `max`
+that returns a typed error. The persistence layers treat the snapshot as an opaque
+blob, so a new collection persists in memory, `store.json`, Supabase and Postgres
+with no backend change. Checklist before merging a new collection:
+
+- [ ] type, `max` and retention documented; permission model (read / write / admin) stated
+- [ ] a `KageEvent` type if others should observe it
+- [ ] purge in `Store.remove` if rows reference a Kage
+- [ ] legacy-snapshot test (`src/store/__fixtures__/legacy-snapshot.json` must still restore and round-trip) and a Postgres round-trip
+- [ ] size budget noted: the snapshot is one jsonb row per workspace
+
+## Failure and concurrency boundaries
+
+- Missing rows return null; database/network errors throw and routes return 503. Never seed after a failed read.
+- Initialize with insert-if-absent/CAS and reload a concurrent winner. Never upsert a seed over an existing row.
+- Persistent reads reload committed snapshots; process caches are authoritative only in memory mode.
+- Claims persist with absolute expiry timestamps. Quotas remain process-local; never describe them as distributed rate limits.
+- Public share reads authorize against the latest committed workspace head using UUID containment. The legacy public_shares mirror is not an authorization source. Keep the snapshot GIN index migration with this lookup.
+- Collections that use sequential IDs persist their sequence independently of rows, so deletion and reload cannot reuse an ID.

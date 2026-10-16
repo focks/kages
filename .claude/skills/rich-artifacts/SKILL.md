@@ -98,3 +98,56 @@ phone their text shrinks with them. Any figure whose viewBox is 480+ wide gets
 `expressive.js`) inside a figure that scrolls sideways, which keeps labels at ~9px+.
 New wide charts must do the same; `kages screenshot --width 390` reports
 "text is too small to read" if one forgets (see `visual-review`).
+
+## Adding a lint rule (`src/engine/rules/`)
+
+A rule is one file exporting a `Rule` (`id`, `category`, `severity` P0–P3, `tier`
+immediate|deep, optional `modes`, `summary`, `rationale`, pure `check(ctx)`), one
+line in `rules/index.ts`, and a `{pos, neg}` entry in `rules/fixtures.ts` — the
+registry test fails without it. `ctx` (`buildContext`) already holds blocks,
+actions, reads, `tplRefs`, reachability, state keys, mode and `outputsOf(type)`,
+so a rule never re-walks the document. Defaults: wiring that breaks the task is
+P1, quality P2, style P3. Output is sorted by severity then location, so rule
+order never matters. Waivers live in `doc.meta.kages.lint.ignore` as
+`[{rule, block?, reason}]` (reason ≥ 8 chars; a bad waiver is itself a `bad-waiver`
+P3 finding and waives nothing); workspace-wide `lint.ignoreRules` is in config.
+A mode-gated rule is skipped when the Kage's mode is unknown. The shipped corpus
+must stay at zero findings.
+
+### Flattening `nested-sections`
+
+A *container* is a `card` or a `section` with tone surface/sunken/accent; a plain section is
+only spacing and a heading. To fix a finding, make the outer section plain (omit `tone`) or
+drop the inner card; group with heading level and `gap` instead. Overlays (`modal`) and
+`shell` regions start a fresh context, and a composition is analysed on its own. The limit
+is one level for every system (`MAX_DEPTH` in the rule); waive a dense data pane with
+`meta.kages.lint.ignore` and a reason rather than raising it.
+
+## Writing claims honestly (`unsourced-claim`, `stat-literal-unsourced`)
+
+Deep-tier, advisory rules (`kages lint`, `get_context`'s `UNSOURCED_CLAIMS`): a figure with
+a benefit cue ("cut costs by 40%"), a reach count ("trusted by 500+ teams"), a superlative
+(P3) or a quoted testimonial, and a `stat` whose value is typed in. By mode: persuade and
+experience check everything, read only testimonials, operate only literal `stat` values; an
+unknown mode checks testimonials alone. To resolve one: bind the value to data, add
+`{claim, source}` (or `{block, source}`) to `doc.brief.evidence` (a free-form note is not a
+source), label the page illustrative (figures and reach only, never testimonials), or remove
+it. A workspace brief that lists testimonials under `absent` makes a testimonial P1. Prose
+extraction (`rules/prose.ts`) skips chart series, table cells, code, bound props and ids.
+English-first by design; tune patterns in `claim-patterns.ts` and add the sentence that
+misfired to `claims-calibration.test.ts`.
+
+## Browser surfaces and motion (`surfaces.css`, `motion.css`)
+
+Two additive sources appended last by `build:ds`: **surfaces.css** themes what browsers draw
+(selection = 22% accent, caret, accent-color, placeholder, `li::marker`, link underline offset,
+thin visible tab-strip scrollbars, tabular numerals on counts, forced-colors) and **motion.css**
+holds the one global reduced-motion rule (`!important`, scoped under the Kage root, must stay
+the last motion rule). `color-scheme` is emitted per theme by `scripts/kage-tokens.mjs`. Motion
+tokens (`--motion-duration-fast|base|slow`, `--motion-ease-out|inout`) are in `tokens.json`.
+Rules for new CSS: scope everything under `.kg-kage`/`.kg-sys-*` (never `:root`, `html`, `body`
+or `*`), use motion tokens (`checkMotion` fails literal timings, overshoot easing, `infinite`,
+`steps()` and `@keyframes`), and never remove an outline without replacing it. The reference
+stylesheet is frozen: its four transitions are an accepted inventory and the global rule
+neutralises them. `node scripts/audit-surfaces.mjs` lists remaining gaps; the static tests and a
+Chrome-gated computed-style test (`surfaces-browser.test.ts`) enforce the rest.
