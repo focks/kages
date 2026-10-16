@@ -35,7 +35,7 @@ Set `DATABASE_URL` and run `npm run db:setup` to create the tables. Writes are c
 
 ## Hosted
 
-The hosted endpoint serves the MCP operations at `/api/mcp` with bearer-token auth. Without a token it is read-only and public. Sign in with `kages auth login` to act on your own workspace.
+The hosted endpoint serves the MCP operations at `/api/mcp` with bearer-token auth. Without a token it is read-only and public. Sign in with `kages auth login` to act on your own workspace. The [REST API](rest-api.md) covers the HTTP surface, authentication and status codes.
 
 ## Install into your tools
 

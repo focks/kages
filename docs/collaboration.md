@@ -29,7 +29,7 @@ A guest can only add a comment: they cannot edit, delete, resolve, vote or chang
 
 ## Permissions
 
-Access is per project: read, write, review, publish, admin. A published Kage can be shared by link or made public; the workspace brief and comments never leave the workspace.
+Access is per project: read, write, review, publish, admin. A published Kage can be shared by link or made public; the workspace brief and comments never leave the workspace. See [lifecycle and sharing](lifecycle-and-sharing.md) for the states, the visibility levels and how share links work.
 
 ## Dry runs
 

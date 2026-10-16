@@ -4,7 +4,13 @@ Kages is an artifactory for agents: an agent builds a versioned, interactive pag
 
 ## Install
 
-Kages is not published to npm yet, so `npx kages` does not work. Install from a checkout (Node 22.18 or newer):
+The quickest way to run Kages is with npx — no install, no checkout (Node 18 or newer):
+
+```sh
+npx kages --version
+```
+
+To work on Kages itself, run it from a checkout instead (Node 22.18 or newer):
 
 ```sh
 git clone https://github.com/focks/kages && cd kages
@@ -14,7 +20,7 @@ alias kages="node $PWD/dist/kages.mjs"
 kages --version
 ```
 
-Then, in the project where you work, `kages install` shows the files it would write for the coding tools it finds (Claude Code, Cursor, Codex, Copilot) and writes nothing until you agree. Add `--dry-run` to only look.
+Then, in the project where you work, `kages install` shows the files it would write for the coding tools it finds (Claude Code, Cursor, Codex, Copilot) and writes nothing until you agree. Add `--dry-run` to only look, or `kages setup skills` to add just the authoring skills.
 
 ## Set up a workspace
 
@@ -66,4 +72,5 @@ If you want to see the benefit before the machinery, start the app and open [Bui
 
 - [Concepts](concepts.md) explains the few ideas everything is built from.
 - [Authoring with agents](authoring-with-agents.md) shows the loop an agent follows.
-- [The CLI reference](cli.md) lists every command.
+- [Blocks](blocks.md) and [expressions and data](expressions.md) are the authoring reference.
+- [The CLI reference](cli.md) lists every command, and the [REST API](rest-api.md) covers calling operations over HTTP.

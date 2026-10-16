@@ -2,7 +2,7 @@
 
 Every capability is one operation, served the same way over the REST API, the MCP server, the CLI and the generated OpenAPI and agent card. An agent connects once and gets all of them as tools. Reads are public data or permission-checked; writes need a grant on the project.
 
-Start every session with `get_context`, and prefer `validate_patch` before `patch_kage` when unsure.
+Start every session with `get_context`, and prefer `validate_patch` before `patch_kage` when unsure. For how to call these over HTTP — routing, authentication and status codes — see the [REST API](rest-api.md).
 
 <!-- kages:generated:start operations -->
 58 operations. A trailing `?` marks an optional parameter.

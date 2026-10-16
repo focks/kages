@@ -18,6 +18,11 @@
       "group": "Guides"
     },
     {
+      "file": "lifecycle-and-sharing.md",
+      "summary": "States, visibility, share links and who can read a Kage.",
+      "group": "Guides"
+    },
+    {
       "file": "decision-guides.md",
       "summary": "Turn a technical answer into an interactive guide with sources, a calculator and a checklist.",
       "group": "Guides"
@@ -50,6 +55,21 @@
     {
       "file": "mcp.md",
       "summary": "The operations an agent can call, generated from the operation table.",
+      "group": "Reference"
+    },
+    {
+      "file": "rest-api.md",
+      "summary": "Call any operation over HTTP: routing, auth, responses and the MCP endpoint.",
+      "group": "Reference"
+    },
+    {
+      "file": "expressions.md",
+      "summary": "State, bindings, the expression operators, repeats and compositions.",
+      "group": "Reference"
+    },
+    {
+      "file": "blocks.md",
+      "summary": "The block types grouped by purpose, and how to read any contract.",
       "group": "Reference"
     },
     {

@@ -8,11 +8,15 @@ No. It gives an agent evidence, a rubric, storage and safe transformations. The 
 
 ## Can a Kage run code?
 
-No. A Kage is data: validated, never executed. Expressions come from a closed set and cannot reach the page's globals.
+No. A Kage is data: validated, never executed. Expressions come from a closed set and cannot reach the page's globals — see [expressions and data](expressions.md).
 
 ## Why patches instead of regenerating?
 
 A patch is small, reviewable and mergeable, and it keeps history readable. Regenerating a Kage replaces everything and can silently drop work.
+
+## How do I share a Kage?
+
+Publish it and set its visibility to link or public; anyone with the `/k/<uuid>` link then sees a clean, read-only render. [Lifecycle and sharing](lifecycle-and-sharing.md) covers the states, the visibility levels and guest feedback.
 
 ## What if the brief is wrong?
 

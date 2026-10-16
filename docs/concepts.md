@@ -35,4 +35,4 @@ Both are data that agents read, never instructions they obey.
 
 ## Where to go next
 
-[Authoring with agents](authoring-with-agents.md) puts these together, and [design systems](design-systems.md) goes deeper on the three systems.
+[Authoring with agents](authoring-with-agents.md) puts these together. For the detail: [blocks](blocks.md) lists the block types, [expressions and data](expressions.md) covers state, bindings and repeats, [design systems](design-systems.md) goes deeper on the three systems, and [lifecycle and sharing](lifecycle-and-sharing.md) explains how a Kage reaches a reader.

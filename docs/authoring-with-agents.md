@@ -8,7 +8,7 @@ Call `get_context` first, with the Kage name when working on one. It returns the
 
 ## 2. Build in the system's own vocabulary
 
-Read the catalog for the system (`kages catalog atelier`) and use only the blocks and props it lists. Declare what the visitor is trying to do with `brief.mode` when you create the Kage.
+Read the catalog for the system (`kages catalog atelier`) and use only the blocks and props it lists. [Blocks](blocks.md) groups the types and [expressions and data](expressions.md) covers state, bindings and repeats. Declare what the visitor is trying to do with `brief.mode` when you create the Kage.
 
 ## 3. Try before you commit
 

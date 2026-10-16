@@ -29,4 +29,4 @@ Text selection, the caret, native controls and scrollbars inside a Kage follow t
 
 ## Choosing
 
-Pick the system for the reader, not for taste: Ledger when they operate, Atelier when they read. If a page needs a block the system does not offer, name the missing capability instead of working around it.
+Pick the system for the reader, not for taste: Ledger when they operate, Atelier when they read. If a page needs a block the system does not offer, name the missing capability instead of working around it. The same blocks exist in all three systems — see [blocks](blocks.md) for the catalog and how to read any contract.
