@@ -50,7 +50,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "esbuild": "^0.28.2",
-    "postcss": "^8.5.29",
+    "postcss": "^8.5.30",
     "shadcn": "^4.21.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.7.0"
