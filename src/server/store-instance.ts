@@ -1,16 +1,12 @@
 // A process-wide store for the running app, seeded with a few real Kages across
 // the three design systems so the dashboard, API and viewer have content. A
-// singleton is fine for the in-memory reference implementation; a production
-// deployment swaps this for the persistent @kages/store backend behind the same
-// interface.
-// ponytail: in-memory singleton, replace with the persistent store when one exists.
+// cache is authoritative only in memory; persistent reads reload committed snapshots.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
-import { loadSnapshotRev, saveSnapshot, casSave, persistenceEnabled } from "./persistence.ts";
-import { putPublicShare, sharesEnabled } from "./public-shares.ts";
+import { loadSnapshotRev, casSave, persistenceEnabled } from "./persistence.ts";
 import { introTemplates } from "./templates.ts";
 import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../packs/examples.ts";
 import type { OpResult } from "../adapters/operations.ts";
@@ -42,6 +38,8 @@ const initPromises = new Map<string, Promise<Store>>();
  *  another's. The init promise is cached so concurrent cold-start requests share
  *  one initialisation. */
 export async function getStore(workspace = "acme"): Promise<Store> {
+  // Persistent reads must observe other instances' commits, including revocations.
+  if (persistenceEnabled()) return initStore(workspace);
   const cached = stores.get(workspace);
   if (cached) return cached;
   if (!initPromises.has(workspace)) initPromises.set(workspace, initStore(workspace));
@@ -72,7 +70,6 @@ export async function mutateStore(
     if (!result.ok) return result; // a failed op changed nothing → nothing to commit
     const committed = await casSave(workspace, store.snapshot(), loaded ? loaded.rev : null);
     if (committed) {
-      stores.set(workspace, store); // this instance now holds the committed state
       if (after) await after();
       return result;
     }
@@ -91,22 +88,19 @@ function buildSeeded(workspace: string): Store {
 }
 
 async function initStore(workspace: string): Promise<Store> {
-  const loaded = await loadSnapshotRev(workspace);
-  if (loaded) {
-    const s = Store.restore(loaded.snapshot);
-    // A persisted workspace is only seeded once, so templates added by later
-    // releases would never appear. Create any that are missing and commit with
-    // the revision we read; losing that race just means another instance did it.
-    if (backfillExamples(s, workspace)) await casSave(workspace, s.snapshot(), loaded.rev);
-    stores.set(workspace, s);
-    await syncPublicShares(s); // registered shares may predate the public_shares table
-    return s;
+  if (!persistenceEnabled()) {
+    const store = buildSeeded(workspace);
+    stores.set(workspace, store);
+    return store;
   }
-  const store = buildSeeded(workspace);
-  if (persistenceEnabled()) await saveSnapshot(workspace, store.snapshot());
-  stores.set(workspace, store);
-  await syncPublicShares(store);
-  return store;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const loaded = await loadSnapshotRev(workspace);
+    const store = loaded ? Store.restore(loaded.snapshot) : buildSeeded(workspace);
+    if (loaded && !backfillExamples(store, workspace)) return store;
+    if (await casSave(workspace, store.snapshot(), loaded?.rev ?? null)) return store;
+    // A competing seed or backfill won. Reload its committed data, never our candidate.
+  }
+  throw new Error("workspace initialization changed concurrently; please retry");
 }
 
 /** Add any shipped example documents that a persisted workspace lacks, into its
@@ -121,18 +115,6 @@ function backfillExamples(store: Store, workspace: string): boolean {
     try { added = store.create("templates", doc, owner).ok || added; } catch { /* best-effort, like seeding */ }
   }
   return added;
-}
-
-/** Make sure every currently-public Kage in a workspace is in the global
- *  public_shares registry, so /k/<uuid> links resolve even for Kages that were
- *  seeded or published before the registry existed. No-op without Supabase. */
-async function syncPublicShares(store: Store): Promise<void> {
-  if (!sharesEnabled()) return;
-  for (const v of store.list()) {
-    if (v.state === "published" && (v.visibility === "link" || v.visibility === "public")) {
-      await putPublicShare(v.uuid, v.doc);
-    }
-  }
 }
 
 /** Seed a new user's workspace with a few intro Kages to start from. These are

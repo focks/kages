@@ -1,40 +1,55 @@
-// Global registry of publicly shared Kages, so a /k/<uuid> link resolves WITHOUT
-// knowing which user's workspace holds it. When a Kage is published to link/public
-// its document is upserted here; when visibility narrows it's removed. The /k
-// route reads this table directly (service key) — public reads never touch a
-// per-user workspace store. Env-gated: with no Supabase, these are no-ops and the
-// single local "acme" store serves /k via nameByUuid instead.
-//
-// Table: public_shares(uuid pk, doc jsonb, updated_at) — see supabase/migrations.
+// Public links resolve against the committed workspace head. The legacy mirror
+// remains available for migrations, but it cannot authorize reads: delayed writes
+// to that table must never resurrect a revoked share.
 
 import type { KageDoc } from "../engine/types.ts";
 import type { Store } from "../store/store.ts";
 import { pgEnabled, pool } from "./pg.ts";
 
-const BASE = process.env.SUPABASE_URL;
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Read per call, like DATABASE_URL: tests and scripts set these after the module is imported, and an
+// import-time snapshot silently kept the in-memory path.
+const base = () => process.env.SUPABASE_URL;
+const key = () => process.env.SUPABASE_SERVICE_ROLE_KEY;
+// A hung PostgREST would otherwise hold the request (and every read goes through here) indefinitely.
+const REST_TIMEOUT_MS = 10_000;
 const TABLE = "public_shares";
 
+// The row also holds every version, comment and audit entry of the workspace, and these reads are
+// unauthenticated and uncached. `@>` finds the row through the GIN index; the jsonpath then hands back
+// only the head version whose uuid matches, so a page view costs the Kage, not the whole history.
+// The caller still checks state and visibility on that head: the path only selects, it never authorizes.
+const HEAD_BY_UUID = "$.kages[*].versions[last] ? (@.uuid == $uuid)";
+const headQuery = (cols: string) => `select ${cols}jsonb_path_query_first(snapshot, '${HEAD_BY_UUID}', jsonb_build_object('uuid', $2::text)) as head from kages_state where snapshot @> $1::jsonb`;
+type Head = { uuid: string; state: string; visibility: string; doc: KageDoc };
+const isOpen = (head: Head | null | undefined, uuid: string) => !!head && head.uuid === uuid && head.state === "published" && (head.visibility === "link" || head.visibility === "public");
+
 export function sharesEnabled(): boolean {
-  return pgEnabled() || !!(BASE && KEY);
+  return pgEnabled() || !!(base() && key());
 }
 
 function headers(extra: Record<string, string> = {}): Record<string, string> {
-  return { apikey: KEY!, Authorization: `Bearer ${KEY!}`, "Content-Type": "application/json", ...extra };
+  return { apikey: key()!, Authorization: `Bearer ${key()!}`, "Content-Type": "application/json", ...extra };
 }
 
+/** Resolve visibility from committed workspace heads, never a best-effort copy.
+ * A delayed publish mirror must not resurrect a revoked or deleted public link. */
 export async function getPublicShare(uuid: string): Promise<KageDoc | null> {
   if (!sharesEnabled()) return null;
+  const contains = { kages: [{ versions: [{ uuid }] }] };
   if (pgEnabled()) {
-    try { return ((await pool().query("select doc from public_shares where uuid = $1", [uuid])).rows[0]?.doc as KageDoc | undefined) ?? null; }
-    catch (e) { console.error("getPublicShare (pg) failed:", e); return null; }
+    const r = await pool().query(headQuery(""), [JSON.stringify(contains), uuid]);
+    for (const row of r.rows as { head: Head | null }[]) if (isOpen(row.head, uuid)) return row.head!.doc;
+    return null;
   }
-  try {
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}?uuid=eq.${encodeURIComponent(uuid)}&select=doc`, { headers: headers() });
-    if (!res.ok) { console.error(`getPublicShare: ${res.status} ${await res.text()}`); return null; }
-    const rows = (await res.json()) as { doc: KageDoc }[];
-    return rows[0]?.doc ?? null;
-  } catch (e) { console.error("getPublicShare failed:", e); return null; }
+  const filter = encodeURIComponent(JSON.stringify(contains));
+  const res = await fetch(`${base()}/rest/v1/kages_state?snapshot=cs.${filter}&select=snapshot`, { headers: headers(), cache: "no-store", signal: AbortSignal.timeout(REST_TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`public share storage returned ${res.status}`);
+  const snapshots = ((await res.json()) as { snapshot: import("../store/store.ts").StoreSnapshot }[]).map(r => r.snapshot);
+  for (const snapshot of snapshots) for (const k of snapshot.kages) {
+    const head = k.versions.at(-1);
+    if (head?.uuid === uuid && head.state === "published" && (head.visibility === "link" || head.visibility === "public")) return head.doc;
+  }
+  return null;
 }
 
 export async function putPublicShare(uuid: string, doc: KageDoc): Promise<void> {
@@ -45,9 +60,9 @@ export async function putPublicShare(uuid: string, doc: KageDoc): Promise<void> 
     return;
   }
   try {
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {
+    const res = await fetch(`${base()}/rest/v1/${TABLE}`, {
       method: "POST",
-      headers: headers({ Prefer: "resolution=merge-duplicates" }),
+      headers: headers({ Prefer: "resolution=merge-duplicates" }), signal: AbortSignal.timeout(REST_TIMEOUT_MS),
       body: JSON.stringify({ uuid, doc, updated_at: new Date().toISOString() }),
     });
     if (!res.ok) console.error(`putPublicShare: ${res.status} ${await res.text()}`);
@@ -62,7 +77,7 @@ export async function delPublicShare(uuid: string): Promise<void> {
     return;
   }
   try {
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}?uuid=eq.${encodeURIComponent(uuid)}`, { method: "DELETE", headers: headers() });
+    const res = await fetch(`${base()}/rest/v1/${TABLE}?uuid=eq.${encodeURIComponent(uuid)}`, { method: "DELETE", headers: headers(), signal: AbortSignal.timeout(REST_TIMEOUT_MS) });
     if (!res.ok) console.error(`delPublicShare: ${res.status} ${await res.text()}`);
   } catch (e) { console.error("delPublicShare failed:", e); }
 }
@@ -93,4 +108,24 @@ export async function afterWriteShareSync(
 ): Promise<void> {
   if (op === "delete_kage") { if (preDeleteUuid) await delPublicShare(preDeleteUuid); return; }
   if (name && isShareAffecting(op)) await syncShare(store, name);
+}
+
+/** The workspace row that holds a published link/public Kage, so a visitor's feedback is written to the right store. Same rule as getPublicShare: committed heads only. */
+export async function getPublicShareWorkspace(uuid: string): Promise<string | null> {
+  if (!sharesEnabled()) return null;
+  const contains = { kages: [{ versions: [{ uuid }] }] };
+  if (pgEnabled()) {
+    const r = await pool().query(headQuery("id, "), [JSON.stringify(contains), uuid]);
+    for (const row of r.rows as { id: string; head: Head | null }[]) if (isOpen(row.head, uuid)) return row.id;
+    return null;
+  }
+  const filter = encodeURIComponent(JSON.stringify(contains));
+  const res = await fetch(`${base()}/rest/v1/kages_state?snapshot=cs.${filter}&select=id,snapshot`, { headers: headers(), cache: "no-store", signal: AbortSignal.timeout(REST_TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`public share storage returned ${res.status}`);
+  const rows = (await res.json()) as { id: string; snapshot: import("../store/store.ts").StoreSnapshot }[];
+  for (const row of rows) for (const k of row.snapshot.kages) {
+    const head = k.versions.at(-1);
+    if (head?.uuid === uuid && head.state === "published" && (head.visibility === "link" || head.visibility === "public")) return row.id;
+  }
+  return null;
 }

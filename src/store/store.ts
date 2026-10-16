@@ -7,16 +7,21 @@
 // oracle/artifactory.feature.
 
 import { validate } from "../engine/validate.ts";
+import type { ValidateResult } from "../engine/types.ts";
 import { resolve, systemOf } from "../engine/resolve.ts";
 import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
 import { clone } from "../engine/expr.ts";
 import { randomUUID } from "node:crypto";
 import { digest, signDigest, newSigningKey, exportKey, importKey, type SigningKey, type SerializedKey } from "./crypto.ts";
-import { applyPatch, type PatchOp } from "../collab/patch.ts";
+import { applyPatch, checkPatchOps, type PatchOp } from "../collab/patch.ts";
 import { mergeThreeWay } from "../collab/merge.ts";
 import { ClaimRegistry } from "../collab/claims.ts";
 import { CommentThread, type Comment } from "../collab/comments.ts";
+import { Collection, isCollectionError } from "./collection.ts";
+import assets from "../../public/ds/assets.json" with { type: "json" };
+import { validateCritique, openCounts, MAX_PER_KAGE, MAX_SAVES_PER_HOUR, type Critique, type CritiqueInput, type PriorityStatus } from "./critique.ts";
+import { mergeBrief, validateBrief, type WorkspaceBriefRecord } from "./brief.ts";
 import type {
   VersionRecord, Provenance, Grant, LifecycleState, Visibility, AuditEntry, KageEvent, WriteResult,
 } from "./types.ts";
@@ -47,10 +52,8 @@ export interface StoreOptions {
   versionQuotaPerHour?: number;
 }
 
-/** The persistable state of a store. Leases (claims) and the quota window are
- *  deliberately NOT included: they are per-process lifetimes, and a lease that
- *  survived a reload would be a crashed agent holding a Kage hostage — the exact
- *  thing TTLs exist to prevent. */
+/** Leases retain absolute expiry times across CAS restores; reloading must not
+ * let a competing writer bypass an active claim. */
 export interface StoreSnapshot {
   workspace: string;
   kages: Array<{ name: string; versions: VersionRecord[] }>;
@@ -59,6 +62,17 @@ export interface StoreSnapshot {
   audit: AuditEntry[];
   events: KageEvent[];
   comments: Comment[];
+  /** At most one record; optional so snapshots from before briefs existed still load. */
+  briefs?: WorkspaceBriefRecord[];
+  /** Saved design critiques; optional so older snapshots load unchanged. */
+  critiques?: Critique[];
+  critiqueSequence?: number;
+  /** Last comment id number handed out; absent in snapshots written before it was persisted. */
+  commentSequence?: number;
+  claims?: import("../collab/claims.ts").Claim[];
+  /** Rolling hourly counters (version writes and comments, per principal), kept with the data they limit:
+   *  a persistent deployment restores a fresh Store per request, so counters held only in memory enforce nothing. */
+  limits?: { writes: Array<[string, number[]]>; comments: Array<[string, number[]]>; discussion?: Array<[string, number[]]> };
 }
 
 export class Store {
@@ -74,6 +88,16 @@ export class Store {
   private writeTimes = new Map<string, number[]>();
   readonly claims = new ClaimRegistry();
   readonly comments = new CommentThread();
+  private brief: WorkspaceBriefRecord | null = null;
+  private critiques = new Collection<Critique>({ prefix: "q" });
+  /** Dry-run timestamps per workspace and principal. Process-wide on purpose: a persistent deployment
+   *  restores a fresh Store from the snapshot on every request, so an instance field would start each
+   *  request at zero and enforce nothing. A dry run must stay a read (committing a counter would turn it
+   *  into a write), so this is a per-server-process brake against hammering the checker, not an
+   *  exact account: on several instances each keeps its own count. */
+  private static dryRunTimes = new Map<string, number[]>();
+  /** Forget every dry-run count (tests share one process, so a limit test must not poison the next). */
+  static resetDryRunLimits(): void { Store.dryRunTimes.clear(); }
 
   constructor(opts: StoreOptions = {}) {
     this.workspace = opts.workspace ?? "acme";
@@ -96,7 +120,25 @@ export class Store {
       audit: this.audit,
       events: this.events,
       comments: this.comments.dump(),
+      ...(this.comments.sequence ? { commentSequence: this.comments.sequence } : {}),
+      briefs: this.brief ? [JSON.parse(JSON.stringify(this.brief))] : [],
+      critiques: this.critiques.dump(),
+      ...(this.critiques.sequence ? { critiqueSequence: this.critiques.sequence } : {}),
+      claims: this.claims.dump(),
+      ...this.limitsSnapshot(),
     };
+  }
+
+  /** Omitted when nothing is inside the window, so an idle workspace's snapshot is unchanged. */
+  private limitsSnapshot(): Pick<StoreSnapshot, "limits"> {
+    const writes = this.recentTimes(this.writeTimes), comments = this.recentTimes(this.commentTimes), discussion = this.recentTimes(this.discussionTimes);
+    return writes.length || comments.length || discussion.length ? { limits: { writes, comments, ...(discussion.length ? { discussion } : {}) } } : {};
+  }
+
+  /** Timestamps still inside the one-hour window, so a snapshot never carries history it can no longer use. */
+  private recentTimes(m: Map<string, number[]>): Array<[string, number[]]> {
+    const now = this.clock();
+    return [...m.entries()].map(([k, ts]) => [k, ts.filter((t) => now - t < 3_600_000)] as [string, number[]]).filter(([, ts]) => ts.length);
   }
 
   static restore(snap: StoreSnapshot, opts: Omit<StoreOptions, "workspace"> = {}): Store {
@@ -115,7 +157,13 @@ export class Store {
     for (const [p, sk] of snap.keys) store.keys.set(p, importKey(sk));
     store.audit = snap.audit;
     store.events = snap.events;
-    store.comments.load(snap.comments);
+    store.comments.load(snap.comments, snap.commentSequence);
+    store.brief = snap.briefs?.[0] ? JSON.parse(JSON.stringify(snap.briefs[0])) : null;
+    store.critiques.load(snap.critiques, snap.critiqueSequence);
+    store.claims.load(snap.claims);
+    for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
+    for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
+    for (const [p, ts] of snap.limits?.discussion ?? []) store.discussionTimes.set(p, [...ts]);
     return store;
   }
 
@@ -205,6 +253,14 @@ export class Store {
     const record = version ? this.getVersion(name, version) : this.head(name);
     if (!record) return { ok: false, code: "not_found", msg: `no kage '${name}'` };
     if (!this.canAccess(record, author)) return { ok: false, code: "forbidden", msg: `${author.principal} cannot read '${name}'` };
+    // An older version is readable only while the CURRENT sharing decision also allows it. Without this,
+    // a version that was public once stayed readable after the head went private or was unpublished (the
+    // share link follows the head, so should this), and a draft kept private is not exposed by a later
+    // version being published. Readers with a grant on the repo pass both checks.
+    if (version) {
+      const head = this.head(name)!;
+      if (head !== record && !this.canAccess(head, author)) return { ok: false, code: "forbidden", msg: `${author.principal} cannot read '${name}'` };
+    }
     return { ok: true, record };
   }
 
@@ -234,8 +290,158 @@ export class Store {
   auditLog(): readonly AuditEntry[] { return this.audit; }
   eventLog(): readonly KageEvent[] { return this.events; }
 
+  /** May this caller see this event? An event names a Kage (its ref) and often a block or comment id, so it
+   *  is exactly as sensitive as reading that Kage: a caller who is refused `get_kage` must not learn from
+   *  the stream that it exists, what it is called, or that someone commented on it. A deleted Kage can no
+   *  longer be checked against its visibility, so only readers of its repo see it go; workspace-level events
+   *  (the brief) are for people with read access to something in the workspace. */
+  canSeeEvent(e: KageEvent, author: Provenance): boolean {
+    const m = /^kages:\/\/[^/]+\/([^/@]+)\/([^@]+)@v\d+$/.exec(e.ref);
+    const name = m ? m[2] : e.ref.includes("://") ? undefined : e.ref;
+    if (name && this.kages.has(name)) return this.authorizeRead(name, author).ok;
+    if (m) return this.allowed(author, m[1], "read");
+    if (e.ref.includes("://")) {
+      for (const key of this.grants.keys()) { const at = key.lastIndexOf("@"); if (key.slice(0, at) === author.principal && this.allowed(author, key.slice(at + 1), "read")) return true; }
+    }
+    return false;
+  }
+
   private record(principal: string, action: string, ref: string): void {
     this.audit.push({ at: new Date(this.clock()).toISOString(), principal, action, ref });
+  }
+
+  /** Rows that reference a Kage which no longer exists (a snapshot edited by hand, or a delete that
+   *  predates purge-on-delete). Read-only; `pruneOrphans` removes them. */
+  orphans(): { comments: number; critiques: number } {
+    return {
+      comments: this.comments.dump().filter((c) => !this.kages.has(c.kage)).length,
+      critiques: this.critiques.where((c) => !this.kages.has(c.kage)).length,
+    };
+  }
+  pruneOrphans(): { comments: number; critiques: number } {
+    const found = this.orphans();
+    for (const name of new Set(this.comments.dump().filter((c) => !this.kages.has(c.kage)).map((c) => c.kage))) this.comments.purge(name);
+    this.critiques.purgeWhere((c) => !this.kages.has(c.kage));
+    return found;
+  }
+
+  // --- critiques -------------------------------------------------------------
+
+  private critiqueRepo(kage: string): string | null { const h = this.head(kage); return h ? Store.repoOfRef(h.ref) : null; }
+
+  /** Reading a critique needs to read its Kage; the report is as private as the Kage. */
+  private readableCritique(id: string, author: Provenance): { ok: true; c: Critique } | { ok: false; error: { code: string; msg: string } } {
+    const c = this.critiques.get(id);
+    if (!c) return { ok: false, error: { code: "not_found", msg: `no critique '${id}'` } };
+    const r = this.authorizeRead(c.kage, author);
+    return r.ok ? { ok: true, c } : { ok: false, error: { code: r.code, msg: r.msg } };
+  }
+
+  /** Save a design review of the CURRENT head. Totals are computed here, never trusted. */
+  saveCritique(kage: string, input: CritiqueInput, author: Provenance): CommentResult<Critique> {
+    const head = this.head(kage);
+    if (!head) return cerr("not_found", `no kage '${kage}'`);
+    const repo = Store.repoOfRef(head.ref);
+    if (!this.allowed(author, repo, "write")) return cerr("forbidden", `${author.principal} lacks write on ${repo}`);
+    if (input.fingerprint !== head.digest) return cerr("conflict", "the reviewed fingerprint is required and must match the current head; refresh the review before saving");
+    const checked = validateCritique(input, head.doc);
+    if (!checked.ok) return cerr("invalid_critique", checked.errors.join("; "));
+    const now = this.clock();
+    const recent = this.critiques.where((c) => c.author === author.principal && now - Date.parse(c.createdAt) < 3_600_000);
+    if (recent.length >= MAX_SAVES_PER_HOUR) return cerr("rate_limited", `at most ${MAX_SAVES_PER_HOUR} critiques per hour`);
+    // Retention: keep the newest 50 per Kage, dropping closed ones first.
+    const mine = this.critiques.where((c) => c.kage === kage).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    if (mine.length >= MAX_PER_KAGE) this.critiques.remove((mine.find((c) => c.state === "closed") ?? mine[0]).id);
+    const row = this.critiques.add({ kage, version: head.v, fingerprint: head.digest, createdAt: new Date(now).toISOString(), author: author.principal, ...checked.value, state: "open" } as Omit<Critique, "id">);
+    if (isCollectionError(row)) return cerr("rate_limited", row.error);
+    this.record(author.principal, "critique.save", head.ref);
+    this.emit("kage.critique.saved", head.ref, { critiqueId: row.id, score: row.total, max: row.max });
+    return { ok: true, value: JSON.parse(JSON.stringify(row)) };
+  }
+
+  listCritiques(kage: string, author: Provenance, limit = 20): CommentResult<Critique[]> {
+    const r = this.authorizeRead(kage, author);
+    if (!r.ok) return cerr(r.code, r.msg);
+    return { ok: true, value: this.critiques.where((c) => c.kage === kage).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, Math.max(1, Math.min(limit, 50))).map((c) => JSON.parse(JSON.stringify(c))) };
+  }
+
+  getCritique(id: string, author: Provenance): CommentResult<{ critique: Critique; stale: boolean }> {
+    const r = this.readableCritique(id, author);
+    if (!r.ok) return { ok: false, error: r.error };
+    return { ok: true, value: { critique: JSON.parse(JSON.stringify(r.c)), stale: this.head(r.c.kage)?.digest !== r.c.fingerprint } };
+  }
+
+  /** The newest critique and whether the Kage has changed since it was written. */
+  latestCritique(kage: string, author: Provenance, opts: { openOnly?: boolean } = {}): CommentResult<{ critique: Critique; stale: boolean; open: { P0: number; P1: number } } | null> {
+    const r = this.authorizeRead(kage, author);
+    if (!r.ok) return cerr(r.code, r.msg);
+    const rows = this.critiques.where((c) => c.kage === kage && (!opts.openOnly || c.state === "open")).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const c = rows[0];
+    return { ok: true, value: c ? { critique: JSON.parse(JSON.stringify(c)), stale: this.head(kage)?.digest !== c.fingerprint, open: openCounts(c) } : null };
+  }
+
+  /** Close ONE critique (the one polish worked from), never a newer one. */
+  closeCritique(id: string, reason: string, author: Provenance): CommentResult<Critique> {
+    const r = this.readableCritique(id, author);
+    if (!r.ok) return { ok: false, error: r.error };
+    const repo = this.critiqueRepo(r.c.kage);
+    if (!repo || !this.allowed(author, repo, "write")) return cerr("forbidden", `${author.principal} lacks write on ${repo}`);
+    const text = String(reason ?? "").trim();
+    if (text.length > 300 || text.includes("\u0000")) return cerr("invalid_critique", "the reason must be at most 300 characters");
+    const row = this.critiques.update(id, { state: "closed", closedAt: new Date(this.clock()).toISOString(), closedBy: author.principal, ...(text ? { closedReason: text } : {}) })!;
+    this.record(author.principal, "critique.close", this.head(r.c.kage)!.ref);
+    this.emit("kage.critique.closed", this.head(r.c.kage)!.ref, { critiqueId: id });
+    return { ok: true, value: JSON.parse(JSON.stringify(row)) };
+  }
+
+  /** Mark one backlog item fixed, won't-fix or open again. */
+  setCritiquePriority(id: string, index: number, status: PriorityStatus, author: Provenance): CommentResult<Critique> {
+    const r = this.readableCritique(id, author);
+    if (!r.ok) return { ok: false, error: r.error };
+    const repo = this.critiqueRepo(r.c.kage);
+    if (!repo || !this.allowed(author, repo, "write")) return cerr("forbidden", `${author.principal} lacks write on ${repo}`);
+    if (!Number.isInteger(index) || index < 0 || index >= r.c.priorities.length) return cerr("not_found", `no priority ${index}`);
+    if (status !== "open" && status !== "fixed" && status !== "wontfix") return cerr("invalid_critique", "status must be open, fixed or wontfix");
+    const priorities = r.c.priorities.map((p, i) => (i === index ? { ...p, status } : p));
+    return { ok: true, value: JSON.parse(JSON.stringify(this.critiques.update(id, { priorities })!)) };
+  }
+
+  // --- workspace brief ------------------------------------------------------
+
+  /** Permissions are per repo and a workspace has no role of its own, so the
+   *  brief borrows them: any grant on any repo means "member", `admin` on any
+   *  repo means "workspace admin". An agent acting for a user is intersected with
+   *  that user, exactly as for repo grants. */
+  private workspaceHolds(principal: string, grant?: Grant): boolean {
+    for (const [key, set] of this.grants) if (key.startsWith(principal + "@") && key.length > principal.length + 1 && (!grant || set.has(grant))) return true;
+    return false;
+  }
+  private workspaceAllows(author: Provenance, grant?: Grant): boolean {
+    if (!this.workspaceHolds(author.principal, grant)) return false;
+    return !author.onBehalfOf || this.workspaceHolds(author.onBehalfOf, grant);
+  }
+
+  getBrief(author: Provenance): BriefResult<{ record: WorkspaceBriefRecord | null }> {
+    if (!this.workspaceAllows(author)) return berr("forbidden", `${author.principal} has no access to this workspace`);
+    return { ok: true, value: { record: this.brief ? JSON.parse(JSON.stringify(this.brief)) : null } };
+  }
+
+  /** Replace (or, with `merge`, update) the brief. `baseRevision` makes it
+   *  optimistic: a stale writer gets a conflict carrying the winner's record
+   *  instead of silently overwriting it. */
+  setBrief(input: unknown, author: Provenance, opts: { baseRevision?: number; merge?: boolean } = {}): BriefResult<{ record: WorkspaceBriefRecord; warnings: string[] }> {
+    if (!this.workspaceAllows(author, "admin")) return berr("forbidden", `${author.principal} needs admin on a project to edit the workspace brief`);
+    const current = this.brief;
+    if (opts.baseRevision !== undefined && opts.baseRevision !== (current?.revision ?? 0))
+      return berr("conflict", `the brief is at revision ${current?.revision ?? 0}, not ${opts.baseRevision}`, current ? JSON.parse(JSON.stringify(current)) : null);
+    const checked = validateBrief(opts.merge ? mergeBrief(current?.brief, input) : input);
+    if (!checked.ok) return berr("invalid_brief", checked.errors.join("; "));
+    const record: WorkspaceBriefRecord = { id: "brief", brief: checked.brief, revision: (current?.revision ?? 0) + 1, updatedAt: new Date(this.clock()).toISOString(), updatedBy: author.principal };
+    this.brief = record;
+    const ref = `kages://${this.workspace}/brief`;
+    this.record(author.principal, "brief.set", ref);
+    this.emit("workspace.brief.updated", ref, { revision: record.revision });
+    return { ok: true, value: { record: JSON.parse(JSON.stringify(record)), warnings: checked.warnings } };
   }
 
   // --- quota ---------------------------------------------------------------
@@ -274,7 +480,7 @@ export class Store {
    *  can't trip a side effect on the way to a denial. With `baseVersion`, an edit
    *  made against an older version is three-way merged against head and conflicts
    *  are reported rather than silently overwriting a concurrent save. */
-  patch(name: string, ops: PatchOp[], author: Provenance, opts: { baseVersion?: number; summary?: string } = {}): WriteResult {
+  patch(name: string, ops: PatchOp[], author: Provenance, opts: { baseVersion?: number; summary?: string; kind?: string } = {}): WriteResult {
     const kage = this.kages.get(name);
     if (!kage) return err("not_found", `no kage '${name}'`);
     const head = kage.versions[kage.versions.length - 1];
@@ -283,32 +489,80 @@ export class Store {
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
 
     const { blockIds, structural } = touchedBy(ops, head.doc);
-    // Structural ops (/root, /state, /system, /compositions, wholesale /blocks) need a claim on
-    // `root`; otherwise a /blocks replace would slip past a block-level claim.
+    const blocked = this.claimBlock(name, blockIds, structural, author);
+    if (blocked) return err("claimed", blocked.msg);
+
+    const planned = this.candidateOf(name, head, ops, opts.baseVersion);
+    if (!planned.ok) return err(planned.code, planned.msg);
+
+    return this.writeVersion(repo, planned.doc, author, head.ref, { summary: opts.summary ?? "patch", ops: ops.length, blocksTouched: blockIds, ...(opts.kind ? { kind: opts.kind } : {}) });
+  }
+
+  /** The first claim that stops this author from touching these blocks, if any. A
+   *  structural edit (anything outside /blocks) needs the claim on `root`, or a
+   *  wholesale /blocks replace would slip past a block-level claim. */
+  private claimBlock(name: string, blockIds: string[], structural: boolean, author: Provenance): { block: string; msg: string } | null {
     if (structural && !this.claims.canWrite(name, "root", author.principal, this.clock()))
-      return err("claimed", `structural edit needs a free claim on 'root' (held by ${this.claims.claimant(name, "root", this.clock())})`);
+      return { block: "root", msg: `structural edit needs a free claim on 'root' (held by ${this.claims.claimant(name, "root", this.clock())})` };
     for (const id of blockIds)
       if (!this.claims.canWrite(name, id, author.principal, this.clock()))
-        return err("claimed", `block '${id}' is claimed by ${this.claims.claimant(name, id, this.clock())}`);
+        return { block: id, msg: `block '${id}' is claimed by ${this.claims.claimant(name, id, this.clock())}` };
+    return null;
+  }
 
-    let next: KageDoc;
+  /** Apply the ops to what the caller edited from. Behind head (`baseVersion`) the ops
+   *  are replayed on that base and three-way merged against head by block, so a
+   *  concurrent save is reported instead of silently overwritten. Pure: reads only. */
+  private candidateOf(name: string, head: VersionRecord, ops: PatchOp[], base: number | undefined): { ok: true; doc: KageDoc; merged: boolean } | { ok: false; code: string; msg: string; conflicts?: string[] } {
     try {
-      const base = opts.baseVersion;
       if (base !== undefined && base !== head.v) {
         const baseRec = this.getVersion(name, base);
-        if (!baseRec) return err("not_found", `base version v${base} not found`);
-        // Optimistic concurrency: the caller edited from `base`, which is behind
-        // head. Replay their ops on their base, then merge against head by block.
+        if (!baseRec) return { ok: false, code: "not_found", msg: `base version v${base} not found` };
         const yours = applyPatch(baseRec.doc, ops);
         const merged = mergeThreeWay(baseRec.doc, head.doc, yours);
-        if (!merged.ok) return err("conflict", `conflicting blocks: ${merged.conflicts.map((c) => c.blockId).join(", ")}`);
-        next = merged.doc!;
-      } else {
-        next = applyPatch(head.doc, ops);
+        if (!merged.ok) return { ok: false, code: "conflict", msg: `conflicting blocks: ${merged.conflicts.map((c) => c.blockId).join(", ")}`, conflicts: merged.conflicts.map((c) => c.blockId) };
+        return { ok: true, doc: merged.doc!, merged: true };
       }
-    } catch (e) { return err("invalid_patch", (e as Error).message); }
+      return { ok: true, doc: applyPatch(head.doc, ops), merged: false };
+    } catch (e) { return { ok: false, code: "invalid_patch", msg: (e as Error).message }; }
+  }
 
-    return this.writeVersion(repo, next, author, head.ref, { summary: opts.summary ?? "patch", ops: ops.length, blocksTouched: blockIds });
+  /** What `patch` WOULD do, with no side effects: no version, no quota tick, no audit
+   *  entry, no event. Reading the Kage is enough (the verdict reveals nothing a reader
+   *  could not compute), but `ok` answers "would the real patch succeed for this
+   *  caller", so a reader gets ok:false with `forbidden` plus the rest of the picture. */
+  checkPatch(name: string, ops: PatchOp[], author: Provenance, opts: { baseVersion?: number } = {}): CheckResult {
+    const read = this.authorizeRead(name, author);
+    if (!read.ok) return { ok: false, error: { code: read.code, msg: read.msg } };
+    const now = this.clock();
+    const key = `${this.workspaceName}\u0000${author.principal}`;
+    const recent = (Store.dryRunTimes.get(key) ?? []).filter((t) => now - t < 3_600_000);
+    if (recent.length >= MAX_DRY_RUNS_PER_HOUR) { Store.dryRunTimes.set(key, recent); return { ok: false, error: { code: "rate_limited", msg: `at most ${MAX_DRY_RUNS_PER_HOUR} dry runs per hour from one server` } }; }
+    recent.push(now); Store.dryRunTimes.set(key, recent);
+
+    const head = this.kages.get(name)!.versions.at(-1)!;
+    const repo = Store.repoOfRef(head.ref);
+    const { blockIds, structural } = touchedBy(ops, head.doc);
+    let error: { code: string; msg: string; opIndex?: number; conflicts?: string[] } | undefined;
+    const canWrite = this.allowed(author, repo, "write");
+    if (!canWrite) error = { code: "forbidden", msg: `${author.principal} lacks write on ${repo}` };
+    const claimed = canWrite ? this.claimBlock(name, blockIds, structural, author) : null;
+    if (claimed) error = { code: "claimed", msg: claimed.msg };
+    const claims = (structural ? ["root"] : []).concat(blockIds).filter((id) => !this.claims.canWrite(name, id, author.principal, now))
+      .map((block) => ({ block, ...(canWrite ? { heldBy: this.claims.claimant(name, block, now) } : {}) }));
+
+    const planned = this.candidateOf(name, head, ops, opts.baseVersion);
+    if (!planned.ok) {
+      const idx = /^op (\d+) /.exec(planned.msg);
+      error ??= { code: planned.code, msg: planned.msg, ...(idx ? { opIndex: Number(idx[1]) } : {}), ...(planned.conflicts ? { conflicts: planned.conflicts } : {}) };
+      return { ok: false, head: head.v, claims, error };
+    }
+    const doc = planned.doc;
+    const validation = validate(doc);
+    if (!error && !this.underQuota(author.principal)) error = { code: "rate_limited", msg: `${author.principal} exceeded ${this.quota} versions/hour` };
+    if (!error && JSON.stringify(doc).includes("\\u0000")) error = { code: "invalid_content", msg: "documents may not contain the NUL character (U+0000)" };
+    if (!error && !validation.ok) error = { code: "invalid_content", msg: `${validation.errors.length} validation errors` };
+    return { ok: !error, head: head.v, ...(error ? {} : { wouldCreate: head.v + 1 }), merged: planned.merged, candidate: doc, previous: head.doc, validation, claims, ...(error ? { error } : {}) };
   }
 
   private writeVersion(repo: string, doc: KageDoc, author: Provenance, parent: string | null, change: VersionRecord["change"]): WriteResult {
@@ -329,7 +583,7 @@ export class Store {
     // share link is stable across edits and never reveals the name.
     const uuid = kage.versions[0]?.uuid ?? randomUUID();
     const ref = `kages://${this.workspace}/${repo}/${doc.id}@v${vn}`;
-    const resolved = { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc) };
+    const resolved = { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc), assets };
     // Deep clone at ingress: the stored, signed document must NOT share object
     // references with the caller's input, or a later mutation of that input
     // would silently change signed content whose digest no longer matches.
@@ -442,6 +696,7 @@ export class Store {
     // purged by the server layer via the returned uuid — it lives in Supabase.)
     this.claims.releaseAll(name);
     this.comments.purge(name);
+    this.critiques.purgeWhere((c) => c.kage === name);
     this.record(author.principal, "delete", head.ref);
     this.emit("kage.deleted", head.ref, { uuid: head.uuid });
     return { ok: true, version: head };
@@ -500,6 +755,16 @@ export class Store {
     return this.create(repo, doc, author);
   }
 
+  /** A lease is a write capability: only writers may reserve blocks, using the store clock. */
+  claimBlocks(kage: string, blocks: string[], author: Provenance, ttl = 300): CommentResult<{ claimed: true }> {
+    const head = this.head(kage);
+    if (!head) return cerr("not_found", `no kage '${kage}'`);
+    if (!this.allowed(author, Store.repoOfRef(head.ref), "write")) return cerr("forbidden", "write access required to claim blocks");
+    if (!Array.isArray(blocks) || !blocks.length || blocks.length > 100 || blocks.some(b => typeof b !== "string" || !b.length || b.length > 120) || !Number.isFinite(ttl) || ttl < 1 || ttl > 3600) return cerr("invalid_params", "claims need 1 to 100 block patterns and a TTL of 1 to 3600 seconds");
+    const result = this.claims.claim(kage, blocks, author.principal, ttl, this.clock());
+    return result.ok ? { ok: true, value: { claimed: true } } : cerr("claimed", `already claimed by ${result.heldBy}`);
+  }
+
   // --- collaboration surface ----------------------------------------------
 
   /** The unchecked, single-note form kept for internal callers and tests. Use
@@ -513,10 +778,24 @@ export class Store {
   // --- discussion: threaded, pinned, voted comments, all permission-checked ----
 
   private commentTimes = new Map<string, number[]>();
+  /** Edits, deletes, votes and resolves per principal. Separate from commentTimes so voting cannot use up the budget for adding. */
+  private discussionTimes = new Map<string, number[]>();
+
+  /** Every discussion write is a full-workspace CAS commit, so a loop of votes or edits is as costly as a loop of comments. Records the attempt when it is allowed. */
+  private throttleDiscussion(author: Provenance): { ok: false; error: { code: string; msg: string } } | null {
+    const now = this.clock(), recent = (this.discussionTimes.get(author.principal) ?? []).filter((t) => now - t < 3_600_000);
+    if (recent.length >= MAX_DISCUSSION_WRITES_PER_HOUR) return cerr("rate_limited", `at most ${MAX_DISCUSSION_WRITES_PER_HOUR} edits, votes, resolves and deletes per hour`);
+    this.discussionTimes.set(author.principal, [...recent, now]);
+    return null;
+  }
+  private guestWrite = false;
 
   /** Callers must be a real principal: reading a public Kage is open to anyone,
    *  but writing into its discussion is not. */
   private commenter(author: Provenance): CommentResult<null> {
+    // A guest (feedback from a shared link) may add one root comment and do nothing else, so every
+    // other discussion operation, and every permission the view advertises, treats it as not real.
+    if (author.principal.startsWith("guest:") && !this.guestWrite) return cerr("forbidden", "guests can only leave feedback on the shared page");
     if (!author.principal || author.principal === "anon" || author.principal.startsWith("anon:")) return cerr("forbidden", "sign in to take part in the discussion");
     return { ok: true, value: null };
   }
@@ -541,8 +820,9 @@ export class Store {
   }
 
   addComment(kage: string, author: Provenance, input: { block?: string; text: string; parent?: string; pos?: { x: number; y: number }; suggestedPatch?: PatchOp[] }): CommentResult<CommentView> {
-    const who = this.commenter(author); if (!who.ok) return who;
+    // Existence first, then identity: asking "who are you" before "does it exist" lets an anonymous caller tell a missing Kage from a private one.
     const read = this.authorizeRead(kage, author); if (!read.ok) return cerr(read.code, read.msg);
+    const who = this.commenter(author); if (!who.ok) return who;
     const text = typeof input.text === "string" ? input.text.replace(/\r\n/g, "\n").trim() : "";
     if (!text) return cerr("invalid_comment", "a comment needs some text");
     if (text.length > MAX_COMMENT_CHARS) return cerr("invalid_comment", `comments are limited to ${MAX_COMMENT_CHARS} characters`);
@@ -558,7 +838,7 @@ export class Store {
       if (parent.deleted) return cerr("invalid_comment", "that comment was deleted");
       if (this.comments.depth(parent.id) >= MAX_COMMENT_DEPTH) return cerr("invalid_comment", "this thread is nested too deeply; reply higher up");
       block = parent.block; // a reply is about the same thing its parent is about
-    } else if (block && !read.record.doc.blocks[block]) return cerr("unknown_block", `no block '${block}' in ${kage}`);
+    } else if (block && !Object.hasOwn(read.record.doc.blocks, block)) return cerr("unknown_block", `no block '${block}' in ${kage}`);
 
     let pos: { x: number; y: number } | undefined;
     if (input.pos !== undefined && !parent) {
@@ -566,12 +846,39 @@ export class Store {
       if (!block || !Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) return cerr("invalid_comment", "a pin needs a block and x/y between 0 and 1");
       pos = { x: Math.round(x * 1e4) / 1e4, y: Math.round(y * 1e4) / 1e4 };
     }
-    if (input.suggestedPatch !== undefined && (!Array.isArray(input.suggestedPatch) || input.suggestedPatch.length > 50)) return cerr("invalid_comment", "a suggested patch is a list of at most 50 operations");
+    if (input.suggestedPatch !== undefined) {
+      // The patch lands in the one snapshot row every write rewrites, so its size is bounded like the text
+      // is, and a NUL would make Postgres reject the whole commit (a 503 the user cannot explain).
+      if (!Array.isArray(input.suggestedPatch) || input.suggestedPatch.length > 50) return cerr("invalid_comment", "a suggested patch is a list of at most 50 operations");
+      const bad = checkPatchOps(input.suggestedPatch); if (bad) return cerr("invalid_comment", `suggested patch: ${bad}`);
+      const json = JSON.stringify(input.suggestedPatch);
+      if (json.length > MAX_PATCH_CHARS) return cerr("invalid_comment", `a suggested patch is limited to ${MAX_PATCH_CHARS} characters`);
+      if (json.includes("\\u0000")) return cerr("invalid_comment", "a suggested patch may not contain the NUL character");
+    }
 
     const c = this.comments.add({ kage, block, author: author.principal, text, version: read.record.v, ...(parent ? { parent: parent.id } : {}), ...(pos ? { pos } : {}), ...(input.suggestedPatch ? { suggestedPatch: input.suggestedPatch } : {}) }, new Date(now).toISOString());
     this.commentTimes.set(author.principal, [...recent, now]);
     this.emit("kage.comment.created", read.record.ref, { block, commentId: c.id, ...(parent ? { parent: parent.id } : {}) });
     return { ok: true, value: this.commentView(c, author, Store.repoOfRef(read.record.ref)) };
+  }
+
+  /** Feedback from someone who opened a shared link and has no account. It is allowed only on a Kage
+   *  whose head is published with link/public visibility (what an anonymous reader can already open),
+   *  adds nothing but a root comment, and is attributed to `guest:<name>`: the name is whatever the
+   *  visitor typed, so it identifies nobody and grants nothing. Guests have their own, smaller quota
+   *  so a link in the wild cannot fill a Kage's discussion. */
+  addGuestComment(uuid: string, input: { name: string; text: string; block?: string; pos?: { x: number; y: number } }): CommentResult<{ id: string; kage: string }> {
+    const kage = this.nameByUuid(uuid);
+    if (!kage) return cerr("not_found", "no such shared Kage");
+    const open = this.authorizeRead(kage, { principal: "anon" });
+    if (!open.ok) return cerr("forbidden", "this Kage is not open for feedback");
+    const who = typeof input.name === "string" ? input.name.replace(/[\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 40) : "";
+    if (!who) return cerr("invalid_comment", "say who you are so the author knows who to thank");
+    if (this.comments.all(kage).filter((c) => c.author.startsWith("guest:")).length >= MAX_GUEST_COMMENTS_PER_KAGE) return cerr("rate_limited", "this page has reached its limit of guest feedback; ask the author to open it up");
+    this.guestWrite = true;
+    let r: CommentResult<CommentView>;
+    try { r = this.addComment(kage, { principal: `guest:${who}` }, { text: input.text, ...(input.block ? { block: input.block } : {}), ...(input.pos ? { pos: input.pos } : {}) }); } finally { this.guestWrite = false; }
+    return r.ok ? { ok: true, value: { id: r.value.id, kage } } : r;
   }
 
   listComments(kage: string, author: Provenance): CommentResult<CommentView[]> {
@@ -589,6 +896,7 @@ export class Store {
 
   editComment(id: string, author: Provenance, text: string): CommentResult<CommentView> {
     const who = this.commenter(author); if (!who.ok) return who;
+    const slow = this.throttleDiscussion(author); if (slow) return slow;
     const f = this.commentFor(id, author); if (!f.ok) return f;
     const { comment, repo } = f.value;
     if (comment.deleted) return cerr("invalid_comment", "that comment was deleted");
@@ -601,6 +909,7 @@ export class Store {
 
   deleteComment(id: string, author: Provenance): CommentResult<{ id: string; tombstone: boolean }> {
     const who = this.commenter(author); if (!who.ok) return who;
+    const slow = this.throttleDiscussion(author); if (slow) return slow;
     const f = this.commentFor(id, author); if (!f.ok) return f;
     const { comment, repo, ref } = f.value;
     if (comment.author !== author.principal && !this.allowed(author, repo, "admin")) return cerr("forbidden", "only the author or an admin can delete a comment");
@@ -613,6 +922,7 @@ export class Store {
   /** Resolve (or reopen) a whole thread: only a root comment carries the flag. */
   resolveComment(id: string, author: Provenance, resolved = true): CommentResult<CommentView> {
     const who = this.commenter(author); if (!who.ok) return who;
+    const slow = this.throttleDiscussion(author); if (slow) return slow;
     const f = this.commentFor(id, author); if (!f.ok) return f;
     const { comment, repo, ref } = f.value;
     if (comment.parent) return cerr("invalid_comment", "resolve the thread's first comment, not a reply");
@@ -624,6 +934,7 @@ export class Store {
 
   voteComment(id: string, author: Provenance, value: number): CommentResult<CommentView> {
     const who = this.commenter(author); if (!who.ok) return who;
+    const slow = this.throttleDiscussion(author); if (slow) return slow;
     const f = this.commentFor(id, author); if (!f.ok) return f;
     const { comment, repo } = f.value;
     if (value !== 1 && value !== -1 && value !== 0) return cerr("invalid_comment", "a vote is 1, -1 or 0");
@@ -634,11 +945,19 @@ export class Store {
   }
 }
 
-const MAX_COMMENT_CHARS = 4000, MAX_COMMENT_DEPTH = 8, MAX_COMMENTS_PER_KAGE = 2000, MAX_COMMENTS_PER_HOUR = 60;
+const MAX_COMMENT_CHARS = 4000, MAX_PATCH_CHARS = 16_000, MAX_COMMENT_DEPTH = 8, MAX_COMMENTS_PER_KAGE = 2000, MAX_COMMENTS_PER_HOUR = 60, MAX_DISCUSSION_WRITES_PER_HOUR = 200, MAX_GUEST_COMMENTS_PER_KAGE = 50;
 
 /** A comment as one viewer sees it: scores and what they may do, never the raw votes. */
 export type CommentView = Omit<Comment, "votes"> & { score: number; myVote: number; canEdit: boolean; canDelete: boolean; canResolve: boolean; canVote: boolean };
 export type CommentResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; msg: string } };
+export const MAX_DRY_RUNS_PER_HOUR = 300;
+
+export type CheckResult =
+  | { ok: false; head?: number; claims?: { block: string; heldBy?: string | null }[]; error: { code: string; msg: string; opIndex?: number; conflicts?: string[] } }
+  | { ok: boolean; head: number; wouldCreate?: number; merged: boolean; candidate: KageDoc; previous: KageDoc; validation: ValidateResult; claims: { block: string; heldBy?: string | null }[]; error?: { code: string; msg: string } };
+
+export type BriefResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; msg: string; current?: WorkspaceBriefRecord | null } };
+function berr(code: string, msg: string, current?: WorkspaceBriefRecord | null): { ok: false; error: { code: string; msg: string; current?: WorkspaceBriefRecord | null } } { return { ok: false, error: { code, msg, ...(current !== undefined ? { current } : {}) } }; }
 function cerr(code: string, msg: string): { ok: false; error: { code: string; msg: string } } { return { ok: false, error: { code, msg } }; }
 
 function err(code: string, msg: string): WriteResult { return { ok: false, error: { code, msg } }; }

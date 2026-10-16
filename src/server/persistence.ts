@@ -16,23 +16,27 @@
 // INSIDE the snapshot blob (no schema migration needed — PostgREST can filter on
 // snapshot->>_rev), and casSave only commits if the row's _rev still matches what
 // the caller read. The write path (mutateStore) retries on conflict. Seeding
-// stays a plain upsert — two cold starts seed identical content.
+// uses insert-if-absent; a competing initializer must reload the winner.
 
 import type { StoreSnapshot } from "../store/store.ts";
 import { pgEnabled, pool } from "./pg.ts";
 
-const BASE = process.env.SUPABASE_URL;
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Read per call, like DATABASE_URL: tests and scripts set these after the module is imported, and an
+// import-time snapshot silently kept the in-memory path.
+const base = () => process.env.SUPABASE_URL;
+const key = () => process.env.SUPABASE_SERVICE_ROLE_KEY;
+// A hung PostgREST would otherwise hold the request (and every read goes through here) indefinitely.
+const REST_TIMEOUT_MS = 10_000;
 const TABLE = "kages_state";
 
 /** Postgres (DATABASE_URL) wins over Supabase when both are set: it is the
  *  explicit local/self-hosted choice, and the two must never both be written. */
 export function persistenceEnabled(): boolean {
-  return pgEnabled() || !!(BASE && KEY);
+  return pgEnabled() || !!(base() && key());
 }
 
 function headers(extra: Record<string, string> = {}): Record<string, string> {
-  return { apikey: KEY!, Authorization: `Bearer ${KEY!}`, "Content-Type": "application/json", ...extra };
+  return { apikey: key()!, Authorization: `Bearer ${key()!}`, "Content-Type": "application/json", ...extra };
 }
 
 // The blob stored in the row is the store snapshot plus a persistence-only _rev.
@@ -42,8 +46,7 @@ type Stored = StoreSnapshot & { _rev?: number };
 
 /** The persisted snapshot for a workspace with its current revision, or null when
  *  persistence is off or the row is empty. Legacy rows (written before _rev
- *  existed) report rev 0. Any failure logs and returns null so the caller falls
- *  back to a fresh seed — a broken database never takes the app down. */
+ *  existed) report rev 0. Storage errors throw: treating an outage as absence would seed over user data. */
 export async function loadSnapshotRev(workspace: string): Promise<{ snapshot: StoreSnapshot; rev: number } | null> {
   if (!persistenceEnabled()) return null;
   if (pgEnabled()) {
@@ -51,45 +54,23 @@ export async function loadSnapshotRev(workspace: string): Promise<{ snapshot: St
       const r = await pool().query("select snapshot from kages_state where id = $1", [workspace]);
       const blob = r.rows[0]?.snapshot as Stored | undefined;
       return blob ? { snapshot: blob, rev: typeof blob._rev === "number" ? blob._rev : 0 } : null;
-    } catch (e) { console.error("loadSnapshotRev (pg) failed:", e); return null; }
+    } catch (e) { throw new Error("workspace storage unavailable", { cause: e }); }
   }
   try {
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(workspace)}&select=snapshot`, { headers: headers() });
-    if (!res.ok) { console.error(`loadSnapshotRev: ${res.status} ${await res.text()}`); return null; }
+    const res = await fetch(`${base()}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(workspace)}&select=snapshot`, { headers: headers(), cache: "no-store", signal: AbortSignal.timeout(REST_TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`workspace storage returned ${res.status}`);
     const rows = (await res.json()) as { snapshot: Stored }[];
     const blob = rows[0]?.snapshot;
     if (!blob) return null;
     return { snapshot: blob, rev: typeof blob._rev === "number" ? blob._rev : 0 };
   } catch (e) {
-    console.error("loadSnapshotRev failed:", e);
-    return null;
+    throw new Error("workspace storage unavailable", { cause: e });
   }
 }
 
-/** Seed/first-write a workspace's snapshot (plain merge-duplicates upsert). Used
- *  only for seeding a brand-new workspace, where last-wins is harmless (identical
- *  content). Starts the revision at 1. */
+/** Initialization never overwrites a row created by another instance. */
 export async function saveSnapshot(workspace: string, snap: StoreSnapshot): Promise<void> {
-  if (!persistenceEnabled()) return;
-  if (pgEnabled()) {
-    try {
-      await pool().query(
-        "insert into kages_state (id, snapshot, updated_at) values ($1, $2::jsonb, now()) on conflict (id) do update set snapshot = excluded.snapshot, updated_at = now()",
-        [workspace, JSON.stringify({ ...snap, _rev: 1 })],
-      );
-    } catch (e) { console.error("saveSnapshot (pg) failed:", e); }
-    return;
-  }
-  try {
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {
-      method: "POST",
-      headers: headers({ Prefer: "resolution=merge-duplicates" }),
-      body: JSON.stringify({ id: workspace, snapshot: { ...snap, _rev: 1 }, updated_at: new Date().toISOString() }),
-    });
-    if (!res.ok) console.error(`saveSnapshot: ${res.status} ${await res.text()}`);
-  } catch (e) {
-    console.error("saveSnapshot failed:", e);
-  }
+  await casSave(workspace, snap, null);
 }
 
 /** Commit a mutated snapshot IFF the row's revision still matches `expectedRev`
@@ -113,29 +94,28 @@ export async function casSave(workspace: string, snap: StoreSnapshot, expectedRe
         [workspace, JSON.stringify(blob), expectedRev === 0 ? null : String(expectedRev)],
       );
       return r.rowCount === 1;
-    } catch (e) { console.error("casSave (pg) failed:", e); return false; }
+    } catch (e) { throw new Error("workspace storage unavailable", { cause: e }); }
   }
   try {
     if (expectedRev === null) {
-      const res = await fetch(`${BASE}/rest/v1/${TABLE}`, {
-        method: "POST", headers: headers({ Prefer: "return=minimal" }),
+      const res = await fetch(`${base()}/rest/v1/${TABLE}`, {
+        method: "POST", headers: headers({ Prefer: "return=minimal" }), signal: AbortSignal.timeout(REST_TIMEOUT_MS),
         body: JSON.stringify({ id: workspace, snapshot: blob, updated_at: now }),
       });
       if (res.status === 409) return false; // row already exists → conflict
-      if (!res.ok) { console.error(`casSave insert: ${res.status} ${await res.text()}`); return false; }
+      if (!res.ok) throw new Error(`workspace storage returned ${res.status}`);
       return true;
     }
     // Legacy rows have no _rev (null); a known rev matches exactly.
     const revFilter = expectedRev === 0 ? "snapshot->>_rev=is.null" : `snapshot->>_rev=eq.${expectedRev}`;
-    const res = await fetch(`${BASE}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(workspace)}&${revFilter}`, {
-      method: "PATCH", headers: headers({ Prefer: "return=representation" }),
+    const res = await fetch(`${base()}/rest/v1/${TABLE}?id=eq.${encodeURIComponent(workspace)}&${revFilter}`, {
+      method: "PATCH", headers: headers({ Prefer: "return=representation" }), signal: AbortSignal.timeout(REST_TIMEOUT_MS),
       body: JSON.stringify({ snapshot: blob, updated_at: now }),
     });
-    if (!res.ok) { console.error(`casSave update: ${res.status} ${await res.text()}`); return false; }
+    if (!res.ok) throw new Error(`workspace storage returned ${res.status}`);
     const rows = await res.json();
     return Array.isArray(rows) && rows.length === 1; // 0 rows updated → rev moved → conflict
   } catch (e) {
-    console.error("casSave failed:", e);
-    return false;
+    throw new Error("workspace storage unavailable", { cause: e });
   }
 }

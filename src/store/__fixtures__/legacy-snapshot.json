@@ -1,0 +1,140 @@
+{
+  "workspace": "legacy",
+  "kages": [
+    {
+      "name": "legacy-one",
+      "versions": [
+        {
+          "ref": "kages://legacy/kages/legacy-one@v1",
+          "parent": null,
+          "name": "legacy-one",
+          "uuid": "e5595464-be9e-4f6e-8ade-bdab3d47c312",
+          "v": 1,
+          "digest": "sha256:3a21aa2f14d6a1ac62bd41e15062b24e2eb0c8cb97d23aa1ff7ac0ac5645a512",
+          "signature": {
+            "keyId": "user:legacy-key",
+            "alg": "ed25519",
+            "sig": "XMse3uFkd36FYvpMJZ/3qWTUpE9LFwOeuiskTb3usv88QAc3xEi6ild6daOOR3Nq0K7fRFVYemH0RqPp4fahDQ=="
+          },
+          "createdAt": "1970-01-01T00:00:01.001Z",
+          "author": {
+            "principal": "user:legacy",
+            "runtime": {
+              "framework": "fixture",
+              "adapter": "test"
+            }
+          },
+          "change": {
+            "summary": "create",
+            "ops": 2,
+            "blocksTouched": [
+              "root",
+              "hello"
+            ]
+          },
+          "resolved": {
+            "system": "core@1.11.0",
+            "blocks": {
+              "root": "core/page@1.0.0",
+              "hello": "core/text@1.0.0"
+            }
+          },
+          "validation": {
+            "ok": true,
+            "errors": 0,
+            "warnings": 0
+          },
+          "state": "draft",
+          "visibility": "private",
+          "doc": {
+            "kages": "1.0",
+            "id": "legacy-one",
+            "title": "Sample legacy-one",
+            "system": "core@1",
+            "root": "root",
+            "blocks": {
+              "root": {
+                "type": "page",
+                "props": {},
+                "slots": {
+                  "children": [
+                    "hello"
+                  ]
+                }
+              },
+              "hello": {
+                "type": "text",
+                "props": {
+                  "text": "Hello"
+                }
+              }
+            },
+            "resolved": {
+              "system": "core@1.11.0",
+              "blocks": {
+                "root": "core/page@1.0.0",
+                "hello": "core/text@1.0.0"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "grants": [
+    [
+      "user:legacy@kages",
+      [
+        "read",
+        "write",
+        "publish",
+        "admin"
+      ]
+    ]
+  ],
+  "keys": [
+    [
+      "user:legacy",
+      {
+        "keyId": "user:legacy-key",
+        "publicPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAwEffxRy8IGxohRH/DiUCHQc9rZAqJUNB3oMFyXqlx4o=\n-----END PUBLIC KEY-----\n",
+        "privatePem": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKcxOOYhLEfMrku5wIhVz1pBlD9Kq/Zu2Bqalq7He0GU\n-----END PRIVATE KEY-----\n"
+      }
+    ]
+  ],
+  "audit": [
+    {
+      "at": "1970-01-01T00:00:01.003Z",
+      "principal": "user:legacy",
+      "action": "create",
+      "ref": "kages://legacy/kages/legacy-one@v1"
+    }
+  ],
+  "events": [
+    {
+      "type": "kage.version.created",
+      "ref": "kages://legacy/kages/legacy-one@v1",
+      "at": "1970-01-01T00:00:01.004Z"
+    },
+    {
+      "type": "kage.comment.created",
+      "ref": "legacy-one",
+      "at": "1970-01-01T00:00:01.006Z",
+      "data": {
+        "block": "hello",
+        "commentId": "c1"
+      }
+    }
+  ],
+  "comments": [
+    {
+      "kage": "legacy-one",
+      "block": "hello",
+      "author": "user:legacy",
+      "text": "a legacy comment",
+      "id": "c1",
+      "resolved": false,
+      "createdAt": "1970-01-01T00:00:01.005Z"
+    }
+  ]
+}

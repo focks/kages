@@ -64,6 +64,12 @@ export class ClaimRegistry {
     this.claims = this.claims.filter((c) => c.kage !== kage);
   }
 
+  /** Persist absolute expiry times so reloads preserve leases without extending them. */
+  dump(): Claim[] { return JSON.parse(JSON.stringify(this.claims)); }
+
+  /** Old snapshots have no leases; expired leases are discarded on the next access. */
+  load(claims: Claim[] = []): void { this.claims = JSON.parse(JSON.stringify(claims)); }
+
   private gc(now: number): void {
     this.claims = this.claims.filter((c) => c.expiresAt > now);
   }

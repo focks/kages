@@ -12,7 +12,7 @@ export type Visibility = "private" | "workspace" | "link" | "public";
 export type RepoKind = "kages" | "systems" | "templates" | "skills" | "data";
 
 export interface Principal {
-  /** e.g. "user:ifocksh", "agent:acme/support-triage", "service:ci". */
+  /** e.g. "user:ada", "agent:acme/support-triage", "service:ci". */
   id: string;
   kind: PrincipalKind;
 }
@@ -42,8 +42,9 @@ export interface VersionRecord {
   signature: Signature;
   createdAt: string;
   author: Provenance;
-  change: { summary: string; ops: number; blocksTouched: string[] };
-  resolved: { system: string; blocks: Record<string, string> };
+  /** `kind` marks changes made by a tool rather than an author (e.g. "migration"). */
+  change: { summary: string; ops: number; blocksTouched: string[]; kind?: string };
+  resolved: NonNullable<KageDoc["resolved"]>;
   validation: { ok: boolean; errors: number; warnings: number };
   state: LifecycleState;
   visibility: Visibility;
@@ -68,6 +69,9 @@ export interface KageEvent {
     | "kage.comment.created"
     | "kage.comment.resolved"
     | "kage.comment.deleted"
+    | "kage.critique.saved"
+    | "kage.critique.closed"
+    | "workspace.brief.updated"
     | "system.published";
   ref: string;
   at: string;

@@ -20,7 +20,7 @@ export function canonicalize(value: Json): string {
 function sortKeys(v: Json): Json {
   if (Array.isArray(v)) return v.map(sortKeys);
   if (v && typeof v === "object") {
-    const out: Record<string, Json> = {};
+    const out: Record<string, Json> = Object.create(null);
     for (const k of Object.keys(v as Record<string, Json>).sort()) out[k] = sortKeys((v as Record<string, Json>)[k]);
     return out;
   }

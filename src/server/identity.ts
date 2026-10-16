@@ -12,9 +12,17 @@
 import type { Provenance } from "../store/types.ts";
 import { DEMO_PRINCIPAL } from "./store-instance.ts";
 import { createClient } from "../lib/supabase/server.ts";
+import { authMode, closedModeNotice } from "./auth-mode.ts";
 
 export function authEnabled(): boolean {
-  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return authMode() === "supabase";
+}
+
+let warned = false;
+function warnOnceIfClosed(): void {
+  if (warned) return;
+  const notice = closedModeNotice();
+  if (notice) { warned = true; console.error(notice); }
 }
 
 export const ANON_PRINCIPAL = "anon";
@@ -27,7 +35,9 @@ const ANON: Provenance = { principal: ANON_PRINCIPAL, runtime: { framework: "nex
  *  admin, not anon, so this never blocks development. The gate lives at the write
  *  boundary (routes), before dispatch reaches the store's auto-grant. */
 export function anonWriteBlocked(author: Provenance, isWrite: boolean): boolean {
-  return isWrite && authEnabled() && author.principal === ANON_PRINCIPAL;
+  // Every mode but explicit local development: in `closed` mode (no auth configured, local mode not
+  // requested) nobody has an identity, so nobody may write.
+  return isWrite && authMode() !== "local" && author.principal === ANON_PRINCIPAL;
 }
 
 /** A workspace id from a user id. User ids are uuids (no slashes), so this is a
@@ -66,7 +76,9 @@ export interface Identity { author: Provenance; workspace: string; }
 
 /** Resolve the acting identity + workspace for the current request. */
 export async function resolveIdentity(req?: Request, bearerOnly = false): Promise<Identity> {
-  if (!authEnabled()) return { author: DEMO_PRINCIPAL, workspace: "acme" };
+  const mode = authMode();
+  if (mode === "local") return { author: DEMO_PRINCIPAL, workspace: "acme" };
+  if (mode === "closed") { warnOnceIfClosed(); return { author: ANON, workspace: "acme" }; }
   const user = await getSessionUser(req, bearerOnly);
   if (!user) return { author: ANON, workspace: "acme" };
   return {

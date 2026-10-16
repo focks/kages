@@ -141,8 +141,60 @@ test("the operation table exposes every discussion action with the same rules", 
   assert.equal((dispatch(ctx(reader), "edit_comment", { id: made.data.id, text: "edited" }) as any).data.text, "edited");
   assert.equal((dispatch(ctx(reader), "resolve_comment", { id: made.data.id }) as any).data.resolved, true);
   assert.equal((dispatch(ctx(reader), "resolve_comment", { id: made.data.id, resolved: false }) as any).data.resolved, false);
-  assert.equal((dispatch(ctx(outsider), "list_comments", { kage: "k" }) as any).error.code, "forbidden");
+  // A private Kage does not exist as far as a stranger can tell (see oracle/security.feature); once it is public, anonymous callers may read but not write.
+  assert.equal((dispatch(ctx(outsider), "list_comments", { kage: "k" }) as any).error.code, "not_found");
+  assert.equal((dispatch(ctx(anon), "comment", { kage: "k", text: "x" }) as any).error.code, "not_found");
+  assert.ok(s.publish("k", owner, "public").ok);
   assert.equal((dispatch(ctx(anon), "comment", { kage: "k", text: "x" }) as any).error.code, "forbidden");
   assert.equal((dispatch(ctx(writer), "delete_comment", { id: made.data.id }) as any).error.code, "forbidden");
   assert.equal((dispatch(ctx(reader), "delete_comment", { id: made.data.id }) as any).data.tombstone, true);
+});
+
+test("addComment refuses malformed, oversized or NUL-bearing suggested patches and prototype block names", () => {
+  const s = setup();
+  const ok = add(s, writer, { block: "a", text: "try this", suggestedPatch: [{ op: "replace", path: "/blocks/a/props/text", value: "Z" }] });
+  assert.equal(ok.suggestedPatch?.length, 1, "a well-formed suggestion is still accepted");
+  const bad: [string, any][] = [
+    ["null op", [null]],
+    ["non-object op", [5]],
+    ["unknown verb", [{ op: "explode", path: "/x" }]],
+    ["missing path", [{ op: "add", value: 1 }]],
+    ["move without from", [{ op: "move", path: "/x" }]],
+    ["prototype pointer", [{ op: "add", path: "/__proto__/x", value: 1 }]],
+    ["oversized value", [{ op: "add", path: "/x", value: "x".repeat(20_000) }]],
+    ["NUL in value", [{ op: "add", path: "/x", value: "a\u0000b" }]],
+  ];
+  for (const [label, suggestedPatch] of bad) { const r = s.addComment("k", writer, { block: "a", text: "x", suggestedPatch }); assert.equal(r.ok, false, label); if (!r.ok) assert.equal(r.error.code, "invalid_comment", label); }
+  fails(s.addComment("k", writer, { block: "constructor", text: "x" }), "unknown_block");
+  fails(s.addComment("k", writer, { block: "__proto__", text: "x" }), "unknown_block");
+});
+
+test("comment ids are never re-minted after the newest comments are deleted and the store is reloaded", () => {
+  const s = setup();
+  const c1 = add(s, writer, { text: "one" }), c2 = add(s, writer, { text: "two" });
+  assert.ok(s.deleteComment(c2.id, writer).ok);
+  assert.equal(s.listComments("k", owner).ok && (s.listComments("k", owner) as any).value.some((c: any) => c.id === c2.id && !c.deleted), false, "precondition: the newest comment is gone");
+  const back = Store.restore(JSON.parse(JSON.stringify(s.snapshot())));
+  const c3 = (back.addComment("k", writer, { text: "three" }) as any).value as CommentView;
+  assert.notEqual(c3.id, c2.id, "a stale tab holding the deleted id must not reach a new comment");
+  assert.notEqual(c3.id, c1.id);
+});
+
+test("edit, vote, resolve and delete are rate limited too, and the counter survives a restore", () => {
+  let now = 1_800_000_000_000;
+  const s = new Store({ workspace: "w", clock: () => now });
+  s.grant("user:owner", "r", ["read", "write", "publish", "review", "admin"]); s.grant("user:fan", "r", ["read"]);
+  assert.ok(s.create("r", doc(), { principal: "user:owner" }).ok);
+  const root = (s.addComment("k", { principal: "user:owner" }, { text: "root" }) as any).value as CommentView;
+  const fan = { principal: "user:fan" };
+  // A loop of votes is a loop of full-workspace CAS writes, so it is capped like adding is.
+  let refused = 0;
+  for (let i = 0; i < 400; i++) { const r = s.voteComment(root.id, fan, i % 2 ? 1 : -1); if (!r.ok) { assert.equal(r.error.code, "rate_limited"); refused++; } }
+  assert.ok(refused > 0 && refused < 400, `refused ${refused} of 400 votes`);
+  const back = Store.restore(JSON.parse(JSON.stringify(s.snapshot())), { clock: () => now });
+  fails(back.voteComment(root.id, fan, 1), "rate_limited");
+  const edits = Array.from({ length: 400 }, (_, i) => s.editComment(root.id, { principal: "user:owner" }, "v" + i));
+  assert.ok(edits.some((r) => !r.ok && r.error.code === "rate_limited"), "edits are limited");
+  now += 3_700_000;
+  assert.ok(s.voteComment(root.id, fan, 1).ok, "an hour later the budget is back");
 });

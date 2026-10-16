@@ -7,6 +7,7 @@
 // thread), carry a pin position inside its block (a point comment, like a design
 // tool's comment mode), take votes, be edited, resolved or deleted. Every added
 // field is optional so snapshots written before this existed load unchanged.
+// New persisted collections should use src/store/collection.ts; this class predates it and is left as is.
 // See oracle/collaboration.feature and oracle/comments.feature.
 
 import type { PatchOp } from "./patch.ts";
@@ -112,14 +113,23 @@ export class CommentThread {
     this.comments = this.comments.filter((c) => c.kage !== kage);
   }
 
-  /** Serialize/restore for a persistent store. `seq` is reset past the highest
-   *  id so a reload never re-mints an existing comment id. */
+  /** The id high-water mark, or 0 when the surviving comments already imply it. Persisted by the store
+   *  only when ahead of them: deriving it from survivors alone re-minted the ids of deleted newest
+   *  comments, and `commentFor` finds comments by id across Kages. Staying 0 otherwise keeps legacy
+   *  snapshots round-tripping unchanged. */
+  get sequence(): number {
+    const survivors = this.comments.reduce((max, c) => Math.max(max, Number(c.id.replace(/^c/, "")) || 0), 0);
+    return this.seq > survivors ? this.seq : 0;
+  }
+
+  /** Serialize/restore for a persistent store. `seq` never moves backwards, so a reload does not
+   *  re-mint an id that was handed out, even one whose comment was since deleted. */
   dump(): Comment[] {
     return this.comments.map((c) => ({ ...c, ...(c.votes ? { votes: { ...c.votes } } : {}) }));
   }
 
-  load(comments: Comment[]): void {
+  load(comments: Comment[], sequence = 0): void {
     this.comments = comments.map((c) => ({ ...c }));
-    this.seq = comments.reduce((max, c) => Math.max(max, Number(c.id.replace(/^c/, "")) || 0), 0);
+    this.seq = comments.reduce((max, c) => Math.max(max, Number(c.id.replace(/^c/, "")) || 0), Number.isSafeInteger(sequence) ? sequence : 0);
   }
 }
