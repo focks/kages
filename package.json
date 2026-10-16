@@ -1,7 +1,7 @@
 {
   "name": "kages",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "bin": {
     "kages": "dist/kages.mjs"
@@ -88,5 +88,8 @@
     "nextjs",
     "interactive",
     "json-render"
-  ]
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
