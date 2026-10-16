@@ -80,6 +80,11 @@ test("free-flow: starters validate and create/clone/publish through the operatio
   }
   assert.equal(dispatch(ctx, "clone_kage", { name: "idea-lab", title: "My lab" }).ok, true);
   assert.equal(dispatch(ctx, "publish_kage", { name: "idea-lab" }).ok, true);
+  // Cloning a template deliberately lands the copy in the user's project, not in
+  // Templates (so a starter copy is not hidden among the templates). Templates is
+  // therefore unchanged, while the clone is an ordinary, findable Kage.
   const templates = dispatch(ctx, "search_templates", {}) as any;
-  assert.equal(templates.data.length, introTemplates().length + 1); // clone remains an ordinary searchable Kage
+  assert.equal(templates.data.length, introTemplates().length);
+  const found = dispatch(ctx, "search_kages", { text: "My lab" }) as any;
+  assert.ok(found.data.some((v: any) => v.name === "my-lab"), "the clone is an ordinary searchable Kage");
 });
