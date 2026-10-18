@@ -185,7 +185,12 @@ export async function screenshotDoc(doc: KageDoc, opts: ShotOptions): Promise<Sh
       const again = (await cdp.send("Runtime.evaluate", { expression: MEASURE, returnByValue: true })).result.value as PageMetrics;
       metrics = { ...again, scrollHeight: Math.max(metrics.scrollHeight, again.scrollHeight) };
       const full = Math.max(opts.height, metrics.scrollHeight), height = Math.min(full, opts.maxHeight), truncated = full > opts.maxHeight;
-      const shot = await cdp.send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width, height, scale: 1 } });
+      // The artifact lives in a sandboxed (cross-process) iframe, and Chrome does not paint such a frame beyond
+      // the viewport that was set when it loaded: `captureBeyondViewport` then returns the page blank below the
+      // fold. Grow the viewport to the whole page, let the frame repaint, and capture what is on screen.
+      await cdp.send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: opts.scale, mobile: width < 500 });
+      await cdp.send("Runtime.evaluate", { expression: "new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 250))))", awaitPromise: true });
+      const shot = await cdp.send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width, height, scale: 1 } });
       results.push({ width, height, png: Buffer.from(shot.data, "base64"), truncated, metrics, consoleErrors: errors, issues: summarize(metrics, errors, truncated, opts.maxHeight) });
       cdp.close();
       await fetch(`http://127.0.0.1:${browser.port}/json/close/${target.id}`).catch(() => {});
