@@ -133,14 +133,45 @@ export function computeExpression(op, a, ctx, evaluate, getPath) {
 // Scope substitution uses $literal because item data may itself contain keys
 // such as "$state". Recursively evaluating that data would turn an innocent
 // dataset into a program. References are rebound to the same concrete instance.
+const SCOPED_OPS = new Set(["$item", "$index", "$scope", "$input", "$block", "$tpl", "$map"]);
+const SCOPE_TEMPLATE = /\{\{\s*([a-zA-Z]+)\.([^}\s]+)\s*\}\}/g;
+const scopeFreeMemo = new WeakMap();
+const templateMemo = new Map();
+/** A template string split once into [text before, hole] pairs; a repeated row reuses it instead of re-matching the pattern. */
+function templateSegments(template) {
+  let segments = templateMemo.get(template);
+  if (segments) return segments;
+  segments = []; let offset = 0;
+  for (const m of template.matchAll(SCOPE_TEMPLATE)) { segments.push({ text: template.slice(offset, m.index), op: "$" + m[1], path: m[2] }); offset = m.index + m[0].length; }
+  segments.push({ text: template.slice(offset), op: null, path: null });
+  if (templateMemo.size > 1000) templateMemo.clear();
+  templateMemo.set(template, segments);
+  return segments;
+}
+/** True when nothing under x refers to the repeat scope, so instances can share it instead of copying it per row. Each
+ * source block is analysed once; a list of 2,000 rows would otherwise clone the same static props 2,000 times. */
+function scopeFree(x) {
+  if (x === null || typeof x !== "object") return true;
+  const known = scopeFreeMemo.get(x);
+  if (known !== undefined) return known;
+  let free = true;
+  if (Array.isArray(x)) { for (let i = 0; i < x.length && free; i++) free = scopeFree(x[i]); }
+  else {
+    for (const k in x) { if (!Object.prototype.hasOwnProperty.call(x, k)) continue; if (SCOPED_OPS.has(k) || k === "do" && (x.do === "call" || x.do === "setLocal") || !scopeFree(x[k])) { free = false; break; } }
+  }
+  scopeFreeMemo.set(x, free);
+  return free;
+}
+
 function scopeValue(x, scope, ids, getPath, scopedItem = true) {
-  if (Array.isArray(x)) return x.map(v => scopeValue(v, scope, ids, getPath, scopedItem));
+  if (Array.isArray(x)) return scopeFree(x) ? x : x.map(v => scopeValue(v, scope, ids, getPath, scopedItem));
   if (!object(x)) return x;
-  const op = Object.keys(x)[0], a = x[op];
+  let op; for (const k in x) { op = k; break; }
+  const a = x[op];
   if (op === "$literal") return x;
-  if (!scopedItem && ["$item", "$index"].includes(op)) return x;
+  if (!scopedItem && (op === "$item" || op === "$index")) return x;
   if (op === "$map" && object(a)) return { $map: { ...scopeValue(a, scope, ids, getPath, scopedItem), to: scopeValue(a.to, scope, ids, getPath, false) } };
-  if (["$item", "$index", "$scope", "$input"].includes(op)) {
+  if (op === "$item" || op === "$index" || op === "$scope" || op === "$input") {
     const value = op === "$index" ? scope.index : getPath(scope[op.slice(1)], a);
     return { $literal: value ?? null };
   }
@@ -149,14 +180,14 @@ function scopeValue(x, scope, ids, getPath, scopedItem = true) {
     return { $block: (ids[id] || id) + (dot < 0 ? "" : a.slice(dot)) };
   }
   if (op === "$tpl" && typeof a === "string") {
-    const parts = []; let offset = 0;
-    for (const m of a.matchAll(/\{\{\s*([a-zA-Z]+)\.([^}\s]+)\s*\}\}/g)) {
-      parts.push(a.slice(offset, m.index), scopeValue({ ["$" + m[1]]: m[2] }, scope, ids, getPath, scopedItem)); offset = m.index + m[0].length;
-    }
-    parts.push(a.slice(offset)); return { $concat: parts };
+    const parts = [];
+    for (const seg of templateSegments(a)) parts.push(seg.text, ...(seg.op ? [scopeValue({ [seg.op]: seg.path }, scope, ids, getPath, scopedItem)] : []));
+    return { $concat: parts };
   }
-  const result = Object.fromEntries(Object.entries(x).map(([k, v]) => [k, scopeValue(v, scope, ids, getPath, scopedItem)]));
-  if (["call", "setLocal"].includes(x.do) && typeof x.target === "string" && x.target !== "$self") result.target = ids[x.target] || x.target;
+  if (scopeFree(x)) return x;
+  const result = {};
+  for (const k in x) if (Object.prototype.hasOwnProperty.call(x, k)) result[k] = scopeValue(x[k], scope, ids, getPath, scopedItem);
+  if ((x.do === "call" || x.do === "setLocal") && typeof x.target === "string" && x.target !== "$self") result.target = ids[x.target] || x.target;
   return result;
 }
 
@@ -213,7 +244,7 @@ export function expandDocument(doc, ctx, evaluate, getPath, createCtx) {
     if (++count > 10000) throw new Error("Artifact exceeds 10000 rendered blocks");
     const uid = prefix ? id + "~" + prefix : id;
     const ids = scope.ids || {};
-    const copy = scopeValue(b, scope, ids, getPath); delete copy.repeat;
+    const copy = { ...scopeValue(b, scope, ids, getPath) }; delete copy.repeat; // shallow: a scope-free block is shared, never edited in place
     blocks[uid] = copy;
     if (doc.resolved?.blocks?.[(scope.pinPrefix || "") + id]) pins[uid] = doc.resolved.blocks[(scope.pinPrefix || "") + id];
     copy.slots = Object.fromEntries(Object.entries(b.slots || {}).map(([slot, children]) => [slot, children.flatMap(child => visit(child, source, prefix, scope, [...ancestry, id], definitions))]));

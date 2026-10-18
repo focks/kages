@@ -18,7 +18,7 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
   const assets = doc.resolved?.assets ?? currentAssets;
   // Each document edit restarts execution and clears failed block boundaries.
   const frameDoc = React.useMemo(() => {
-    try { return { html: origin ? sandboxHtml(origin, assets.runtime ?? frameRuntime, assets.integrity, crypto.randomUUID()) : "", error: "" }; }
+    try { return { html: origin ? sandboxHtml(origin, assets.runtime ?? frameRuntime, assets.integrity, crypto.randomUUID(), assets.base) : "", error: "" }; }
     catch (e) { return { html: "", error: `Artifact assets unavailable: ${(e as Error).message}` }; }
   }, [origin, doc, assets.integrity]);
   const html = frameDoc.html;

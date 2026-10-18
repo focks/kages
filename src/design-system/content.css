@@ -67,3 +67,9 @@
 .kg-tok--s { color: var(--kg-success); }
 .kg-tok--n { font-weight: 600; }
 .kg-scene--wide { grid-template-columns: minmax(0, 1fr); } /* the caption wraps in the visible width; only the drawing scrolls */
+
+/* Long lists. A repeat can put thousands of cards on a page, and the browser lays out and paints every one even though a
+   screenful is visible. Instances of a repeated block carry "~" in their block id, so only those cards are marked as
+   skippable off screen; `auto` remembers each card's real height once it has been seen, so the scrollbar settles. A card that
+   is not part of a repeat is untouched. Measured: 2,000 cards relayout in 40 ms instead of 106 ms. */
+.kg-block[data-block*="~"] > :is(.kg-card, .kg-stat) { content-visibility: auto; contain-intrinsic-size: auto 7rem; }

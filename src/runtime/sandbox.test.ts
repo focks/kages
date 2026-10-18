@@ -1,7 +1,7 @@
 // A compromised component gets neither dashboard origin nor direct network APIs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { sandboxHtml } from "./sandbox.ts";
+import { sandboxHtml, FONTS_CSS } from "./sandbox.ts";
 import runtime from "../../public/runtime/frame.json" with { type: "json" };
 import assets from "../../public/ds/assets.json" with { type: "json" };
 import { readFileSync } from "node:fs";
@@ -29,4 +29,21 @@ test("all pinned assets, including the engine runtime, retain their exact bytes"
 
 test("untrusted asset paths cannot inject markup into the frame document", () => {
   assert.throws(() => sandboxHtml("https://host.example", { ...runtime, path: '/runtime/x.js" onload="alert(1)' }, assets.integrity, "test"), /asset path/);
+});
+
+test("the frame preloads its pinned design-system files so they download beside the runtime, never from a foreign path", () => {
+  const html = sandboxHtml("https://host.example", runtime, assets.integrity, "test", assets.base);
+  for (const f of ["tokens.css", "bundle.css", "bundle.js"]) assert.ok(html.includes(`href="https://host.example${assets.base}/${f}" integrity="${(assets.integrity as Record<string, string>)[f]}" crossorigin="anonymous"`), f);
+  assert.ok(html.indexOf('rel="preload"') < html.indexOf("<script"), "preloads start before the runtime script");
+  assert.doesNotMatch(sandboxHtml("https://host.example", runtime, assets.integrity, "test", '/ds/x" onload="alert(1)'), /preload/);
+  assert.doesNotMatch(sandboxHtml("https://host.example", runtime, assets.integrity, "test", "https://evil.example/ds"), /preload/);
+  assert.doesNotMatch(sandboxHtml("https://host.example", runtime, assets.integrity, "test"), /preload/, "no base, no preload");
+});
+
+test("the fonts stylesheet requested up front is the one the bundle imports, and its hosts are allowed by the frame policy", () => {
+  assert.ok(readFileSync(new URL("../../public/ds/bundle.css", import.meta.url), "utf8").includes(`@import url("${FONTS_CSS}")`));
+  const html = sandboxHtml("https://host.example", runtime, assets.integrity, "test", assets.base);
+  assert.ok(html.includes(`<link rel="stylesheet" href="${FONTS_CSS}">`));
+  assert.match(html, /style-src [^;]*https:\/\/fonts\.googleapis\.com/); assert.match(html, /font-src [^;]*https:\/\/fonts\.gstatic\.com/);
+  assert.ok(html.includes('rel="preconnect" href="https://fonts.gstatic.com" crossorigin'));
 });

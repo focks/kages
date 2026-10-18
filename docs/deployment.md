@@ -37,6 +37,10 @@ Set `DATABASE_URL` and run `npm run db:setup` to create the tables. Writes are c
 
 The hosted endpoint serves the MCP operations at `/api/mcp` with bearer-token auth. Without a token it is read-only and public. Sign in with `kages auth login` to act on your own workspace. The [REST API](rest-api.md) covers the HTTP surface, authentication and status codes.
 
+## Speed
+
+Artifacts run in a sandboxed frame that downloads the runtime, the design system and its styles. The frame asks for all three at once and requests the web fonts in parallel, instead of one after another. Files with a hash in their name (`/ds/versions/…`, `/runtime/….js`) are served with a one-year `immutable` cache header, so a repeat view downloads nothing; the unhashed aliases are revalidated. If you put a CDN in front, keep those headers. Repeated cards past the first screen are skipped by the browser until you scroll to them, and a page of 2,000 cards updates in about a tenth of a second.
+
 ## Install into your tools
 
 `kages install` writes skills, slash commands, agents and the edit hook for the tools it finds. `kages check` exits 1 if what is installed is missing or older than the CLI, and `kages doctor` reports drift anywhere else.

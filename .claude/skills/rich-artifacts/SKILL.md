@@ -162,3 +162,27 @@ goes in a `figcaption` outside the `blockquote`; lists of terms stay a native `d
 one global regex scan that renders React text children (never an HTML string) and is capped at
 20,000 characters. These roles are minor releases (`code`, `rich-text`, `scene`, `diagram` are
 1.1.0), so a golden or test that pins `core/code@1.0.0` must move with them.
+
+## Rendering performance
+
+Measure first: `npm run bench:render` (production React) prints the slowest shipped examples and a synthetic
+list of N repeated cards plus a table. Typical pages (10-100 blocks) render in 1-10 ms; a repeat of 2,000 cards
+renders in about 110 ms and re-renders on every keystroke, so large lists are where cost appears. What is in place,
+and the rules that keep it:
+
+- **Load chain.** The frame HTML preloads `tokens.css`, `bundle.css` and `bundle.js` with their integrity and
+  `crossorigin="anonymous"` (same credentials mode as the later fetch, otherwise the browser will not reuse them) and
+  requests the web-font stylesheet that `bundle.css` `@import`s, so the downloads overlap with the runtime instead of
+  queueing behind it. `FONTS_CSS` in `src/runtime/sandbox.ts` must equal the bundle's import; a test enforces it.
+  A base outside `/ds` is never preloaded.
+- **Caching.** Hashed files (`/ds/versions/<hash>/*`, `/runtime/<hash>.js`) get `Cache-Control: immutable`
+  (`next.config.ts`, tested); aliases (`/ds/bundle.js`, `frame.json`) never do. Never cache an unhashed path.
+- **Long lists.** `content.css` marks cards and stats that are instances of a repeat (`data-block` contains `~`) with
+  `content-visibility: auto` and `contain-intrinsic-size: auto 7rem`: relayout of 2,000 cards fell from 106 to 40 ms. Do not
+  extend it to table rows (table-internal display types ignore containment) or to blocks outside a repeat (comment-mode
+  rectangles and anchors depend on real layout). Long tables belong in `data-grid`, which pages.
+- **Expansion.** `scopeValue` shares any structure with no scope reference (`scopeFree`, memoised per source object) and
+  parses each `$tpl` once (`templateSegments`). The copy made per instance is shallow, so nothing may edit a block's props in
+  place. `src/design-system/lists.test.ts` fails when 4x the rows take much more than 4x as long.
+- **Screenshots.** The artifact is a cross-process iframe, and Chrome does not paint it beyond the viewport that was set
+  when it loaded, so `kages screenshot` grows the viewport to the page height and captures without `captureBeyondViewport`.

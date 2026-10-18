@@ -13,7 +13,12 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
     ] };
-    return [baseline, ...assets];
+    // Hashed files never change under their name (a new build gets a new folder or file), so browsers may keep
+    // them for a year without asking again: a repeat view of any artifact skips the network for ~600 KB of
+    // script and style. The unhashed aliases (/ds/bundle.js, /runtime/frame.json) keep the default revalidation.
+    const forever = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
+    const hashed = [{ source: "/ds/versions/:hash([A-Za-z0-9_-]+)/:file", headers: [forever] }, { source: "/runtime/:file([A-Za-z0-9_-]{16,}\\.js)", headers: [forever] }];
+    return [baseline, ...assets, ...hashed];
   },
   // The docs route reads docs/*.md at build time; make sure they ship with it.
   outputFileTracingIncludes: { "/docs/[[...slug]]": ["./docs/**/*"] },
