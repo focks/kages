@@ -31,13 +31,18 @@ These hold the page together: `page`, `section`, `stack`, `grid`, `split`, `card
 
 ## Text and content
 
-For prose and figures: `text`, `rich-text`, `markdown`, `code`, `code-tabs`, `image`, `link`, `list`, `toc`, `anchor`, `badge`, `math`.
+For prose and figures: `text`, `rich-text`, `markdown`, `code`, `code-tabs`, `image`, `link`, `list`, `toc`, `anchor`, `glossary`, `references`, `badge`, `math`.
 
 | Block | Purpose | Key props |
 |-------|---------|-----------|
 | `text` | One run of type | `text` (required), `variant` (display, title, heading, body, muted, caption, code) |
 | `stat` | One headline number | `label`, `value`, `format`, `delta`, `caption` |
-| `code` | A code sample | `code`, `language`, `title` |
+| `code` | A code sample, coloured by `language` | `code`, `language`, `caption`, `wrap`, `highlight` |
+| `rich-text` | Headings, paragraphs, quotes and lists | `nodes`; runs take `bold`, `italic`, `code`, `href`, `cite`; a quote takes `attribution` and `href` |
+| `glossary` | Terms and their meanings | `title`, `items` (term, definition) |
+| `references` | The numbered sources a page cites | `title`, `items` (id, label, href, detail) |
+
+See [research briefs](research-briefs.md) for how citations, quotes, captions and a glossary fit together.
 
 ## Data and charts
 

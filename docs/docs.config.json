@@ -28,6 +28,11 @@
       "group": "Guides"
     },
     {
+      "file": "research-briefs.md",
+      "summary": "Write a long, sourced page: contents, citations, captioned figures, a self-check and a glossary.",
+      "group": "Guides"
+    },
+    {
       "file": "collaboration.md",
       "summary": "Versions, claims, merges and threaded comments.",
       "group": "Guides"

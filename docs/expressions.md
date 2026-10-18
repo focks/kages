@@ -44,7 +44,7 @@ Each operator takes a dot path and returns a value from one source.
 
 ## Logic and numbers
 
-Comparisons (`$eq`, `$neq`, `$lt`, `$lte`, `$gt`, `$gte`) and booleans (`$and`, `$or`, `$not`, `$if`) build conditions. Arithmetic (`$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$min`, `$max`, `$round`) does the sums; any invalid result is `null`.
+Comparisons (`$eq`, `$neq`, `$lt`, `$lte`, `$gt`, `$gte`) and booleans (`$and`, `$or`, `$not`, `$if`) build conditions. Arithmetic (`$add`, `$sub`, `$mul`, `$div`, `$mod`, `$pow`, `$min`, `$max`, `$round`, and the one-value `$floor`, `$ceil` and `$abs`, each written `[value]`) does the sums; any invalid result is `null`.
 
 ```json
 { "$if": [ { "$gt": [ { "$state": "count" }, 0 ] }, "In stock", "Sold out" ] }
@@ -68,9 +68,18 @@ These shape arrays before a `table`, a chart or a repeat reads them.
   "equals": { "$state": "region" }, "skipIf": "all" } }
 ```
 
+## Joining and cutting text
+
+`$join` writes a list as one string; `$truncate` keeps the first `length` characters and adds a `suffix` when it cut something.
+
+```json
+{ "$join": { "list": { "$item": "tags" }, "separator": " · " } }
+{ "$truncate": { "value": { "$item": "summary" }, "length": 80, "suffix": "…" } }
+```
+
 ## Formatting
 
-`$format` renders a number as plain, currency, percent or a date, to a chosen number of digits.
+`$format` renders a number as plain, currency or percent, or a date, to a chosen number of digits. `notation: "compact"` writes 1,234,567 as 1.2M. A relative date needs the moment to compare with, written `relativeTo`, because a page must read the same on every render: `style: "relative"` gives "3d ago" or "5h from now".
 
 ```json
 { "$format": { "value": { "$item": "price" }, "style": "currency", "currency": "USD", "digits": 2 } }
@@ -92,6 +101,15 @@ A block reads values through `bind`, declares shared keys in `state`, and respon
 }
 ```
 
+## Reacting to a change
+
+A block can declare `watch`: a state path and the actions to run after any transaction that changed that path's value. Writing an equal value does not count as a change. Watchers run on the same transaction, up to four passes, and a handler that keeps changing what it watches is stopped and reported in the log.
+
+```json
+{ "type": "text", "props": { "text": "" },
+  "watch": { "cart": [ { "do": "set", "path": "dirty", "value": true } ] } }
+```
+
 ## Repeats
 
 A block with `repeat` renders once per row of a list. `each` is the list, `as` names the row for nested scopes, and `key` is a stable id — a string or number path into the row. With a key, a row's local state (an open panel, a typed note) follows the row through filtering and sorting; without one, identity is positional and resets when the order changes. Repeats expand to at most 10,000 blocks, and duplicate keys are rejected when the Kage is validated.
@@ -101,7 +119,7 @@ A block with `repeat` renders once per row of a list. `each` is the list, `as` n
   "bind": { "title": { "$item": "name" } } }
 ```
 
-Inside a repeat, `$item` is the current row and `$index` its position; a nested repeat reads its parent's row with `$scope`, for example `{ "$scope": "product.name" }`.
+A handler inside a repeat can write to its own row: `set` and `toggle` take a `path` that is an expression, for example `{ "$concat": ["todos.", { "$index": "" }, ".done"] }`. Inside a repeat, `$item` is the current row and `$index` its position; a nested repeat reads its parent's row with `$scope`, for example `{ "$scope": "product.name" }`.
 
 ## Compositions
 
