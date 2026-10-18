@@ -50,3 +50,15 @@ defaults, public outputs and explicit state bindings. For content, verify
 hostile strings remain literal, each export renders, and asset hashes match.
 Check the real `KageRenderer` in Studio as well as the oracle renderer, in all
 three systems and both themes.
+
+## Use-case examples
+
+`src/packs/use-case-examples.ts` holds one complete document per everyday use case (quiz, flashcards, architecture
+explainer, game, pricing proposal, trip plan, runbook, meeting notes, portfolio); `contentExamples()` returns them, so
+packs, starters, templates and goldens pick them up with no further registration. Add a case by writing the document there,
+giving it a mode in `USE_CASE_MODES`, a row in `docs/use-cases.md`, and a behaviour test in `src/packs/use-cases.test.ts`
+that plays it (a score, a winner, a filter), because rendering alone does not show that its logic works. Rules that kept
+these lint-clean: put figures in `data`/`state` and compute them (a typed-in `stat` value is flagged in operate mode), give
+every button a handler, label made-up figures illustrative on the page, keep one level of containers, and let a
+selection drive a view (`$filter` to one row, then a repeat) instead of reading a field out of an expression.
+Mind contrast: a diagram node with `tone: accent` fills with the accent colour and its label becomes unreadable.

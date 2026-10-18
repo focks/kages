@@ -1,0 +1,407 @@
+{
+  "kages": "1.0",
+  "id": "trip-itinerary",
+  "title": "Trip itinerary — three days in Lisbon",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "days",
+          "split"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Itinerary",
+        "title": "Three days in Lisbon",
+        "description": "A relaxed plan: one area a day, long lunches and the sights worth the walk.",
+        "inset": 0
+      }
+    },
+    "days": {
+      "type": "tab-panel",
+      "props": {
+        "label": "Day",
+        "tabs": [
+          {
+            "id": "d1",
+            "label": "Day 1 · Old town"
+          },
+          {
+            "id": "d2",
+            "label": "Day 2 · Belém"
+          },
+          {
+            "id": "d3",
+            "label": "Day 3 · Hills"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "tab"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "tab",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      },
+      "slots": {
+        "panel1": [
+          "t1"
+        ],
+        "panel2": [
+          "t2"
+        ],
+        "panel3": [
+          "t3"
+        ]
+      }
+    },
+    "t1": {
+      "type": "timeline",
+      "props": {
+        "label": "Day 1",
+        "items": [
+          {
+            "time": "09:00",
+            "title": "Alfama on foot",
+            "description": "Wander the old streets before the crowds arrive."
+          },
+          {
+            "time": "13:00",
+            "title": "Lunch near the river",
+            "description": "Grilled fish and a short rest."
+          },
+          {
+            "time": "16:00",
+            "title": "Castle viewpoint",
+            "description": "Walk up for the late light over the city."
+          }
+        ]
+      }
+    },
+    "t2": {
+      "type": "timeline",
+      "props": {
+        "label": "Day 2",
+        "items": [
+          {
+            "time": "10:00",
+            "title": "Belém",
+            "description": "The tower, the monastery and a custard tart."
+          },
+          {
+            "time": "14:00",
+            "title": "Museum of art and technology",
+            "description": "A building you can walk across."
+          },
+          {
+            "time": "19:00",
+            "title": "Fado evening",
+            "description": "Book a small room; arrive early for a seat."
+          }
+        ]
+      }
+    },
+    "t3": {
+      "type": "timeline",
+      "props": {
+        "label": "Day 3",
+        "items": [
+          {
+            "time": "09:30",
+            "title": "Tram 28 to the hills",
+            "description": "Ride early, then walk back downhill."
+          },
+          {
+            "time": "12:30",
+            "title": "Market lunch",
+            "description": "Plenty of stalls under one roof."
+          },
+          {
+            "time": "17:00",
+            "title": "Sunset by the water",
+            "description": "Pack up slowly and enjoy the last evening."
+          }
+        ]
+      }
+    },
+    "split": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "budget"
+        ],
+        "end": [
+          "packing"
+        ]
+      }
+    },
+    "budget": {
+      "type": "bar-chart",
+      "props": {
+        "label": "Budget by category (euros)",
+        "format": "currency"
+      },
+      "bind": {
+        "items": {
+          "$data": "budget"
+        }
+      }
+    },
+    "packing": {
+      "type": "stack",
+      "props": {
+        "gap": 3
+      },
+      "slots": {
+        "children": [
+          "packing-title",
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "progress"
+        ]
+      }
+    },
+    "packing-title": {
+      "type": "text",
+      "props": {
+        "text": "Packing list",
+        "variant": "heading"
+      }
+    },
+    "p1": {
+      "type": "checkbox",
+      "props": {
+        "label": "Passport or ID card"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p1"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p1",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p2": {
+      "type": "checkbox",
+      "props": {
+        "label": "Phone charger and adapter"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p2"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p2",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p3": {
+      "type": "checkbox",
+      "props": {
+        "label": "Comfortable walking shoes"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p3"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p3",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p4": {
+      "type": "checkbox",
+      "props": {
+        "label": "Light rain jacket"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p4"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p4",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p5": {
+      "type": "checkbox",
+      "props": {
+        "label": "Printed booking confirmations"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p5"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p5",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "progress": {
+      "type": "gauge",
+      "props": {
+        "label": "Packed",
+        "min": 0,
+        "max": 5,
+        "unit": " of 5"
+      },
+      "bind": {
+        "value": {
+          "$add": [
+            {
+              "$if": [
+                {
+                  "$state": "p1"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p2"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p3"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p4"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p5"
+                },
+                1,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "state": {
+    "p1": false,
+    "p2": false,
+    "p3": false,
+    "p4": false,
+    "p5": false,
+    "tab": "d1"
+  },
+  "persist": {
+    "p1": "personal",
+    "p2": "personal",
+    "p3": "personal",
+    "p4": "personal",
+    "p5": "personal"
+  },
+  "data": {
+    "budget": [
+      {
+        "label": "Stay",
+        "value": 360
+      },
+      {
+        "label": "Food",
+        "value": 210
+      },
+      {
+        "label": "Getting around",
+        "value": 70
+      },
+      {
+        "label": "Sights",
+        "value": 95
+      }
+    ]
+  },
+  "brief": {
+    "mode": "read"
+  }
+}

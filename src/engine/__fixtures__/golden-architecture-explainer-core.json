@@ -1,0 +1,205 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Architecture explainer — a web service, piece by piece\" · system core@1.13.0 · 9 blocks\nstate {\"picked\":\"api\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"A web service, piece by piece\"\n    - layout [core/split@1.0.0]\n      start:\n        - map [core/diagram@1.1.0] label=\"How a request flows through the parts of a web service\"\n            ↳ writes select→state.picked\n      end:\n        - detail [core/card@1.0.0] title=\"About this part\"\n          children:\n            - part [core/text@1.0.0] (hidden) text=\"Select a part of the diagram.\"\n                ↳ reads data:parts, state:picked\n            - part-row~/part-row%3A%22api%22 [core/section@1.0.0] title=\"API\"\n              children:\n                - part-role~/part-row%3A%22api%22 [core/text@1.0.0] text=\"Checks the request, applies the rules and answers with d…\n                - part-links~/part-row%3A%22api%22 [core/text@1.0.0] text=\"Talks to: Cache, Database, Queue\"",
+  "envelope": {
+    "title": "Architecture explainer — a web service, piece by piece",
+    "root": "root",
+    "state_json": "{\"picked\":\"api\"}",
+    "data_json": "{\"parts\":[{\"id\":\"browser\",\"name\":\"Browser\",\"role\":\"Shows the page and sends requests.\",\"talksTo\":\"CDN, API\"},{\"id\":\"cdn\",\"name\":\"CDN\",\"role\":\"Serves static files from a location near the visitor.\",\"talksTo\":\"Browser\"},{\"id\":\"api\",\"name\":\"API\",\"role\":\"Checks the request, applies the rules and answers with data.\",\"talksTo\":\"Cache, Database, Queue\"},{\"id\":\"cache\",\"name\":\"Cache\",\"role\":\"Keeps recent answers in memory so repeat requests are fast.\",\"talksTo\":\"API\"},{\"id\":\"db\",\"name\":\"Database\",\"role\":\"Stores the records that must not be lost.\",\"talksTo\":\"API\"},{\"id\":\"queue\",\"name\":\"Queue\",\"role\":\"Holds slow jobs, such as emails, until a worker takes them.\",\"talksTo\":\"API, Worker\"},{\"id\":\"worker\",\"name\":\"Worker\",\"role\":\"Does the slow jobs in the background.\",\"talksTo\":\"Queue, Database\"}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "layout"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "A web service, piece by piece",
+          "eyebrow": "Systems",
+          "description": "Select a part of the diagram to see what it does and what it talks to.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "layout",
+        "type": "split",
+        "props": {
+          "ratio": "wide-start",
+          "gap": 6
+        },
+        "slots": {
+          "start": [
+            "map"
+          ],
+          "end": [
+            "detail"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "map",
+        "type": "diagram",
+        "props": {
+          "label": "How a request flows through the parts of a web service",
+          "nodes_json": "[{\"id\":\"browser\",\"label\":\"Browser\",\"x\":20,\"y\":30},{\"id\":\"cdn\",\"label\":\"CDN\",\"x\":260,\"y\":30},{\"id\":\"api\",\"label\":\"API\",\"x\":20,\"y\":170},{\"id\":\"cache\",\"label\":\"Cache\",\"x\":260,\"y\":170},{\"id\":\"db\",\"label\":\"Database\",\"x\":20,\"y\":310},{\"id\":\"queue\",\"label\":\"Queue\",\"x\":260,\"y\":310},{\"id\":\"worker\",\"label\":\"Worker\",\"x\":20,\"y\":450}]",
+          "edges_json": "[{\"from\":\"browser\",\"to\":\"cdn\"},{\"from\":\"browser\",\"to\":\"api\"},{\"from\":\"api\",\"to\":\"cache\"},{\"from\":\"api\",\"to\":\"db\"},{\"from\":\"api\",\"to\":\"queue\"},{\"from\":\"queue\",\"to\":\"worker\"}]",
+          "interactive": true,
+          "caption": "Arrows show who calls whom. The selected part is described beside the diagram."
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"picked\",\"value\":{\"$event\":\"id\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "detail",
+        "type": "card",
+        "props": {
+          "title": "About this part",
+          "subtitle": null,
+          "tone": null
+        },
+        "slots": {
+          "children": [
+            "part",
+            "part-row"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "part",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "body"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$tpl\":\"Select a part of the diagram.\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$count\":{\"$filter\":{\"list\":{\"$data\":\"parts\"},\"field\":\"id\",\"equals\":{\"$state\":\"picked\"}}}},0]}",
+        "repeat_json": null
+      },
+      {
+        "id": "part-row",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [
+            "part-role",
+            "part-links"
+          ],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"name\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$filter\":{\"list\":{\"$data\":\"parts\"},\"field\":\"id\",\"equals\":{\"$state\":\"picked\"}}},\"key\":\"id\",\"as\":\"part\"}"
+      },
+      {
+        "id": "part-role",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "body"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$item\":\"role\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "part-links",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "muted"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[\"Talks to: \",{\"$item\":\"talksTo\"}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

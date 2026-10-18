@@ -3977,6 +3977,4589 @@ Trunk-based development — a research brief:
 }
 ```
 
+Quiz — how photosynthesis works:
+```json
+{
+  "kages": "1.0",
+  "id": "study-quiz",
+  "title": "Quiz — how photosynthesis works",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "card-q1",
+          "card-q2",
+          "card-q3",
+          "actions",
+          "result"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Biology",
+        "title": "How photosynthesis works",
+        "description": "Three questions. Answer them all, then check your work: each answer comes with a one-line reason.",
+        "inset": 0
+      }
+    },
+    "actions": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 3,
+        "wrap": true
+      },
+      "slots": {
+        "children": [
+          "check",
+          "again"
+        ]
+      }
+    },
+    "check": {
+      "type": "button",
+      "props": {
+        "label": "Check my answers",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$or": [
+            {
+              "$eq": [
+                {
+                  "$state": "q1"
+                },
+                ""
+              ]
+            },
+            {
+              "$eq": [
+                {
+                  "$state": "q2"
+                },
+                ""
+              ]
+            },
+            {
+              "$eq": [
+                {
+                  "$state": "q3"
+                },
+                ""
+              ]
+            }
+          ]
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": true
+          }
+        ]
+      }
+    },
+    "again": {
+      "type": "button",
+      "props": {
+        "label": "Start over",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "q1",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "q2",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "q3",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": false
+          }
+        ]
+      }
+    },
+    "result": {
+      "type": "alert",
+      "props": {
+        "tone": "info",
+        "title": "Your result"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "You got ",
+            {
+              "$add": [
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "q1"
+                        },
+                        "Chloroplast"
+                      ]
+                    },
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "q2"
+                        },
+                        "Carbon dioxide"
+                      ]
+                    },
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "q3"
+                        },
+                        "Glucose"
+                      ]
+                    },
+                    1,
+                    0
+                  ]
+                }
+              ]
+            },
+            " of ",
+            3,
+            " right."
+          ]
+        }
+      },
+      "visible": {
+        "$state": "submitted"
+      }
+    },
+    "card-q1": {
+      "type": "card",
+      "props": {
+        "title": "Question 1"
+      },
+      "slots": {
+        "children": [
+          "q1",
+          "q1-ok",
+          "q1-no"
+        ]
+      }
+    },
+    "q1": {
+      "type": "choice",
+      "props": {
+        "label": "Where in a plant cell does photosynthesis take place?",
+        "name": "q1",
+        "options": [
+          {
+            "value": "Chloroplast",
+            "label": "Chloroplast"
+          },
+          {
+            "value": "Mitochondrion",
+            "label": "Mitochondrion"
+          },
+          {
+            "value": "Nucleus",
+            "label": "Nucleus"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "q1"
+        },
+        "disabled": {
+          "$state": "submitted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "q1",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "q1-ok": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Correct",
+        "text": "Chloroplasts hold the chlorophyll that captures light."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$eq": [
+              {
+                "$state": "q1"
+              },
+              "Chloroplast"
+            ]
+          }
+        ]
+      }
+    },
+    "q1-no": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Not quite",
+        "text": "The answer is Chloroplast. Chloroplasts hold the chlorophyll that captures light."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$not": {
+              "$eq": [
+                {
+                  "$state": "q1"
+                },
+                "Chloroplast"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "card-q2": {
+      "type": "card",
+      "props": {
+        "title": "Question 2"
+      },
+      "slots": {
+        "children": [
+          "q2",
+          "q2-ok",
+          "q2-no"
+        ]
+      }
+    },
+    "q2": {
+      "type": "choice",
+      "props": {
+        "label": "Which gas do plants take in for photosynthesis?",
+        "name": "q2",
+        "options": [
+          {
+            "value": "Oxygen",
+            "label": "Oxygen"
+          },
+          {
+            "value": "Carbon dioxide",
+            "label": "Carbon dioxide"
+          },
+          {
+            "value": "Nitrogen",
+            "label": "Nitrogen"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "q2"
+        },
+        "disabled": {
+          "$state": "submitted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "q2",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "q2-ok": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Correct",
+        "text": "Carbon from carbon dioxide is built into sugar."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$eq": [
+              {
+                "$state": "q2"
+              },
+              "Carbon dioxide"
+            ]
+          }
+        ]
+      }
+    },
+    "q2-no": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Not quite",
+        "text": "The answer is Carbon dioxide. Carbon from carbon dioxide is built into sugar."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$not": {
+              "$eq": [
+                {
+                  "$state": "q2"
+                },
+                "Carbon dioxide"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "card-q3": {
+      "type": "card",
+      "props": {
+        "title": "Question 3"
+      },
+      "slots": {
+        "children": [
+          "q3",
+          "q3-ok",
+          "q3-no"
+        ]
+      }
+    },
+    "q3": {
+      "type": "choice",
+      "props": {
+        "label": "What do plants make using the energy of light?",
+        "name": "q3",
+        "options": [
+          {
+            "value": "Protein",
+            "label": "Protein"
+          },
+          {
+            "value": "Wax",
+            "label": "Wax"
+          },
+          {
+            "value": "Glucose",
+            "label": "Glucose"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "q3"
+        },
+        "disabled": {
+          "$state": "submitted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "q3",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "q3-ok": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Correct",
+        "text": "Glucose is the sugar the plant uses for energy and growth."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$eq": [
+              {
+                "$state": "q3"
+              },
+              "Glucose"
+            ]
+          }
+        ]
+      }
+    },
+    "q3-no": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Not quite",
+        "text": "The answer is Glucose. Glucose is the sugar the plant uses for energy and growth."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$not": {
+              "$eq": [
+                {
+                  "$state": "q3"
+                },
+                "Glucose"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "q1": "",
+    "q2": "",
+    "q3": "",
+    "submitted": false
+  },
+  "brief": {
+    "mode": "experience"
+  }
+}
+```
+
+Flashcards — the parts of a cell:
+```json
+{
+  "kages": "1.0",
+  "id": "flashcards",
+  "title": "Flashcards — the parts of a cell",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "search",
+          "deck",
+          "none"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Study",
+        "title": "The parts of a cell",
+        "description": "Read the term, say what it does, then open the card to check yourself.",
+        "inset": 0
+      }
+    },
+    "search": {
+      "type": "text-field",
+      "props": {
+        "label": "Find a card",
+        "placeholder": "Try energy"
+      },
+      "bind": {
+        "value": {
+          "$state": "query"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "deck": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "card"
+        ]
+      }
+    },
+    "card": {
+      "type": "card",
+      "props": {},
+      "bind": {
+        "title": {
+          "$item": "term"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "cards"
+                },
+                "fields": [
+                  "term",
+                  "definition"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            },
+            "field": "term"
+          }
+        },
+        "key": "id",
+        "as": "card"
+      },
+      "slots": {
+        "children": [
+          "answer"
+        ]
+      }
+    },
+    "answer": {
+      "type": "accordion",
+      "props": {},
+      "bind": {
+        "items": [
+          {
+            "id": "a",
+            "title": "Show the answer",
+            "body": {
+              "$item": "definition"
+            }
+          }
+        ]
+      }
+    },
+    "none": {
+      "type": "text",
+      "props": {
+        "text": "No card matches. Try a different word.",
+        "variant": "muted"
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$data": "cards"
+                },
+                "fields": [
+                  "term",
+                  "definition"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  "data": {
+    "cards": [
+      {
+        "id": "nucleus",
+        "term": "Nucleus",
+        "definition": "Holds the cell's DNA and directs its activity."
+      },
+      {
+        "id": "mito",
+        "term": "Mitochondrion",
+        "definition": "Releases usable energy from food molecules."
+      },
+      {
+        "id": "ribosome",
+        "term": "Ribosome",
+        "definition": "Builds proteins from instructions copied from DNA."
+      },
+      {
+        "id": "membrane",
+        "term": "Cell membrane",
+        "definition": "A thin boundary that controls what enters and leaves."
+      },
+      {
+        "id": "golgi",
+        "term": "Golgi apparatus",
+        "definition": "Sorts, packages and ships proteins to where they are needed."
+      },
+      {
+        "id": "chloroplast",
+        "term": "Chloroplast",
+        "definition": "Captures light to make sugar in plant cells."
+      }
+    ]
+  },
+  "state": {
+    "query": ""
+  },
+  "brief": {
+    "mode": "experience"
+  }
+}
+```
+
+Architecture explainer — a web service, piece by piece:
+```json
+{
+  "kages": "1.0",
+  "id": "architecture-explainer",
+  "title": "Architecture explainer — a web service, piece by piece",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "layout"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Systems",
+        "title": "A web service, piece by piece",
+        "description": "Select a part of the diagram to see what it does and what it talks to.",
+        "inset": 0
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-start",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "map"
+        ],
+        "end": [
+          "detail"
+        ]
+      }
+    },
+    "map": {
+      "type": "diagram",
+      "props": {
+        "label": "How a request flows through the parts of a web service",
+        "caption": "Arrows show who calls whom. The selected part is described beside the diagram.",
+        "interactive": true,
+        "nodes": [
+          {
+            "id": "browser",
+            "label": "Browser",
+            "x": 20,
+            "y": 30
+          },
+          {
+            "id": "cdn",
+            "label": "CDN",
+            "x": 260,
+            "y": 30
+          },
+          {
+            "id": "api",
+            "label": "API",
+            "x": 20,
+            "y": 170
+          },
+          {
+            "id": "cache",
+            "label": "Cache",
+            "x": 260,
+            "y": 170
+          },
+          {
+            "id": "db",
+            "label": "Database",
+            "x": 20,
+            "y": 310
+          },
+          {
+            "id": "queue",
+            "label": "Queue",
+            "x": 260,
+            "y": 310
+          },
+          {
+            "id": "worker",
+            "label": "Worker",
+            "x": 20,
+            "y": 450
+          }
+        ],
+        "edges": [
+          {
+            "from": "browser",
+            "to": "cdn"
+          },
+          {
+            "from": "browser",
+            "to": "api"
+          },
+          {
+            "from": "api",
+            "to": "cache"
+          },
+          {
+            "from": "api",
+            "to": "db"
+          },
+          {
+            "from": "api",
+            "to": "queue"
+          },
+          {
+            "from": "queue",
+            "to": "worker"
+          }
+        ]
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "picked",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "detail": {
+      "type": "card",
+      "props": {
+        "title": "About this part"
+      },
+      "slots": {
+        "children": [
+          "part",
+          "part-row"
+        ]
+      }
+    },
+    "part": {
+      "type": "text",
+      "props": {
+        "variant": "body"
+      },
+      "bind": {
+        "text": {
+          "$tpl": "Select a part of the diagram."
+        }
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$data": "parts"
+                },
+                "field": "id",
+                "equals": {
+                  "$state": "picked"
+                }
+              }
+            }
+          },
+          0
+        ]
+      },
+      "slots": {}
+    },
+    "part-row": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "inset": 0
+      },
+      "bind": {
+        "title": {
+          "$item": "name"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$data": "parts"
+            },
+            "field": "id",
+            "equals": {
+              "$state": "picked"
+            }
+          }
+        },
+        "key": "id",
+        "as": "part"
+      },
+      "slots": {
+        "children": [
+          "part-role",
+          "part-links"
+        ]
+      }
+    },
+    "part-role": {
+      "type": "text",
+      "props": {
+        "variant": "body"
+      },
+      "bind": {
+        "text": {
+          "$item": "role"
+        }
+      }
+    },
+    "part-links": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "Talks to: ",
+            {
+              "$item": "talksTo"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "state": {
+    "picked": "api"
+  },
+  "data": {
+    "parts": [
+      {
+        "id": "browser",
+        "name": "Browser",
+        "role": "Shows the page and sends requests.",
+        "talksTo": "CDN, API"
+      },
+      {
+        "id": "cdn",
+        "name": "CDN",
+        "role": "Serves static files from a location near the visitor.",
+        "talksTo": "Browser"
+      },
+      {
+        "id": "api",
+        "name": "API",
+        "role": "Checks the request, applies the rules and answers with data.",
+        "talksTo": "Cache, Database, Queue"
+      },
+      {
+        "id": "cache",
+        "name": "Cache",
+        "role": "Keeps recent answers in memory so repeat requests are fast.",
+        "talksTo": "API"
+      },
+      {
+        "id": "db",
+        "name": "Database",
+        "role": "Stores the records that must not be lost.",
+        "talksTo": "API"
+      },
+      {
+        "id": "queue",
+        "name": "Queue",
+        "role": "Holds slow jobs, such as emails, until a worker takes them.",
+        "talksTo": "API, Worker"
+      },
+      {
+        "id": "worker",
+        "name": "Worker",
+        "role": "Does the slow jobs in the background.",
+        "talksTo": "Queue, Database"
+      }
+    ]
+  },
+  "brief": {
+    "mode": "read"
+  }
+}
+```
+
+Tic-tac-toe — a two-player game:
+```json
+{
+  "kages": "1.0",
+  "id": "tic-tac-toe",
+  "title": "Tic-tac-toe — a two-player game",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "play"
+        ]
+      }
+    },
+    "play": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "board"
+        ],
+        "end": [
+          "side"
+        ]
+      }
+    },
+    "side": {
+      "type": "stack",
+      "props": {
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "status",
+          "reset"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Game",
+        "title": "Tic-tac-toe",
+        "description": "Two players share the screen. Take turns; three in a row wins.",
+        "inset": 0
+      }
+    },
+    "board": {
+      "type": "scene",
+      "props": {
+        "label": "Tic-tac-toe board",
+        "width": 360,
+        "height": 360,
+        "interactive": true,
+        "shapes": []
+      },
+      "bind": {
+        "shapes": [
+          {
+            "kind": "rect",
+            "id": "c0",
+            "x": 4,
+            "y": 4,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 1"
+          },
+          {
+            "kind": "text",
+            "x": 38,
+            "y": 82,
+            "size": 64,
+            "text": {
+              "$state": "c0"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c0"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c1",
+            "x": 124,
+            "y": 4,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 2"
+          },
+          {
+            "kind": "text",
+            "x": 158,
+            "y": 82,
+            "size": 64,
+            "text": {
+              "$state": "c1"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c1"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c2",
+            "x": 244,
+            "y": 4,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 3"
+          },
+          {
+            "kind": "text",
+            "x": 278,
+            "y": 82,
+            "size": 64,
+            "text": {
+              "$state": "c2"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c2"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c3",
+            "x": 4,
+            "y": 124,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 4"
+          },
+          {
+            "kind": "text",
+            "x": 38,
+            "y": 202,
+            "size": 64,
+            "text": {
+              "$state": "c3"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c3"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c4",
+            "x": 124,
+            "y": 124,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 5"
+          },
+          {
+            "kind": "text",
+            "x": 158,
+            "y": 202,
+            "size": 64,
+            "text": {
+              "$state": "c4"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c4"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c5",
+            "x": 244,
+            "y": 124,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 6"
+          },
+          {
+            "kind": "text",
+            "x": 278,
+            "y": 202,
+            "size": 64,
+            "text": {
+              "$state": "c5"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c5"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c6",
+            "x": 4,
+            "y": 244,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 7"
+          },
+          {
+            "kind": "text",
+            "x": 38,
+            "y": 322,
+            "size": 64,
+            "text": {
+              "$state": "c6"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c6"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c7",
+            "x": 124,
+            "y": 244,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 8"
+          },
+          {
+            "kind": "text",
+            "x": 158,
+            "y": 322,
+            "size": 64,
+            "text": {
+              "$state": "c7"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c7"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          },
+          {
+            "kind": "rect",
+            "id": "c8",
+            "x": 244,
+            "y": 244,
+            "width": 112,
+            "height": 112,
+            "radius": 10,
+            "fill": "surface",
+            "stroke": "line",
+            "strokeWidth": 2,
+            "label": "Square 9"
+          },
+          {
+            "kind": "text",
+            "x": 278,
+            "y": 322,
+            "size": 64,
+            "text": {
+              "$state": "c8"
+            },
+            "fill": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "c8"
+                    },
+                    "X"
+                  ]
+                },
+                "ink",
+                "accent"
+              ]
+            }
+          }
+        ]
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "turn",
+            "value": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "turn"
+                    },
+                    "X"
+                  ]
+                },
+                "O",
+                "X"
+              ]
+            },
+            "when": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c0"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c0"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c1"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c1"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c2"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c2"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c3"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c3"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c4"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c4"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c5"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c5"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c6"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c6"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c7"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c7"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c8"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c8"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$not": {
+                    "$or": [
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c0"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c0"
+                              },
+                              {
+                                "$state": "c1"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c1"
+                              },
+                              {
+                                "$state": "c2"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c3"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c3"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c5"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c6"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c6"
+                              },
+                              {
+                                "$state": "c7"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c7"
+                              },
+                              {
+                                "$state": "c8"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c0"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c0"
+                              },
+                              {
+                                "$state": "c3"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c3"
+                              },
+                              {
+                                "$state": "c6"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c1"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c1"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c7"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c2"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c2"
+                              },
+                              {
+                                "$state": "c5"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c5"
+                              },
+                              {
+                                "$state": "c8"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c0"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c0"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c8"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c2"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c2"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c6"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "do": "set",
+            "path": {
+              "$event": "id"
+            },
+            "value": {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "turn"
+                    },
+                    "X"
+                  ]
+                },
+                "O",
+                "X"
+              ]
+            },
+            "when": {
+              "$and": [
+                {
+                  "$or": [
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c0"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c0"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c1"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c1"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c2"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c2"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c3"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c3"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c4"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c4"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c5"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c5"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c6"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c6"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c7"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c7"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$and": [
+                        {
+                          "$eq": [
+                            {
+                              "$event": "id"
+                            },
+                            "c8"
+                          ]
+                        },
+                        {
+                          "$eq": [
+                            {
+                              "$state": "c8"
+                            },
+                            ""
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$not": {
+                    "$or": [
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c0"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c0"
+                              },
+                              {
+                                "$state": "c1"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c1"
+                              },
+                              {
+                                "$state": "c2"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c3"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c3"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c5"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c6"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c6"
+                              },
+                              {
+                                "$state": "c7"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c7"
+                              },
+                              {
+                                "$state": "c8"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c0"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c0"
+                              },
+                              {
+                                "$state": "c3"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c3"
+                              },
+                              {
+                                "$state": "c6"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c1"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c1"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c7"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c2"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c2"
+                              },
+                              {
+                                "$state": "c5"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c5"
+                              },
+                              {
+                                "$state": "c8"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c0"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c0"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c8"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "$neq": [
+                              {
+                                "$state": "c2"
+                              },
+                              ""
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c2"
+                              },
+                              {
+                                "$state": "c4"
+                              }
+                            ]
+                          },
+                          {
+                            "$eq": [
+                              {
+                                "$state": "c4"
+                              },
+                              {
+                                "$state": "c6"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "status": {
+      "type": "alert",
+      "props": {
+        "tone": "info",
+        "title": "Game status"
+      },
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$or": [
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c0"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c0"
+                        },
+                        {
+                          "$state": "c1"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c1"
+                        },
+                        {
+                          "$state": "c2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c3"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c3"
+                        },
+                        {
+                          "$state": "c4"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c4"
+                        },
+                        {
+                          "$state": "c5"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c6"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c6"
+                        },
+                        {
+                          "$state": "c7"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c7"
+                        },
+                        {
+                          "$state": "c8"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c0"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c0"
+                        },
+                        {
+                          "$state": "c3"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c3"
+                        },
+                        {
+                          "$state": "c6"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c1"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c1"
+                        },
+                        {
+                          "$state": "c4"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c4"
+                        },
+                        {
+                          "$state": "c7"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c2"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c2"
+                        },
+                        {
+                          "$state": "c5"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c5"
+                        },
+                        {
+                          "$state": "c8"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c0"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c0"
+                        },
+                        {
+                          "$state": "c4"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c4"
+                        },
+                        {
+                          "$state": "c8"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c2"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c2"
+                        },
+                        {
+                          "$state": "c4"
+                        }
+                      ]
+                    },
+                    {
+                      "$eq": [
+                        {
+                          "$state": "c4"
+                        },
+                        {
+                          "$state": "c6"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "$concat": [
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "turn"
+                        },
+                        "X"
+                      ]
+                    },
+                    "O",
+                    "X"
+                  ]
+                },
+                " wins!"
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$and": [
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c0"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c1"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c2"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c3"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c4"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c5"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c6"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c7"
+                        },
+                        ""
+                      ]
+                    },
+                    {
+                      "$neq": [
+                        {
+                          "$state": "c8"
+                        },
+                        ""
+                      ]
+                    }
+                  ]
+                },
+                "It is a draw.",
+                {
+                  "$concat": [
+                    "Next move: ",
+                    {
+                      "$state": "turn"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "reset": {
+      "type": "button",
+      "props": {
+        "label": "New game",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "c0",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c1",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c2",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c3",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c4",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c5",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c6",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c7",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "c8",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "turn",
+            "value": "X"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "c0": "",
+    "c1": "",
+    "c2": "",
+    "c3": "",
+    "c4": "",
+    "c5": "",
+    "c6": "",
+    "c7": "",
+    "c8": "",
+    "turn": "X"
+  },
+  "brief": {
+    "mode": "experience"
+  }
+}
+```
+
+Pricing proposal — plans, seats and a live estimate:
+```json
+{
+  "kages": "1.0",
+  "id": "pricing-proposal",
+  "title": "Pricing proposal — plans, seats and a live estimate",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "controls",
+          "plans",
+          "estimate",
+          "faq",
+          "ask",
+          "thanks"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Proposal",
+        "title": "Plans that grow with the team",
+        "description": "Pick a plan, set the number of seats and see the cost. All prices on this page are illustrative.",
+        "inset": 0
+      }
+    },
+    "controls": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 6,
+        "wrap": true,
+        "align": "center"
+      },
+      "slots": {
+        "children": [
+          "billing",
+          "seats"
+        ]
+      }
+    },
+    "billing": {
+      "type": "switch",
+      "props": {
+        "label": "Bill yearly (ten months for twelve)"
+      },
+      "bind": {
+        "checked": {
+          "$state": "annual"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "annual",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "seats": {
+      "type": "slider",
+      "props": {
+        "label": "Seats",
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "seats"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "seats",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "plans": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "medium",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "plan"
+        ]
+      }
+    },
+    "plan": {
+      "type": "card",
+      "props": {},
+      "bind": {
+        "title": {
+          "$item": "name"
+        },
+        "subtitle": {
+          "$item": "summary"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$data": "plans"
+        },
+        "key": "id",
+        "as": "plan"
+      },
+      "slots": {
+        "children": [
+          "plan-price",
+          "plan-limit",
+          "plan-pick"
+        ]
+      }
+    },
+    "plan-price": {
+      "type": "text",
+      "props": {
+        "variant": "title"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$format": {
+                "value": {
+                  "$if": [
+                    {
+                      "$state": "annual"
+                    },
+                    {
+                      "$mul": [
+                        {
+                          "$item": "perSeat"
+                        },
+                        10
+                      ]
+                    },
+                    {
+                      "$item": "perSeat"
+                    }
+                  ]
+                },
+                "style": "currency",
+                "digits": 0
+              }
+            },
+            {
+              "$if": [
+                {
+                  "$state": "annual"
+                },
+                " per seat a year",
+                " per seat a month"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "plan-limit": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "Up to ",
+            {
+              "$item": "limit"
+            },
+            " seats"
+          ]
+        }
+      }
+    },
+    "plan-pick": {
+      "type": "button",
+      "props": {
+        "label": "Choose this plan",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "plan",
+            "value": {
+              "$item": "id"
+            }
+          }
+        ]
+      }
+    },
+    "estimate": {
+      "type": "stat",
+      "props": {
+        "label": "Estimated cost",
+        "caption": "For the chosen plan and seats; illustrative."
+      },
+      "bind": {
+        "value": {
+          "$format": {
+            "value": {
+              "$mul": [
+                {
+                  "$if": [
+                    {
+                      "$state": "annual"
+                    },
+                    {
+                      "$mul": [
+                        {
+                          "$sum": [
+                            {
+                              "$filter": {
+                                "list": {
+                                  "$data": "plans"
+                                },
+                                "field": "id",
+                                "equals": {
+                                  "$state": "plan"
+                                }
+                              }
+                            },
+                            "perSeat"
+                          ]
+                        },
+                        10
+                      ]
+                    },
+                    {
+                      "$sum": [
+                        {
+                          "$filter": {
+                            "list": {
+                              "$data": "plans"
+                            },
+                            "field": "id",
+                            "equals": {
+                              "$state": "plan"
+                            }
+                          }
+                        },
+                        "perSeat"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$state": "seats"
+                }
+              ]
+            },
+            "style": "currency",
+            "digits": 0
+          }
+        },
+        "caption": {
+          "$concat": [
+            "Plan: ",
+            {
+              "$state": "plan"
+            },
+            ", ",
+            {
+              "$state": "seats"
+            },
+            " seats, billed ",
+            {
+              "$if": [
+                {
+                  "$state": "annual"
+                },
+                "yearly",
+                "monthly"
+              ]
+            },
+            ". Illustrative."
+          ]
+        }
+      }
+    },
+    "faq": {
+      "type": "accordion",
+      "props": {
+        "items": [
+          {
+            "id": "change",
+            "title": "Can I change plan later?",
+            "body": "Yes. Pick another plan at any time; the estimate above updates to show the difference."
+          },
+          {
+            "id": "seats",
+            "title": "What counts as a seat?",
+            "body": "One person who signs in. People who only read shared pages do not need a seat."
+          },
+          {
+            "id": "yearly",
+            "title": "How does yearly billing work?",
+            "body": "You pay for ten months and use twelve. The calculator applies this when you switch it on."
+          }
+        ]
+      }
+    },
+    "ask": {
+      "type": "button",
+      "props": {
+        "label": "Ask for this plan",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "interest",
+            "value": true
+          }
+        ]
+      }
+    },
+    "thanks": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Request noted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "We will follow up about the ",
+            {
+              "$state": "plan"
+            },
+            " plan for ",
+            {
+              "$state": "seats"
+            },
+            " seats."
+          ]
+        }
+      },
+      "visible": {
+        "$state": "interest"
+      }
+    }
+  },
+  "state": {
+    "annual": false,
+    "seats": 5,
+    "plan": "team",
+    "interest": false
+  },
+  "data": {
+    "plans": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "perSeat": 8,
+        "summary": "For one small group getting started.",
+        "limit": 3
+      },
+      {
+        "id": "team",
+        "name": "Team",
+        "perSeat": 15,
+        "summary": "For teams that share work every day.",
+        "limit": 25
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "perSeat": 29,
+        "summary": "For several teams that need review and control.",
+        "limit": 200
+      }
+    ]
+  },
+  "brief": {
+    "mode": "persuade"
+  }
+}
+```
+
+Trip itinerary — three days in Lisbon:
+```json
+{
+  "kages": "1.0",
+  "id": "trip-itinerary",
+  "title": "Trip itinerary — three days in Lisbon",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "days",
+          "split"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Itinerary",
+        "title": "Three days in Lisbon",
+        "description": "A relaxed plan: one area a day, long lunches and the sights worth the walk.",
+        "inset": 0
+      }
+    },
+    "days": {
+      "type": "tab-panel",
+      "props": {
+        "label": "Day",
+        "tabs": [
+          {
+            "id": "d1",
+            "label": "Day 1 · Old town"
+          },
+          {
+            "id": "d2",
+            "label": "Day 2 · Belém"
+          },
+          {
+            "id": "d3",
+            "label": "Day 3 · Hills"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "tab"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "tab",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      },
+      "slots": {
+        "panel1": [
+          "t1"
+        ],
+        "panel2": [
+          "t2"
+        ],
+        "panel3": [
+          "t3"
+        ]
+      }
+    },
+    "t1": {
+      "type": "timeline",
+      "props": {
+        "label": "Day 1",
+        "items": [
+          {
+            "time": "09:00",
+            "title": "Alfama on foot",
+            "description": "Wander the old streets before the crowds arrive."
+          },
+          {
+            "time": "13:00",
+            "title": "Lunch near the river",
+            "description": "Grilled fish and a short rest."
+          },
+          {
+            "time": "16:00",
+            "title": "Castle viewpoint",
+            "description": "Walk up for the late light over the city."
+          }
+        ]
+      }
+    },
+    "t2": {
+      "type": "timeline",
+      "props": {
+        "label": "Day 2",
+        "items": [
+          {
+            "time": "10:00",
+            "title": "Belém",
+            "description": "The tower, the monastery and a custard tart."
+          },
+          {
+            "time": "14:00",
+            "title": "Museum of art and technology",
+            "description": "A building you can walk across."
+          },
+          {
+            "time": "19:00",
+            "title": "Fado evening",
+            "description": "Book a small room; arrive early for a seat."
+          }
+        ]
+      }
+    },
+    "t3": {
+      "type": "timeline",
+      "props": {
+        "label": "Day 3",
+        "items": [
+          {
+            "time": "09:30",
+            "title": "Tram 28 to the hills",
+            "description": "Ride early, then walk back downhill."
+          },
+          {
+            "time": "12:30",
+            "title": "Market lunch",
+            "description": "Plenty of stalls under one roof."
+          },
+          {
+            "time": "17:00",
+            "title": "Sunset by the water",
+            "description": "Pack up slowly and enjoy the last evening."
+          }
+        ]
+      }
+    },
+    "split": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "budget"
+        ],
+        "end": [
+          "packing"
+        ]
+      }
+    },
+    "budget": {
+      "type": "bar-chart",
+      "props": {
+        "label": "Budget by category (euros)",
+        "format": "currency"
+      },
+      "bind": {
+        "items": {
+          "$data": "budget"
+        }
+      }
+    },
+    "packing": {
+      "type": "stack",
+      "props": {
+        "gap": 3
+      },
+      "slots": {
+        "children": [
+          "packing-title",
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "progress"
+        ]
+      }
+    },
+    "packing-title": {
+      "type": "text",
+      "props": {
+        "text": "Packing list",
+        "variant": "heading"
+      }
+    },
+    "p1": {
+      "type": "checkbox",
+      "props": {
+        "label": "Passport or ID card"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p1"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p1",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p2": {
+      "type": "checkbox",
+      "props": {
+        "label": "Phone charger and adapter"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p2"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p2",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p3": {
+      "type": "checkbox",
+      "props": {
+        "label": "Comfortable walking shoes"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p3"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p3",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p4": {
+      "type": "checkbox",
+      "props": {
+        "label": "Light rain jacket"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p4"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p4",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "p5": {
+      "type": "checkbox",
+      "props": {
+        "label": "Printed booking confirmations"
+      },
+      "bind": {
+        "checked": {
+          "$state": "p5"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "p5",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "progress": {
+      "type": "gauge",
+      "props": {
+        "label": "Packed",
+        "min": 0,
+        "max": 5,
+        "unit": " of 5"
+      },
+      "bind": {
+        "value": {
+          "$add": [
+            {
+              "$if": [
+                {
+                  "$state": "p1"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p2"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p3"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p4"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "p5"
+                },
+                1,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "state": {
+    "p1": false,
+    "p2": false,
+    "p3": false,
+    "p4": false,
+    "p5": false,
+    "tab": "d1"
+  },
+  "persist": {
+    "p1": "personal",
+    "p2": "personal",
+    "p3": "personal",
+    "p4": "personal",
+    "p5": "personal"
+  },
+  "data": {
+    "budget": [
+      {
+        "label": "Stay",
+        "value": 360
+      },
+      {
+        "label": "Food",
+        "value": 210
+      },
+      {
+        "label": "Getting around",
+        "value": 70
+      },
+      {
+        "label": "Sights",
+        "value": 95
+      }
+    ]
+  },
+  "brief": {
+    "mode": "read"
+  }
+}
+```
+
+Incident runbook — from alert to resolution:
+```json
+{
+  "kages": "1.0",
+  "id": "incident-runbook",
+  "title": "Incident runbook — from alert to resolution",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "severity",
+          "guide-sev1",
+          "guide-sev2",
+          "guide-sev3",
+          "progress",
+          "detect",
+          "triage",
+          "mitigate",
+          "resolve",
+          "review"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Operations",
+        "title": "Incident runbook",
+        "description": "Work through the steps in order. Set the severity first: it decides who is paged and how often to update.",
+        "inset": 0
+      }
+    },
+    "severity": {
+      "type": "choice",
+      "props": {
+        "label": "Severity",
+        "name": "severity",
+        "options": [
+          {
+            "value": "sev1",
+            "label": "Sev 1 · service down"
+          },
+          {
+            "value": "sev2",
+            "label": "Sev 2 · major feature degraded"
+          },
+          {
+            "value": "sev3",
+            "label": "Sev 3 · minor issue"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "severity"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "severity",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "guide-sev1": {
+      "type": "alert",
+      "props": {
+        "tone": "danger",
+        "title": "Sev 1",
+        "text": "Page the on-call engineer and the incident lead now. Post a status update every 15 minutes."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "severity"
+          },
+          "sev1"
+        ]
+      }
+    },
+    "guide-sev2": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Sev 2",
+        "text": "Page the on-call engineer. Post a status update every 30 minutes."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "severity"
+          },
+          "sev2"
+        ]
+      }
+    },
+    "guide-sev3": {
+      "type": "alert",
+      "props": {
+        "tone": "info",
+        "title": "Sev 3",
+        "text": "Open a ticket for the owning team. A status update is not needed."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "severity"
+          },
+          "sev3"
+        ]
+      }
+    },
+    "progress": {
+      "type": "stepper",
+      "props": {
+        "label": "Incident progress",
+        "steps": [
+          {
+            "id": "detect",
+            "label": "Detect",
+            "description": "Confirm the alert is real."
+          },
+          {
+            "id": "triage",
+            "label": "Triage",
+            "description": "Set severity and find the owner."
+          },
+          {
+            "id": "mitigate",
+            "label": "Mitigate",
+            "description": "Stop the damage first."
+          },
+          {
+            "id": "resolve",
+            "label": "Resolve",
+            "description": "Fix the cause and verify."
+          },
+          {
+            "id": "review",
+            "label": "Review",
+            "description": "Write down what was learned."
+          }
+        ],
+        "interactive": true
+      },
+      "bind": {
+        "value": {
+          "$state": "step"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "detect": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Detect",
+        "description": "Check the alert against a second signal before waking anyone.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "detect"
+        ]
+      },
+      "slots": {
+        "children": [
+          "detect-code",
+          "detect-next"
+        ]
+      }
+    },
+    "detect-code": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "Quick checks",
+        "tabs": [
+          {
+            "id": "health",
+            "label": "Health",
+            "language": "sh",
+            "code": "curl -fsS https://status.example.com/health || echo \"health check failed\""
+          },
+          {
+            "id": "logs",
+            "label": "Logs",
+            "language": "sh",
+            "code": "kubectl logs deploy/api --since=10m | grep -i error | tail -n 20"
+          }
+        ]
+      }
+    },
+    "detect-next": {
+      "type": "button",
+      "props": {
+        "label": "It is real: go to triage",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "triage"
+          }
+        ]
+      }
+    },
+    "triage": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Triage",
+        "description": "Page the owner, then open the incident channel.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "triage"
+        ]
+      },
+      "slots": {
+        "children": [
+          "page-owner",
+          "triage-next"
+        ]
+      }
+    },
+    "page-owner": {
+      "type": "checkbox",
+      "props": {
+        "label": "The owning team is paged"
+      },
+      "bind": {
+        "checked": {
+          "$state": "paged"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "paged",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "triage-next": {
+      "type": "button",
+      "props": {
+        "label": "Owner paged: go to mitigation",
+        "variant": "primary",
+        "disabled": false
+      },
+      "bind": {
+        "disabled": {
+          "$not": {
+            "$state": "paged"
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "mitigate"
+          }
+        ]
+      }
+    },
+    "mitigate": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Mitigate",
+        "description": "Prefer the fastest safe action: roll back, turn a flag off or shift traffic.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "mitigate"
+        ]
+      },
+      "slots": {
+        "children": [
+          "mitigate-code",
+          "status-posted",
+          "mitigate-next"
+        ]
+      }
+    },
+    "mitigate-code": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "Common mitigations",
+        "tabs": [
+          {
+            "id": "rollback",
+            "label": "Roll back",
+            "language": "sh",
+            "code": "kubectl rollout undo deploy/api\nkubectl rollout status deploy/api"
+          },
+          {
+            "id": "flag",
+            "label": "Turn a flag off",
+            "language": "sh",
+            "code": "flagctl set checkout.new-flow off --env production"
+          }
+        ]
+      }
+    },
+    "status-posted": {
+      "type": "checkbox",
+      "props": {
+        "label": "A status update is posted"
+      },
+      "bind": {
+        "checked": {
+          "$state": "statusPosted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "statusPosted",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "mitigate-next": {
+      "type": "button",
+      "props": {
+        "label": "Impact stopped: go to resolution",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$not": {
+            "$state": "statusPosted"
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "resolve"
+          }
+        ]
+      }
+    },
+    "resolve": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Resolve",
+        "description": "Fix the cause, watch the graphs return to normal and close the alert.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "resolve"
+        ]
+      },
+      "slots": {
+        "children": [
+          "resolve-next"
+        ]
+      }
+    },
+    "resolve-next": {
+      "type": "button",
+      "props": {
+        "label": "Resolved: go to review",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "review"
+          }
+        ]
+      }
+    },
+    "review": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Review",
+        "description": "Within two working days, write what happened, what helped and what to change. Keep it about the system, not a person.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "review"
+        ]
+      },
+      "slots": {
+        "children": [
+          "restart"
+        ]
+      }
+    },
+    "restart": {
+      "type": "button",
+      "props": {
+        "label": "Start a new incident",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "detect"
+          },
+          {
+            "do": "set",
+            "path": "paged",
+            "value": false
+          },
+          {
+            "do": "set",
+            "path": "statusPosted",
+            "value": false
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "severity": "sev2",
+    "step": "detect",
+    "paged": false,
+    "statusPosted": false
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}
+```
+
+Meeting notes — decisions and action items:
+```json
+{
+  "kages": "1.0",
+  "id": "meeting-notes",
+  "title": "Meeting notes — decisions and action items",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "agenda",
+          "decisions",
+          "owner",
+          "summary",
+          "actions"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Meeting notes · 21 October 2026",
+        "title": "Launch planning",
+        "description": "Attendees: Maya, Jonas and Priya. Purpose: agree the plan and who does what.",
+        "inset": 0
+      }
+    },
+    "agenda": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Agenda"
+          },
+          {
+            "kind": "list",
+            "ordered": true,
+            "items": [
+              "Where the launch stands",
+              "Venue and catering",
+              "Budget",
+              "Who does what next"
+            ]
+          }
+        ]
+      }
+    },
+    "decisions": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Decisions"
+          },
+          {
+            "kind": "list",
+            "items": [
+              "Launch on the planned date; no change to the schedule.",
+              "Use the smaller venue and spend the difference on catering.",
+              "Review the budget again once the new quote arrives."
+            ]
+          }
+        ]
+      }
+    },
+    "owner": {
+      "type": "dropdown",
+      "props": {
+        "label": "Show action items for",
+        "options": [
+          {
+            "value": "all",
+            "label": "Everyone"
+          },
+          {
+            "value": "Maya",
+            "label": "Maya"
+          },
+          {
+            "value": "Jonas",
+            "label": "Jonas"
+          },
+          {
+            "value": "Priya",
+            "label": "Priya"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "owner"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "owner",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "summary": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$count": {
+                "$filter": {
+                  "list": {
+                    "$data": "actions"
+                  },
+                  "field": "owner",
+                  "equals": {
+                    "$state": "owner"
+                  },
+                  "skipIf": "all"
+                }
+              }
+            },
+            " action items shown"
+          ]
+        }
+      }
+    },
+    "actions": {
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "task",
+            "label": "Action"
+          },
+          {
+            "key": "owner",
+            "label": "Owner"
+          },
+          {
+            "key": "due",
+            "label": "Due"
+          },
+          {
+            "key": "status",
+            "label": "Status"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "actions"
+                },
+                "field": "owner",
+                "equals": {
+                  "$state": "owner"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "due"
+          }
+        }
+      }
+    }
+  },
+  "state": {
+    "owner": "all"
+  },
+  "data": {
+    "actions": [
+      {
+        "id": "a1",
+        "task": "Draft the launch checklist",
+        "owner": "Maya",
+        "due": "2026-11-02",
+        "status": "Open"
+      },
+      {
+        "id": "a2",
+        "task": "Confirm the venue and catering",
+        "owner": "Jonas",
+        "due": "2026-11-04",
+        "status": "Open"
+      },
+      {
+        "id": "a3",
+        "task": "Send the invitation list for review",
+        "owner": "Maya",
+        "due": "2026-10-28",
+        "status": "Done"
+      },
+      {
+        "id": "a4",
+        "task": "Update the budget with the new quote",
+        "owner": "Priya",
+        "due": "2026-11-06",
+        "status": "Open"
+      }
+    ]
+  },
+  "brief": {
+    "mode": "read"
+  }
+}
+```
+
+Project portfolio — selected work and a contact form:
+```json
+{
+  "kages": "1.0",
+  "id": "project-portfolio",
+  "title": "Project portfolio — selected work and a contact form",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "filter",
+          "work",
+          "contact",
+          "thanks"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Portfolio",
+        "title": "Design and research for small teams",
+        "description": "Selected work from the last three years, and a way to get in touch.",
+        "inset": 0
+      }
+    },
+    "filter": {
+      "type": "dropdown",
+      "props": {
+        "label": "Show",
+        "options": [
+          {
+            "value": "all",
+            "label": "All work"
+          },
+          {
+            "value": "Product",
+            "label": "Product"
+          },
+          {
+            "value": "Brand",
+            "label": "Brand"
+          },
+          {
+            "value": "Research",
+            "label": "Research"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "kind"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "kind",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "work": {
+      "type": "grid",
+      "props": {
+        "columns": 2,
+        "minSize": "medium",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "project"
+        ]
+      }
+    },
+    "project": {
+      "type": "card",
+      "props": {},
+      "bind": {
+        "title": {
+          "$item": "name"
+        },
+        "subtitle": {
+          "$concat": [
+            {
+              "$item": "kind"
+            },
+            " · ",
+            {
+              "$item": "year"
+            }
+          ]
+        }
+      },
+      "repeat": {
+        "each": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "projects"
+                },
+                "field": "kind",
+                "equals": {
+                  "$state": "kind"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "year",
+            "direction": "desc"
+          }
+        },
+        "key": "id",
+        "as": "project"
+      },
+      "slots": {
+        "children": [
+          "project-summary"
+        ]
+      }
+    },
+    "project-summary": {
+      "type": "text",
+      "props": {
+        "variant": "body"
+      },
+      "bind": {
+        "text": {
+          "$item": "summary"
+        }
+      }
+    },
+    "contact": {
+      "type": "form",
+      "props": {
+        "label": "Get in touch",
+        "submitLabel": "Send message"
+      },
+      "slots": {
+        "children": [
+          "who",
+          "email",
+          "message"
+        ]
+      },
+      "on": {
+        "submit": [
+          {
+            "do": "set",
+            "path": "sent",
+            "value": {
+              "$event": "values"
+            }
+          }
+        ]
+      }
+    },
+    "who": {
+      "type": "text-field",
+      "props": {
+        "label": "Your name",
+        "name": "who",
+        "required": true
+      }
+    },
+    "email": {
+      "type": "text-field",
+      "props": {
+        "label": "Your email",
+        "name": "email",
+        "kind": "email",
+        "required": true
+      }
+    },
+    "message": {
+      "type": "textarea",
+      "props": {
+        "label": "What would you like to talk about?",
+        "rows": 5
+      }
+    },
+    "thanks": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Message ready",
+        "text": "Thanks. Your message has been recorded and a reply will follow."
+      },
+      "visible": {
+        "$neq": [
+          {
+            "$state": "sent"
+          },
+          null
+        ]
+      }
+    }
+  },
+  "state": {
+    "kind": "all",
+    "sent": null
+  },
+  "data": {
+    "projects": [
+      {
+        "id": "p1",
+        "name": "Harbour Notes",
+        "kind": "Product",
+        "summary": "A note-taking app for people who work on boats and at docks.",
+        "year": 2025
+      },
+      {
+        "id": "p2",
+        "name": "Seed to Shelf",
+        "kind": "Brand",
+        "summary": "A visual identity and packaging for a small regional grower.",
+        "year": 2024
+      },
+      {
+        "id": "p3",
+        "name": "Transit Atlas",
+        "kind": "Research",
+        "summary": "A study of how people choose between bus, bike and walking.",
+        "year": 2024
+      },
+      {
+        "id": "p4",
+        "name": "Open Studio Days",
+        "kind": "Product",
+        "summary": "A booking page for neighbourhood art studios.",
+        "year": 2023
+      }
+    ]
+  },
+  "brief": {
+    "mode": "persuade"
+  }
+}
+```
+
 Filter → table → KPIs:
 ```json
 "ordersTable": { "type": "table", "bind": { "rows": { "$filter": {

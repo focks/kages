@@ -1,0 +1,289 @@
+{
+  "kages": "1.0",
+  "id": "architecture-explainer",
+  "title": "Architecture explainer — a web service, piece by piece",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "layout"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Systems",
+        "title": "A web service, piece by piece",
+        "description": "Select a part of the diagram to see what it does and what it talks to.",
+        "inset": 0
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-start",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "map"
+        ],
+        "end": [
+          "detail"
+        ]
+      }
+    },
+    "map": {
+      "type": "diagram",
+      "props": {
+        "label": "How a request flows through the parts of a web service",
+        "caption": "Arrows show who calls whom. The selected part is described beside the diagram.",
+        "interactive": true,
+        "nodes": [
+          {
+            "id": "browser",
+            "label": "Browser",
+            "x": 20,
+            "y": 30
+          },
+          {
+            "id": "cdn",
+            "label": "CDN",
+            "x": 260,
+            "y": 30
+          },
+          {
+            "id": "api",
+            "label": "API",
+            "x": 20,
+            "y": 170
+          },
+          {
+            "id": "cache",
+            "label": "Cache",
+            "x": 260,
+            "y": 170
+          },
+          {
+            "id": "db",
+            "label": "Database",
+            "x": 20,
+            "y": 310
+          },
+          {
+            "id": "queue",
+            "label": "Queue",
+            "x": 260,
+            "y": 310
+          },
+          {
+            "id": "worker",
+            "label": "Worker",
+            "x": 20,
+            "y": 450
+          }
+        ],
+        "edges": [
+          {
+            "from": "browser",
+            "to": "cdn"
+          },
+          {
+            "from": "browser",
+            "to": "api"
+          },
+          {
+            "from": "api",
+            "to": "cache"
+          },
+          {
+            "from": "api",
+            "to": "db"
+          },
+          {
+            "from": "api",
+            "to": "queue"
+          },
+          {
+            "from": "queue",
+            "to": "worker"
+          }
+        ]
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "picked",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "detail": {
+      "type": "card",
+      "props": {
+        "title": "About this part"
+      },
+      "slots": {
+        "children": [
+          "part",
+          "part-row"
+        ]
+      }
+    },
+    "part": {
+      "type": "text",
+      "props": {
+        "variant": "body"
+      },
+      "bind": {
+        "text": {
+          "$tpl": "Select a part of the diagram."
+        }
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$data": "parts"
+                },
+                "field": "id",
+                "equals": {
+                  "$state": "picked"
+                }
+              }
+            }
+          },
+          0
+        ]
+      },
+      "slots": {}
+    },
+    "part-row": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "inset": 0
+      },
+      "bind": {
+        "title": {
+          "$item": "name"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$data": "parts"
+            },
+            "field": "id",
+            "equals": {
+              "$state": "picked"
+            }
+          }
+        },
+        "key": "id",
+        "as": "part"
+      },
+      "slots": {
+        "children": [
+          "part-role",
+          "part-links"
+        ]
+      }
+    },
+    "part-role": {
+      "type": "text",
+      "props": {
+        "variant": "body"
+      },
+      "bind": {
+        "text": {
+          "$item": "role"
+        }
+      }
+    },
+    "part-links": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "Talks to: ",
+            {
+              "$item": "talksTo"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "state": {
+    "picked": "api"
+  },
+  "data": {
+    "parts": [
+      {
+        "id": "browser",
+        "name": "Browser",
+        "role": "Shows the page and sends requests.",
+        "talksTo": "CDN, API"
+      },
+      {
+        "id": "cdn",
+        "name": "CDN",
+        "role": "Serves static files from a location near the visitor.",
+        "talksTo": "Browser"
+      },
+      {
+        "id": "api",
+        "name": "API",
+        "role": "Checks the request, applies the rules and answers with data.",
+        "talksTo": "Cache, Database, Queue"
+      },
+      {
+        "id": "cache",
+        "name": "Cache",
+        "role": "Keeps recent answers in memory so repeat requests are fast.",
+        "talksTo": "API"
+      },
+      {
+        "id": "db",
+        "name": "Database",
+        "role": "Stores the records that must not be lost.",
+        "talksTo": "API"
+      },
+      {
+        "id": "queue",
+        "name": "Queue",
+        "role": "Holds slow jobs, such as emails, until a worker takes them.",
+        "talksTo": "API, Worker"
+      },
+      {
+        "id": "worker",
+        "name": "Worker",
+        "role": "Does the slow jobs in the background.",
+        "talksTo": "Queue, Database"
+      }
+    ]
+  },
+  "brief": {
+    "mode": "read"
+  }
+}

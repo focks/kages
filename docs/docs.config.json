@@ -33,6 +33,11 @@
       "group": "Guides"
     },
     {
+      "file": "use-cases.md",
+      "summary": "Nine ready examples, from a quiz to a runbook, and which blocks suit what the reader does.",
+      "group": "Guides"
+    },
+    {
       "file": "collaboration.md",
       "summary": "Versions, claims, merges and threaded comments.",
       "group": "Guides"

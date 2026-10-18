@@ -1,0 +1,177 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [
+      {
+        "at": "/blocks/board/on/select/1",
+        "code": "undeclared-state",
+        "msg": "writes undeclared state '[object Object]'"
+      }
+    ],
+    "system": "atelier",
+    "portable": true
+  },
+  "description": "Kage \"Tic-tac-toe — a two-player game\" · system atelier@1.9.0 · 7 blocks\nstate {\"c0\":\"\",\"c1\":\"\",\"c2\":\"\",\"c3\":\"\",\"c4\":\"\",\"c5\":\"\",\"c6\":\"\",\"c7\":\"\",\"c8\":\"\",\"turn\":\"X\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Tic-tac-toe\"\n    - play [core/split@1.0.0]\n      start:\n        - board [core/scene@1.1.0] label=\"Tic-tac-toe board\"\n            ↳ reads state:c0, state:c1, state:c2, state:c3, state:c4, state:c5, state:c6, state:c7, state:c8 · writes select→state.turn, select→state.[object Object]\n      end:\n        - side [core/stack@1.0.0]\n          - status [core/alert@1.0.0] title=\"Game status\" text=\"Next move: X\"\n              ↳ reads state:c0, state:c1, state:c2, state:c3, state:c4, state:c5, state:c6, state:c7, state:c8, state:turn\n          - reset [atelier/button@1.0.0] label=\"New game\"\n              ↳ writes click→state.c0, click→state.c1, click→state.c2, click→state.c3, click→state.c4, click→state.c5, click→state.c6, click→state.c7, click→state.c8, click→state.turn",
+  "envelope": {
+    "title": "Tic-tac-toe — a two-player game",
+    "root": "root",
+    "state_json": "{\"c0\":\"\",\"c1\":\"\",\"c2\":\"\",\"c3\":\"\",\"c4\":\"\",\"c5\":\"\",\"c6\":\"\",\"c7\":\"\",\"c8\":\"\",\"turn\":\"X\"}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "play"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "play",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 8
+        },
+        "slots": {
+          "start": [
+            "board"
+          ],
+          "end": [
+            "side"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "side",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": 4,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "status",
+            "reset"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Tic-tac-toe",
+          "eyebrow": "Game",
+          "description": "Two players share the screen. Take turns; three in a row wins.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "board",
+        "type": "scene",
+        "props": {
+          "label": "Tic-tac-toe board",
+          "width": 360,
+          "height": 360,
+          "shapes_json": "[]",
+          "interactive": true,
+          "caption": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "shapes",
+            "expr_json": "[{\"kind\":\"rect\",\"id\":\"c0\",\"x\":4,\"y\":4,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 1\"},{\"kind\":\"text\",\"x\":38,\"y\":82,\"size\":64,\"text\":{\"$state\":\"c0\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c0\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c1\",\"x\":124,\"y\":4,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 2\"},{\"kind\":\"text\",\"x\":158,\"y\":82,\"size\":64,\"text\":{\"$state\":\"c1\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c1\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c2\",\"x\":244,\"y\":4,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 3\"},{\"kind\":\"text\",\"x\":278,\"y\":82,\"size\":64,\"text\":{\"$state\":\"c2\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c2\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c3\",\"x\":4,\"y\":124,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 4\"},{\"kind\":\"text\",\"x\":38,\"y\":202,\"size\":64,\"text\":{\"$state\":\"c3\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c3\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c4\",\"x\":124,\"y\":124,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 5\"},{\"kind\":\"text\",\"x\":158,\"y\":202,\"size\":64,\"text\":{\"$state\":\"c4\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c4\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c5\",\"x\":244,\"y\":124,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 6\"},{\"kind\":\"text\",\"x\":278,\"y\":202,\"size\":64,\"text\":{\"$state\":\"c5\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c5\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c6\",\"x\":4,\"y\":244,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 7\"},{\"kind\":\"text\",\"x\":38,\"y\":322,\"size\":64,\"text\":{\"$state\":\"c6\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c6\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c7\",\"x\":124,\"y\":244,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 8\"},{\"kind\":\"text\",\"x\":158,\"y\":322,\"size\":64,\"text\":{\"$state\":\"c7\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c7\"},\"X\"]},\"ink\",\"accent\"]}},{\"kind\":\"rect\",\"id\":\"c8\",\"x\":244,\"y\":244,\"width\":112,\"height\":112,\"radius\":10,\"fill\":\"surface\",\"stroke\":\"line\",\"strokeWidth\":2,\"label\":\"Square 9\"},{\"kind\":\"text\",\"x\":278,\"y\":322,\"size\":64,\"text\":{\"$state\":\"c8\"},\"fill\":{\"$if\":[{\"$eq\":[{\"$state\":\"c8\"},\"X\"]},\"ink\",\"accent\"]}}]"
+          }
+        ],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"turn\",\"value\":{\"$if\":[{\"$eq\":[{\"$state\":\"turn\"},\"X\"]},\"O\",\"X\"]},\"when\":{\"$and\":[{\"$or\":[{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c0\"]},{\"$eq\":[{\"$state\":\"c0\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c1\"]},{\"$eq\":[{\"$state\":\"c1\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c2\"]},{\"$eq\":[{\"$state\":\"c2\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c3\"]},{\"$eq\":[{\"$state\":\"c3\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c4\"]},{\"$eq\":[{\"$state\":\"c4\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c5\"]},{\"$eq\":[{\"$state\":\"c5\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c6\"]},{\"$eq\":[{\"$state\":\"c6\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c7\"]},{\"$eq\":[{\"$state\":\"c7\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c8\"]},{\"$eq\":[{\"$state\":\"c8\"},\"\"]}]}]},{\"$not\":{\"$or\":[{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c1\"}]},{\"$eq\":[{\"$state\":\"c1\"},{\"$state\":\"c2\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c3\"},\"\"]},{\"$eq\":[{\"$state\":\"c3\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c5\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c6\"},\"\"]},{\"$eq\":[{\"$state\":\"c6\"},{\"$state\":\"c7\"}]},{\"$eq\":[{\"$state\":\"c7\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c3\"}]},{\"$eq\":[{\"$state\":\"c3\"},{\"$state\":\"c6\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c1\"},\"\"]},{\"$eq\":[{\"$state\":\"c1\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c7\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$eq\":[{\"$state\":\"c2\"},{\"$state\":\"c5\"}]},{\"$eq\":[{\"$state\":\"c5\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$eq\":[{\"$state\":\"c2\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c6\"}]}]}]}}]}},{\"do\":\"set\",\"path\":{\"$event\":\"id\"},\"value\":{\"$if\":[{\"$eq\":[{\"$state\":\"turn\"},\"X\"]},\"O\",\"X\"]},\"when\":{\"$and\":[{\"$or\":[{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c0\"]},{\"$eq\":[{\"$state\":\"c0\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c1\"]},{\"$eq\":[{\"$state\":\"c1\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c2\"]},{\"$eq\":[{\"$state\":\"c2\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c3\"]},{\"$eq\":[{\"$state\":\"c3\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c4\"]},{\"$eq\":[{\"$state\":\"c4\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c5\"]},{\"$eq\":[{\"$state\":\"c5\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c6\"]},{\"$eq\":[{\"$state\":\"c6\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c7\"]},{\"$eq\":[{\"$state\":\"c7\"},\"\"]}]},{\"$and\":[{\"$eq\":[{\"$event\":\"id\"},\"c8\"]},{\"$eq\":[{\"$state\":\"c8\"},\"\"]}]}]},{\"$not\":{\"$or\":[{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c1\"}]},{\"$eq\":[{\"$state\":\"c1\"},{\"$state\":\"c2\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c3\"},\"\"]},{\"$eq\":[{\"$state\":\"c3\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c5\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c6\"},\"\"]},{\"$eq\":[{\"$state\":\"c6\"},{\"$state\":\"c7\"}]},{\"$eq\":[{\"$state\":\"c7\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c3\"}]},{\"$eq\":[{\"$state\":\"c3\"},{\"$state\":\"c6\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c1\"},\"\"]},{\"$eq\":[{\"$state\":\"c1\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c7\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$eq\":[{\"$state\":\"c2\"},{\"$state\":\"c5\"}]},{\"$eq\":[{\"$state\":\"c5\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$eq\":[{\"$state\":\"c2\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c6\"}]}]}]}}]}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "status",
+        "type": "alert",
+        "props": {
+          "tone": "info",
+          "title": "Game status",
+          "text": null
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$if\":[{\"$or\":[{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c1\"}]},{\"$eq\":[{\"$state\":\"c1\"},{\"$state\":\"c2\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c3\"},\"\"]},{\"$eq\":[{\"$state\":\"c3\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c5\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c6\"},\"\"]},{\"$eq\":[{\"$state\":\"c6\"},{\"$state\":\"c7\"}]},{\"$eq\":[{\"$state\":\"c7\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c3\"}]},{\"$eq\":[{\"$state\":\"c3\"},{\"$state\":\"c6\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c1\"},\"\"]},{\"$eq\":[{\"$state\":\"c1\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c7\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$eq\":[{\"$state\":\"c2\"},{\"$state\":\"c5\"}]},{\"$eq\":[{\"$state\":\"c5\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$eq\":[{\"$state\":\"c0\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c8\"}]}]},{\"$and\":[{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$eq\":[{\"$state\":\"c2\"},{\"$state\":\"c4\"}]},{\"$eq\":[{\"$state\":\"c4\"},{\"$state\":\"c6\"}]}]}]},{\"$concat\":[{\"$if\":[{\"$eq\":[{\"$state\":\"turn\"},\"X\"]},\"O\",\"X\"]},\" wins!\"]},{\"$if\":[{\"$and\":[{\"$neq\":[{\"$state\":\"c0\"},\"\"]},{\"$neq\":[{\"$state\":\"c1\"},\"\"]},{\"$neq\":[{\"$state\":\"c2\"},\"\"]},{\"$neq\":[{\"$state\":\"c3\"},\"\"]},{\"$neq\":[{\"$state\":\"c4\"},\"\"]},{\"$neq\":[{\"$state\":\"c5\"},\"\"]},{\"$neq\":[{\"$state\":\"c6\"},\"\"]},{\"$neq\":[{\"$state\":\"c7\"},\"\"]},{\"$neq\":[{\"$state\":\"c8\"},\"\"]}]},\"It is a draw.\",{\"$concat\":[\"Next move: \",{\"$state\":\"turn\"}]}]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "reset",
+        "type": "button",
+        "props": {
+          "label": "New game",
+          "variant": "secondary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"c0\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c1\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c2\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c3\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c4\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c5\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c6\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c7\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"c8\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"turn\",\"value\":\"X\"}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

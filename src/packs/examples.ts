@@ -2,6 +2,7 @@
 // Isolated snippets encouraged agents to repeat the reference console's shape;
 // these documents demonstrate three independent compositions.
 import type { KageDoc, Expr, Mode } from "../engine/types.ts";
+import { useCaseExamples, USE_CASE_MODES } from "./use-case-examples.ts";
 
 /** Every shipped example declares what its visitor is trying to do, so the mode
  *  facet, mode-gated lint and the critique rubric have real data from day one.
@@ -13,6 +14,7 @@ const MODES: Record<string, Mode> = {
   "idea-lab": "operate", "collection-lab": "operate", "growth-lab": "operate", "event-planner": "operate",
   "metrics-board": "operate", "launch-flow": "operate", "team-workbench": "operate", "region-explorer": "operate",
   "live-feed": "operate", "signup-rules": "operate", "quarterly-report": "operate",
+  ...USE_CASE_MODES,
 };
 const declared = (docs: KageDoc[]): KageDoc[] => docs.map((d) => (MODES[d.id] ? { ...d, brief: { mode: MODES[d.id] } } : d));
 
@@ -339,5 +341,5 @@ export function contentExamples(system = "core"): KageDoc[] {
       { id: "dora", label: "Capabilities: Trunk-based development", href: "https://dora.dev/capabilities/trunk-based-development/", detail: "DORA" },
     ] } },
   };
-  return declared([docs, media, brief]);
+  return declared([docs, media, brief, ...useCaseExamples(system)]);
 }

@@ -16,6 +16,9 @@ First public release candidate.
 - Threaded comments, pinned comment mode, share links with guest feedback.
 - Documentation site served as Kages at `/docs`.
 - Expressions: `$floor`, `$ceil`, `$abs`, `$join`, `$truncate`, compact numbers and relative dates in `$format`; handlers may write a repeated row by an expression path; blocks may declare `watch`.
+- Nine use-case examples (quiz, flashcards, architecture explainer, game, pricing proposal, trip itinerary, incident runbook, meeting notes, portfolio) and a Use cases docs page.
+- Faster frames: design-system files and fonts download in parallel, hashed assets are cached immutably, long repeated lists are skipped off screen, and large repeats expand faster; `npm run bench:render` measures it.
+- Fixed: `kages screenshot` returned blank space below the first screen for artifacts in a sandboxed frame.
 - Research briefs: `rich-text` citations linked to a new `references` block, attributed quotes, a `glossary` block, captions on `scene` and `diagram`, syntax-coloured `code`, a `dangling-cite` lint rule, a starter and a docs page.
 
 ### Security

@@ -1,0 +1,430 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Trip itinerary — three days in Lisbon\" · system ledger@2.10.0 · 16 blocks\nstate {\"p1\":false,\"p2\":false,\"p3\":false,\"p4\":false,\"p5\":false,\"tab\":\"d1\"}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.0.0] title=\"Three days in Lisbon\"\n    - days [core/tab-panel@1.0.0] label=\"Day\" value=\"d1\"\n        ↳ reads state:tab · writes change→state.tab\n      panel1:\n        - t1 [core/timeline@1.0.0] label=\"Day 1\" items=||\n      panel2:\n        - t2 [core/timeline@1.0.0] label=\"Day 2\" items=||\n      panel3:\n        - t3 [core/timeline@1.0.0] label=\"Day 3\" items=||\n    - split [core/split@1.0.0]\n      start:\n        - budget [core/bar-chart@1.0.0] label=\"Budget by category (euros)\" items=|||\n            ↳ reads data:budget\n      end:\n        - packing [core/stack@1.0.0]\n          - packing-title [core/text@1.0.0] text=\"Packing list\"\n          - p1 [core/checkbox@1.0.0] label=\"Passport or ID card\"\n              ↳ reads state:p1 · writes change→state.p1\n          - p2 [core/checkbox@1.0.0] label=\"Phone charger and adapter\"\n              ↳ reads state:p2 · writes change→state.p2\n          - p3 [core/checkbox@1.0.0] label=\"Comfortable walking shoes\"\n              ↳ reads state:p3 · writes change→state.p3\n          - p4 [core/checkbox@1.0.0] label=\"Light rain jacket\"\n              ↳ reads state:p4 · writes change→state.p4\n          - p5 [core/checkbox@1.0.0] label=\"Printed booking confirmations\"\n              ↳ reads state:p5 · writes change→state.p5\n          - progress [core/gauge@1.0.0] label=\"Packed\" value=0\n              ↳ reads state:p1, state:p2, state:p3, state:p4, state:p5",
+  "envelope": {
+    "title": "Trip itinerary — three days in Lisbon",
+    "root": "root",
+    "state_json": "{\"p1\":false,\"p2\":false,\"p3\":false,\"p4\":false,\"p5\":false,\"tab\":\"d1\"}",
+    "data_json": "{\"budget\":[{\"label\":\"Stay\",\"value\":360},{\"label\":\"Food\",\"value\":210},{\"label\":\"Getting around\",\"value\":70},{\"label\":\"Sights\",\"value\":95}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "hero",
+            "days",
+            "split"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "hero",
+        "type": "section",
+        "props": {
+          "title": "Three days in Lisbon",
+          "eyebrow": "Itinerary",
+          "description": "A relaxed plan: one area a day, long lunches and the sights worth the walk.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "days",
+        "type": "tab-panel",
+        "props": {
+          "label": "Day",
+          "tabs": [
+            {
+              "id": "d1",
+              "label": "Day 1 · Old town"
+            },
+            {
+              "id": "d2",
+              "label": "Day 2 · Belém"
+            },
+            {
+              "id": "d3",
+              "label": "Day 3 · Hills"
+            }
+          ],
+          "value": null
+        },
+        "slots": {
+          "panel1": [
+            "t1"
+          ],
+          "panel2": [
+            "t2"
+          ],
+          "panel3": [
+            "t3"
+          ],
+          "panel4": [],
+          "panel5": [],
+          "panel6": []
+        },
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"tab\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"tab\",\"value\":{\"$event\":\"id\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "t1",
+        "type": "timeline",
+        "props": {
+          "label": "Day 1",
+          "items": [
+            {
+              "title": "Alfama on foot",
+              "time": "09:00",
+              "description": "Wander the old streets before the crowds arrive.",
+              "tone": null
+            },
+            {
+              "title": "Lunch near the river",
+              "time": "13:00",
+              "description": "Grilled fish and a short rest.",
+              "tone": null
+            },
+            {
+              "title": "Castle viewpoint",
+              "time": "16:00",
+              "description": "Walk up for the late light over the city.",
+              "tone": null
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "t2",
+        "type": "timeline",
+        "props": {
+          "label": "Day 2",
+          "items": [
+            {
+              "title": "Belém",
+              "time": "10:00",
+              "description": "The tower, the monastery and a custard tart.",
+              "tone": null
+            },
+            {
+              "title": "Museum of art and technology",
+              "time": "14:00",
+              "description": "A building you can walk across.",
+              "tone": null
+            },
+            {
+              "title": "Fado evening",
+              "time": "19:00",
+              "description": "Book a small room; arrive early for a seat.",
+              "tone": null
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "t3",
+        "type": "timeline",
+        "props": {
+          "label": "Day 3",
+          "items": [
+            {
+              "title": "Tram 28 to the hills",
+              "time": "09:30",
+              "description": "Ride early, then walk back downhill.",
+              "tone": null
+            },
+            {
+              "title": "Market lunch",
+              "time": "12:30",
+              "description": "Plenty of stalls under one roof.",
+              "tone": null
+            },
+            {
+              "title": "Sunset by the water",
+              "time": "17:00",
+              "description": "Pack up slowly and enjoy the last evening.",
+              "tone": null
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "split",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 6
+        },
+        "slots": {
+          "start": [
+            "budget"
+          ],
+          "end": [
+            "packing"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "budget",
+        "type": "bar-chart",
+        "props": {
+          "label": "Budget by category (euros)",
+          "items": null,
+          "format": "currency",
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "{\"$data\":\"budget\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "packing",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": 3,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "packing-title",
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5",
+            "progress"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "packing-title",
+        "type": "text",
+        "props": {
+          "text": "Packing list",
+          "variant": "heading"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "p1",
+        "type": "checkbox",
+        "props": {
+          "label": "Passport or ID card",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"p1\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"p1\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "p2",
+        "type": "checkbox",
+        "props": {
+          "label": "Phone charger and adapter",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"p2\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"p2\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "p3",
+        "type": "checkbox",
+        "props": {
+          "label": "Comfortable walking shoes",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"p3\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"p3\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "p4",
+        "type": "checkbox",
+        "props": {
+          "label": "Light rain jacket",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"p4\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"p4\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "p5",
+        "type": "checkbox",
+        "props": {
+          "label": "Printed booking confirmations",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"p5\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"p5\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "progress",
+        "type": "gauge",
+        "props": {
+          "label": "Packed",
+          "value": null,
+          "min": 0,
+          "max": 5,
+          "unit": " of 5",
+          "tone": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$add\":[{\"$if\":[{\"$state\":\"p1\"},1,0]},{\"$if\":[{\"$state\":\"p2\"},1,0]},{\"$if\":[{\"$state\":\"p3\"},1,0]},{\"$if\":[{\"$state\":\"p4\"},1,0]},{\"$if\":[{\"$state\":\"p5\"},1,0]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

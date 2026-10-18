@@ -1,0 +1,199 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Meeting notes — decisions and action items\" · system core@1.13.0 · 7 blocks\nstate {\"owner\":\"all\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Launch planning\"\n    - agenda [core/rich-text@1.1.0]\n    - decisions [core/rich-text@1.1.0]\n    - owner [core/dropdown@1.3.0] label=\"Show action items for\" value=\"all\" options=all|Maya|Jonas|Priya\n        ↳ reads state:owner · writes change→state.owner\n    - summary [core/text@1.0.0] text=\"4 action items shown\"\n        ↳ reads data:actions, state:owner\n    - actions [core/table@1.0.0] rows=4\n        ↳ reads data:actions, state:owner",
+  "envelope": {
+    "title": "Meeting notes — decisions and action items",
+    "root": "root",
+    "state_json": "{\"owner\":\"all\"}",
+    "data_json": "{\"actions\":[{\"id\":\"a1\",\"task\":\"Draft the launch checklist\",\"owner\":\"Maya\",\"due\":\"2026-11-02\",\"status\":\"Open\"},{\"id\":\"a2\",\"task\":\"Confirm the venue and catering\",\"owner\":\"Jonas\",\"due\":\"2026-11-04\",\"status\":\"Open\"},{\"id\":\"a3\",\"task\":\"Send the invitation list for review\",\"owner\":\"Maya\",\"due\":\"2026-10-28\",\"status\":\"Done\"},{\"id\":\"a4\",\"task\":\"Update the budget with the new quote\",\"owner\":\"Priya\",\"due\":\"2026-11-06\",\"status\":\"Open\"}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "agenda",
+            "decisions",
+            "owner",
+            "summary",
+            "actions"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "Launch planning",
+          "eyebrow": "Meeting notes · 21 October 2026",
+          "description": "Attendees: Maya, Jonas and Priya. Purpose: agree the plan and who does what.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "agenda",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"heading\",\"level\":2,\"text\":\"Agenda\"},{\"kind\":\"list\",\"ordered\":true,\"items\":[\"Where the launch stands\",\"Venue and catering\",\"Budget\",\"Who does what next\"]}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "decisions",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"heading\",\"level\":2,\"text\":\"Decisions\"},{\"kind\":\"list\",\"items\":[\"Launch on the planned date; no change to the schedule.\",\"Use the smaller venue and spend the difference on catering.\",\"Review the budget again once the new quote arrives.\"]}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "owner",
+        "type": "dropdown",
+        "props": {
+          "label": "Show action items for",
+          "options": [
+            {
+              "value": "all",
+              "label": "Everyone",
+              "hint": null
+            },
+            {
+              "value": "Maya",
+              "label": "Maya",
+              "hint": null
+            },
+            {
+              "value": "Jonas",
+              "label": "Jonas",
+              "hint": null
+            },
+            {
+              "value": "Priya",
+              "label": "Priya",
+              "hint": null
+            }
+          ],
+          "value": null,
+          "placeholder": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"owner\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"owner\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "summary",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "muted"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[{\"$count\":{\"$filter\":{\"list\":{\"$data\":\"actions\"},\"field\":\"owner\",\"equals\":{\"$state\":\"owner\"},\"skipIf\":\"all\"}}},\" action items shown\"]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "actions",
+        "type": "table",
+        "props": {
+          "columns": [
+            {
+              "key": "task",
+              "label": "Action",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "owner",
+              "label": "Owner",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "due",
+              "label": "Due",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "status",
+              "label": "Status",
+              "align": null,
+              "format": null
+            }
+          ],
+          "rows_json": null,
+          "empty": null,
+          "dense": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "rows",
+            "expr_json": "{\"$sort\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"actions\"},\"field\":\"owner\",\"equals\":{\"$state\":\"owner\"},\"skipIf\":\"all\"}},\"field\":\"due\"}}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

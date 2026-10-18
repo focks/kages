@@ -1,0 +1,449 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Quiz — how photosynthesis works\" · system ledger@2.10.0 · 18 blocks\nstate {\"q1\":\"\",\"q2\":\"\",\"q3\":\"\",\"submitted\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"How photosynthesis works\"\n    - card-q1 [ledger/card@2.0.0] title=\"Question 1\"\n      children:\n        - q1 [core/choice@1.1.0] label=\"Where in a plant cell does photosynthesis take place?\" options=Chloroplast|Mitochondrion|Nucleus\n            ↳ reads state:q1, state:submitted · writes change→state.q1\n        - q1-ok [core/alert@1.0.0] (hidden) title=\"Correct\" text=\"Chloroplasts hold the chlorophyll that captures light.\"\n            ↳ reads state:submitted, state:q1\n        - q1-no [core/alert@1.0.0] (hidden) title=\"Not quite\" text=\"The answer is Chloroplast. Chloroplasts hold the chlorop…\n            ↳ reads state:submitted, state:q1\n    - card-q2 [ledger/card@2.0.0] title=\"Question 2\"\n      children:\n        - q2 [core/choice@1.1.0] label=\"Which gas do plants take in for photosynthesis?\" options=Oxygen|Carbon dioxide|Nitrogen\n            ↳ reads state:q2, state:submitted · writes change→state.q2\n        - q2-ok [core/alert@1.0.0] (hidden) title=\"Correct\" text=\"Carbon from carbon dioxide is built into sugar.\"\n            ↳ reads state:submitted, state:q2\n        - q2-no [core/alert@1.0.0] (hidden) title=\"Not quite\" text=\"The answer is Carbon dioxide. Carbon from carbon dioxide…\n            ↳ reads state:submitted, state:q2\n    - card-q3 [ledger/card@2.0.0] title=\"Question 3\"\n      children:\n        - q3 [core/choice@1.1.0] label=\"What do plants make using the energy of light?\" options=Protein|Wax|Glucose\n            ↳ reads state:q3, state:submitted · writes change→state.q3\n        - q3-ok [core/alert@1.0.0] (hidden) title=\"Correct\" text=\"Glucose is the sugar the plant uses for energy and growth.\"\n            ↳ reads state:submitted, state:q3\n        - q3-no [core/alert@1.0.0] (hidden) title=\"Not quite\" text=\"The answer is Glucose. Glucose is the sugar the plant us…\n            ↳ reads state:submitted, state:q3\n    - actions [core/stack@1.0.0]\n      - check [ledger/button@2.1.0] label=\"Check my answers\"\n          ↳ reads state:q1, state:q2, state:q3 · writes click→state.submitted\n      - again [ledger/button@2.1.0] label=\"Start over\"\n          ↳ writes click→state.q1, click→state.q2, click→state.q3, click→state.submitted\n    - result [core/alert@1.0.0] (hidden) title=\"Your result\" text=\"You got 0 of 3 right.\"\n        ↳ reads state:q1, state:q2, state:q3, state:submitted",
+  "envelope": {
+    "title": "Quiz — how photosynthesis works",
+    "root": "root",
+    "state_json": "{\"q1\":\"\",\"q2\":\"\",\"q3\":\"\",\"submitted\":false}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "card-q1",
+            "card-q2",
+            "card-q3",
+            "actions",
+            "result"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "How photosynthesis works",
+          "eyebrow": "Biology",
+          "description": "Three questions. Answer them all, then check your work: each answer comes with a one-line reason.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "actions",
+        "type": "stack",
+        "props": {
+          "direction": "row",
+          "gap": 3,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": true
+        },
+        "slots": {
+          "children": [
+            "check",
+            "again"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check",
+        "type": "button",
+        "props": {
+          "label": "Check my answers",
+          "variant": "primary",
+          "size": null,
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "disabled",
+            "expr_json": "{\"$or\":[{\"$eq\":[{\"$state\":\"q1\"},\"\"]},{\"$eq\":[{\"$state\":\"q2\"},\"\"]},{\"$eq\":[{\"$state\":\"q3\"},\"\"]}]}"
+          }
+        ],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"submitted\",\"value\":true}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "again",
+        "type": "button",
+        "props": {
+          "label": "Start over",
+          "variant": "secondary",
+          "size": null,
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"q1\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"q2\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"q3\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"submitted\",\"value\":false}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "result",
+        "type": "alert",
+        "props": {
+          "tone": "info",
+          "title": "Your result",
+          "text": null
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[\"You got \",{\"$add\":[{\"$if\":[{\"$eq\":[{\"$state\":\"q1\"},\"Chloroplast\"]},1,0]},{\"$if\":[{\"$eq\":[{\"$state\":\"q2\"},\"Carbon dioxide\"]},1,0]},{\"$if\":[{\"$eq\":[{\"$state\":\"q3\"},\"Glucose\"]},1,0]}]},\" of \",3,\" right.\"]}"
+          }
+        ],
+        "on": [],
+        "visible_json": "{\"$state\":\"submitted\"}",
+        "repeat_json": null
+      },
+      {
+        "id": "card-q1",
+        "type": "card",
+        "props": {
+          "title": "Question 1",
+          "subtitle": null,
+          "code": null
+        },
+        "slots": {
+          "children": [
+            "q1",
+            "q1-ok",
+            "q1-no"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "q1",
+        "type": "choice",
+        "props": {
+          "label": "Where in a plant cell does photosynthesis take place?",
+          "name": "q1",
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "Chloroplast",
+              "label": "Chloroplast"
+            },
+            {
+              "value": "Mitochondrion",
+              "label": "Mitochondrion"
+            },
+            {
+              "value": "Nucleus",
+              "label": "Nucleus"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"q1\"}"
+          },
+          {
+            "prop": "disabled",
+            "expr_json": "{\"$state\":\"submitted\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"q1\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "q1-ok",
+        "type": "alert",
+        "props": {
+          "tone": "success",
+          "title": "Correct",
+          "text": "Chloroplasts hold the chlorophyll that captures light."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$state\":\"submitted\"},{\"$eq\":[{\"$state\":\"q1\"},\"Chloroplast\"]}]}",
+        "repeat_json": null
+      },
+      {
+        "id": "q1-no",
+        "type": "alert",
+        "props": {
+          "tone": "warning",
+          "title": "Not quite",
+          "text": "The answer is Chloroplast. Chloroplasts hold the chlorophyll that captures light."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$state\":\"submitted\"},{\"$not\":{\"$eq\":[{\"$state\":\"q1\"},\"Chloroplast\"]}}]}",
+        "repeat_json": null
+      },
+      {
+        "id": "card-q2",
+        "type": "card",
+        "props": {
+          "title": "Question 2",
+          "subtitle": null,
+          "code": null
+        },
+        "slots": {
+          "children": [
+            "q2",
+            "q2-ok",
+            "q2-no"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "q2",
+        "type": "choice",
+        "props": {
+          "label": "Which gas do plants take in for photosynthesis?",
+          "name": "q2",
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "Oxygen",
+              "label": "Oxygen"
+            },
+            {
+              "value": "Carbon dioxide",
+              "label": "Carbon dioxide"
+            },
+            {
+              "value": "Nitrogen",
+              "label": "Nitrogen"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"q2\"}"
+          },
+          {
+            "prop": "disabled",
+            "expr_json": "{\"$state\":\"submitted\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"q2\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "q2-ok",
+        "type": "alert",
+        "props": {
+          "tone": "success",
+          "title": "Correct",
+          "text": "Carbon from carbon dioxide is built into sugar."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$state\":\"submitted\"},{\"$eq\":[{\"$state\":\"q2\"},\"Carbon dioxide\"]}]}",
+        "repeat_json": null
+      },
+      {
+        "id": "q2-no",
+        "type": "alert",
+        "props": {
+          "tone": "warning",
+          "title": "Not quite",
+          "text": "The answer is Carbon dioxide. Carbon from carbon dioxide is built into sugar."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$state\":\"submitted\"},{\"$not\":{\"$eq\":[{\"$state\":\"q2\"},\"Carbon dioxide\"]}}]}",
+        "repeat_json": null
+      },
+      {
+        "id": "card-q3",
+        "type": "card",
+        "props": {
+          "title": "Question 3",
+          "subtitle": null,
+          "code": null
+        },
+        "slots": {
+          "children": [
+            "q3",
+            "q3-ok",
+            "q3-no"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "q3",
+        "type": "choice",
+        "props": {
+          "label": "What do plants make using the energy of light?",
+          "name": "q3",
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "Protein",
+              "label": "Protein"
+            },
+            {
+              "value": "Wax",
+              "label": "Wax"
+            },
+            {
+              "value": "Glucose",
+              "label": "Glucose"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"q3\"}"
+          },
+          {
+            "prop": "disabled",
+            "expr_json": "{\"$state\":\"submitted\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"q3\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "q3-ok",
+        "type": "alert",
+        "props": {
+          "tone": "success",
+          "title": "Correct",
+          "text": "Glucose is the sugar the plant uses for energy and growth."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$state\":\"submitted\"},{\"$eq\":[{\"$state\":\"q3\"},\"Glucose\"]}]}",
+        "repeat_json": null
+      },
+      {
+        "id": "q3-no",
+        "type": "alert",
+        "props": {
+          "tone": "warning",
+          "title": "Not quite",
+          "text": "The answer is Glucose. Glucose is the sugar the plant uses for energy and growth."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$and\":[{\"$state\":\"submitted\"},{\"$not\":{\"$eq\":[{\"$state\":\"q3\"},\"Glucose\"]}}]}",
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

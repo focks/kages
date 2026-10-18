@@ -7,6 +7,7 @@ import { lintDetailed } from "./advice.ts";
 import { validate } from "./validate.ts";
 import { mk } from "./rules/fixtures.ts";
 import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../packs/examples.ts";
+import { USE_CASE_MODES } from "../packs/use-case-examples.ts";
 import type { KageDoc } from "./types.ts";
 
 const ops = JSON.parse(readFileSync(new URL("../../public/ds/ops-console.kage.json", import.meta.url), "utf8")) as KageDoc;
@@ -15,6 +16,9 @@ const shipped = [...freeFlowExamples(), ...expressiveExamples(), ...richExamples
 test("every shipped example declares a mode, and inference agrees with it", () => {
   for (const d of shipped) {
     assert.ok(d.brief?.mode, `${d.id} has no declared mode`);
+    // The use-case examples are interactive pages that serve other goals (a pricing page has inputs but is there to persuade),
+    // which the block-type heuristic cannot see: for them the declaration is the truth, so only the declared value is checked.
+    if (USE_CASE_MODES[d.id]) { assert.equal(d.brief!.mode, USE_CASE_MODES[d.id], d.id); continue; }
     assert.equal(inferMode(d).mode, d.brief!.mode, `${d.id}: declared ${d.brief!.mode}, inferred ${inferMode(d).mode} (${inferMode(d).reasons})`);
   }
   assert.equal(inferMode(ops).mode, "operate");

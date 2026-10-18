@@ -1,0 +1,277 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Project portfolio — selected work and a contact form\" · system ledger@2.10.0 · 11 blocks · 17 instances\nstate {\"kind\":\"all\",\"sent\":null}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.0.0] title=\"Design and research for small teams\"\n    - filter [ledger/dropdown@2.0.0] label=\"Show\" value=\"all\" options=all|Product|Brand|Research\n        ↳ reads state:kind · writes change→state.kind\n    - work [core/grid@1.0.0]\n      - project~/project%3A%22p1%22 [ledger/card@2.0.0] title=\"Harbour Notes\" subtitle=\"Product · 2025\"\n        children:\n          - project-summary~/project%3A%22p1%22 [core/text@1.0.0] text=\"A note-taking app for people who work on boats and at do…\n      - project~/project%3A%22p2%22 [ledger/card@2.0.0] title=\"Seed to Shelf\" subtitle=\"Brand · 2024\"\n        children:\n          - project-summary~/project%3A%22p2%22 [core/text@1.0.0] text=\"A visual identity and packaging for a small regional gro…\n      - project~/project%3A%22p3%22 [ledger/card@2.0.0] title=\"Transit Atlas\" subtitle=\"Research · 2024\"\n        children:\n          - project-summary~/project%3A%22p3%22 [core/text@1.0.0] text=\"A study of how people choose between bus, bike and walki…\n      - project~/project%3A%22p4%22 [ledger/card@2.0.0] title=\"Open Studio Days\" subtitle=\"Product · 2023\"\n        children:\n          - project-summary~/project%3A%22p4%22 [core/text@1.0.0] text=\"A booking page for neighbourhood art studios.\"\n    - contact [core/form@1.0.0] label=\"Get in touch\"\n        ↳ writes submit→state.sent\n      - who [core/text-field@1.1.0] label=\"Your name\"\n      - email [core/text-field@1.1.0] label=\"Your email\"\n      - message [core/textarea@1.0.0] label=\"What would you like to talk about?\" rows=undefined\n    - thanks [core/alert@1.0.0] (hidden) title=\"Message ready\" text=\"Thanks. Your message has been recorded and a reply will …\n        ↳ reads state:sent",
+  "envelope": {
+    "title": "Project portfolio — selected work and a contact form",
+    "root": "root",
+    "state_json": "{\"kind\":\"all\",\"sent\":null}",
+    "data_json": "{\"projects\":[{\"id\":\"p1\",\"name\":\"Harbour Notes\",\"kind\":\"Product\",\"summary\":\"A note-taking app for people who work on boats and at docks.\",\"year\":2025},{\"id\":\"p2\",\"name\":\"Seed to Shelf\",\"kind\":\"Brand\",\"summary\":\"A visual identity and packaging for a small regional grower.\",\"year\":2024},{\"id\":\"p3\",\"name\":\"Transit Atlas\",\"kind\":\"Research\",\"summary\":\"A study of how people choose between bus, bike and walking.\",\"year\":2024},{\"id\":\"p4\",\"name\":\"Open Studio Days\",\"kind\":\"Product\",\"summary\":\"A booking page for neighbourhood art studios.\",\"year\":2023}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 8
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "hero",
+            "filter",
+            "work",
+            "contact",
+            "thanks"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "hero",
+        "type": "section",
+        "props": {
+          "title": "Design and research for small teams",
+          "eyebrow": "Portfolio",
+          "description": "Selected work from the last three years, and a way to get in touch.",
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "filter",
+        "type": "dropdown",
+        "props": {
+          "label": "Show",
+          "options": [
+            {
+              "value": "all",
+              "label": "All work",
+              "hint": null
+            },
+            {
+              "value": "Product",
+              "label": "Product",
+              "hint": null
+            },
+            {
+              "value": "Brand",
+              "label": "Brand",
+              "hint": null
+            },
+            {
+              "value": "Research",
+              "label": "Research",
+              "hint": null
+            }
+          ],
+          "value": null,
+          "placeholder": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"kind\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"kind\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "work",
+        "type": "grid",
+        "props": {
+          "columns": 2,
+          "minSize": "medium",
+          "gap": 4
+        },
+        "slots": {
+          "children": [
+            "project"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "project",
+        "type": "card",
+        "props": {
+          "title": null,
+          "subtitle": null,
+          "code": null
+        },
+        "slots": {
+          "children": [
+            "project-summary"
+          ],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"name\"}"
+          },
+          {
+            "prop": "subtitle",
+            "expr_json": "{\"$concat\":[{\"$item\":\"kind\"},\" · \",{\"$item\":\"year\"}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$sort\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"projects\"},\"field\":\"kind\",\"equals\":{\"$state\":\"kind\"},\"skipIf\":\"all\"}},\"field\":\"year\",\"direction\":\"desc\"}},\"key\":\"id\",\"as\":\"project\"}"
+      },
+      {
+        "id": "project-summary",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "body"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$item\":\"summary\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "contact",
+        "type": "form",
+        "props": {
+          "label": "Get in touch",
+          "submitLabel": "Send message",
+          "disabled": null
+        },
+        "slots": {
+          "children": [
+            "who",
+            "email",
+            "message"
+          ]
+        },
+        "bind": [],
+        "on": [
+          {
+            "event": "submit",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"sent\",\"value\":{\"$event\":\"values\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "who",
+        "type": "text-field",
+        "props": {
+          "label": "Your name",
+          "name": "who",
+          "required": true,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "kind": null,
+          "help": null,
+          "placeholder": null,
+          "minLength": null,
+          "maxLength": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "email",
+        "type": "text-field",
+        "props": {
+          "label": "Your email",
+          "name": "email",
+          "required": true,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "kind": "email",
+          "help": null,
+          "placeholder": null,
+          "minLength": null,
+          "maxLength": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "message",
+        "type": "textarea",
+        "props": {
+          "label": "What would you like to talk about?",
+          "value": null,
+          "placeholder": null,
+          "help": null,
+          "rows": 5,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "thanks",
+        "type": "alert",
+        "props": {
+          "tone": "success",
+          "title": "Message ready",
+          "text": "Thanks. Your message has been recorded and a reply will follow."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$neq\":[{\"$state\":\"sent\"},null]}",
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}
