@@ -14,7 +14,7 @@
           "signature": {
             "keyId": "user:legacy-key",
             "alg": "ed25519",
-            "sig": "XMse3uFkd36FYvpMJZ/3qWTUpE9LFwOeuiskTb3usv88QAc3xEi6ild6daOOR3Nq0K7fRFVYemH0RqPp4fahDQ=="
+            "sig": "7pDIUf+m0MbV7d0e3vNnYl75Qqei8CkCLVZ0WOMUTOHSpuwx+eHg1QMyRpFwHDAx1fbGmkslznj5EZLAD3ZEAA=="
           },
           "createdAt": "1970-01-01T00:00:01.001Z",
           "author": {
@@ -97,8 +97,8 @@
       "user:legacy",
       {
         "keyId": "user:legacy-key",
-        "publicPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAwEffxRy8IGxohRH/DiUCHQc9rZAqJUNB3oMFyXqlx4o=\n-----END PUBLIC KEY-----\n",
-        "privatePem": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIKcxOOYhLEfMrku5wIhVz1pBlD9Kq/Zu2Bqalq7He0GU\n-----END PRIVATE KEY-----\n"
+        "publicPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEABpO7SN3owIPhJZsksQfviXTSdfr4FeLx0Kwtn9tX5Ok=\n-----END PUBLIC KEY-----\n",
+        "privatePem": "-----BEGIN PRIVATE KEY-----\nMC4CAQAwBQYDK2VwBCIEIL3BBs/iBsAxodWe1dEduacOKgfBak/CGoR+Q7QGrnRt\n-----END PRIVATE KEY-----\n"
       }
     ]
   ],
