@@ -8,7 +8,7 @@
 
 import { resolve } from "./resolve.ts";
 import { evaluate, clone, merge } from "./expr.ts";
-import { initLocals, makeCtx, materialize, runActions, systemOf, type LogEntry, type RuntimeCtx, type Draft } from "./runtime-core.ts";
+import { initLocals, makeCtx, materialize, runActions, runWatchers, systemOf, type LogEntry, type RuntimeCtx, type Draft } from "./runtime-core.ts";
 import type { KageDoc, Json } from "./types.ts";
 
 export class KageSession {
@@ -76,8 +76,10 @@ export class KageSession {
     if (!r.contract) throw new Error("dispatch: unresolved block '" + id + "'");
     const draft: Draft = { state: clone(this.state), locals: { ...initLocals(doc, this.sysId), ...clone(this.locals) } };
     const log: LogEntry[] = [];
+    const before = clone(this.state);
     runActions(doc, this.sysId, r.contract.defaults[event], draft, id, payload, log);
     runActions(doc, this.sysId, (b.on || {})[event], draft, id, payload, log);
+    runWatchers(doc, this.sysId, draft, before, log);
     this.state = draft.state;
     this.locals = draft.locals;
     this.expanded = undefined; this.context = undefined;

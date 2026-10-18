@@ -42,8 +42,12 @@ export function referenceBundle() {
   // The renderer expands from its live state on every render; expanding only
   // once at mount would leave filters and computed repeat lists frozen.
   const patches = [
+    // A set/toggle path may be an expression (a repeated row writes to list.<index>.field); an invalid one writes nothing.
+    ['        case "set": setPath(draft.state, a.path, evaluate(a.value, ctx)); break;\n        case "toggle": setPath(draft.state, a.path, !getPath(draft.state, a.path)); break;', '        case "set": case "toggle": { var wp = actionPath(a.path, ctx, evaluate); if (wp === null) { log.push({ level: "error", msg: a.do + ": the path is not a state path" }); break; } setPath(draft.state, wp, a.do === "set" ? evaluate(a.value, ctx) : !getPath(draft.state, wp)); break; }'],
+    // `watch` handlers run after the transaction on the same draft, bounded like the pure engine.
+    ["      runActions(doc, sysId, (b.on || {})[evName], draft, id, payload, log);\n      logRef.current", "      runActions(doc, sysId, (b.on || {})[evName], draft, id, payload, log);\n      (function () { var prev = clone(state); for (var round = 0; round < WATCH_ROUNDS; round++) { var fired = watchedActions(doc, prev, draft.state, getPath); if (!fired.length) return; prev = clone(draft.state); fired.forEach(function (f) { runActions(doc, sysId, f[1], draft, f[0], {}, log); }); } })();\n      logRef.current"],
     ["    var ctx = makeCtx(doc, sysId, state, locals);", "    try { doc = expandDocument(doc, makeCtx(doc, sysId, state, locals), evaluate, getPath, function (d) { return makeCtx(d, sysId, state, merge(initLocals(d, sysId), locals)); }); } catch (e) { return h(Missing, { id: 'collection', msg: e.message }); }\n    locals = merge(initLocals(doc, sysId), locals);\n    var ctx = makeCtx(doc, sysId, state, locals);"],
-    ["[b.props, b.bind, b.visible, b.on]", "[b.props, b.bind, b.visible, b.on, b.repeat && b.repeat.each]"],
+    ["[b.props, b.bind, b.visible, b.on]", "[b.props, b.bind, b.visible, b.on, b.watch, b.repeat && b.repeat.each]"],
     ["if (isExpr(x)) fn(Object.keys(x)[0], x[Object.keys(x)[0]]); for", "if (isExpr(x)) fn(Object.keys(x)[0], x[Object.keys(x)[0]]); if (Object.keys(x)[0] === '$literal') return; for"],
     ["busy[id] = false; cache[id] = out; return out;", "var outputType = b.type === 'composition' && doc.compositions && doc.compositions[b.props.name] && doc.compositions[b.props.name].outputType; if (outputType && !matchesInput(outputType, out.value)) throw new Error('Invalid composition output at ' + id);\n      busy[id] = false; cache[id] = out; return out;"],
   ];
@@ -53,8 +57,8 @@ export function referenceBundle() {
   }
   // Additive roles change catalog capabilities, so every inheriting system
   // advertises a minor release; the existing component refs stay immutable.
-  source = source.replace('version: "1.4.0", className: "kg-sys-core"', 'version: "1.12.0", className: "kg-sys-core"')
-    .replace('version: "2.1.0", className: "kg-sys-ledger"', 'version: "2.9.0", className: "kg-sys-ledger"')
-    .replace('version: "1.0.0", className: "kg-sys-atelier"', 'version: "1.8.0", className: "kg-sys-atelier"');
+  source = source.replace('version: "1.4.0", className: "kg-sys-core"', 'version: "1.13.0", className: "kg-sys-core"')
+    .replace('version: "2.1.0", className: "kg-sys-ledger"', 'version: "2.10.0", className: "kg-sys-ledger"')
+    .replace('version: "1.0.0", className: "kg-sys-atelier"', 'version: "1.9.0", className: "kg-sys-atelier"');
   return source;
 }

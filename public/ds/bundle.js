@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -401,10 +401,49 @@
       p.caption ? h("figcaption", null, p.caption) : null);
   }
 
+  // Colour code by lexical class without an HTML string: every token is a React
+  // text child, so hostile source stays literal. One global scan, each pattern
+  // tolerates being unterminated (running to the line or input end) so no input
+  // forces backtracking, and the input is capped.
+  var CODE_WORDS = {
+    clike: "as async await break case catch class const continue default delete do else enum export extends false final finally fn for from func function go if implements import in instanceof interface let loop match mod mut new nil null of override package private protected pub public return self static struct super switch this throw true try type typeof undefined use var void while with yield",
+    hash: "and as async await break case class continue def defer do done elif else elsif end esac except export false fi finally for from function if import in is lambda let local nil none not null or pass raise readonly return then true try unless until while with yield",
+    sql: "add all alter and as asc between by case create delete desc distinct drop else end exists from group having in index insert into is join left like limit not null on or order outer primary right select set table then union update values when where"
+  };
+  var CODE_LANGS = { js: "clike", jsx: "clike", ts: "clike", tsx: "clike", javascript: "clike", typescript: "clike", java: "clike", go: "clike", rust: "clike", rs: "clike", c: "clike", cpp: "clike", cs: "clike", csharp: "clike", kotlin: "clike", swift: "clike", php: "clike", json: "json",
+    sh: "hash", bash: "hash", shell: "hash", zsh: "hash", py: "hash", python: "hash", rb: "hash", ruby: "hash", yaml: "hash", yml: "hash", toml: "hash", sql: "sql" };
+  var CODE_RE = {
+    clike: /(\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|("(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?|`(?:[^`\\]|\\[\s\S])*`?)|(\b\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?\b|\b0x[0-9a-f]+\b)|([A-Za-z_$][\w$]*)/gi,
+    hash: /(#[^\n]*)|("(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?)|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][\w-]*)/g,
+    sql: /(--[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|('(?:[^'\n]|'')*'?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][\w]*)/gi,
+    json: /()("(?:[^"\\\n]|\\.)*"?)|(-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|(true|false|null)\b/g
+  };
+  var CODE_SETS = {};
+  function codeSet(kind) { return CODE_SETS[kind] || (CODE_SETS[kind] = (function () { var o = Object.create(null); (CODE_WORDS[kind] || "true false null").split(" ").forEach(function (w) { o[w] = 1; }); return o; })()); }
+  function highlightCode(code, language) {
+    var kind = CODE_LANGS[String(language == null ? "" : language).toLowerCase()];
+    if (!kind || code.length > 20000) return code;
+    var re = new RegExp(CODE_RE[kind].source, CODE_RE[kind].flags), words = codeSet(kind === "json" ? "json" : kind), out = [], at = 0, m, n = 0;
+    function tok(cls, text) { out.push(h("span", { key: n++, className: "kg-tok kg-tok--" + cls }, text)); }
+    while ((m = re.exec(code)) !== null) {
+      if (m[0] === "") { re.lastIndex++; continue; }
+      if (m.index > at) out.push(code.slice(at, m.index));
+      if (m[1]) tok("c", m[0]);
+      else if (m[2]) tok("s", m[0]);
+      else if (m[3]) tok("n", m[0]);
+      else if (kind === "json") tok("k", m[0]);
+      else if (words[kind === "sql" ? m[0].toLowerCase() : m[0]]) tok("k", m[0]);
+      else out.push(m[0]);
+      at = m.index + m[0].length;
+    }
+    if (at < code.length) out.push(code.slice(at));
+    return out;
+  }
   function CoreCode(p) {
+    var code = String(p.code == null ? "" : p.code);
     return h("figure", { className: "kg-code" },
       p.language || p.caption ? h("figcaption", null, p.caption || p.language) : null,
-      h("pre", { className: p.wrap ? "kg-code__wrap" : undefined }, h("code", null, String(p.code == null ? "" : p.code))));
+      h("pre", { className: p.wrap ? "kg-code__wrap" : undefined }, h("code", null, p.highlight === false ? code : highlightCode(code, p.language))));
   }
 
   function CoreList(p) {
@@ -459,7 +498,7 @@
     grid: { summary: "Responsive equal-column grid that fits its container and stacks on narrow canvases.", props: { columns: S("number", { default: 3, description: "Maximum column count, a positive integer. Fewer columns render when needed to fit the canvas." }), minSize: S("string", { enum: ["small", "medium", "large"], default: "medium" }), gap: SPACING }, slots: { children: {} } },
     split: { summary: "Two flowing panes with a chosen ratio, stacked in source order on narrow canvases.", props: { ratio: S("string", { enum: ["equal", "wide-start", "wide-end"], default: "equal" }), gap: SPACING }, slots: { start: {}, end: {} } },
     image: { summary: "Accessible image with a semantic aspect ratio, fit and optional caption.", props: { src: S("string", { required: true }), alt: S("string", { required: true }), caption: S("string"), ratio: S("string", { enum: ["auto", "square", "landscape", "portrait"], default: "auto" }), fit: S("string", { enum: ["cover", "contain"], default: "cover" }) } },
-    code: { summary: "Literal source code or structured text; displayed, never executed.", props: { code: S("string", { required: true }), language: S("string"), caption: S("string"), wrap: S("boolean", { default: false }) } },
+    code: { summary: "Literal source code or structured text; displayed, never executed.", props: { code: S("string", { required: true }), language: S("string"), caption: S("string"), wrap: S("boolean", { default: false }), highlight: S("boolean", { default: true }) } },
     list: { summary: "Ordered or unordered prose list.", props: { items: S("array", { items: S("string"), required: true }), ordered: S("boolean", { default: false }) } },
     divider: { summary: "Semantic separator between flowing content regions.", props: {} },
     textarea: { summary: "Labelled multiline input with public value and change events.", props: { label: S("string", { required: true }), value: S("string"), placeholder: S("string"), help: S("string"), rows: S("number", { enum: [3, 5, 8, 12], default: 5 }), disabled: S("boolean") }, local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
@@ -473,7 +512,7 @@
     grid: "Use for galleries, feature cards and dashboards; columns is the maximum, minSize controls when columns fit. Children remain in source order.",
     split: "Use for side-by-side explanation and interaction, image and prose, or input and output. Does not create a sidebar.",
     image: "Use HTTPS URLs, local / paths or raster data URLs. Provide descriptive alt text; use empty alt only for decoration.",
-    code: "Display examples, JSON, logs or source. Content remains literal text even when it contains markup.",
+    code: "Display examples, JSON, logs or source. Content remains literal text even when it contains markup. Set language (js, ts, json, sh, py, yaml, sql, go, rust, java, c…) to colour keywords, strings, numbers and comments; unknown languages stay plain, and highlight:false turns it off.",
     list: "Use for instructions, summaries and checklists; items are text, ordered enables numbered steps.",
     divider: "Separate adjacent topics without wrapping them in cards.",
     textarea: "Use for notes, drafts and longer answers. Read value or bind it to declared state; change emits {value}.",
@@ -489,7 +528,7 @@
     if (name === "textarea" || name === "slider") DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
     if (name === "checkbox") DEFAULTS[name] = { change: [{ do: "setLocal", key: "checked", value: { $event: "checked" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
-    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "line-control", "accent", "focus"], agent: { use: FLOW_NOTES[name] } });
+    core[name] = contract("core", name, name === "code" ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "line-control", "accent"].concat(name === "code" ? ["success"] : []).concat(["focus"]), agent: { use: FLOW_NOTES[name] } });
     contracts[core[name]].a11y = { keyboard: name === "slider" ? "Native range: arrows and Home/End." : name === "checkbox" ? "Native checkbox: Tab and Space." : name === "textarea" ? "Native multiline text input: Tab to focus, typing to edit." : "Semantic content; interactive children own their keyboard behavior." };
   });
 
@@ -535,6 +574,11 @@
       if (run.code) child = h("code", null, child);
       if (run.bold) child = h("strong", null, child);
       if (run.italic) child = h("em", null, child);
+      // A citation is a superscript link to the matching item of a `references`
+      // block on the same page. The target id is the namespaced slug, so author
+      // text can never become an arbitrary DOM id.
+      var cite = typeof run.cite === "string" && anchorId(run.cite) ? anchorId("ref-" + run.cite) : undefined;
+      if (cite) return h("sup", { key: i, className: "kg-cite" }, h("a", { href: "#" + cite, "aria-label": "Source " + run.text }, child));
       var href = passiveLink(run.href);
       return h(href ? "a" : "span", { key: i, href: href }, child);
     });
@@ -545,7 +589,14 @@
       if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, String(item)); }));
       if (node.kind === "code") return h("pre", { key: i }, h("code", null, String(node.text || "")));
       var tag = node.kind === "heading" ? "h" + choice(node.level, [2, 3, 4], 2) : node.kind === "quote" ? "blockquote" : "p";
-      return h(tag, { key: i }, node.runs ? richRuns(node.runs) : String(node.text || ""));
+      var body = node.runs ? richRuns(node.runs) : String(node.text || "");
+      // Attribution sits outside the blockquote, in a figcaption (HTML's own
+      // pattern for a cited quotation); a link on it is passive like any other.
+      if (node.kind === "quote" && typeof node.attribution === "string" && node.attribution) {
+        var from = passiveLink(node.href);
+        return h("figure", { key: i, className: "kg-quote" }, h("blockquote", null, body), h("figcaption", null, from ? h("a", { href: from, rel: "noopener noreferrer" }, node.attribution) : node.attribution));
+      }
+      return h(tag, { key: i }, body);
     }));
   }
   /** Field-level validation message: announced when it appears, tied to its input
@@ -603,7 +654,7 @@
   function wideStyle(w) { return w >= 480 ? { minWidth: Math.round(w * .8) } : undefined; }
   function CoreScene(p) {
     var width = Math.max(1, finiteNumber(p.width, 640)), height = Math.max(1, finiteNumber(p.height, 360));
-    return h("figure", { className: "kg-scene" + (width >= 480 ? " kg-scene--wide" : "") }, h("figcaption", null, p.label),
+    return h("figure", { className: "kg-scene" + (width >= 480 ? " kg-scene--wide" : "") }, h("figcaption", null, p.caption || p.label),
       h("svg", { style: wideStyle(width), viewBox: "0 0 " + width + " " + height, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label),
         (Array.isArray(p.shapes) ? p.shapes : []).slice(0, 2000).map(function (s, i) {
           if (!s || ["rect", "circle", "line", "path", "text"].indexOf(s.kind) < 0) return null;
@@ -659,7 +710,7 @@
     });
     // Labels go on the top layer so a chip that is wider than the gap stays readable.
     labelShapes.forEach(function (sh) { shapes.push(sh); });
-    return CoreScene({ label: p.label, width: width, height: height, shapes: shapes, interactive: p.interactive, onSelect: p.onSelect });
+    return CoreScene({ label: p.label, caption: p.caption, width: width, height: height, shapes: shapes, interactive: p.interactive, onSelect: p.onSelect });
   }
   function plot(p, scatter) {
     var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.x === "number" && isFinite(it.x) && typeof it.y === "number" && isFinite(it.y); }).slice(0, 2000);
@@ -694,23 +745,23 @@
     choice: { summary: "Named radio group with native keyboard navigation and a public selection.", props: merge(CONTROL_PROPS, { value: S("string"), options: OPTIONS_PROP }), local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
     multiselect: { summary: "Named multiple selection with native keyboard support and array output.", props: merge(CONTROL_PROPS, { value: S("array", { items: S("string") }), options: OPTIONS_PROP }), local: { value: { type: "array", default: [] } }, events: { change: { payload: { value: "array" } } }, outputs: ["value"] },
     form: { summary: "Native validated form; submit emits named field values as strings or arrays of strings.", props: { label: S("string", { required: true }), submitLabel: S("string", { default: "Submit" }), disabled: S("boolean") }, slots: { children: {} }, events: { submit: { payload: { values: "object" } } } },
-    scene: { summary: "Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.", props: { label: S("string", { required: true }), width: S("number", { default: 640 }), height: S("number", { default: 360 }), shapes: S("array", { required: true, items: S("object", { requiredKeys: ["kind"] }) }), interactive: S("boolean") }, events: { select: { payload: { id: "string" } } } },
-    diagram: { summary: "Node and edge diagram with automatic placement or explicit coordinates.", props: { label: S("string", { required: true }), nodes: S("array", { required: true, items: S("object", { requiredKeys: ["id", "label"] }) }), edges: S("array", { items: S("object", { requiredKeys: ["from", "to"] }) }), interactive: S("boolean") }, events: { select: { payload: { id: "string" } } } },
+    scene: { summary: "Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.", props: { label: S("string", { required: true }), width: S("number", { default: 640 }), height: S("number", { default: 360 }), shapes: S("array", { required: true, items: S("object", { requiredKeys: ["kind"] }) }), interactive: S("boolean"), caption: S("string") }, events: { select: { payload: { id: "string" } } } },
+    diagram: { summary: "Node and edge diagram with automatic placement or explicit coordinates.", props: { label: S("string", { required: true }), nodes: S("array", { required: true, items: S("object", { requiredKeys: ["id", "label"] }) }), edges: S("array", { items: S("object", { requiredKeys: ["from", "to"] }) }), interactive: S("boolean"), caption: S("string") }, events: { select: { payload: { id: "string" } } } },
     "line-chart": { summary: "Responsive numeric X/Y line chart with an accessible data table.", props: PLOT_PROPS },
     "scatter-chart": { summary: "Responsive numeric X/Y scatter plot with an accessible data table.", props: PLOT_PROPS }
   };
   var EXPRESSIVE_NOTES = {
     composition: "Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code.",
     link: "Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.",
-    "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.",
+    "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote (optional attribution and href), list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?,cite?}]. A run with cite:\"id\" and text:\"1\" is a superscript link to the references item with that id; the number is the item's position. Strings remain literal.",
     "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules).",
     "number-input": "Use for calculations; an empty field emits null. Set name inside form; change emits {value}.",
     "date-input": "Date values and bounds are YYYY-MM-DD; change emits {value}.",
     choice: "Use for one option from a short list; options are [{value,label}]. change emits {value}.",
     multiselect: "Use for several choices; options are [{value,label}], value is a string array. change emits {value}.",
     form: "Place named native fields in children. Invalid fields prevent submit. submit emits {values}: string values, duplicate names become arrays. Wire submit to declared state or a host action.",
-    scene: "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space.",
-    diagram: "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}.",
+    scene: "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space. label is the accessible name; caption is the visible sentence under the figure saying what to take from it (it replaces the label as the visible caption).",
+    diagram: "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}. caption is the visible takeaway under the figure.",
     "line-chart": "items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table.",
     "scatter-chart": "items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations."
   };
@@ -725,7 +776,7 @@
     if (I.local) DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
     // Fields gained the optional `error` prop: a minor contract release.
-    core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
+    core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect|rich-text|scene|diagram)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
   });
 
 /* Batch 1 of the rich-artifact roles: data visualisation and disclosure.
@@ -1639,6 +1690,30 @@
       })));
   }
 
+  // Terms and their meanings. A native description list: the pairing is in the
+  // markup, not only the layout. Bounded so a hostile document cannot grow it.
+  function CoreGlossary(p) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.term === "string" && it.term; }).slice(0, 200);
+    if (!items.length) return null;
+    return h("div", { className: "kg-glossary" }, p.title ? h("p", { className: "kg-glossary__title" }, p.title) : null,
+      h("dl", { className: "kg-glossary__list" }, items.map(function (it, i) {
+        return h("div", { key: i, className: "kg-glossary__item" }, h("dt", null, it.term), h("dd", null, String(it.definition == null ? "" : it.definition)));
+      })));
+  }
+
+  // The numbered sources a page cites. Each item is a jump target for a
+  // `cite` run in rich-text (the id is the same namespaced slug), so a number
+  // in the prose lands on its source; the link on the item leaves the page.
+  function CoreReferences(p) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.id === "string" && anchorId(it.id) && it.label; }).slice(0, 200);
+    if (!items.length) return null;
+    return h("div", { className: "kg-references" }, p.title ? h("p", { className: "kg-references__title" }, p.title) : null,
+      h("ol", { className: "kg-references__list" }, items.map(function (it, i) {
+        var href = passiveLink(it.href);
+        return h("li", { key: i, id: anchorId("ref-" + it.id), tabIndex: -1 }, href ? h("a", { href: href, rel: "noopener noreferrer" }, String(it.label)) : String(it.label), it.detail ? h("span", { className: "kg-references__detail" }, " · " + String(it.detail)) : null);
+      })));
+  }
+
   function mediaTracks(p) {
     return (Array.isArray(p.captions) ? p.captions : []).slice(0, 8).map(function (c, i) { var src = c && mediaSource(c.src); return src ? h("track", { key: i, kind: "captions", src: src, srcLang: langTag(c.lang), label: String(c.label || c.lang || "Captions") }) : null; });
   }
@@ -1687,6 +1762,8 @@
     toc: { summary: "On-this-page outline of links that scroll to anchors, highlighting the section in view.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), target: S("string"), level: S("number", { enum: [1, 2, 3] }) }, requiredKeys: ["label", "target"] }) }), sticky: S("boolean"), value: S("string") }, local: { value: { type: "string", default: "" } }, events: { select: { payload: { target: "string" } } }, outputs: ["value"] },
     video: { summary: "Video with native controls, optional poster, captions and transcript; never autoplays.", props: Object.assign({ label: S("string", { required: true }), src: SRC, poster: S("string") }, MEDIA_EXTRA) },
     audio: { summary: "Audio with native controls, optional captions and transcript; never autoplays.", props: Object.assign({ label: S("string", { required: true }), src: SRC }, MEDIA_EXTRA) },
+    glossary: { summary: "Terms and their meanings as a description list.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { term: S("string"), definition: S("string") }, requiredKeys: ["term", "definition"] }) }) } },
+    references: { summary: "Numbered sources a page cites; rich-text cite runs link to them by id.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { id: S("string"), label: S("string"), href: S("string"), detail: S("string") }, requiredKeys: ["id", "label"] }) }) } },
     gallery: { summary: "Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { src: S("string"), alt: S("string"), caption: S("string") }, requiredKeys: ["src", "alt"] }) }), index: S("number"), empty: S("string") }, local: { index: { type: "number", default: -1 } }, events: { change: { payload: { index: "number" } } }, outputs: ["index"] }
   };
   var CONTENT_NOTES = {
@@ -1696,9 +1773,11 @@
     toc: "items: [{label,target,level?}] where target is an anchor name defined by an `anchor` block on the same page. sticky keeps it in view while scrolling. Every target needs a matching anchor.",
     video: "src is an https URL or local path. Add captions [{src,lang,label}] and a transcript for accessibility. No autoplay, no embeds of third-party players.",
     audio: "src is an https URL or local path. Add a transcript for accessibility. No autoplay.",
+    glossary: "items: [{term,definition}] in the order to read them; one sentence per definition. Put it near the end of a long page. Define a term where it is first used too.",
+    references: "items: [{id,label,href?,detail?}] in citation order; the list is numbered 1, 2, 3… in that order. In prose, cite with a rich-text run {text:\"1\",cite:\"<id>\"} whose text is the item's position. href is https; detail is the publisher or author. Every cited id must exist here, and every claim from a source should cite it.",
     gallery: "items: [{src,alt,caption?}] with the image block's source rules. Thumbnails open a lightbox; arrows navigate, Escape closes. index -1 means closed."
   };
-  Object.assign(freeFlowExports, { CoreTabPanel: CoreTabPanel, CoreCodeTabs: CoreCodeTabs, CoreAnchor: CoreAnchor, CoreToc: CoreToc, CoreVideo: CoreVideo, CoreAudio: CoreAudio, CoreGallery: CoreGallery });
+  Object.assign(freeFlowExports, { CoreTabPanel: CoreTabPanel, CoreCodeTabs: CoreCodeTabs, CoreAnchor: CoreAnchor, CoreToc: CoreToc, CoreVideo: CoreVideo, CoreAudio: CoreAudio, CoreGallery: CoreGallery, CoreGlossary: CoreGlossary, CoreReferences: CoreReferences });
   Object.keys(CONTENT).forEach(function (name) {
     var I = CONTENT[name]; I.role = name; I.slots = I.slots || {}; I.events = I.events || {}; I.outputs = I.outputs || [];
     interfaces["kages/" + name + "@1"] = I;
@@ -1787,9 +1866,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.12.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.9.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.8.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.13.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.10.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.9.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:
@@ -1896,8 +1975,7 @@
       var ctx = merge(makeCtx(doc, sysId, draft.state, draft.locals), { self: self, event: event });
       if (a.when !== undefined && !evaluate(a.when, ctx)) return;
       switch (a.do) {
-        case "set": setPath(draft.state, a.path, evaluate(a.value, ctx)); break;
-        case "toggle": setPath(draft.state, a.path, !getPath(draft.state, a.path)); break;
+        case "set": case "toggle": { var wp = actionPath(a.path, ctx, evaluate); if (wp === null) { log.push({ level: "error", msg: a.do + ": the path is not a state path" }); break; } setPath(draft.state, wp, a.do === "set" ? evaluate(a.value, ctx) : !getPath(draft.state, wp)); break; }
         case "setLocal": { var tgt = a.target && a.target !== "$self" ? a.target : self; draft.locals[tgt] = draft.locals[tgt] || {}; draft.locals[tgt][a.key] = evaluate(a.value, ctx); break; }
         case "call": {
           var tid = a.target === "$self" ? self : a.target, tb = doc.blocks[tid]; if (!tb) { log.push({ level: "error", msg: "call: no block '" + tid + "'" }); break; }
@@ -1933,6 +2011,7 @@
       var b = doc.blocks[id], rr = resolve(sysId, b.type), draft = { state: clone(state), locals: clone(locals) }, log = [];
       runActions(doc, sysId, rr.contract.defaults[evName], draft, id, payload, log);
       runActions(doc, sysId, (b.on || {})[evName], draft, id, payload, log);
+      (function () { var prev = clone(state); for (var round = 0; round < WATCH_ROUNDS; round++) { var fired = watchedActions(doc, prev, draft.state, getPath); if (!fired.length) return; prev = clone(draft.state); fired.forEach(function (f) { runActions(doc, sysId, f[1], draft, f[0], {}, log); }); } })();
       logRef.current = log.concat(logRef.current).slice(0, 20);
       setState(draft.state); setLocals(draft.locals);
       if (p.onLog && log.length) p.onLog(log);
@@ -2008,7 +2087,7 @@
     // refs + actions (after all types resolved)
     Object.keys(blocks).forEach(function (id) {
       var b = blocks[id], at = "/blocks/" + id;
-      walkExpr([b.props, b.bind, b.visible, b.on, b.repeat && b.repeat.each], function (op, arg) {
+      walkExpr([b.props, b.bind, b.visible, b.on, b.watch, b.repeat && b.repeat.each], function (op, arg) {
         if (op === "$block") {
           var tid = String(arg).split(".")[0], key = String(arg).split(".")[1];
           if (!blocks[tid]) E(at, "dangling-ref", "$block '" + arg + "': no block '" + tid + "'");
@@ -2196,7 +2275,8 @@
 // one implementation prevents an agent's generated formula or collection from
 // validating on the server but behaving differently in the browser.
 // See oracle/expressive-artifacts.feature.
-const COMPUTE_OPERATORS = ["$literal", "$index", "$scope", "$input", "$add", "$sub", "$mul", "$div", "$mod", "$pow", "$min", "$max", "$round", "$lt", "$lte", "$gt", "$gte", "$concat", "$sort", "$format"];
+const COMPUTE_OPERATORS = ["$literal", "$index", "$scope", "$input", "$add", "$sub", "$mul", "$div", "$mod", "$pow", "$min", "$max", "$round", "$lt", "$lte", "$gt", "$gte", "$concat", "$sort", "$format", "$floor", "$ceil", "$abs", "$join", "$truncate"];
+const unary = ["$floor", "$ceil", "$abs"];
 const binary = ["$sub", "$div", "$mod", "$pow", "$lt", "$lte", "$gt", "$gte"];
 const variadic = ["$add", "$mul", "$min", "$max", "$concat"];
 const own = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
@@ -2209,13 +2289,40 @@ const safeKey = (s) => typeof s === "string" && s.split(".").every(k => k && !["
 function computationArgError(op, a) {
   if (binary.includes(op)) return Array.isArray(a) && a.length === 2 ? null : op + " takes [a, b]";
   if (variadic.includes(op)) return Array.isArray(a) && a.length > 0 ? null : op + " takes a nonempty array";
+  if (unary.includes(op)) return Array.isArray(a) && a.length === 1 ? null : op + " takes [value]";
+  if (op === "$join") return object(a) && own(a, "list") && (a.separator === undefined || typeof a.separator === "string" && a.separator.length <= 20) ? null : "$join takes {list, separator?}";
+  if (op === "$truncate") return object(a) && own(a, "value") && (a.length === undefined || Number.isInteger(a.length) && a.length >= 0 && a.length <= 100000) && (a.suffix === undefined || typeof a.suffix === "string" && a.suffix.length <= 20) ? null : "$truncate takes {value, length?, suffix?}";
   if (op === "$round") return Array.isArray(a) && (a.length === 1 || a.length === 2) ? null : "$round takes [value, digits?]";
   if (["$scope", "$input"].includes(op)) return typeof a === "string" ? null : op + " takes a path string";
   if (op === "$index") return a === "" ? null : "$index takes an empty path string";
   if (op === "$sort") return object(a) && own(a, "list") && (a.field === undefined || typeof a.field === "string") && (a.direction === undefined || ["asc", "desc"].includes(a.direction)) ? null : "$sort takes {list, field?, direction?: asc|desc}";
-  if (op === "$format") return object(a) && own(a, "value") && ["number", "currency", "percent", "date"].includes(a.style) && (a.digits === undefined || Number.isInteger(a.digits) && a.digits >= 0 && a.digits <= 10) && (a.currency === undefined || /^[A-Z]{3}$/.test(a.currency)) ? null : "$format takes {value, style: number|currency|percent|date, digits?: 0..10, currency?: ISO code}";
+  if (op === "$format") return object(a) && own(a, "value") && ["number", "currency", "percent", "date", "relative"].includes(a.style) && (a.notation === undefined || a.notation === "compact") && (a.relativeTo === undefined || typeof a.relativeTo === "string") && (a.digits === undefined || Number.isInteger(a.digits) && a.digits >= 0 && a.digits <= 10) && (a.currency === undefined || /^[A-Z]{3}$/.test(a.currency)) ? null : "$format takes {value, style: number|currency|percent|date, digits?: 0..10, currency?: ISO code}";
   return null;
 }
+
+/** The state path an action writes. A static string, or an expression (a repeated row writes to `list.<index>.field`).
+ * Returns null for anything that does not produce a plain dot path, so a bad expression writes nothing. */
+function actionPath(path, ctx, evaluate) {
+  if (typeof path === "string") return path;
+  const v = object(path) ? evaluate(path, ctx) : null;
+  return typeof v === "string" && /^[^.]+(\.[^.]+)*$/.test(v) ? v : null;
+}
+
+/** Which `watch` handlers fire after a transaction: a block lists state paths and the actions to run when that path's
+ * value changed. Compared as JSON so an equal rewrite does not fire. The caller runs them on the same draft and repeats
+ * a bounded number of times (a handler that keeps changing what it watches is a loop, not a feature). */
+function watchedActions(doc, before, after, getPath) {
+  const out = [];
+  for (const [id, b] of Object.entries(doc.blocks || {})) {
+    if (!object(b.watch)) continue;
+    for (const [path, actions] of Object.entries(b.watch)) {
+      if (!safeKey(path) || !Array.isArray(actions)) continue;
+      if (JSON.stringify(getPath(before, path) ?? null) !== JSON.stringify(getPath(after, path) ?? null)) out.push([id, actions]);
+    }
+  }
+  return out;
+}
+const WATCH_ROUNDS = 4;
 
 /** Evaluate only closed operators; no coercive arithmetic, code, locale clock,
  * or mutable sorting. Formatting is pinned to en-US and UTC for reproducibility. */
@@ -2226,6 +2333,14 @@ function computeExpression(op, a, ctx, evaluate, getPath) {
   if (op === "$scope") return getPath(ctx.scope, a);
   if (op === "$input") return getPath(ctx.input, a);
   if (op === "$concat") return a.map(v => evaluate(v, ctx)).map(v => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v)).join("");
+  if (op === "$join") {
+    const list = evaluate(a.list, ctx);
+    return Array.isArray(list) ? list.map(v => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v)).join(a.separator ?? ", ") : "";
+  }
+  if (op === "$truncate") {
+    const value = evaluate(a.value, ctx), text = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value), max = a.length ?? 100;
+    return text.length <= max ? text : text.slice(0, max) + (a.suffix ?? "...");
+  }
   if (op === "$sort") {
     const list = evaluate(a.list, ctx);
     if (!Array.isArray(list)) return [];
@@ -2240,13 +2355,23 @@ function computeExpression(op, a, ctx, evaluate, getPath) {
   if (op === "$format") {
     const value = evaluate(a.value, ctx);
     try {
+      if (a.style === "relative") {
+        // Relative to an explicit instant, never the clock: the same document must read the same on every render.
+        const iso = /^\d{4}-\d{2}-\d{2}(?:T.*(?:Z|[+-]\d{2}:\d{2}))?$/, to = new Date(a.relativeTo ?? "");
+        if (typeof value !== "string" || !iso.test(value) || typeof a.relativeTo !== "string" || !iso.test(a.relativeTo)) return null;
+        const at = new Date(value), diff = to.getTime() - at.getTime();
+        if (!Number.isFinite(diff)) return null;
+        if (diff === 0) return "just now";
+        const abs = Math.abs(diff), secs = Math.floor(abs / 1000), mins = Math.floor(secs / 60), hours = Math.floor(mins / 60), days = Math.floor(hours / 24), tail = diff > 0 ? "ago" : "from now";
+        return days > 0 ? days + "d " + tail : hours > 0 ? hours + "h " + tail : mins > 0 ? mins + "m " + tail : secs + "s " + tail;
+      }
       if (a.style === "date") {
         if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*(?:Z|[+-]\d{2}:\d{2}))?$/.test(value)) return null;
         const date = new Date(value);
         return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(date) : null;
       }
       if (!finite(value)) return null;
-      const opts = { style: a.style, ...(a.style === "currency" ? { currency: a.currency || "USD" } : {}), ...(a.digits !== undefined ? { minimumFractionDigits: a.digits, maximumFractionDigits: a.digits } : {}) };
+      const opts = { style: a.style === "number" ? "decimal" : a.style, ...(a.notation === "compact" ? { notation: "compact" } : {}), ...(a.style === "currency" ? { currency: a.currency || "USD" } : {}), ...(a.digits !== undefined ? { minimumFractionDigits: a.digits, maximumFractionDigits: a.digits } : {}) };
       return new Intl.NumberFormat("en-US", opts).format(value);
     } catch { return null; }
   }
@@ -2262,6 +2387,9 @@ function computeExpression(op, a, ctx, evaluate, getPath) {
     case "$pow": result = Math.pow(v[0], v[1]); break;
     case "$min": result = Math.min(...v); break;
     case "$max": result = Math.max(...v); break;
+    case "$floor": result = Math.floor(v[0]); break;
+    case "$ceil": result = Math.ceil(v[0]); break;
+    case "$abs": result = Math.abs(v[0]); break;
     case "$round": {
       const digits = v[1] ?? 0;
       if (!Number.isInteger(digits) || digits < -10 || digits > 10) return null;
@@ -2405,7 +2533,7 @@ function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFor) {
         const target = arg.split(".")[0];
         if ([...repeats(target)].some(r => !scope.has(r))) fail(at, "ambiguous-instance", "Reference to repeated block " + target + " must be inside the same repeat scope");
       }
-      walkExpr([b.props, b.bind, b.on, b.visible], (op, arg) => {
+      walkExpr([b.props, b.bind, b.on, b.watch, b.visible], (op, arg) => {
         if (op === "$block" && typeof arg === "string") checkReference(arg);
         if (op === "$tpl" && typeof arg === "string") for (const m of arg.matchAll(/\{\{\s*block\.([^}\s]+)\s*\}\}/g)) checkReference(m[1]);
       });
@@ -2417,7 +2545,7 @@ function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFor) {
         if (!object(r) || !own(r, "each") || (r.as !== undefined && (typeof r.as !== "string" || !/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(r.as) || !safeKey(r.as))) || (r.key !== undefined && !safeKey(r.key)) || Object.keys(r).some(k => !["each", "as", "key"].includes(k))) fail(at + "/repeat", "bad-repeat", "repeat takes {each, as?: alias, key?: item path}");
         else if (!isExpr(r.each) && !Array.isArray(r.each)) fail(at + "/repeat/each", "bad-repeat", "repeat.each must be an array or expression");
       }
-      walkExpr([b.props, b.bind, b.on, b.visible, b.repeat?.each], (op, arg) => {
+      walkExpr([b.props, b.bind, b.on, b.watch, b.visible, b.repeat?.each], (op, arg) => {
         const error = computationArgError(op, arg); if (error) fail(at, "bad-expr", error);
       });
       if (b.type === "composition") {

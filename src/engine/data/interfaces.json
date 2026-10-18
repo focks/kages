@@ -727,6 +727,10 @@
       "wrap": {
         "type": "boolean",
         "default": false
+      },
+      "highlight": {
+        "type": "boolean",
+        "default": true
       }
     },
     "role": "code",
@@ -1338,6 +1342,9 @@
       },
       "interactive": {
         "type": "boolean"
+      },
+      "caption": {
+        "type": "string"
       }
     },
     "events": {
@@ -1381,6 +1388,9 @@
       },
       "interactive": {
         "type": "boolean"
+      },
+      "caption": {
+        "type": "string"
       }
     },
     "events": {
@@ -2890,6 +2900,74 @@
       }
     },
     "role": "audio",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/glossary@1": {
+    "summary": "Terms and their meanings as a description list.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "term": {
+              "type": "string"
+            },
+            "definition": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "term",
+            "definition"
+          ]
+        }
+      }
+    },
+    "role": "glossary",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/references@1": {
+    "summary": "Numbered sources a page cites; rich-text cite runs link to them by id.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "href": {
+              "type": "string"
+            },
+            "detail": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      }
+    },
+    "role": "references",
     "slots": {},
     "events": {},
     "outputs": []

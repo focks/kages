@@ -3,7 +3,7 @@
 // cycle guard), and the action dispatcher. Ported from the oracle.
 // See oracle/actions-runtime.feature.
 
-import { expandDocument, matchesInput } from "./advanced.js";
+import { expandDocument, matchesInput, actionPath, watchedActions, WATCH_ROUNDS } from "./advanced.js";
 import { resolve, systemOf } from "./resolve.ts";
 import { evaluate, getPath, setPath, isExpr, merge } from "./expr.ts";
 import type { KageDoc, Action, Json, EvalContext } from "./types.ts";
@@ -124,8 +124,12 @@ export function runActions(
     const ctx = merge(makeCtx(doc, sysId, draft.state, draft.locals), { self, event });
     if (a.when !== undefined && !evaluate(a.when, ctx)) return;
     switch (a.do) {
-      case "set": setPath(draft.state, a.path, evaluate(a.value, ctx)); break;
-      case "toggle": setPath(draft.state, a.path, !getPath(draft.state, a.path)); break;
+      case "set": case "toggle": {
+        const at = actionPath(a.path, ctx, evaluate);
+        if (at === null) { log.push({ level: "error", msg: a.do + ": the path is not a state path" }); break; }
+        setPath(draft.state, at, a.do === "set" ? evaluate(a.value, ctx) : !getPath(draft.state, at));
+        break;
+      }
       case "setLocal": {
         const tgt = a.target && a.target !== "$self" ? a.target : self;
         draft.locals[tgt] = draft.locals[tgt] || {};
@@ -157,6 +161,19 @@ export function runActions(
       default: log.push({ level: "error", msg: "Unknown action '" + a.do + "'" });
     }
   });
+}
+
+/** After a transaction, run the `watch` handlers whose state path changed, on the same draft, until nothing watched
+ *  changes or WATCH_ROUNDS passes (a handler that keeps rewriting its own trigger is reported, not run forever). */
+export function runWatchers(doc: KageDoc, sysId: string, draft: Draft, before: Json, log: LogEntry[], opts?: RunOptions): void {
+  let prev = before;
+  for (let round = 0; round < WATCH_ROUNDS; round++) {
+    const fired = watchedActions(doc, prev, draft.state, getPath) as [string, Action[]][];
+    if (!fired.length) return;
+    prev = JSON.parse(JSON.stringify(draft.state));
+    for (const [id, actions] of fired) runActions(doc, sysId, actions, draft, id, {}, log, 0, opts);
+  }
+  if ((watchedActions(doc, prev, draft.state, getPath) as unknown[]).length) log.push({ level: "error", msg: "watch: handlers keep changing what they watch (stopped after " + WATCH_ROUNDS + " passes)" });
 }
 
 export const ACTIONS = ["set", "toggle", "setLocal", "call", "log", "ask", "agent", "fetch", "emit"];

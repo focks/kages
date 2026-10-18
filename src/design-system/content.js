@@ -72,6 +72,30 @@
       })));
   }
 
+  // Terms and their meanings. A native description list: the pairing is in the
+  // markup, not only the layout. Bounded so a hostile document cannot grow it.
+  function CoreGlossary(p) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.term === "string" && it.term; }).slice(0, 200);
+    if (!items.length) return null;
+    return h("div", { className: "kg-glossary" }, p.title ? h("p", { className: "kg-glossary__title" }, p.title) : null,
+      h("dl", { className: "kg-glossary__list" }, items.map(function (it, i) {
+        return h("div", { key: i, className: "kg-glossary__item" }, h("dt", null, it.term), h("dd", null, String(it.definition == null ? "" : it.definition)));
+      })));
+  }
+
+  // The numbered sources a page cites. Each item is a jump target for a
+  // `cite` run in rich-text (the id is the same namespaced slug), so a number
+  // in the prose lands on its source; the link on the item leaves the page.
+  function CoreReferences(p) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.id === "string" && anchorId(it.id) && it.label; }).slice(0, 200);
+    if (!items.length) return null;
+    return h("div", { className: "kg-references" }, p.title ? h("p", { className: "kg-references__title" }, p.title) : null,
+      h("ol", { className: "kg-references__list" }, items.map(function (it, i) {
+        var href = passiveLink(it.href);
+        return h("li", { key: i, id: anchorId("ref-" + it.id), tabIndex: -1 }, href ? h("a", { href: href, rel: "noopener noreferrer" }, String(it.label)) : String(it.label), it.detail ? h("span", { className: "kg-references__detail" }, " · " + String(it.detail)) : null);
+      })));
+  }
+
   function mediaTracks(p) {
     return (Array.isArray(p.captions) ? p.captions : []).slice(0, 8).map(function (c, i) { var src = c && mediaSource(c.src); return src ? h("track", { key: i, kind: "captions", src: src, srcLang: langTag(c.lang), label: String(c.label || c.lang || "Captions") }) : null; });
   }
@@ -120,6 +144,8 @@
     toc: { summary: "On-this-page outline of links that scroll to anchors, highlighting the section in view.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), target: S("string"), level: S("number", { enum: [1, 2, 3] }) }, requiredKeys: ["label", "target"] }) }), sticky: S("boolean"), value: S("string") }, local: { value: { type: "string", default: "" } }, events: { select: { payload: { target: "string" } } }, outputs: ["value"] },
     video: { summary: "Video with native controls, optional poster, captions and transcript; never autoplays.", props: Object.assign({ label: S("string", { required: true }), src: SRC, poster: S("string") }, MEDIA_EXTRA) },
     audio: { summary: "Audio with native controls, optional captions and transcript; never autoplays.", props: Object.assign({ label: S("string", { required: true }), src: SRC }, MEDIA_EXTRA) },
+    glossary: { summary: "Terms and their meanings as a description list.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { term: S("string"), definition: S("string") }, requiredKeys: ["term", "definition"] }) }) } },
+    references: { summary: "Numbered sources a page cites; rich-text cite runs link to them by id.", props: { title: S("string"), items: S("array", { required: true, items: S("object", { properties: { id: S("string"), label: S("string"), href: S("string"), detail: S("string") }, requiredKeys: ["id", "label"] }) }) } },
     gallery: { summary: "Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { src: S("string"), alt: S("string"), caption: S("string") }, requiredKeys: ["src", "alt"] }) }), index: S("number"), empty: S("string") }, local: { index: { type: "number", default: -1 } }, events: { change: { payload: { index: "number" } } }, outputs: ["index"] }
   };
   var CONTENT_NOTES = {
@@ -129,9 +155,11 @@
     toc: "items: [{label,target,level?}] where target is an anchor name defined by an `anchor` block on the same page. sticky keeps it in view while scrolling. Every target needs a matching anchor.",
     video: "src is an https URL or local path. Add captions [{src,lang,label}] and a transcript for accessibility. No autoplay, no embeds of third-party players.",
     audio: "src is an https URL or local path. Add a transcript for accessibility. No autoplay.",
+    glossary: "items: [{term,definition}] in the order to read them; one sentence per definition. Put it near the end of a long page. Define a term where it is first used too.",
+    references: "items: [{id,label,href?,detail?}] in citation order; the list is numbered 1, 2, 3… in that order. In prose, cite with a rich-text run {text:\"1\",cite:\"<id>\"} whose text is the item's position. href is https; detail is the publisher or author. Every cited id must exist here, and every claim from a source should cite it.",
     gallery: "items: [{src,alt,caption?}] with the image block's source rules. Thumbnails open a lightbox; arrows navigate, Escape closes. index -1 means closed."
   };
-  Object.assign(freeFlowExports, { CoreTabPanel: CoreTabPanel, CoreCodeTabs: CoreCodeTabs, CoreAnchor: CoreAnchor, CoreToc: CoreToc, CoreVideo: CoreVideo, CoreAudio: CoreAudio, CoreGallery: CoreGallery });
+  Object.assign(freeFlowExports, { CoreTabPanel: CoreTabPanel, CoreCodeTabs: CoreCodeTabs, CoreAnchor: CoreAnchor, CoreToc: CoreToc, CoreVideo: CoreVideo, CoreAudio: CoreAudio, CoreGallery: CoreGallery, CoreGlossary: CoreGlossary, CoreReferences: CoreReferences });
   Object.keys(CONTENT).forEach(function (name) {
     var I = CONTENT[name]; I.role = name; I.slots = I.slots || {}; I.events = I.events || {}; I.outputs = I.outputs || [];
     interfaces["kages/" + name + "@1"] = I;

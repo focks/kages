@@ -54,10 +54,49 @@
       p.caption ? h("figcaption", null, p.caption) : null);
   }
 
+  // Colour code by lexical class without an HTML string: every token is a React
+  // text child, so hostile source stays literal. One global scan, each pattern
+  // tolerates being unterminated (running to the line or input end) so no input
+  // forces backtracking, and the input is capped.
+  var CODE_WORDS = {
+    clike: "as async await break case catch class const continue default delete do else enum export extends false final finally fn for from func function go if implements import in instanceof interface let loop match mod mut new nil null of override package private protected pub public return self static struct super switch this throw true try type typeof undefined use var void while with yield",
+    hash: "and as async await break case class continue def defer do done elif else elsif end esac except export false fi finally for from function if import in is lambda let local nil none not null or pass raise readonly return then true try unless until while with yield",
+    sql: "add all alter and as asc between by case create delete desc distinct drop else end exists from group having in index insert into is join left like limit not null on or order outer primary right select set table then union update values when where"
+  };
+  var CODE_LANGS = { js: "clike", jsx: "clike", ts: "clike", tsx: "clike", javascript: "clike", typescript: "clike", java: "clike", go: "clike", rust: "clike", rs: "clike", c: "clike", cpp: "clike", cs: "clike", csharp: "clike", kotlin: "clike", swift: "clike", php: "clike", json: "json",
+    sh: "hash", bash: "hash", shell: "hash", zsh: "hash", py: "hash", python: "hash", rb: "hash", ruby: "hash", yaml: "hash", yml: "hash", toml: "hash", sql: "sql" };
+  var CODE_RE = {
+    clike: /(\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|("(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?|`(?:[^`\\]|\\[\s\S])*`?)|(\b\d[\d_]*(?:\.\d+)?(?:e[+-]?\d+)?\b|\b0x[0-9a-f]+\b)|([A-Za-z_$][\w$]*)/gi,
+    hash: /(#[^\n]*)|("(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?)|(\b\d[\d_]*(?:\.\d+)?\b)|([A-Za-z_][\w-]*)/g,
+    sql: /(--[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|('(?:[^'\n]|'')*'?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][\w]*)/gi,
+    json: /()("(?:[^"\\\n]|\\.)*"?)|(-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|(true|false|null)\b/g
+  };
+  var CODE_SETS = {};
+  function codeSet(kind) { return CODE_SETS[kind] || (CODE_SETS[kind] = (function () { var o = Object.create(null); (CODE_WORDS[kind] || "true false null").split(" ").forEach(function (w) { o[w] = 1; }); return o; })()); }
+  function highlightCode(code, language) {
+    var kind = CODE_LANGS[String(language == null ? "" : language).toLowerCase()];
+    if (!kind || code.length > 20000) return code;
+    var re = new RegExp(CODE_RE[kind].source, CODE_RE[kind].flags), words = codeSet(kind === "json" ? "json" : kind), out = [], at = 0, m, n = 0;
+    function tok(cls, text) { out.push(h("span", { key: n++, className: "kg-tok kg-tok--" + cls }, text)); }
+    while ((m = re.exec(code)) !== null) {
+      if (m[0] === "") { re.lastIndex++; continue; }
+      if (m.index > at) out.push(code.slice(at, m.index));
+      if (m[1]) tok("c", m[0]);
+      else if (m[2]) tok("s", m[0]);
+      else if (m[3]) tok("n", m[0]);
+      else if (kind === "json") tok("k", m[0]);
+      else if (words[kind === "sql" ? m[0].toLowerCase() : m[0]]) tok("k", m[0]);
+      else out.push(m[0]);
+      at = m.index + m[0].length;
+    }
+    if (at < code.length) out.push(code.slice(at));
+    return out;
+  }
   function CoreCode(p) {
+    var code = String(p.code == null ? "" : p.code);
     return h("figure", { className: "kg-code" },
       p.language || p.caption ? h("figcaption", null, p.caption || p.language) : null,
-      h("pre", { className: p.wrap ? "kg-code__wrap" : undefined }, h("code", null, String(p.code == null ? "" : p.code))));
+      h("pre", { className: p.wrap ? "kg-code__wrap" : undefined }, h("code", null, p.highlight === false ? code : highlightCode(code, p.language))));
   }
 
   function CoreList(p) {
@@ -112,7 +151,7 @@
     grid: { summary: "Responsive equal-column grid that fits its container and stacks on narrow canvases.", props: { columns: S("number", { default: 3, description: "Maximum column count, a positive integer. Fewer columns render when needed to fit the canvas." }), minSize: S("string", { enum: ["small", "medium", "large"], default: "medium" }), gap: SPACING }, slots: { children: {} } },
     split: { summary: "Two flowing panes with a chosen ratio, stacked in source order on narrow canvases.", props: { ratio: S("string", { enum: ["equal", "wide-start", "wide-end"], default: "equal" }), gap: SPACING }, slots: { start: {}, end: {} } },
     image: { summary: "Accessible image with a semantic aspect ratio, fit and optional caption.", props: { src: S("string", { required: true }), alt: S("string", { required: true }), caption: S("string"), ratio: S("string", { enum: ["auto", "square", "landscape", "portrait"], default: "auto" }), fit: S("string", { enum: ["cover", "contain"], default: "cover" }) } },
-    code: { summary: "Literal source code or structured text; displayed, never executed.", props: { code: S("string", { required: true }), language: S("string"), caption: S("string"), wrap: S("boolean", { default: false }) } },
+    code: { summary: "Literal source code or structured text; displayed, never executed.", props: { code: S("string", { required: true }), language: S("string"), caption: S("string"), wrap: S("boolean", { default: false }), highlight: S("boolean", { default: true }) } },
     list: { summary: "Ordered or unordered prose list.", props: { items: S("array", { items: S("string"), required: true }), ordered: S("boolean", { default: false }) } },
     divider: { summary: "Semantic separator between flowing content regions.", props: {} },
     textarea: { summary: "Labelled multiline input with public value and change events.", props: { label: S("string", { required: true }), value: S("string"), placeholder: S("string"), help: S("string"), rows: S("number", { enum: [3, 5, 8, 12], default: 5 }), disabled: S("boolean") }, local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
@@ -126,7 +165,7 @@
     grid: "Use for galleries, feature cards and dashboards; columns is the maximum, minSize controls when columns fit. Children remain in source order.",
     split: "Use for side-by-side explanation and interaction, image and prose, or input and output. Does not create a sidebar.",
     image: "Use HTTPS URLs, local / paths or raster data URLs. Provide descriptive alt text; use empty alt only for decoration.",
-    code: "Display examples, JSON, logs or source. Content remains literal text even when it contains markup.",
+    code: "Display examples, JSON, logs or source. Content remains literal text even when it contains markup. Set language (js, ts, json, sh, py, yaml, sql, go, rust, java, c…) to colour keywords, strings, numbers and comments; unknown languages stay plain, and highlight:false turns it off.",
     list: "Use for instructions, summaries and checklists; items are text, ordered enables numbered steps.",
     divider: "Separate adjacent topics without wrapping them in cards.",
     textarea: "Use for notes, drafts and longer answers. Read value or bind it to declared state; change emits {value}.",
@@ -142,7 +181,7 @@
     if (name === "textarea" || name === "slider") DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
     if (name === "checkbox") DEFAULTS[name] = { change: [{ do: "setLocal", key: "checked", value: { $event: "checked" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
-    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "line-control", "accent", "focus"], agent: { use: FLOW_NOTES[name] } });
+    core[name] = contract("core", name, name === "code" ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "line-control", "accent"].concat(name === "code" ? ["success"] : []).concat(["focus"]), agent: { use: FLOW_NOTES[name] } });
     contracts[core[name]].a11y = { keyboard: name === "slider" ? "Native range: arrows and Home/End." : name === "checkbox" ? "Native checkbox: Tab and Space." : name === "textarea" ? "Native multiline text input: Tab to focus, typing to edit." : "Semantic content; interactive children own their keyboard behavior." };
   });
 

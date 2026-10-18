@@ -15,6 +15,8 @@ First public release candidate.
 - Decision guides: turn a technical answer into an interactive guide (a skill and operation).
 - Threaded comments, pinned comment mode, share links with guest feedback.
 - Documentation site served as Kages at `/docs`.
+- Expressions: `$floor`, `$ceil`, `$abs`, `$join`, `$truncate`, compact numbers and relative dates in `$format`; handlers may write a repeated row by an expression path; blocks may declare `watch`.
+- Research briefs: `rich-text` citations linked to a new `references` block, attributed quotes, a `glossary` block, captions on `scene` and `diagram`, syntax-coloured `code`, a `dangling-cite` lint rule, a starter and a docs page.
 
 ### Security
 - Fail-closed authentication, CSRF checks on cookie-authenticated writes, existence

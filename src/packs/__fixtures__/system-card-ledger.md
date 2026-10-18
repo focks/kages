@@ -1,6 +1,6 @@
 ---
 system: ledger
-version: 2.9.0
+version: 2.10.0
 extends: core@1
 tokens:
   colors:
@@ -87,6 +87,8 @@ Declared contrast pairs (WCAG 2.x):
 | `accent-ink` | `accent` | label on a filled accent button | 4.5:1 | 11.42:1 pass | 10.57:1 pass |
 | `accent` | `paper` | links and accent text on the page | 4.5:1 | 11.42:1 pass | 11.36:1 pass |
 | `accent` | `surface` | links and accent text on cards | 4.5:1 | 12.27:1 pass | 10.66:1 pass |
+| `accent` | `sunken` | code keywords on recessed code blocks | 4.5:1 | 10.51:1 pass | 9.96:1 pass |
+| `success` | `sunken` | code strings on recessed code blocks | 4.5:1 | 5.58:1 pass | 9.91:1 pass |
 | `ink` | `accent-soft` | text on soft accent fills | 4.5:1 | 15.16:1 pass | 11.23:1 pass |
 | `danger` | `surface` | error text | 4.5:1 | 6.54:1 pass | 7.91:1 pass |
 | `ink` | `danger-soft` | text on soft danger fills | 4.5:1 | 14.81:1 pass | 12.83:1 pass |
@@ -139,7 +141,7 @@ Structural overrides:
 - `card` → `ledger/card@2.0.0`
 - `stat` → `ledger/stat@2.0.0`
 
-Inherited from Core (65): shell, text-input, stack, text, badge, table, page, section, grid, split, image, code, list, divider, textarea, slider, checkbox, bar-chart, composition, link, rich-text, text-field, number-input, date-input, choice, multiselect, form, scene, diagram, line-chart, scatter-chart, area-chart, donut-chart, gauge, sparkline, heatmap, alert, accordion, stepper, timeline, modal, switch, combobox, tree, data-grid, kanban, calendar, carousel, markdown, math, combo-chart, stacked-bar-chart, funnel-chart, treemap, sankey, map, tab-panel, code-tabs, anchor, toc, video, audio, gallery, date-range, file-upload.
+Inherited from Core (67): shell, text-input, stack, text, badge, table, page, section, grid, split, image, code, list, divider, textarea, slider, checkbox, bar-chart, composition, link, rich-text, text-field, number-input, date-input, choice, multiselect, form, scene, diagram, line-chart, scatter-chart, area-chart, donut-chart, gauge, sparkline, heatmap, alert, accordion, stepper, timeline, modal, switch, combobox, tree, data-grid, kanban, calendar, carousel, markdown, math, combo-chart, stacked-bar-chart, funnel-chart, treemap, sankey, map, tab-panel, code-tabs, anchor, toc, video, audio, glossary, references, gallery, date-range, file-upload.
 
 ## Named rules
 

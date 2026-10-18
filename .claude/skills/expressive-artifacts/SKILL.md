@@ -75,3 +75,13 @@ browser behavior as well as SSR, both themes and all systems.
 Studio starting documents use the same examples as packs and workspace seeding.
 New artifacts save through `/api/create_kage`; existing edits use `/api/patch_kage`.
 Run typecheck after a Next build, since the build rewrites `.next/types`.
+
+## Operators and handlers beyond the reference
+
+`$floor/$ceil/$abs`, `$join`, `$truncate`, `$format` (compact, relative) live in `src/engine/advanced.js`
+beside the other computation, so the oracle and the pure engine share them; add each to
+`COMPUTE_OPERATORS` and `computationArgError`, and to `CASES` in `src/engine/parity.test.ts`, which
+evaluates in both. A `set`/`toggle` path may be an expression (`actionPath`), and `watch` handlers run
+through `watchedActions` after the transaction (`runWatchers`, four passes). The oracle's own `runActions`
+and dispatch are patched in `scripts/ds-source.mjs`; if those anchors move the build fails loudly.
+Nothing may read the clock: a relative date takes an explicit `relativeTo`.

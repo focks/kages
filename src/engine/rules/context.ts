@@ -12,14 +12,14 @@ import type { LintContext, Mode, TplRef } from "./types.ts";
 function actionsOf(doc: KageDoc): LintContext["actions"] {
   const out: LintContext["actions"] = [];
   for (const [id, b] of Object.entries(doc.blocks))
-    for (const [event, h] of Object.entries(b.on && typeof b.on === "object" ? b.on : {})) for (const a of Array.isArray(h) ? h : [h]) if (a && typeof a === "object") out.push({ id, event, action: a as unknown as Record<string, unknown> });
+    for (const [event, h] of [...Object.entries(b.on && typeof b.on === "object" ? b.on : {}), ...Object.entries(b.watch && typeof b.watch === "object" ? b.watch : {}).map(([p, v]) => ["watch:" + p, v] as const)]) for (const a of Array.isArray(h) ? h : [h]) if (a && typeof a === "object") out.push({ id, event, action: a as unknown as Record<string, unknown> });
   return out;
 }
 
 /** Every expression-bearing value in a block, with its JSON pointer. */
 function exprsOf(id: string, b: Block): { at: string; value: unknown }[] {
   const base = "/blocks/" + id;
-  return [{ at: base + "/props", value: b.props }, { at: base + "/bind", value: b.bind }, { at: base + "/visible", value: b.visible }, { at: base + "/on", value: b.on }, { at: base + "/repeat", value: b.repeat }].filter((e) => e.value !== undefined);
+  return [{ at: base + "/props", value: b.props }, { at: base + "/bind", value: b.bind }, { at: base + "/visible", value: b.visible }, { at: base + "/on", value: b.on }, { at: base + "/watch", value: b.watch }, { at: base + "/repeat", value: b.repeat }].filter((e) => e.value !== undefined);
 }
 
 export function buildContext(given: KageDoc, override?: string, deprecations: readonly Deprecation[] = REGISTRY, absent: readonly string[] = []): LintContext {

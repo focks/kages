@@ -122,7 +122,7 @@ function validateBase(doc: KageDoc, override?: string): ValidateResult {
   Object.keys(blocks).forEach((id) => {
     const b = blocks[id];
     const at = "/blocks/" + id;
-    walkExpr([b.props, b.bind, b.visible, b.on, b.repeat?.each], (op, arg) => {
+    walkExpr([b.props, b.bind, b.visible, b.on, b.watch, b.repeat?.each], (op, arg) => {
       // Operator argument shape. A malformed expression ({"$and": 1}) would
       // otherwise pass validation and then throw at render time, breaking the
       // "a validated doc never throws" invariant. Caught here so the author is
@@ -139,11 +139,21 @@ function validateBase(doc: KageDoc, override?: string): ValidateResult {
       if (op === "$state" && doc.state && getPath(doc.state, String(arg).split(".")[0]) === undefined) Wn(at, "undeclared-state", "$state '" + arg + "' is not declared in `state`");
       if (op === "$data" && getPath(doc.data || {}, String(arg).split(".")[0]) === undefined) E(at, "missing-data", "$data '" + arg + "' is not in `data`");
     });
+    if (b.watch !== undefined) {
+      if (!b.watch || typeof b.watch !== "object" || Array.isArray(b.watch)) E(at + "/watch", "bad-watch", "`watch` maps a state path to a list of actions");
+      else for (const [path, list] of Object.entries(b.watch)) {
+        const wat = at + "/watch/" + path;
+        if (doc.state && getPath(doc.state, path.split(".")[0]) === undefined) Wn(wat, "undeclared-state", "watches undeclared state '" + path + "'");
+        if (!Array.isArray(list)) { E(wat, "bad-watch", "`watch` maps a state path to a list of actions"); continue; }
+        list.forEach((a, i) => { if (ACTIONS.indexOf(a?.do) < 0) E(wat + "/" + i, "unknown-action", "Unknown action `" + a?.do + "`"); });
+      }
+    }
     Object.keys(b.on || {}).forEach((ev) => {
       (b.on![ev] || []).forEach((a, i) => {
         const aat = at + "/on/" + ev + "/" + i;
         if (ACTIONS.indexOf(a.do) < 0) E(aat, "unknown-action", "Unknown action `" + a.do + "`");
-        if ((a.do === "set" || a.do === "toggle") && doc.state && getPath(doc.state, String(a.path).split(".")[0]) === undefined) Wn(aat, "undeclared-state", "writes undeclared state '" + a.path + "'");
+        if ((a.do === "set" || a.do === "toggle") && typeof a.path !== "string" && !(a.path && typeof a.path === "object")) E(aat, "bad-path", "`" + a.do + "` needs a state path: a dot-path string or an expression that yields one");
+        if ((a.do === "set" || a.do === "toggle") && typeof a.path === "string" && doc.state && getPath(doc.state, String(a.path).split(".")[0]) === undefined) Wn(aat, "undeclared-state", "writes undeclared state '" + a.path + "'");
         if (a.do === "ask" && (!a.prompt || !a.into)) E(aat, "missing-field", "`ask` needs `prompt` and `into`");
         if (a.do === "agent" && (!a.agent || !a.into)) E(aat, "missing-field", "`agent` needs `agent` (a registered agent id) and `into`");
         if (a.do === "fetch" && a.source && !(doc.sources || {})[a.source]) E(aat, "missing-source", "`fetch` names source '" + a.source + "', which is not in `sources`");

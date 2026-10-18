@@ -151,3 +151,14 @@ or `*`), use motion tokens (`checkMotion` fails literal timings, overshoot easin
 stylesheet is frozen: its four transitions are an accepted inventory and the global rule
 neutralises them. `node scripts/audit-surfaces.mjs` lists remaining gaps; the static tests and a
 Chrome-gated computed-style test (`surfaces-browser.test.ts`) enforce the rest.
+
+## Scholarly reading (citations, references, glossary, highlighted code)
+
+`rich-text` runs take `cite`, a quote node takes `attribution`, `scene`/`diagram` take `caption`,
+`code` colours by `language`, and `glossary` and `references` blocks exist; the authoring recipe is
+the `research-briefs` skill. Rules for changing them: a cite target is `anchorId("ref-" + id)` and the
+id must itself slug to something (otherwise every bad id would collide on `kg-a-ref`); attribution
+goes in a `figcaption` outside the `blockquote`; lists of terms stay a native `dl`; the tokenizer is
+one global regex scan that renders React text children (never an HTML string) and is capped at
+20,000 characters. These roles are minor releases (`code`, `rich-text`, `scene`, `diagram` are
+1.1.0), so a golden or test that pins `core/code@1.0.0` must move with them.

@@ -8,7 +8,7 @@ import type { KageDoc, Expr, Mode } from "../engine/types.ts";
  *  Read-only here: the engine goldens are unaffected because the generation
  *  envelope does not carry `brief`. */
 const MODES: Record<string, Mode> = {
-  "field-notes": "read", "math-notes": "read", "docs-guide": "read",
+  "field-notes": "read", "math-notes": "read", "docs-guide": "read", "research-brief": "read",
   "open-studio": "persuade", "media-gallery": "experience",
   "idea-lab": "operate", "collection-lab": "operate", "growth-lab": "operate", "event-planner": "operate",
   "metrics-board": "operate", "launch-flow": "operate", "team-workbench": "operate", "region-explorer": "operate",
@@ -279,5 +279,65 @@ export function contentExamples(system = "core"): KageDoc[] {
       { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABD0lEQVR42tXCaUcDAADH4d/HKVlSMiVNymSZkpLaTDPLzDKrmYkkkkgiGUkkkUQSSSSRsa51N9u6b9136VWf4/94iDVkSGfVnimdNUeWdNadBulsuLKls+nOkU7ckyudLW+edLZ9+dLZ8RulsxsokM5ea6F09kNF0jkIF0vnsM0knUR7iXSSHaXSSXWWSSfdZZbOUXe5dI57LNI56a2QzmmfVTpn/ZXSOR+oks7FYLV0LiM10rkaqpXO9XCddG5G6qVzO2qTzt2YXTr34w7pPEw0Sudx0imdpymXdJ6n3dJ5mWmSzuusRzpvc17pvM/7pPOx0Cydz0W/dL6WAtL5Xm6Rzs9KUDq/0ZB0/mJh6f+cUAf8Hy6sbAAAAABJRU5ErkJggg==", alt: "Warm orange gradient", caption: "Ember" }, { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCUlEQVR42tXCi0ZDAQDH4d+TJCOJJJKYRBJJJJGMSSSRmtb1OI61day1rXWbmdXMzKx7rdvWzMyqtaR36jn+n4+21R3ptHsM6TjWTOl0rFvS6dz0Sadr2y+dbiMgnR7Tlk6vFZROny8knX5/WDoDexHpOO1D6QwGj6QzFDqRznD4TDoj0bh0RmMJ6YwdJ6UzfpqSzkT8QjqTibR0ppIZ6UynstKZOc9JZzadl44rU5COO3spnbnctXTm87fSWSjcS2fx6lE6SzdF6SzfPUtn5eFVOp5iSTrep3fpbLxUpLP1VpWOUa5Jx6zUpWNVG9LZrX1IJ1D/ko7d+JbO/uePdA6av9KJtv6k/wM3+M3PnpzlbQAAAABJRU5ErkJggg==", alt: "Cool teal gradient", caption: "Lagoon" },
       { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABBklEQVR42tXCDUcDAQDH4f9nSiQSiZmVmV60NTOVKTNrzTnOWrO21rRWW6s5qzlrzXISySSSGUkiSfR1+hy/x6OxpAdd4ykvuibSPnRNGvPomjL96Jq2AuiaySygaza7hC5PbgVd3v0QuuaKYXT5SxF0BcpRdC1W1tC1XN1AV/A0hq7V+ha6Io04uqLNBLrW7SS6Yq0Uujav0uiKOwa6Eh0TXdtdC107vQy6jNssukw3hy7rLo+u3fsCuvYeDtCVfzxEV2FwhK7S0zG6ys8n6Kq81NBVfT1DV214jq7GqImuizcbXfb7JbpaH210tT8ddDlfHXRdf3fRdfPTQ1f/t48u989F/wdpg1XPpvn/wAAAAABJRU5ErkJggg==", alt: "Soft green gradient", caption: "Meadow" }, { src: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAABCElEQVR42tXCi0ZDAQDH4d+DJUmSmCSTLmZmZqqZmZnpYmZmpouZ7ThOzWmtmllm3WealElJSUmaKZM9R8/x/3wUhualYwwvSscccUnHGnVLZ3fMI53iuFc69oRPOvuTfukcOJalczgVkM7xdFA6lZmQdKrOsHRqsxHpnMxFpVNfiEmn4VqTzql7Qzrnnrh0Lr0J6Vz7ktJp+lPSaS2lpXOzkpFOO7glndvQjnTuwlnp3Edy0ulE89J5iBnSeVw1pfO0bknnOV6UzkvCls5rsiSdt1RZOu/pI+l8ZCrS+dysSudruyad72xdOt1cQzq9/Jl0fowL6fyaV9LpW03p/O21pDOw29L/Ad++j+3HCrdzAAAAAElFTkSuQmCC", alt: "Rose gradient", caption: "Dusk" }] } },
   };
-  return declared([docs, media]);
+  // A long evidence-backed brief: contents rail, numbered citations, a captioned
+  // figure, an attributed quote, a self-check that keeps its ticks, a glossary
+  // and a sources list. The shape the `research-briefs` skill teaches.
+  const brief = base("research-brief", "Trunk-based development — a research brief");
+  brief.state = { c1: false, c2: false, c3: false, c4: false };
+  brief.persist = { c1: "personal", c2: "personal", c3: "personal", c4: "personal" };
+  const cite = (n: number, id: string) => ({ text: String(n), cite: id });
+  const lane = (y: number, label: string) => [{ kind: "text", x: 12, y: y + 4, text: label, size: 12, fill: "ink-muted" }];
+  const ticks = { $add: ["c1", "c2", "c3", "c4"].map((k) => ({ $if: [{ $state: k }, 1, 0] })) } as unknown as Expr;
+  const check = (id: string, label: string) => ({ type: "checkbox", props: { label }, bind: { checked: { $state: id } }, on: { change: [{ do: "set", path: id, value: { $event: "checked" } }] } });
+  brief.blocks = {
+    root: { type: "page", props: { width: "wide", gap: 8 }, slots: { children: ["hero", "figures", "layout"] } },
+    hero: { type: "section", props: { eyebrow: "Source control · research brief · October 2026", title: "Trunk-based development", description: "Everyone integrates small changes into one shared branch at least once a day. DORA ties the habit to faster, more stable delivery.", inset: 0 } },
+    figures: { type: "grid", props: { columns: 3, minSize: "small", gap: 4 }, slots: { children: ["f1", "f2", "f3"] } },
+    f1: { type: "stat", props: { label: "Active branches, trunk included", value: "3 or fewer", caption: "DORA threshold" } },
+    f2: { type: "stat", props: { label: "Merges per developer", value: "1+ a day", caption: "DORA threshold" } },
+    f3: { type: "stat", props: { label: "Code freezes", value: "None", caption: "DORA threshold" } },
+    layout: { type: "split", props: { ratio: "wide-end", gap: 8 }, slots: { start: ["toc"], end: ["a-what", "what", "quote", "fig", "a-check", "h-check", "checks", "score", "verdict", "a-code", "h-code", "snippet", "a-terms", "terms", "a-sources", "sources"] } },
+    toc: { type: "toc", props: { title: "Contents", sticky: true, items: [{ label: "What it is", target: "what" }, { label: "Self-check", target: "check" }, { label: "In code", target: "code" }, { label: "Glossary", target: "terms" }, { label: "Sources", target: "sources" }] } },
+    "a-what": { type: "anchor", props: { name: "what" } },
+    what: { type: "rich-text", props: { nodes: [
+      { kind: "heading", level: 2, text: "What it is" },
+      { kind: "paragraph", runs: [{ text: "Developers collaborate on one branch called trunk and resist long-lived development branches" }, cite(1, "tbd"), { text: ". DORA puts it in operational terms: small batches merged at least once a day" }, cite(2, "dora"), { text: "." }] },
+    ] } },
+    quote: { type: "rich-text", props: { nodes: [{ kind: "quote", text: "If it hurts, do it more often.", attribution: "Martin Fowler on integration frequency", href: "https://martinfowler.com/articles/branching-patterns.html" }] } },
+    fig: { type: "scene", props: { label: "Trunk with short-lived branches and one release branch", caption: "Branches rejoin within a day; the release branch is cut late and only receives cherry-picks.", width: 640, height: 200, shapes: [
+      ...lane(60, "trunk"),
+      { kind: "line", x: 60, y: 60, x2: 620, y2: 60, stroke: "accent", strokeWidth: 4 },
+      { kind: "path", d: "M140 60 Q150 20 175 20 L215 20 Q240 20 250 60", stroke: "ink-muted", strokeWidth: 2 },
+      { kind: "path", d: "M330 60 Q340 20 365 20 L405 20 Q430 20 440 60", stroke: "ink-muted", strokeWidth: 2 },
+      ...lane(150, "release"),
+      { kind: "path", d: "M470 60 Q485 150 520 150 L620 150", stroke: "ink", strokeWidth: 2 },
+      { kind: "circle", x: 140, y: 60, radius: 5, fill: "paper", stroke: "accent", strokeWidth: 2 },
+      { kind: "circle", x: 250, y: 60, radius: 5, fill: "paper", stroke: "accent", strokeWidth: 2 },
+      { kind: "circle", x: 440, y: 60, radius: 5, fill: "paper", stroke: "accent", strokeWidth: 2 },
+    ] } },
+    "a-check": { type: "anchor", props: { name: "check" } },
+    "h-check": { type: "rich-text", props: { nodes: [{ kind: "heading", level: 2, text: "Self-check" }, { kind: "paragraph", text: "Tick what is true for your team today. Your ticks stay in this browser." }] } },
+    checks: { type: "stack", props: { gap: 2 }, slots: { children: ["k1", "k2", "k3", "k4"] } },
+    k1: check("c1", "Three or fewer active branches"),
+    k2: check("c2", "Every developer merges to trunk daily"),
+    k3: check("c3", "No code freezes"),
+    k4: check("c4", "Unfinished features ship behind flags"),
+    score: { type: "stat", props: { label: "Your score out of 4" }, bind: { value: ticks } },
+    verdict: { type: "text", props: { variant: "muted" }, bind: { text: { $if: [{ $gte: [ticks, 4] }, "All four hold. You are practising trunk-based development.", "Tick what is true. Fewer than four means there is room to move toward trunk."] } } },
+    "a-code": { type: "anchor", props: { name: "code" } },
+    "h-code": { type: "rich-text", props: { nodes: [{ kind: "heading", level: 2, text: "In code" }, { kind: "paragraph", text: "A release flag chooses the implementation while both ship on trunk." }] } },
+    snippet: { type: "code", props: { language: "ts", caption: "Branch by abstraction behind a flag", code: "// Commit 1: the abstraction. Behaviour unchanged.\ninterface PaymentGateway { charge(order: Order): Promise<Receipt>; }\n\nfunction gatewayFor(user: User): PaymentGateway {\n  return flags.isEnabled(\"payments.new-gateway\", { userId: user.id })\n    ? new NewGateway()\n    : new LegacyGateway();\n}" } },
+    "a-terms": { type: "anchor", props: { name: "terms" } },
+    terms: { type: "glossary", props: { title: "Glossary", items: [
+      { term: "Trunk", definition: "The single shared branch, also called main or master. It should always be releasable." },
+      { term: "Feature flag", definition: "A runtime switch that turns a code path on or off, separating deployment from release." },
+      { term: "Cherry-pick", definition: "Copying one commit from trunk to a release branch." },
+    ] } },
+    "a-sources": { type: "anchor", props: { name: "sources" } },
+    sources: { type: "references", props: { title: "Sources", items: [
+      { id: "tbd", label: "Trunk Based Development", href: "https://trunkbaseddevelopment.com/", detail: "Paul Hammant et al." },
+      { id: "dora", label: "Capabilities: Trunk-based development", href: "https://dora.dev/capabilities/trunk-based-development/", detail: "DORA" },
+    ] } },
+  };
+  return declared([docs, media, brief]);
 }

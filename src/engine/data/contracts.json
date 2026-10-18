@@ -1231,11 +1231,11 @@
       "keyboard": "Semantic content; interactive children own their keyboard behavior."
     }
   },
-  "core/code@1.0.0": {
+  "core/code@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/code",
-    "version": "1.0.0",
-    "ref": "core/code@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/code@1.1.0",
     "system": "core",
     "name": "code",
     "implements": [
@@ -1257,6 +1257,10 @@
       "wrap": {
         "type": "boolean",
         "default": false
+      },
+      "highlight": {
+        "type": "boolean",
+        "default": true
       }
     },
     "slots": {},
@@ -1274,10 +1278,11 @@
       "line",
       "line-control",
       "accent",
+      "success",
       "focus"
     ],
     "agent": {
-      "use": "Display examples, JSON, logs or source. Content remains literal text even when it contains markup."
+      "use": "Display examples, JSON, logs or source. Content remains literal text even when it contains markup. Set language (js, ts, json, sh, py, yaml, sql, go, rust, java, c…) to colour keywords, strings, numbers and comments; unknown languages stay plain, and highlight:false turns it off."
     },
     "limits": {},
     "a11y": {
@@ -1789,11 +1794,11 @@
     },
     "limits": {}
   },
-  "core/rich-text@1.0.0": {
+  "core/rich-text@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/rich-text",
-    "version": "1.0.0",
-    "ref": "core/rich-text@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/rich-text@1.1.0",
     "system": "core",
     "name": "rich-text",
     "implements": [
@@ -1830,7 +1835,7 @@
       "focus"
     ],
     "agent": {
-      "use": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal."
+      "use": "nodes kinds: paragraph, heading (level 2/3/4), quote (optional attribution and href), list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?,cite?}]. A run with cite:\"id\" and text:\"1\" is a superscript link to the references item with that id; the number is the item's position. Strings remain literal."
     },
     "limits": {}
   },
@@ -2356,11 +2361,11 @@
     },
     "limits": {}
   },
-  "core/scene@1.0.0": {
+  "core/scene@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/scene",
-    "version": "1.0.0",
-    "ref": "core/scene@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/scene@1.1.0",
     "system": "core",
     "name": "scene",
     "implements": [
@@ -2393,6 +2398,9 @@
       },
       "interactive": {
         "type": "boolean"
+      },
+      "caption": {
+        "type": "string"
       }
     },
     "slots": {},
@@ -2419,15 +2427,15 @@
       "focus"
     ],
     "agent": {
-      "use": "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space."
+      "use": "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space. label is the accessible name; caption is the visible sentence under the figure saying what to take from it (it replaces the label as the visible caption)."
     },
     "limits": {}
   },
-  "core/diagram@1.0.0": {
+  "core/diagram@1.1.0": {
     "$contract": "kages.contract/1",
     "id": "core/diagram",
-    "version": "1.0.0",
-    "ref": "core/diagram@1.0.0",
+    "version": "1.1.0",
+    "ref": "core/diagram@1.1.0",
     "system": "core",
     "name": "diagram",
     "implements": [
@@ -2463,6 +2471,9 @@
       },
       "interactive": {
         "type": "boolean"
+      },
+      "caption": {
+        "type": "string"
       }
     },
     "slots": {},
@@ -2489,7 +2500,7 @@
       "focus"
     ],
     "agent": {
-      "use": "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}."
+      "use": "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}. caption is the visible takeaway under the figure."
     },
     "limits": {}
   },
@@ -5200,6 +5211,128 @@
     ],
     "agent": {
       "use": "src is an https URL or local path. Add a transcript for accessibility. No autoplay."
+    },
+    "limits": {}
+  },
+  "core/glossary@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/glossary",
+    "version": "1.0.0",
+    "ref": "core/glossary@1.0.0",
+    "system": "core",
+    "name": "glossary",
+    "implements": [
+      "kages/glossary@1"
+    ],
+    "role": "glossary",
+    "summary": "Terms and their meanings as a description list.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "term": {
+              "type": "string"
+            },
+            "definition": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "term",
+            "definition"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{term,definition}] in the order to read them; one sentence per definition. Put it near the end of a long page. Define a term where it is first used too."
+    },
+    "limits": {}
+  },
+  "core/references@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/references",
+    "version": "1.0.0",
+    "ref": "core/references@1.0.0",
+    "system": "core",
+    "name": "references",
+    "implements": [
+      "kages/references@1"
+    ],
+    "role": "references",
+    "summary": "Numbered sources a page cites; rich-text cite runs link to them by id.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            },
+            "href": {
+              "type": "string"
+            },
+            "detail": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{id,label,href?,detail?}] in citation order; the list is numbered 1, 2, 3… in that order. In prose, cite with a rich-text run {text:\"1\",cite:\"<id>\"} whose text is the item's position. href is https; detail is the publisher or author. Every cited id must exist here, and every claim from a source should cite it."
     },
     "limits": {}
   },

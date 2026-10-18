@@ -13,6 +13,11 @@
       if (run.code) child = h("code", null, child);
       if (run.bold) child = h("strong", null, child);
       if (run.italic) child = h("em", null, child);
+      // A citation is a superscript link to the matching item of a `references`
+      // block on the same page. The target id is the namespaced slug, so author
+      // text can never become an arbitrary DOM id.
+      var cite = typeof run.cite === "string" && anchorId(run.cite) ? anchorId("ref-" + run.cite) : undefined;
+      if (cite) return h("sup", { key: i, className: "kg-cite" }, h("a", { href: "#" + cite, "aria-label": "Source " + run.text }, child));
       var href = passiveLink(run.href);
       return h(href ? "a" : "span", { key: i, href: href }, child);
     });
@@ -23,7 +28,14 @@
       if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, String(item)); }));
       if (node.kind === "code") return h("pre", { key: i }, h("code", null, String(node.text || "")));
       var tag = node.kind === "heading" ? "h" + choice(node.level, [2, 3, 4], 2) : node.kind === "quote" ? "blockquote" : "p";
-      return h(tag, { key: i }, node.runs ? richRuns(node.runs) : String(node.text || ""));
+      var body = node.runs ? richRuns(node.runs) : String(node.text || "");
+      // Attribution sits outside the blockquote, in a figcaption (HTML's own
+      // pattern for a cited quotation); a link on it is passive like any other.
+      if (node.kind === "quote" && typeof node.attribution === "string" && node.attribution) {
+        var from = passiveLink(node.href);
+        return h("figure", { key: i, className: "kg-quote" }, h("blockquote", null, body), h("figcaption", null, from ? h("a", { href: from, rel: "noopener noreferrer" }, node.attribution) : node.attribution));
+      }
+      return h(tag, { key: i }, body);
     }));
   }
   /** Field-level validation message: announced when it appears, tied to its input
@@ -81,7 +93,7 @@
   function wideStyle(w) { return w >= 480 ? { minWidth: Math.round(w * .8) } : undefined; }
   function CoreScene(p) {
     var width = Math.max(1, finiteNumber(p.width, 640)), height = Math.max(1, finiteNumber(p.height, 360));
-    return h("figure", { className: "kg-scene" + (width >= 480 ? " kg-scene--wide" : "") }, h("figcaption", null, p.label),
+    return h("figure", { className: "kg-scene" + (width >= 480 ? " kg-scene--wide" : "") }, h("figcaption", null, p.caption || p.label),
       h("svg", { style: wideStyle(width), viewBox: "0 0 " + width + " " + height, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label),
         (Array.isArray(p.shapes) ? p.shapes : []).slice(0, 2000).map(function (s, i) {
           if (!s || ["rect", "circle", "line", "path", "text"].indexOf(s.kind) < 0) return null;
@@ -137,7 +149,7 @@
     });
     // Labels go on the top layer so a chip that is wider than the gap stays readable.
     labelShapes.forEach(function (sh) { shapes.push(sh); });
-    return CoreScene({ label: p.label, width: width, height: height, shapes: shapes, interactive: p.interactive, onSelect: p.onSelect });
+    return CoreScene({ label: p.label, caption: p.caption, width: width, height: height, shapes: shapes, interactive: p.interactive, onSelect: p.onSelect });
   }
   function plot(p, scatter) {
     var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.x === "number" && isFinite(it.x) && typeof it.y === "number" && isFinite(it.y); }).slice(0, 2000);
@@ -172,23 +184,23 @@
     choice: { summary: "Named radio group with native keyboard navigation and a public selection.", props: merge(CONTROL_PROPS, { value: S("string"), options: OPTIONS_PROP }), local: { value: { type: "string", default: "" } }, events: { change: { payload: { value: "string" } } }, outputs: ["value"] },
     multiselect: { summary: "Named multiple selection with native keyboard support and array output.", props: merge(CONTROL_PROPS, { value: S("array", { items: S("string") }), options: OPTIONS_PROP }), local: { value: { type: "array", default: [] } }, events: { change: { payload: { value: "array" } } }, outputs: ["value"] },
     form: { summary: "Native validated form; submit emits named field values as strings or arrays of strings.", props: { label: S("string", { required: true }), submitLabel: S("string", { default: "Submit" }), disabled: S("boolean") }, slots: { children: {} }, events: { submit: { payload: { values: "object" } } } },
-    scene: { summary: "Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.", props: { label: S("string", { required: true }), width: S("number", { default: 640 }), height: S("number", { default: 360 }), shapes: S("array", { required: true, items: S("object", { requiredKeys: ["kind"] }) }), interactive: S("boolean") }, events: { select: { payload: { id: "string" } } } },
-    diagram: { summary: "Node and edge diagram with automatic placement or explicit coordinates.", props: { label: S("string", { required: true }), nodes: S("array", { required: true, items: S("object", { requiredKeys: ["id", "label"] }) }), edges: S("array", { items: S("object", { requiredKeys: ["from", "to"] }) }), interactive: S("boolean") }, events: { select: { payload: { id: "string" } } } },
+    scene: { summary: "Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.", props: { label: S("string", { required: true }), width: S("number", { default: 640 }), height: S("number", { default: 360 }), shapes: S("array", { required: true, items: S("object", { requiredKeys: ["kind"] }) }), interactive: S("boolean"), caption: S("string") }, events: { select: { payload: { id: "string" } } } },
+    diagram: { summary: "Node and edge diagram with automatic placement or explicit coordinates.", props: { label: S("string", { required: true }), nodes: S("array", { required: true, items: S("object", { requiredKeys: ["id", "label"] }) }), edges: S("array", { items: S("object", { requiredKeys: ["from", "to"] }) }), interactive: S("boolean"), caption: S("string") }, events: { select: { payload: { id: "string" } } } },
     "line-chart": { summary: "Responsive numeric X/Y line chart with an accessible data table.", props: PLOT_PROPS },
     "scatter-chart": { summary: "Responsive numeric X/Y scatter plot with an accessible data table.", props: PLOT_PROPS }
   };
   var EXPRESSIVE_NOTES = {
     composition: "Define doc.compositions[name] with typed inputs, root, blocks, optional output expression and outputType:{type,enum?}. Use $input inside the definition; read instance.value outside. Definitions expand to ordinary installed blocks; never contain HTML or executable code.",
     link: "Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.",
-    "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.",
+    "rich-text": "nodes kinds: paragraph, heading (level 2/3/4), quote (optional attribution and href), list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?,cite?}]. A run with cite:\"id\" and text:\"1\" is a superscript link to the references item with that id; the number is the item's position. Strings remain literal.",
     "text-field": "Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules).",
     "number-input": "Use for calculations; an empty field emits null. Set name inside form; change emits {value}.",
     "date-input": "Date values and bounds are YYYY-MM-DD; change emits {value}.",
     choice: "Use for one option from a short list; options are [{value,label}]. change emits {value}.",
     multiselect: "Use for several choices; options are [{value,label}], value is a string array. change emits {value}.",
     form: "Place named native fields in children. Invalid fields prevent submit. submit emits {values}: string values, duplicate names become arrays. Wire submit to declared state or a host action.",
-    scene: "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space.",
-    diagram: "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}.",
+    scene: "shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space. label is the accessible name; caption is the visible sentence under the figure saying what to take from it (it replaces the label as the visible caption).",
+    diagram: "nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}. caption is the visible takeaway under the figure.",
     "line-chart": "items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table.",
     "scatter-chart": "items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations."
   };
@@ -203,5 +215,5 @@
     if (I.local) DEFAULTS[name] = { change: [{ do: "setLocal", key: "value", value: { $event: "value" } }] };
     var exportKey = "Core" + name.split("-").map(function (part) { return part[0].toUpperCase() + part.slice(1); }).join("");
     // Fields gained the optional `error` prop: a minor contract release.
-    core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
+    core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect|rich-text|scene|diagram)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
   });

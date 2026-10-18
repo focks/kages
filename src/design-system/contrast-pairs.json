@@ -10,6 +10,8 @@
     { "text": "accent-ink", "on": "accent", "min": 4.5, "role": "label on a filled accent button" },
     { "text": "accent", "on": "paper", "min": 4.5, "role": "links and accent text on the page" },
     { "text": "accent", "on": "surface", "min": 4.5, "role": "links and accent text on cards" },
+    { "text": "accent", "on": "sunken", "min": 4.5, "role": "code keywords on recessed code blocks" },
+    { "text": "success", "on": "sunken", "min": 4.5, "role": "code strings on recessed code blocks" },
     { "text": "ink", "on": "accent-soft", "min": 4.5, "role": "text on soft accent fills" },
     { "text": "danger", "on": "surface", "min": 4.5, "role": "error text" },
     { "text": "ink", "on": "danger-soft", "min": 4.5, "role": "text on soft danger fills" },

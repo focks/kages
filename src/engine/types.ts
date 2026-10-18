@@ -70,7 +70,8 @@ export interface Interface {
 export interface Action {
   do: string;
   when?: Expr;
-  path?: string;
+  /** A dot path into state, or an expression that yields one (a repeated row writes to `list.<index>.field`). */
+  path?: string | Expr;
   value?: Expr;
   target?: string;
   command?: string;
@@ -97,6 +98,8 @@ export interface Block {
   bind?: Record<string, Expr>;
   slots?: Record<string, string[]>;
   on?: Record<string, Action[]>;
+  /** State path → actions to run after a transaction in which that path's value changed. */
+  watch?: Record<string, Action[]>;
   visible?: Expr;
   repeat?: { each: Expr; as?: string; key?: string };
   meta?: Json;

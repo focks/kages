@@ -658,6 +658,32 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
 .kg-fileupload__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--kg-space-1); }
 .kg-fileupload__list li { display: flex; justify-content: space-between; gap: var(--kg-space-3); overflow-wrap: anywhere; }
 
+/* Scholarly reading: citations, references, glossary, attributed quotes, code tokens. */
+.kg-cite a, .kg-references__list a { color: var(--kg-accent); text-underline-offset: .2em; }
+.kg-cite { font-size: .72em; line-height: 0; padding-inline-start: 1px; }
+.kg-cite a { text-decoration: none; font-family: var(--kg-font-mono); }
+.kg-cite a:focus-visible, .kg-references__list a:focus-visible { outline: 2px solid var(--kg-focus); outline-offset: 2px; border-radius: 2px; }
+.kg-references__title, .kg-glossary__title { margin: 0 0 var(--kg-space-3); font-weight: 600; }
+.kg-references__list { margin: 0; padding-inline-start: 1.6rem; display: grid; gap: var(--kg-space-2); font-size: .92rem; max-width: 80ch; }
+.kg-references__list li { scroll-margin-block: var(--kg-space-6); }
+.kg-references__list li:target { background: var(--kg-accent-soft); border-radius: var(--kg-r-sm); outline: 2px solid var(--kg-accent-soft); }
+.kg-references__list li:focus-visible { outline: 2px solid var(--kg-focus); }
+.kg-references__detail { color: var(--kg-ink-muted); }
+.kg-glossary__list { margin: 0; max-width: 76ch; display: grid; }
+.kg-glossary__item { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: var(--kg-space-3); padding-block: var(--kg-space-2); border-bottom: 1px solid var(--kg-line); }
+.kg-glossary__list dt { font-weight: 600; }
+.kg-glossary__list dd { margin: 0; }
+@container (max-width: 34rem) { .kg-glossary__item { grid-template-columns: minmax(0, 1fr); gap: var(--kg-space-1); } }
+.kg-quote { margin: 0; display: grid; gap: var(--kg-space-2); max-width: 62ch; }
+.kg-quote blockquote { font-style: italic; }
+.kg-quote figcaption { color: var(--kg-ink-muted); font-size: .875rem; padding-inline-start: var(--kg-space-4); }
+.kg-quote figcaption::before { content: "— "; }
+.kg-tok--c { color: var(--kg-ink-muted); font-style: italic; }
+.kg-tok--k { color: var(--kg-accent); font-weight: 600; }
+.kg-tok--s { color: var(--kg-success); }
+.kg-tok--n { font-weight: 600; }
+.kg-scene--wide { grid-template-columns: minmax(0, 1fr); } /* the caption wraps in the visible width; only the drawing scrolls */
+
 /* Browser surfaces: the parts nobody draws. Selection, caret, native controls,
    scrollbars, list markers, link underlines and numerals ship with browser defaults
    that belong to no design system; a page with a themed palette and a default blue

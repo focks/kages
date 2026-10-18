@@ -31,7 +31,7 @@ export function describe(doc: KageDoc, override?: string, stateOverride?: Record
       if (op === "$state" || op === "$block" || op === "$data") { const rd = op.slice(1) + ":" + arg; if (reads.indexOf(rd) < 0) reads.push(rd); }
     });
     Object.keys(b.on || {}).forEach((ev) => (b.on![ev] || []).forEach((a) => {
-      if (a.do === "set" || a.do === "toggle") writes.push(ev + "→state." + a.path);
+      if (a.do === "set" || a.do === "toggle") writes.push(ev + "→state." + (typeof a.path === "string" ? a.path : "(computed path)"));
       if (a.do === "call") calls.push(ev + "→" + a.target + "." + a.command);
       if (a.do === "ask" || a.do === "agent" || a.do === "fetch" || a.do === "emit") calls.push(ev + "→" + a.do + (a.agent ? ":" + a.agent : "") + (a.into ? "⇒state." + a.into : ""));
     }));

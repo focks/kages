@@ -35,6 +35,10 @@ export const FIXTURES: Record<string, { pos: KageDoc; neg: KageDoc }> = {
     pos: mk({ t: { type: "toc", props: { items: [{ label: "A", target: "nope" }] } } }),
     neg: mk({ t: { type: "toc", props: { items: [{ label: "A", target: "a" }] } }, a: { type: "anchor", props: { name: "a" } } }),
   },
+  "dangling-cite": {
+    pos: mk({ t: { type: "rich-text", props: { nodes: [{ kind: "paragraph", runs: [{ text: "Claim" }, { text: "1", cite: "nope" }] }] } }, r: { type: "references", props: { items: [{ id: "a", label: "A" }] } } }),
+    neg: mk({ t: { type: "rich-text", props: { nodes: [{ kind: "paragraph", runs: [{ text: "Claim" }, { text: "1", cite: "a" }] }] } }, r: { type: "references", props: { items: [{ id: "a", label: "A" }] } } }),
+  },
   "tab-panel-extra-slot": {
     pos: mk({ p: { type: "tab-panel", props: { label: "P", tabs: [{ id: "a", label: "A" }] }, slots: { panel1: ["x"], panel2: ["y"] } }, x: { type: "text", props: { text: "x" } }, y: { type: "text", props: { text: "y" } } }),
     neg: mk({ p: { type: "tab-panel", props: { label: "P", tabs: [{ id: "a", label: "A" }] }, slots: { panel1: ["x"] } }, x: { type: "text", props: { text: "x" } } }),

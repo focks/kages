@@ -2,7 +2,8 @@
 // one implementation prevents an agent's generated formula or collection from
 // validating on the server but behaving differently in the browser.
 // See oracle/expressive-artifacts.feature.
-export const COMPUTE_OPERATORS = ["$literal", "$index", "$scope", "$input", "$add", "$sub", "$mul", "$div", "$mod", "$pow", "$min", "$max", "$round", "$lt", "$lte", "$gt", "$gte", "$concat", "$sort", "$format"];
+export const COMPUTE_OPERATORS = ["$literal", "$index", "$scope", "$input", "$add", "$sub", "$mul", "$div", "$mod", "$pow", "$min", "$max", "$round", "$lt", "$lte", "$gt", "$gte", "$concat", "$sort", "$format", "$floor", "$ceil", "$abs", "$join", "$truncate"];
+const unary = ["$floor", "$ceil", "$abs"];
 const binary = ["$sub", "$div", "$mod", "$pow", "$lt", "$lte", "$gt", "$gte"];
 const variadic = ["$add", "$mul", "$min", "$max", "$concat"];
 const own = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
@@ -15,13 +16,40 @@ const safeKey = (s) => typeof s === "string" && s.split(".").every(k => k && !["
 export function computationArgError(op, a) {
   if (binary.includes(op)) return Array.isArray(a) && a.length === 2 ? null : op + " takes [a, b]";
   if (variadic.includes(op)) return Array.isArray(a) && a.length > 0 ? null : op + " takes a nonempty array";
+  if (unary.includes(op)) return Array.isArray(a) && a.length === 1 ? null : op + " takes [value]";
+  if (op === "$join") return object(a) && own(a, "list") && (a.separator === undefined || typeof a.separator === "string" && a.separator.length <= 20) ? null : "$join takes {list, separator?}";
+  if (op === "$truncate") return object(a) && own(a, "value") && (a.length === undefined || Number.isInteger(a.length) && a.length >= 0 && a.length <= 100000) && (a.suffix === undefined || typeof a.suffix === "string" && a.suffix.length <= 20) ? null : "$truncate takes {value, length?, suffix?}";
   if (op === "$round") return Array.isArray(a) && (a.length === 1 || a.length === 2) ? null : "$round takes [value, digits?]";
   if (["$scope", "$input"].includes(op)) return typeof a === "string" ? null : op + " takes a path string";
   if (op === "$index") return a === "" ? null : "$index takes an empty path string";
   if (op === "$sort") return object(a) && own(a, "list") && (a.field === undefined || typeof a.field === "string") && (a.direction === undefined || ["asc", "desc"].includes(a.direction)) ? null : "$sort takes {list, field?, direction?: asc|desc}";
-  if (op === "$format") return object(a) && own(a, "value") && ["number", "currency", "percent", "date"].includes(a.style) && (a.digits === undefined || Number.isInteger(a.digits) && a.digits >= 0 && a.digits <= 10) && (a.currency === undefined || /^[A-Z]{3}$/.test(a.currency)) ? null : "$format takes {value, style: number|currency|percent|date, digits?: 0..10, currency?: ISO code}";
+  if (op === "$format") return object(a) && own(a, "value") && ["number", "currency", "percent", "date", "relative"].includes(a.style) && (a.notation === undefined || a.notation === "compact") && (a.relativeTo === undefined || typeof a.relativeTo === "string") && (a.digits === undefined || Number.isInteger(a.digits) && a.digits >= 0 && a.digits <= 10) && (a.currency === undefined || /^[A-Z]{3}$/.test(a.currency)) ? null : "$format takes {value, style: number|currency|percent|date, digits?: 0..10, currency?: ISO code}";
   return null;
 }
+
+/** The state path an action writes. A static string, or an expression (a repeated row writes to `list.<index>.field`).
+ * Returns null for anything that does not produce a plain dot path, so a bad expression writes nothing. */
+export function actionPath(path, ctx, evaluate) {
+  if (typeof path === "string") return path;
+  const v = object(path) ? evaluate(path, ctx) : null;
+  return typeof v === "string" && /^[^.]+(\.[^.]+)*$/.test(v) ? v : null;
+}
+
+/** Which `watch` handlers fire after a transaction: a block lists state paths and the actions to run when that path's
+ * value changed. Compared as JSON so an equal rewrite does not fire. The caller runs them on the same draft and repeats
+ * a bounded number of times (a handler that keeps changing what it watches is a loop, not a feature). */
+export function watchedActions(doc, before, after, getPath) {
+  const out = [];
+  for (const [id, b] of Object.entries(doc.blocks || {})) {
+    if (!object(b.watch)) continue;
+    for (const [path, actions] of Object.entries(b.watch)) {
+      if (!safeKey(path) || !Array.isArray(actions)) continue;
+      if (JSON.stringify(getPath(before, path) ?? null) !== JSON.stringify(getPath(after, path) ?? null)) out.push([id, actions]);
+    }
+  }
+  return out;
+}
+export const WATCH_ROUNDS = 4;
 
 /** Evaluate only closed operators; no coercive arithmetic, code, locale clock,
  * or mutable sorting. Formatting is pinned to en-US and UTC for reproducibility. */
@@ -32,6 +60,14 @@ export function computeExpression(op, a, ctx, evaluate, getPath) {
   if (op === "$scope") return getPath(ctx.scope, a);
   if (op === "$input") return getPath(ctx.input, a);
   if (op === "$concat") return a.map(v => evaluate(v, ctx)).map(v => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v)).join("");
+  if (op === "$join") {
+    const list = evaluate(a.list, ctx);
+    return Array.isArray(list) ? list.map(v => v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v)).join(a.separator ?? ", ") : "";
+  }
+  if (op === "$truncate") {
+    const value = evaluate(a.value, ctx), text = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value), max = a.length ?? 100;
+    return text.length <= max ? text : text.slice(0, max) + (a.suffix ?? "...");
+  }
   if (op === "$sort") {
     const list = evaluate(a.list, ctx);
     if (!Array.isArray(list)) return [];
@@ -46,13 +82,23 @@ export function computeExpression(op, a, ctx, evaluate, getPath) {
   if (op === "$format") {
     const value = evaluate(a.value, ctx);
     try {
+      if (a.style === "relative") {
+        // Relative to an explicit instant, never the clock: the same document must read the same on every render.
+        const iso = /^\d{4}-\d{2}-\d{2}(?:T.*(?:Z|[+-]\d{2}:\d{2}))?$/, to = new Date(a.relativeTo ?? "");
+        if (typeof value !== "string" || !iso.test(value) || typeof a.relativeTo !== "string" || !iso.test(a.relativeTo)) return null;
+        const at = new Date(value), diff = to.getTime() - at.getTime();
+        if (!Number.isFinite(diff)) return null;
+        if (diff === 0) return "just now";
+        const abs = Math.abs(diff), secs = Math.floor(abs / 1000), mins = Math.floor(secs / 60), hours = Math.floor(mins / 60), days = Math.floor(hours / 24), tail = diff > 0 ? "ago" : "from now";
+        return days > 0 ? days + "d " + tail : hours > 0 ? hours + "h " + tail : mins > 0 ? mins + "m " + tail : secs + "s " + tail;
+      }
       if (a.style === "date") {
         if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*(?:Z|[+-]\d{2}:\d{2}))?$/.test(value)) return null;
         const date = new Date(value);
         return Number.isFinite(date.getTime()) ? new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(date) : null;
       }
       if (!finite(value)) return null;
-      const opts = { style: a.style, ...(a.style === "currency" ? { currency: a.currency || "USD" } : {}), ...(a.digits !== undefined ? { minimumFractionDigits: a.digits, maximumFractionDigits: a.digits } : {}) };
+      const opts = { style: a.style === "number" ? "decimal" : a.style, ...(a.notation === "compact" ? { notation: "compact" } : {}), ...(a.style === "currency" ? { currency: a.currency || "USD" } : {}), ...(a.digits !== undefined ? { minimumFractionDigits: a.digits, maximumFractionDigits: a.digits } : {}) };
       return new Intl.NumberFormat("en-US", opts).format(value);
     } catch { return null; }
   }
@@ -68,6 +114,9 @@ export function computeExpression(op, a, ctx, evaluate, getPath) {
     case "$pow": result = Math.pow(v[0], v[1]); break;
     case "$min": result = Math.min(...v); break;
     case "$max": result = Math.max(...v); break;
+    case "$floor": result = Math.floor(v[0]); break;
+    case "$ceil": result = Math.ceil(v[0]); break;
+    case "$abs": result = Math.abs(v[0]); break;
     case "$round": {
       const digits = v[1] ?? 0;
       if (!Number.isInteger(digits) || digits < -10 || digits > 10) return null;
@@ -211,7 +260,7 @@ export function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFo
         const target = arg.split(".")[0];
         if ([...repeats(target)].some(r => !scope.has(r))) fail(at, "ambiguous-instance", "Reference to repeated block " + target + " must be inside the same repeat scope");
       }
-      walkExpr([b.props, b.bind, b.on, b.visible], (op, arg) => {
+      walkExpr([b.props, b.bind, b.on, b.watch, b.visible], (op, arg) => {
         if (op === "$block" && typeof arg === "string") checkReference(arg);
         if (op === "$tpl" && typeof arg === "string") for (const m of arg.matchAll(/\{\{\s*block\.([^}\s]+)\s*\}\}/g)) checkReference(m[1]);
       });
@@ -223,7 +272,7 @@ export function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFo
         if (!object(r) || !own(r, "each") || (r.as !== undefined && (typeof r.as !== "string" || !/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(r.as) || !safeKey(r.as))) || (r.key !== undefined && !safeKey(r.key)) || Object.keys(r).some(k => !["each", "as", "key"].includes(k))) fail(at + "/repeat", "bad-repeat", "repeat takes {each, as?: alias, key?: item path}");
         else if (!isExpr(r.each) && !Array.isArray(r.each)) fail(at + "/repeat/each", "bad-repeat", "repeat.each must be an array or expression");
       }
-      walkExpr([b.props, b.bind, b.on, b.visible, b.repeat?.each], (op, arg) => {
+      walkExpr([b.props, b.bind, b.on, b.watch, b.visible, b.repeat?.each], (op, arg) => {
         const error = computationArgError(op, arg); if (error) fail(at, "bad-expr", error);
       });
       if (b.type === "composition") {

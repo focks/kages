@@ -6,6 +6,7 @@ import { deadButton } from "./dead-button.ts";
 import { formUnwired } from "./form-unwired.ts";
 import { modalUnreachable } from "./modal-unreachable.ts";
 import { tocMissingAnchor } from "./toc-missing-anchor.ts";
+import { danglingCite } from "./dangling-cite.ts";
 import { tabPanelExtraSlot, tabPanelEmpty } from "./tab-panel.ts";
 import { duplicateItemId } from "./duplicate-item-id.ts";
 import { insecureMedia } from "./insecure-media.ts";
@@ -20,7 +21,7 @@ import { unsourcedClaim, statLiteralUnsourced } from "./unsourced-claim.ts";
 
 export const RULES: readonly Rule[] = [
   tplMissingBlock, tplPrivateRead, tplUndeclaredState,
-  deadButton, formUnwired, modalUnreachable, tocMissingAnchor, tabPanelExtraSlot, tabPanelEmpty,
+  deadButton, formUnwired, modalUnreachable, tocMissingAnchor, danglingCite, tabPanelExtraSlot, tabPanelEmpty,
   duplicateItemId, insecureMedia, emptyChart, selectionUnused, calendarMonth, unreachableBlock, briefInvalid, nestedSections, deprecatedUsage, unsourcedClaim, statLiteralUnsourced,
 ];
 

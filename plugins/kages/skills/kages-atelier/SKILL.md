@@ -1,6 +1,6 @@
 ---
 name: kages-atelier
-description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.8.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.9.0).
 ---
 
 # Kages — Atelier
@@ -9,7 +9,7 @@ Soft, editorial, serif system for consumer and storytelling artifacts.
 
 ## Components
 
-# Atelier 1.8.0 (atelier) extends core@1
+# Atelier 1.9.0 (atelier) extends core@1
 Soft, editorial, serif system for consumer and storytelling artifacts.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -64,9 +64,9 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - image → core/image@1.0.0 [kages/image@1] Accessible image with a semantic aspect ratio, fit and optional caption.
   props: src*:string, alt*:string, caption:string, ratio:auto|square|landscape|portrait, fit:cover|contain
   use: Use HTTPS URLs, local / paths or raster data URLs. Provide descriptive alt text; use empty alt only for decoration.
-- code → core/code@1.0.0 [kages/code@1] Literal source code or structured text; displayed, never executed.
-  props: code*:string, language:string, caption:string, wrap:boolean
-  use: Display examples, JSON, logs or source. Content remains literal text even when it contains markup.
+- code → core/code@1.1.0 [kages/code@1] Literal source code or structured text; displayed, never executed.
+  props: code*:string, language:string, caption:string, wrap:boolean, highlight:boolean
+  use: Display examples, JSON, logs or source. Content remains literal text even when it contains markup. Set language (js, ts, json, sh, py, yaml, sql, go, rust, java, c…) to colour keywords, strings, numbers and comments; unknown languages stay plain, and highlight:false turns it off.
 - list → core/list@1.0.0 [kages/list@1] Ordered or unordered prose list.
   props: items*:array, ordered:boolean
   use: Use for instructions, summaries and checklists; items are text, ordered enables numbered steps.
@@ -91,9 +91,9 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - link → core/link@1.0.0 [kages/link@1] Accessible passive link; executable URL schemes are refused.
   props: label*:string, href*:string, newTab:boolean
   use: Use HTTPS/HTTP, local / paths, #anchors or mailto links. Provide meaningful label text.
-- rich-text → core/rich-text@1.0.0 [kages/rich-text@1] Structured headings, paragraphs, quotes, lists and inline emphasis without raw HTML.
+- rich-text → core/rich-text@1.1.0 [kages/rich-text@1] Structured headings, paragraphs, quotes, lists and inline emphasis without raw HTML.
   props: nodes*:array
-  use: nodes kinds: paragraph, heading (level 2/3/4), quote, list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?}]. Strings remain literal.
+  use: nodes kinds: paragraph, heading (level 2/3/4), quote (optional attribution and href), list (items, ordered), code. Prose accepts text or runs [{text,bold?,italic?,code?,href?,cite?}]. A run with cite:"id" and text:"1" is a superscript link to the references item with that id; the number is the item's position. Strings remain literal.
 - text-field → core/text-field@1.1.0 [kages/text-field@1] Named text, email or URL field with native form validation.
   props: label*:string, name:string, required:boolean, disabled:boolean, error:string, value:string, kind:text|email|url, help:string, placeholder:string, minLength:number, maxLength:number · events: change · outputs: value
   use: Use inside form with name and required/minLength/maxLength; email and url use browser validity. change emits {value}. Set error to show a field-level message (bind it to a $if over state for custom rules).
@@ -112,12 +112,12 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - form → core/form@1.0.0 [kages/form@1] Native validated form; submit emits named field values as strings or arrays of strings.
   props: label*:string, submitLabel:string, disabled:boolean · slots: children · events: submit
   use: Place named native fields in children. Invalid fields prevent submit. submit emits {values}: string values, duplicate names become arrays. Wire submit to declared state or a host action.
-- scene → core/scene@1.0.0 [kages/scene@1] Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.
-  props: label*:string, width:number, height:number, shapes*:array, interactive:boolean · events: select
-  use: shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space.
-- diagram → core/diagram@1.0.0 [kages/diagram@1] Node and edge diagram with automatic placement or explicit coordinates.
-  props: label*:string, nodes*:array, edges:array, interactive:boolean · events: select
-  use: nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}.
+- scene → core/scene@1.1.0 [kages/scene@1] Responsive vector scene assembled from rect/circle/line/path/text geometry and token colors.
+  props: label*:string, width:number, height:number, shapes*:array, interactive:boolean, caption:string · events: select
+  use: shapes: {kind:rect|circle|line|path|text,id?,label?,x?,y?,width?,height?,radius?,x2?,y2?,d?,text?,size?,fill?,stroke?,strokeWidth?}. Colors: accent, ink, ink-muted, line, surface, sunken, paper, success, danger; no arbitrary SVG attributes. interactive shapes with id emit select {id} and support Enter/Space. label is the accessible name; caption is the visible sentence under the figure saying what to take from it (it replaces the label as the visible caption).
+- diagram → core/diagram@1.1.0 [kages/diagram@1] Node and edge diagram with automatic placement or explicit coordinates.
+  props: label*:string, nodes*:array, edges:array, interactive:boolean, caption:string · events: select
+  use: nodes: [{id,label,x?,y?,tone?}], edges: [{from,to,label?}]. Coordinates are optional. interactive nodes emit select {id}. caption is the visible takeaway under the figure.
 - line-chart → core/line-chart@1.0.0 [kages/line-chart@1] Responsive numeric X/Y line chart with an accessible data table.
   props: label*:string, items*:array, xLabel:string, yLabel:string, empty:string
   use: items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table.
@@ -217,6 +217,12 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - audio → core/audio@1.0.0 [kages/audio@1] Audio with native controls, optional captions and transcript; never autoplays.
   props: label*:string, src*:string, caption:string, transcript:string, captions:array
   use: src is an https URL or local path. Add a transcript for accessibility. No autoplay.
+- glossary → core/glossary@1.0.0 [kages/glossary@1] Terms and their meanings as a description list.
+  props: title:string, items*:array
+  use: items: [{term,definition}] in the order to read them; one sentence per definition. Put it near the end of a long page. Define a term where it is first used too.
+- references → core/references@1.0.0 [kages/references@1] Numbered sources a page cites; rich-text cite runs link to them by id.
+  props: title:string, items*:array
+  use: items: [{id,label,href?,detail?}] in citation order; the list is numbered 1, 2, 3… in that order. In prose, cite with a rich-text run {text:"1",cite:"<id>"} whose text is the item's position. href is https; detail is the publisher or author. Every cited id must exist here, and every claim from a source should cite it.
 - gallery → core/gallery@1.0.0 [kages/gallery@1] Grid of thumbnails opening a keyboard-operable lightbox; the open image index is public (-1 = closed).
   props: label*:string, items*:array, index:number, empty:string · events: change · outputs: index
   use: items: [{src,alt,caption?}] with the image block's source rules. Thumbnails open a lightbox; arrows navigate, Escape closes. index -1 means closed.
@@ -229,7 +235,7 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 
 ## Expressions & actions
 
-Expressions (closed set): $state, $block, $self, $event, $data, $item, $not, $eq, $neq, $and, $or, $if, $tpl, $filter, $count, $sum, $find, $map, $literal, $index, $scope, $input, $add, $sub, $mul, $div, $mod, $pow, $min, $max, $round, $lt, $lte, $gt, $gte, $concat, $sort, $format
+Expressions (closed set): $state, $block, $self, $event, $data, $item, $not, $eq, $neq, $and, $or, $if, $tpl, $filter, $count, $sum, $find, $map, $literal, $index, $scope, $input, $add, $sub, $mul, $div, $mod, $pow, $min, $max, $round, $lt, $lte, $gt, $gte, $concat, $sort, $format, $floor, $ceil, $abs, $join, $truncate
 Actions: set, toggle, setLocal, call, log, ask, agent, fetch, emit
 An expression is a JSON object whose first key is an operator; anything else is a literal.
 
@@ -243,7 +249,7 @@ An expression is a JSON object whose first key is an operator; anything else is 
 - Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.
 - Use declared semantic layout props and token spacing steps (0, 1, 2, 3, 4, 6, 8). Choose width, inset, gap, columns, minSize, ratio, tone and image fit through their contracts.
 - Dynamic text uses $tpl/$concat; dynamic datasets use $filter/$map/$sort. repeat: {each, key, as?} expands a block and its subtree. Use stable item keys, $item for the current row, $index:"" for its position, and $scope for named outer rows. Repeated controls have independent local state.
-- Use $add/$sub/$mul/$div/$mod/$pow/$min/$max/$round for finite numeric computation, $lt/$lte/$gt/$gte for numeric comparisons. Invalid arithmetic returns null. $format: {value, style:number|currency|percent|date, digits?, currency?} is deterministic en-US/UTC.
+- Use $add/$sub/$mul/$div/$mod/$pow/$min/$max/$round/$floor/$ceil/$abs ([value]) for finite numeric computation, $join {list,separator?} and $truncate {value,length?,suffix?} for text, $lt/$lte/$gt/$gte for numeric comparisons. Invalid arithmetic returns null. $format: {value, style:number|currency|percent|date|relative, digits?, currency?, notation?:"compact", relativeTo? (ISO instant, required for relative)} is deterministic en-US/UTC. A handler path may be an expression ({$concat:["list.",{$index:""},".done"]}) to write a repeated row, and a block may declare watch:{"state.path":[actions]} to run after a transaction that changed that path (at most four passes).
 - Define reusable compositions in doc.compositions: {name:{inputs:{inputName:{type,required?,default?,enum?}},root,blocks,output?,outputType?:{type,enum?}}}. Instantiate a composition block with props.name and props.inputs or bind.inputs. Read typed values with $input inside and public instance.value outside. Definitions use installed blocks and cannot recurse.
 - Use scene/diagram/line-chart/scatter-chart for graphics. Geometry and token colors are declarative; strings never become SVG attributes or HTML. Use rich-text for structured prose and named native fields inside form for validation and submit events.
 - Read other blocks only through declared outputs; change them only through commands.
@@ -3372,6 +3378,602 @@ Media gallery — video, audio and photos:
   },
   "brief": {
     "mode": "experience"
+  }
+}
+```
+
+Trunk-based development — a research brief:
+```json
+{
+  "kages": "1.0",
+  "id": "research-brief",
+  "title": "Trunk-based development — a research brief",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "figures",
+          "layout"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Source control · research brief · October 2026",
+        "title": "Trunk-based development",
+        "description": "Everyone integrates small changes into one shared branch at least once a day. DORA ties the habit to faster, more stable delivery.",
+        "inset": 0
+      }
+    },
+    "figures": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "f1",
+          "f2",
+          "f3"
+        ]
+      }
+    },
+    "f1": {
+      "type": "stat",
+      "props": {
+        "label": "Active branches, trunk included",
+        "value": "3 or fewer",
+        "caption": "DORA threshold"
+      }
+    },
+    "f2": {
+      "type": "stat",
+      "props": {
+        "label": "Merges per developer",
+        "value": "1+ a day",
+        "caption": "DORA threshold"
+      }
+    },
+    "f3": {
+      "type": "stat",
+      "props": {
+        "label": "Code freezes",
+        "value": "None",
+        "caption": "DORA threshold"
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-end",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "toc"
+        ],
+        "end": [
+          "a-what",
+          "what",
+          "quote",
+          "fig",
+          "a-check",
+          "h-check",
+          "checks",
+          "score",
+          "verdict",
+          "a-code",
+          "h-code",
+          "snippet",
+          "a-terms",
+          "terms",
+          "a-sources",
+          "sources"
+        ]
+      }
+    },
+    "toc": {
+      "type": "toc",
+      "props": {
+        "title": "Contents",
+        "sticky": true,
+        "items": [
+          {
+            "label": "What it is",
+            "target": "what"
+          },
+          {
+            "label": "Self-check",
+            "target": "check"
+          },
+          {
+            "label": "In code",
+            "target": "code"
+          },
+          {
+            "label": "Glossary",
+            "target": "terms"
+          },
+          {
+            "label": "Sources",
+            "target": "sources"
+          }
+        ]
+      }
+    },
+    "a-what": {
+      "type": "anchor",
+      "props": {
+        "name": "what"
+      }
+    },
+    "what": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "What it is"
+          },
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Developers collaborate on one branch called trunk and resist long-lived development branches"
+              },
+              {
+                "text": "1",
+                "cite": "tbd"
+              },
+              {
+                "text": ". DORA puts it in operational terms: small batches merged at least once a day"
+              },
+              {
+                "text": "2",
+                "cite": "dora"
+              },
+              {
+                "text": "."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "quote": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "quote",
+            "text": "If it hurts, do it more often.",
+            "attribution": "Martin Fowler on integration frequency",
+            "href": "https://martinfowler.com/articles/branching-patterns.html"
+          }
+        ]
+      }
+    },
+    "fig": {
+      "type": "scene",
+      "props": {
+        "label": "Trunk with short-lived branches and one release branch",
+        "caption": "Branches rejoin within a day; the release branch is cut late and only receives cherry-picks.",
+        "width": 640,
+        "height": 200,
+        "shapes": [
+          {
+            "kind": "text",
+            "x": 12,
+            "y": 64,
+            "text": "trunk",
+            "size": 12,
+            "fill": "ink-muted"
+          },
+          {
+            "kind": "line",
+            "x": 60,
+            "y": 60,
+            "x2": 620,
+            "y2": 60,
+            "stroke": "accent",
+            "strokeWidth": 4
+          },
+          {
+            "kind": "path",
+            "d": "M140 60 Q150 20 175 20 L215 20 Q240 20 250 60",
+            "stroke": "ink-muted",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "path",
+            "d": "M330 60 Q340 20 365 20 L405 20 Q430 20 440 60",
+            "stroke": "ink-muted",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "text",
+            "x": 12,
+            "y": 154,
+            "text": "release",
+            "size": 12,
+            "fill": "ink-muted"
+          },
+          {
+            "kind": "path",
+            "d": "M470 60 Q485 150 520 150 L620 150",
+            "stroke": "ink",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "circle",
+            "x": 140,
+            "y": 60,
+            "radius": 5,
+            "fill": "paper",
+            "stroke": "accent",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "circle",
+            "x": 250,
+            "y": 60,
+            "radius": 5,
+            "fill": "paper",
+            "stroke": "accent",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "circle",
+            "x": 440,
+            "y": 60,
+            "radius": 5,
+            "fill": "paper",
+            "stroke": "accent",
+            "strokeWidth": 2
+          }
+        ]
+      }
+    },
+    "a-check": {
+      "type": "anchor",
+      "props": {
+        "name": "check"
+      }
+    },
+    "h-check": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Self-check"
+          },
+          {
+            "kind": "paragraph",
+            "text": "Tick what is true for your team today. Your ticks stay in this browser."
+          }
+        ]
+      }
+    },
+    "checks": {
+      "type": "stack",
+      "props": {
+        "gap": 2
+      },
+      "slots": {
+        "children": [
+          "k1",
+          "k2",
+          "k3",
+          "k4"
+        ]
+      }
+    },
+    "k1": {
+      "type": "checkbox",
+      "props": {
+        "label": "Three or fewer active branches"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c1"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c1",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "k2": {
+      "type": "checkbox",
+      "props": {
+        "label": "Every developer merges to trunk daily"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c2"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c2",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "k3": {
+      "type": "checkbox",
+      "props": {
+        "label": "No code freezes"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c3"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c3",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "k4": {
+      "type": "checkbox",
+      "props": {
+        "label": "Unfinished features ship behind flags"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c4"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c4",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "score": {
+      "type": "stat",
+      "props": {
+        "label": "Your score out of 4"
+      },
+      "bind": {
+        "value": {
+          "$add": [
+            {
+              "$if": [
+                {
+                  "$state": "c1"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "c2"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "c3"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "c4"
+                },
+                1,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "verdict": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$gte": [
+                {
+                  "$add": [
+                    {
+                      "$if": [
+                        {
+                          "$state": "c1"
+                        },
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$state": "c2"
+                        },
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$state": "c3"
+                        },
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$state": "c4"
+                        },
+                        1,
+                        0
+                      ]
+                    }
+                  ]
+                },
+                4
+              ]
+            },
+            "All four hold. You are practising trunk-based development.",
+            "Tick what is true. Fewer than four means there is room to move toward trunk."
+          ]
+        }
+      }
+    },
+    "a-code": {
+      "type": "anchor",
+      "props": {
+        "name": "code"
+      }
+    },
+    "h-code": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "In code"
+          },
+          {
+            "kind": "paragraph",
+            "text": "A release flag chooses the implementation while both ship on trunk."
+          }
+        ]
+      }
+    },
+    "snippet": {
+      "type": "code",
+      "props": {
+        "language": "ts",
+        "caption": "Branch by abstraction behind a flag",
+        "code": "// Commit 1: the abstraction. Behaviour unchanged.\ninterface PaymentGateway { charge(order: Order): Promise<Receipt>; }\n\nfunction gatewayFor(user: User): PaymentGateway {\n  return flags.isEnabled(\"payments.new-gateway\", { userId: user.id })\n    ? new NewGateway()\n    : new LegacyGateway();\n}"
+      }
+    },
+    "a-terms": {
+      "type": "anchor",
+      "props": {
+        "name": "terms"
+      }
+    },
+    "terms": {
+      "type": "glossary",
+      "props": {
+        "title": "Glossary",
+        "items": [
+          {
+            "term": "Trunk",
+            "definition": "The single shared branch, also called main or master. It should always be releasable."
+          },
+          {
+            "term": "Feature flag",
+            "definition": "A runtime switch that turns a code path on or off, separating deployment from release."
+          },
+          {
+            "term": "Cherry-pick",
+            "definition": "Copying one commit from trunk to a release branch."
+          }
+        ]
+      }
+    },
+    "a-sources": {
+      "type": "anchor",
+      "props": {
+        "name": "sources"
+      }
+    },
+    "sources": {
+      "type": "references",
+      "props": {
+        "title": "Sources",
+        "items": [
+          {
+            "id": "tbd",
+            "label": "Trunk Based Development",
+            "href": "https://trunkbaseddevelopment.com/",
+            "detail": "Paul Hammant et al."
+          },
+          {
+            "id": "dora",
+            "label": "Capabilities: Trunk-based development",
+            "href": "https://dora.dev/capabilities/trunk-based-development/",
+            "detail": "DORA"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "c1": false,
+    "c2": false,
+    "c3": false,
+    "c4": false
+  },
+  "persist": {
+    "c1": "personal",
+    "c2": "personal",
+    "c3": "personal",
+    "c4": "personal"
+  },
+  "brief": {
+    "mode": "read"
   }
 }
 ```
