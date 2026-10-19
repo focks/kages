@@ -26,7 +26,7 @@ interface Rect { left: number; top: number; width: number; height: number }
 const POP = { width: 340, height: 280 };
 /** `toolbarSlot`: a host element (e.g. the page header) to receive a compact toggle instead of
  *  the stage drawing its own second bar. Until the slot exists nothing is drawn, so the bar never flashes in twice. */
-export function CommentStage({ doc, api, className, flash, toolbarSlot }: { doc: KageDoc; api: CommentsApi; className?: string; flash?: { block: string; nonce: number } | null; toolbarSlot?: HTMLElement | null }) {
+export function CommentStage({ doc, api, className, flash, toolbarSlot, fill }: { doc: KageDoc; api: CommentsApi; className?: string; flash?: { block: string; nonce: number } | null; toolbarSlot?: HTMLElement | null; fill?: boolean }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -177,12 +177,12 @@ export function CommentStage({ doc, api, className, flash, toolbarSlot }: { doc:
       )}
       {toolbarSlot !== undefined && <span className="sr-only" aria-live="polite">{mode ? "Comment mode on. Click anywhere to comment." : ""}</span>}
 
-      <div className="min-h-0 flex-1 overflow-auto">
-        <div ref={stageRef} className="relative">
-          <div ref={contentRef}><KageRenderer doc={doc} onLayout={onLayout} /></div>
+      <div className={cn("min-h-0 flex-1", fill ? "relative overflow-hidden" : "overflow-auto")}>
+        <div ref={stageRef} className={fill ? "absolute inset-0" : "relative"}>
+          <div ref={contentRef} className={fill ? "h-full" : undefined}><KageRenderer doc={doc} onLayout={onLayout} fill={fill} /></div>
 
           {mode && (
-            <div ref={overlayRef} className="absolute inset-0 z-10 cursor-crosshair bg-primary/[0.03]" aria-hidden onMouseMove={onOverlayMove} onMouseLeave={() => setHover(null)} onClick={onOverlayClick} />
+            <div ref={overlayRef} className="absolute inset-0 z-10 cursor-crosshair bg-primary/[0.03]" aria-hidden onMouseMove={onOverlayMove} onMouseLeave={() => setHover(null)} onClick={onOverlayClick} onWheel={(e) => { if (fill) contentRef.current?.querySelector("iframe")?.dispatchEvent(new CustomEvent("kages-scroll", { detail: { left: e.deltaX, top: e.deltaY } })); }} />
           )}
           {mode && hover && <div aria-hidden className="pointer-events-none absolute z-10 rounded-sm border-2 border-wire bg-wire/10" style={{ left: hover.left, top: hover.top, width: hover.width, height: hover.height }} />}
           {flashRect && <div aria-hidden className="pointer-events-none absolute z-10 animate-pulse rounded-sm border-2 border-wire bg-wire/15" style={{ left: flashRect.left, top: flashRect.top, width: flashRect.width, height: flashRect.height }} />}

@@ -30,6 +30,7 @@ window.addEventListener("message", event => {
   port = event.ports[0];
   port.onmessage = ({ data }) => {
     if (data.type === "result") { pending.get(data.id)?.(data.value); pending.delete(data.id); return; }
+    if (data.type === "scrollBy" && Number.isFinite(data.top) && Number.isFinite(data.left)) { scrollBy(data.left, data.top); return; }
     if (data.type === "theme") { document.documentElement.classList.toggle("dark", !!data.dark); return; }
     if (data.type !== "render") return;
     const props = data.props as KageRendererProps;
@@ -69,5 +70,7 @@ function report() {
 }
 function schedule() { if (!scheduled) { scheduled = true; requestAnimationFrame(report); } }
 new ResizeObserver(schedule).observe(document.body);
+// In a fill frame this document scrolls, which moves every block's rect; comment pins follow those rects.
+addEventListener("scroll", schedule, { passive: true });
 new MutationObserver(schedule).observe(document.getElementById("root")!, { attributes: true, childList: true, subtree: true });
 parent.postMessage({ type: "kages-frame-ready" }, "*");

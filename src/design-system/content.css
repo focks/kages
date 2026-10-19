@@ -15,7 +15,9 @@
 .kg-codetabs__code { margin: 0; padding: var(--kg-space-4); overflow: auto; font-family: var(--kg-font-mono); font-size: .875rem; line-height: 1.6; color: var(--kg-ink); }
 .kg-anchor { display: block; height: 0; scroll-margin-top: var(--kg-space-8); }
 .kg-toc { display: grid; gap: var(--kg-space-2); font-size: .9375rem; }
-.kg-toc--sticky { position: sticky; top: var(--kg-space-4); align-self: start; }
+/* The base .kg-kage clips with overflow: hidden, which makes it a scroll container and pins a sticky rail to a box that never scrolls. clip rounds the corners the same without becoming one. */
+.kg-kage { overflow: clip; }
+.kg-toc--sticky { position: sticky; top: var(--kg-space-4); align-self: start; max-height: calc(100dvh - 2 * var(--kg-space-4)); overflow-y: auto; }
 .kg-toc__title { margin: 0; font-weight: 650; }
 .kg-toc__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--kg-space-1); border-inline-start: 2px solid var(--kg-line); }
 .kg-toc__item--l2 { padding-inline-start: var(--kg-space-3); }

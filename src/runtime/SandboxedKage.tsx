@@ -8,7 +8,7 @@ import { sandboxHtml } from "./sandbox.ts";
 import currentAssets from "../../public/ds/assets.json";
 import frameRuntime from "../../public/runtime/frame.json";
 
-export function KageRenderer({ doc, system, className, onState, host, onLayout, onMetrics, onReady }: KageRendererProps) {
+export function KageRenderer({ doc, system, className, onState, host, onLayout, onMetrics, onReady, fill }: KageRendererProps) {
   const frame = React.useRef<HTMLIFrameElement>(null);
   const [origin, setOrigin] = React.useState("");
   const [height, setHeight] = React.useState(48);
@@ -62,10 +62,14 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
       frame.current!.contentWindow!.postMessage({ type: "kages-connect" }, "*", [channel.port2]);
     };
     window.addEventListener("message", connect);
+    // The comment layer covers the frame and swallows the wheel; it hands the scroll back through this event.
+    const frameEl = frame.current;
+    const onScrollRequest = (e: Event) => { const d = (e as CustomEvent).detail; if (port && d && Number.isFinite(d.top) && Number.isFinite(d.left)) port.postMessage({ type: "scrollBy", left: d.left, top: d.top }); };
+    frameEl?.addEventListener("kages-scroll", onScrollRequest);
     const observer = new MutationObserver(() => port?.postMessage({ type: "theme", dark: dark() }));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => { disposed = true; port?.close(); observer.disconnect(); window.removeEventListener("message", connect); };
+    return () => { disposed = true; port?.close(); frameEl?.removeEventListener("kages-scroll", onScrollRequest); observer.disconnect(); window.removeEventListener("message", connect); };
   }, [origin, html, doc, system, assets.base]);
   if (frameDoc.error) return <div role="alert" className="kg-missing">{frameDoc.error}</div>;
-  return <iframe ref={frame} title={doc.title || "Kage artifact"} className={className} srcDoc={html || undefined} sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerPolicy="no-referrer" style={{ width: "100%", height, border: 0, display: "block" }} />;
+  return <iframe ref={frame} title={doc.title || "Kage artifact"} className={className} srcDoc={html || undefined} sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerPolicy="no-referrer" style={{ width: "100%", height: fill ? "100%" : height, border: 0, display: "block" }} />;
 }

@@ -315,7 +315,7 @@ function LibraryInner() {
       </Sheet>
 
       {fullscreen && <KagePreview doc={fullscreen.doc} kageRef={fullscreen.ref} onClose={() => setFullscreen(null)}
-        body={openName && fullscreen.doc.id === openName ? <CommentStage doc={fullscreen.doc} api={comments} className="h-full" /> : undefined} />}
+        body={openName && fullscreen.doc.id === openName ? <CommentStage doc={fullscreen.doc} api={comments} className="h-full" fill /> : undefined} />}
     </div>
   );
 }

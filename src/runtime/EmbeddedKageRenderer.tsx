@@ -61,6 +61,9 @@ export interface KageRendererProps {
   onLayout?: (rects: Array<{ id: string; left: number; top: number; width: number; height: number }>) => void;
   onMetrics?: (metrics: import("../cli/screenshot.ts").PageMetrics) => void;
   onReady?: () => void;
+  /** Fill the container and scroll inside the frame instead of growing to the content's height. A page that
+   *  scrolls inside its frame is the only way a sticky contents rail can follow the reader without lag. */
+  fill?: boolean;
   bridge?: Pick<HostBridge, "ask" | "invokeAgent" | "load" | "emit">;
 }
 
