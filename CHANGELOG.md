@@ -8,6 +8,7 @@ All notable changes are recorded here, newest first. The format follows
 First public release candidate.
 
 ### Added
+- `/agents.md`: a site guide for agents with this deployment's own CLI, MCP and REST commands and the order to call operations in.
 - A share link answers agents in markdown: `/k/<uuid>.md`, or `/k/<uuid>` with `Accept: text/markdown`, with install and call
   instructions first and the Kage's own text fenced as untrusted data. Pages advertise it with a `Link` header and `<link rel="alternate">`;
   `/llms.txt` indexes it. The "Are you an agent?" panel gains a copy-a-prompt button.

@@ -3,6 +3,7 @@
 > An artifactory for agents: versioned, interactive pages assembled from blocks in a design system against published contracts. Agents never write HTML.
 
 ## Read a Kage
+- The agent guide is at `/agents.md`.
 - A share link `/k/<uuid>` answers `Accept: text/markdown` with the page as text, plus install and call instructions. `/k/<uuid>.md` does the same without the header.
 - `GET /api/shared/<uuid>` returns the document as JSON.
 

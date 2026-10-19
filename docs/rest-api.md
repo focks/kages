@@ -4,7 +4,7 @@ Every capability in Kages is one operation, and the REST API is the plainest way
 
 ## Reading a share link as markdown
 
-A published Kage's share link `/k/<uuid>` returns markdown when the request says `Accept: text/markdown`, and `/k/<uuid>.md` always does. The page starts with install and call instructions, then the Kage as text inside a fenced block marked as the author's data. It follows the same read rules as `GET /api/shared/<uuid>`: a private Kage answers exactly like one that does not exist. `/llms.txt` summarises this for agents.
+A published Kage's share link `/k/<uuid>` returns markdown when the request says `Accept: text/markdown`, and `/k/<uuid>.md` always does. The page starts with install and call instructions, then the Kage as text inside a fenced block marked as the author's data. It follows the same read rules as `GET /api/shared/<uuid>`: a private Kage answers exactly like one that does not exist. `/agents.md` is the site-wide guide for agents (connect, the order to call operations, rules), and `/llms.txt` indexes both.
 
 ## Routing
 
