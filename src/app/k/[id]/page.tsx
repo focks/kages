@@ -11,6 +11,7 @@ import { use, useEffect, useState } from "react";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { useGuestComments } from "@/components/dashboard/comments/use-guest-comments";
 import { ShareFeedback } from "@/components/dashboard/share-feedback";
+import { KageUsage } from "@/components/dashboard/kage-usage";
 import { MadeWithKages } from "@/components/dashboard/made-with-kages";
 import type { KageDoc } from "@/engine/types";
 
@@ -53,6 +54,7 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
       <div className="flex min-h-0 flex-1 flex-col">
         <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" />
       </div>
+      <div className="shrink-0 px-4 pb-16 pt-4"><KageUsage name={doc.id} uuid={id} /></div>
       <ShareFeedback uuid={id} doc={doc} />
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>

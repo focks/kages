@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SystemChip } from "./kage-ui";
+import { KageUsage } from "./kage-usage";
 import { MadeWithKages } from "./made-with-kages";
 import { KageRenderer } from "@/runtime/KageRenderer";
 import type { KageDoc } from "@/engine/types";
@@ -36,6 +37,7 @@ export function KagePreview({ doc, kageRef, onClose, body }: { doc: KageDoc; kag
       <div className={body ? "min-h-0 flex-1" : "min-h-0 flex-1 overflow-auto"}>
         {body ?? <KageRenderer doc={doc} />}
       </div>
+      <div className="max-h-[50svh] shrink-0 overflow-auto px-4 pb-14 pt-3"><KageUsage name={doc.id} /></div>
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>
       </div>

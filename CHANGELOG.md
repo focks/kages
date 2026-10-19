@@ -8,6 +8,9 @@ All notable changes are recorded here, newest first. The format follows
 First public release candidate.
 
 ### Added
+- Every Kage view (the `/k/<id>` share page and the preview overlay) carries a collapsed
+  "Use this Kage" panel: install the CLI, fetch and check this Kage, connect an agent over
+  MCP (local and remote) and call it over REST, each command copyable.
 - The artifactory: immutable signed versions, provenance, lifecycle, roles, search,
   events and quotas; one operation table behind REST, MCP, A2A, the CLI and OpenAPI.
 - Three design systems (Core, Ledger, Atelier) rendered from one portable document.
