@@ -44,7 +44,8 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
   if (!doc) return <div className="grid min-h-svh place-items-center p-6 text-sm text-muted-foreground">Loading…</div>;
 
   return (
-    <div className="relative flex min-h-svh flex-col bg-background">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-background">
+      <link rel="alternate" type="text/markdown" href={`/k/${id}.md`} />
       {/* One bar: the title on the left, the comment toggle on the right. The design system and version are machine detail, so they live in the tooltip, not the chrome. */}
       <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
         <span title={doc.system} className="min-w-0 flex-1 truncate font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
@@ -54,7 +55,7 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
       <div className="flex min-h-0 flex-1 flex-col">
         <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill />
       </div>
-      <div className="max-h-[50svh] shrink-0 overflow-auto px-4 pb-16 pt-4"><KageUsage name={doc.id} uuid={id} /></div>
+      <div className="shrink-0"><KageUsage name={doc.id} uuid={id} /></div>
       <ShareFeedback uuid={id} doc={doc} />
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>

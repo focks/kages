@@ -22,7 +22,7 @@ kages --version
 
 Then, in the project where you work, `kages install` shows the files it would write for the coding tools it finds (Claude Code, Cursor, Codex, Copilot) and writes nothing until you agree. Add `--dry-run` to only look, or `kages setup skills` to add just the authoring skills.
 
-Every shared Kage page and preview has a collapsed **Use this Kage** panel under it with the install, CLI, MCP and REST commands for that exact Kage, ready to copy.
+Every shared Kage page and preview has a collapsed **Are you an agent?** panel of agent instructions under it with the install, CLI, MCP and REST commands for that exact Kage, ready to copy.
 
 ## Set up a workspace
 

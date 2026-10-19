@@ -8,8 +8,11 @@ All notable changes are recorded here, newest first. The format follows
 First public release candidate.
 
 ### Added
+- A share link answers agents in markdown: `/k/<uuid>.md`, or `/k/<uuid>` with `Accept: text/markdown`, with install and call
+  instructions first and the Kage's own text fenced as untrusted data. Pages advertise it with a `Link` header and `<link rel="alternate">`;
+  `/llms.txt` indexes it. The "Are you an agent?" panel gains a copy-a-prompt button.
 - Every Kage view (the `/k/<id>` share page and the preview overlay) carries a collapsed
-  "Use this Kage" panel: install the CLI, fetch and check this Kage, connect an agent over
+  "Are you an agent?" panel of agent instructions: install the CLI, fetch and check this Kage, connect an agent over
   MCP (local and remote) and call it over REST, each command copyable.
 - The artifactory: immutable signed versions, provenance, lifecycle, roles, search,
   events and quotas; one operation table behind REST, MCP, A2A, the CLI and OpenAPI.

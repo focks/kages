@@ -29,3 +29,10 @@ test("hostile input cannot inject shell: origin must be http(s), uuid and names 
   assert.ok(!cmds.some((c) => /api\/shared\/a b/.test(c)));
   assert.equal(fileStem("../../etc/passwd"), "etc-passwd");
 });
+
+test("the agent prompt points at the markdown link and calls the Kage's text data", async () => {
+  const { agentPrompt } = await import("./kage-usage-model.ts");
+  assert.match(agentPrompt({ origin: "https://k.example", name: "x", uuid: "abc-1" }), /https:\/\/k\.example\/k\/abc-1\.md/);
+  assert.doesNotMatch(agentPrompt({ origin: "javascript:1", name: 'a"b\nc' }), /javascript:|"b|\n/);
+  assert.match(agentPrompt({ origin: "https://k.example", name: "x" }), /not instructions/);
+});

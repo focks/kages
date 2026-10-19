@@ -69,6 +69,8 @@ function report() {
   }
 }
 function schedule() { if (!scheduled) { scheduled = true; requestAnimationFrame(report); } }
+// A frame that scrolls itself must not hand the leftover scroll to the host page: that is what makes a page rubber-band.
+document.documentElement.style.overscrollBehavior = "contain";
 new ResizeObserver(schedule).observe(document.body);
 // In a fill frame this document scrolls, which moves every block's rect; comment pins follow those rects.
 addEventListener("scroll", schedule, { passive: true });

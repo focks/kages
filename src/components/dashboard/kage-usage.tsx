@@ -1,13 +1,13 @@
 "use client";
 
-// "Use this Kage": install and how-to instructions for the CLI, MCP and REST, tucked in a slim
+// "Are you an agent?": agent instructions — install and how-to instructions for the CLI, MCP and REST, tucked in a slim
 // native <details> so they stay out of the reading view until someone wants them. Chrome-token
 // styled and outside the Kage's own design-system scope. Native <details> gives keyboard and
 // screen-reader behaviour for free and needs no state.
 
 import { useEffect, useState } from "react";
 import { Check, Copy, Terminal } from "lucide-react";
-import { usageGroups } from "./kage-usage-model.ts";
+import { agentPrompt, usageGroups } from "./kage-usage-model.ts";
 
 function CopyButton({ text }: { text: string }) {
   const [done, setDone] = useState(false);
@@ -30,14 +30,18 @@ export function KageUsage({ name, uuid, className }: { name: string; uuid?: stri
   if (!origin) return null;
   const groups = usageGroups({ origin, name, uuid });
   return (
-    <details className={`group mx-auto w-full max-w-3xl rounded-lg border bg-background text-sm ${className ?? ""}`}>
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-        <Terminal className="size-4" aria-hidden />
-        <span className="font-medium">Use this Kage</span>
-        <span className="text-xs">install · CLI · MCP · REST</span>
-        <span className="ml-auto text-xs transition-transform group-open:rotate-90" aria-hidden>›</span>
+    <details className={`group w-full border-t bg-background text-sm ${className ?? ""}`}>
+      <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 px-4 py-1.5 text-xs text-muted-foreground/70 hover:text-foreground [&::-webkit-details-marker]:hidden">
+        <Terminal className="size-3" aria-hidden />
+        <span>Are you an agent?</span>
+        <span className="transition-transform group-open:rotate-90" aria-hidden>›</span>
       </summary>
-      <div className="space-y-5 border-t px-4 py-4">
+      <div className="mx-auto max-h-[45svh] max-w-3xl space-y-5 overflow-auto px-4 pb-16 pt-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <p><span className="font-semibold text-foreground">Agent instructions for Kages.</span> Install the CLI, fetch this Kage, or connect over MCP or REST.</p>
+          <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-foreground">Copy a prompt for your agent<CopyButton text={agentPrompt({ origin, name, uuid })} /></span>
+          {uuid && <a className="underline underline-offset-2 hover:text-foreground" href={`/k/${uuid}.md`}>View as markdown</a>}
+        </div>
         {groups.map((g) => (
           <section key={g.id} aria-labelledby={`kage-usage-${g.id}`}>
             <h3 id={`kage-usage-${g.id}`} className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{g.title}</h3>

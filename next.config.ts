@@ -18,10 +18,19 @@ const nextConfig: NextConfig = {
     // script and style. The unhashed aliases (/ds/bundle.js, /runtime/frame.json) keep the default revalidation.
     const forever = { key: "Cache-Control", value: "public, max-age=31536000, immutable" };
     const hashed = [{ source: "/ds/versions/:hash([A-Za-z0-9_-]+)/:file", headers: [forever] }, { source: "/runtime/:file([A-Za-z0-9_-]{16,}\\.js)", headers: [forever] }];
-    return [baseline, ...assets, ...hashed];
+    // Tell clients that fetch a share page that a text version exists (RFC 8288 alternate link).
+    const share = { source: "/k/:id([A-Za-z0-9-]+)", headers: [{ key: "Link", value: "</k/:id.md>; rel=\"alternate\"; type=\"text/markdown\"" }, { key: "Vary", value: "Accept" }] };
+    return [baseline, ...assets, ...hashed, share];
   },
   // The docs route reads docs/*.md at build time; make sure they ship with it.
   outputFileTracingIncludes: { "/docs/[[...slug]]": ["./docs/**/*"] },
+  // A share link answers agents in markdown: /k/<uuid>.md, or /k/<uuid> when the client asks for text/markdown.
+  async rewrites() {
+    return { beforeFiles: [
+      { source: "/k/:id([A-Za-z0-9-]+).md", destination: "/api/shared/:id/md" },
+      { source: "/k/:id([A-Za-z0-9-]+)", has: [{ type: "header" as const, key: "accept", value: ".*text/markdown.*" }], destination: "/api/shared/:id/md" },
+    ], afterFiles: [], fallback: [] };
+  },
   // The library has been called "Kages" and "Artifacts" in turn; both old paths
   // keep working (and keep any ?id= deep link) rather than 404.
   async redirects() {
