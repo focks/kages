@@ -1,4 +1,4 @@
-/* All geometry follows the artifact canvas; plots remain usable inside Studio
+/* All geometry follows the artifact canvas; plots remain usable inside narrow
  * panes and reading layouts. Colors come from the active system's tokens. */
 .kg-composition { display: contents; }
 .kg-link, .kg-rich-text a { color: var(--kg-accent); text-decoration: underline; text-underline-offset: .2em; }

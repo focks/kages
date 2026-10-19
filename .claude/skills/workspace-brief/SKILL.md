@@ -46,7 +46,7 @@ ops that accept `brief`/`mode` refuse a bad one with `invalid_brief`.
   fails loudly. Rules only act on a guess with `medium` confidence.
 - **Hazard**: the tier-B generation envelope drops `brief` (and `meta`). `generate_kage`
   re-attaches it; any new flow that round-trips through `toGenerated`/`fromGenerated` must too.
-- **Studio**: `docDiff` includes `brief`, otherwise Save silently discards a mode change.
+- **Diffs**: any patch diff must include `brief`, otherwise a save silently discards a mode change.
 - `describe()` and the engine goldens are untouched; the mode line is added by the op /
   CLI wrapper.
 

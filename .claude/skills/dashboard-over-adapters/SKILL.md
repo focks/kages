@@ -1,12 +1,12 @@
 ---
 name: dashboard-over-adapters
-description: "How UI in this repo talks to the store — never directly. Every dashboard, viewer, and studio page is just another adapter client that calls the one operation set over REST (/api/<op>), with no privileged access. Covers the master-detail workbench pattern (list + detail tabs), the list_kages/list_versions summary ops, and why UI logic belongs in operations, not components. Read before building or changing any page under src/app that reads or writes Kages."
+description: "How UI in this repo talks to the store — never directly. Every dashboard and viewer page is just another adapter client that calls the one operation set over REST (/api/<op>), with no privileged access. Covers the master-detail workbench pattern (list + detail tabs), the list_kages/list_versions summary ops, and why UI logic belongs in operations, not components. Read before building or changing any page under src/app that reads or writes Kages."
 ---
 
 # dashboard-over-adapters
 
 Every UI surface is an **adapter client**, not a privileged insider. The
-Artifacts dashboard, the viewer, and the studio all reach the store the exact
+Artifacts dashboard and the viewer both reach the store the exact
 way an external agent does — through the one operation set over REST
 (`POST /api/<op>`). A page never imports the `Store` and never calls engine
 write paths directly. This keeps one source of truth for permissions,
@@ -78,7 +78,7 @@ The dashboard pattern (inspired by the devi artifacts workbench):
   `<KageRenderer doc={...}/>`).
 - **Actions** are operations: Publish → `publish_kage`, Export → `export_kage`
   (download the blob), Import → `create_kage` with the parsed file, Open →
-  link to `/viewer?kage=<name>` / `/studio?kage=<name>`.
+  link to `/viewer?kage=<name>` / `/artifacts?id=<name>`.
 - Deep-linkable pages take `?kage=<name>` and load via `get_kage`, falling back
   to the bundled fixture.
 

@@ -7,8 +7,7 @@
 // away. Every action is an operation over REST, same as any other client.
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Copy, Download, Expand, Folder, History, SquarePen } from "lucide-react";
+import { Copy, Download, Expand, Folder, History } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -71,7 +70,6 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
               <SheetDescription className="text-sm text-muted-foreground">{card.description || "No description yet."}</SheetDescription>
               <p className="font-mono text-xs text-muted-foreground">{card.ref}</p>
               <div className="mt-1 flex flex-wrap gap-2">
-                <Button render={<Link href={`/studio?kage=${card.name}`} />} nativeButton={false} size="sm" variant="outline"><SquarePen /> Edit in Studio</Button>
                 <Button size="sm" variant="outline" disabled={!doc} onClick={onFullscreen}><Expand /> Fullscreen</Button>
                 <Button size="sm" variant="outline" onClick={() => onClone(card.name)}><Copy /> Clone</Button>
                 <Button size="sm" variant="outline" onClick={() => onExport(card.name)}><Download /> Export</Button>

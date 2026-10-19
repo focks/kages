@@ -13,7 +13,7 @@ import { AppSidebar } from "./app-sidebar";
 import { ThemeToggle } from "./theme-toggle";
 
 const TITLES: Record<string, string> = {
-  "/": "Dashboard", "/artifacts": "Library", "/studio": "Studio", "/settings": "Settings",
+  "/": "Dashboard", "/artifacts": "Library", "/settings": "Settings",
 };
 
 export function AppShell({ children }: { children: React.ReactNode }) {

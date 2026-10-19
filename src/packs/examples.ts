@@ -18,7 +18,7 @@ const MODES: Record<string, Mode> = {
 };
 const declared = (docs: KageDoc[]): KageDoc[] => docs.map((d) => (MODES[d.id] ? { ...d, brief: { mode: MODES[d.id] } } : d));
 
-/** Fresh documents on every call: studio edits and store lockfiles must never
+/** Fresh documents on every call: edits and store lockfiles must never
  * mutate the examples embedded in another agent's pack. */
 export function freeFlowExamples(system = "core"): KageDoc[] {
   const doc = (id: string, title: string, blocks: KageDoc["blocks"], state?: KageDoc["state"]): KageDoc => ({
@@ -61,7 +61,7 @@ export function freeFlowExamples(system = "core"): KageDoc[] {
 }
 
 /** Examples exercise collections, formulas and composition outputs together;
- * fresh documents keep the Studio draft independent of published templates. */
+ * fresh documents keep a new Kage independent of published templates. */
 export function expressiveExamples(system = "core"): KageDoc[] {
   const base = (id: string, title: string): KageDoc => ({ kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks: {} });
   const collection = base("collection-lab", "Collection lab — reusable, data-driven cards");

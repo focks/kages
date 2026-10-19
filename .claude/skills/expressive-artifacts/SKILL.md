@@ -48,7 +48,7 @@ callers read the public `value` output. Validate every definition, even unused o
 inside an empty repeat. Check defaults, unknown/missing inputs, output references
 and type, and definition cycles. Resolve input expressions against controls in
 the same enclosing scope. Version lockfiles also pin `compositions/name/block`;
-expansion carries those pins to concrete instances. Studio docDiff must include
+expansion carries those pins to concrete instances. Any patch diff must include
 compositions; collaborative merges treat definition edits as structural /root
 edits, and store claim checks cover /compositions paths. Otherwise a concurrent
 save can discard a definition edit even though local preview shows it.
@@ -72,7 +72,7 @@ forms report validity before submit and emit string values (duplicate names form
 arrays); numeric field change emits number/null. Check actual keyboard and
 browser behavior as well as SSR, both themes and all systems.
 
-Studio starting documents use the same examples as packs and workspace seeding.
+The New Kage starters (`src/packs/starters.ts`) use the same examples as packs and workspace seeding.
 New artifacts save through `/api/create_kage`; existing edits use `/api/patch_kage`.
 Run typecheck after a Next build, since the build rewrites `.next/types`.
 

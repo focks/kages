@@ -10,13 +10,13 @@
 // See the dashboard-over-adapters skill.
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FileText, Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { KagePreview } from "@/components/dashboard/kage-preview";
 import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
 import { FacetRail } from "@/components/dashboard/library/facet-rail";
+import { NewKageSheet } from "@/components/dashboard/library/new-kage-sheet";
 import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
 import { BriefSheet, loadBrief, type BriefData } from "@/components/dashboard/brief/brief-sheet";
 import { useComments } from "@/components/dashboard/comments/use-comments";
@@ -56,6 +56,7 @@ function LibraryInner() {
   // undefined = not loaded; null = this person cannot see a brief (so no prompt to write one).
   const [brief, setBrief] = useState<BriefData | null | undefined>(undefined);
   const [briefOpen, setBriefOpen] = useState(false);
+  const [newOpen, setNewOpen] = useState(false);
   useEffect(() => { void loadBrief().then(setBrief); }, []);
   const comments = useComments(openName);
   const [text, setText] = useState(query.q);
@@ -205,7 +206,7 @@ function LibraryInner() {
               <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
               <Upload /> Import
             </Button>
-            <Button size="sm" render={<Link href="/studio" />} nativeButton={false}><Plus /> New Kage</Button>
+            <Button size="sm" onClick={() => setNewOpen(true)}><Plus /> New Kage</Button>
           </div>
         </header>
 
@@ -262,9 +263,9 @@ function LibraryInner() {
           {empty && (
             <div className="mx-auto mt-16 max-w-md text-center">
               <h3 className="font-display text-lg font-[650]">Your library is empty</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Kages built by you or an agent show up here. Start in the Studio, or import a <span className="font-mono">.kage.json</span> file.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Kages built by you or an agent show up here. Create one from a starter, or import a <span className="font-mono">.kage.json</span> file.</p>
               <div className="mt-4 flex justify-center gap-2">
-                <Button render={<Link href="/studio" />} nativeButton={false}><Plus /> New Kage</Button>
+                <Button onClick={() => setNewOpen(true)}><Plus /> New Kage</Button>
               </div>
             </div>
           )}
@@ -305,6 +306,7 @@ function LibraryInner() {
         onClone={cloneKage} onExport={exportJson}
         onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
 
+      <NewKageSheet open={newOpen} onOpenChange={setNewOpen} repo={query.repo || "kages"} onCreated={async (name) => { await refresh(); const next = serializeQuery(query); next.set("id", name); go(next, true); }} />
       <BriefSheet open={briefOpen} onOpenChange={setBriefOpen} onSaved={setBrief} />
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>

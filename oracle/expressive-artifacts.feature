@@ -34,7 +34,6 @@ Feature: Expressive declarative artifacts
     Then native required, type and range checks prevent invalid submission
     And valid submission emits named values as strings or arrays of strings
 
-  Scenario: Studio offers a choice of starting shape
-    Then an author can start a blank canvas or select a complete example
-    And preview at phone, tablet or available width
-    And save a new draft through the create_kage operation
+  Scenario: New Kage offers a choice of starting shape
+    Then a person can start a blank canvas or select a complete example
+    And the new Kage is created through the create_kage operation

@@ -97,7 +97,7 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
   // Resolve a block to its implementation via the LOCKFILE first. A stored
   // version pins exact component refs in `resolved`; honouring them means an old
   // signed Kage renders with the components it was signed against, even if the
-  // registry has since moved on. Only an unsaved doc (studio draft) falls back
+  // registry has since moved on. Only an unsaved doc (a draft not yet stored) falls back
   // to resolving live against the current system.
   function contractFor(id: string, b: Block): { ref?: string; contract?: Contract; error?: string } {
     const pin = doc.resolved?.blocks?.[id];

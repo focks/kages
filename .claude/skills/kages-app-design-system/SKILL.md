@@ -1,6 +1,6 @@
 ---
 name: kages-app-design-system
-description: "The design system for the Kages product chrome (Dashboard, Artifacts, Viewer, Studio): the four rules, the token-to-Tailwind mapping, the ordered steps to apply it to this repo, and the Playwright checks that prove it landed. Read before adding or changing any UI under src/app or src/components, and follow the Apply section once to move the app off stock shadcn grey. Not for Core, Ledger or Atelier: those paint the inside of a Kage and live in originals/."
+description: "The design system for the Kages product chrome (Dashboard, Artifacts, Viewer): the four rules, the token-to-Tailwind mapping, the ordered steps to apply it to this repo, and the Playwright checks that prove it landed. Read before adding or changing any UI under src/app or src/components, and follow the Apply section once to move the app off stock shadcn grey. Not for Core, Ledger or Atelier: those paint the inside of a Kage and live in originals/."
 ---
 
 # kages-app-design-system
@@ -62,7 +62,7 @@ means identity.
 1. **Kages render unstyled in the app.** `public/ds/bundle.css` reads
    `--paper`, `--space-4`, `--font-display` and the rest from a compiled token
    sheet the app never ships (only `tokens.json` is served), so every `--kg-*`
-   resolves to nothing. Visible in Viewer, Studio and the Preview tab.
+   resolves to nothing. Visible in the Viewer and the Preview tab.
 2. **Core's tokens collide with shadcn's.** Core is unprefixed: `--accent`,
    `--radius-sm|md|lg`, `--font-sans`. Declared at `:root` they would overwrite
    the chrome (and today the chrome's values leak into the Kage). They must be
@@ -192,11 +192,6 @@ the state classes (`bg-wire-soft!`); the check in Verify catches this.
   `overflow-auto rounded-xl border bg-muted p-4 font-mono text-[12.5px] leading-[18px]`;
   the preview → `<KageFrame system={current.system} kageRef={current.ref} digest={versions.at(-1)?.digest}>`;
   fix Import: `<Button size="icon" variant="outline" aria-label="Import JSON" nativeButton={false} render={<label />}><input type="file" accept="application/json" hidden onChange={…} /><Upload /></Button>`.
-- **`studio/page.tsx`**: `const WIRE = "text-wire"`; tree rows `font-mono`,
-  `rounded-sm`, selected `bg-primary-soft` (not `bg-accent`), a 6px
-  `rounded-full bg-wire` dot before a wired id; a bound prop →
-  `inline-flex items-center gap-1.5 rounded-sm bg-wire-soft px-2 py-1 font-mono text-xs text-wire`;
-  the pane head → overline classes; the preview → `<KageFrame>`.
 - **`viewer/page.tsx`**: the `h2` → page-title classes; the Kage →
   `<KageFrame system={system} kageRef={params.get("kage") ?? "ops-console.kage.json"}>`
   so the bar follows the system select.
@@ -209,7 +204,7 @@ any UI: tokens, type, states, the Kage boundary."
 
 ## Verify with Playwright MCP
 
-Start `npm run dev`, then for each of `/`, `/artifacts`, `/viewer`, `/studio`,
+Start `npm run dev`, then for each of `/`, `/artifacts`, `/viewer`,
 in light and after clicking the theme toggle: `browser_navigate`,
 `browser_snapshot`, `browser_take_screenshot`, `browser_console_messages`.
 Compare screenshots with `reference/renders/` (static renditions of the target;
@@ -227,7 +222,7 @@ The badge/system-chip text is lowercased in the DOM — `capitalize`/`uppercase`
 are CSS — so match on lowercase (`"published"`, `"le"`) when querying. Base UI's
 `Badge` does not emit `data-slot="badge"`; find badges by their computed
 background instead. The DS bundle loads async, so `await` a short delay (or wait
-for `.kg-kage`) before reading `.kg-kage` styles in Viewer/Studio/Preview.
+for `.kg-kage`) before reading `.kg-kage` styles in Viewer/Preview.
 
 Assert with `browser_evaluate` (values are `getComputedStyle` results):
 
@@ -245,7 +240,6 @@ Assert with `browser_evaluate` (values are `getComputedStyle` results):
 | Published badge background / colour | `rgb(220, 235, 223)` / `rgb(47, 107, 69)` | `rgb(24, 48, 31)` / `rgb(124, 196, 147)` |
 | Review badge background / colour | `rgb(217, 236, 236)` / `rgb(31, 106, 112)` | `rgb(23, 53, 55)` / `rgb(108, 192, 196)` |
 | Ledger SystemChip tile background | `rgb(29, 59, 42)` | `rgb(159, 211, 174)` |
-| wired block id colour in Studio | `rgb(31, 106, 112)` | `rgb(108, 192, 196)` |
 | `.kg-kage` background, system core | `rgb(244, 242, 236)` | `rgb(20, 21, 19)` |
 | `.kg-kage` background, system ledger (Viewer select) | `rgb(246, 247, 245)` | `rgb(13, 15, 14)` |
 | `.kg-kage` background, system atelier | `rgb(250, 246, 241)` | `rgb(26, 22, 20)` |

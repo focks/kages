@@ -40,7 +40,7 @@ seeding and golden capture. Exercise the new contract through generation and
 the operation table, rather than documenting an uninstalled escape hatch.
 
 Responsive geometry follows the artifact container, not just the viewport:
-Studio may have a narrow canvas inside a wide browser. Test mobile widths and
+A Kage may sit in a narrow container inside a wide browser (the library detail sheet). Test mobile widths and
 a narrow canvas in a desktop viewport. Splits collapse in source order; grids
 fit their content without horizontal overflow. Use bounded semantic props and
 spacing tokens; literal code/prose stays text and media URLs remain passive.
@@ -48,7 +48,7 @@ spacing tokens; literal code/prose stays text and media URLs remain passive.
 For controls, verify native keyboard behavior, the event payload, unwired local
 defaults, public outputs and explicit state bindings. For content, verify
 hostile strings remain literal, each export renders, and asset hashes match.
-Check the real `KageRenderer` in Studio as well as the oracle renderer, in all
+Check the real `KageRenderer` in the app as well as the oracle renderer, in all
 three systems and both themes.
 
 ## Use-case examples

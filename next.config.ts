@@ -37,6 +37,8 @@ const nextConfig: NextConfig = {
     return [
       { source: "/kages", destination: "/artifacts", permanent: false },
       { source: "/library", destination: "/artifacts", permanent: false },
+      // The Studio editor is gone; its old links land in the Library, where New Kage lives.
+      { source: "/studio", destination: "/artifacts", permanent: false },
     ];
   },
 };

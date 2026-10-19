@@ -31,8 +31,8 @@ export function introTemplates(): KageDoc[] {
       c1h: text("Everything is a Kage"),
       c1b: text("Each Kage is an immutable, signed version with provenance: who made it, how, and from what. Edit it and you get a new version; the old one is never lost."),
       c2: card(["c2h", "c2b"]),
-      c2h: text("Try the studio"),
-      c2b: text("Open any Kage in the studio to add, move and group blocks, edit bindings and actions, and see validation point at the exact field. Publish it and share a link."),
+      c2h: text("Let an agent edit it"),
+      c2b: text("Point an agent at any Kage through the CLI, MCP or REST to add, move and group blocks, edit bindings and actions, and see validation point at the exact field. Publish it and share a link."),
     }),
     doc("what-is-a-block", "Blocks & contracts", {
       root: page(["h", "lead", "c1", "c2"]),

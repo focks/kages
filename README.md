@@ -31,9 +31,9 @@ node bin/kages.mjs validate public/ds/ops-console.kage.json
 
 ## What it does
 
-- **Author visually or as JSON** — a studio to add/duplicate/move/group/delete
-  blocks, edit bindings and actions, with validation that points at the exact
-  field. Every edit is an RFC 6902 patch; every save is a new signed version.
+- **Author with an agent or as JSON** — the CLI, MCP and REST edit a Kage with
+  RFC 6902 patches, with validation that points at the exact field. Every save is
+  a new signed version; the Library's **New Kage** starts from a complete example.
 - **Three design systems** — the same portable document renders in **Core**,
   **Ledger** or **Atelier**. The system is chosen at creation and fixed after.
 - **Free-flowing layouts** — reading pages, landing pages, responsive grids
@@ -80,16 +80,15 @@ npm run typecheck
 
 ### Authoring notes
 
-The Studio opens an interactive split example. **New artifact** offers a blank
-canvas and six starters, including a searchable collection of reusable cards, a
-visual growth calculator and a validated event form. **Expand canvas** hides the
-editors; the preview supports available, tablet and phone widths. New drafts save
-through `create_kage`, and existing artifacts save through `patch_kage`.
+The Library's **New Kage** offers a blank canvas and complete starters, including
+a searchable collection of reusable cards, a visual growth calculator and a
+validated event form. A new Kage is created through `create_kage`; changes go
+through `patch_kage` from the CLI, MCP or REST.
 
 Complete examples live in `src/packs/examples.ts`; generated catalogs and packs
 teach their contracts and expression syntax. Fresh workspaces include the
 examples in the templates project. Existing workspaces can import the JSON
-documents under `public/ds/` or save a starter from Studio.
+documents under `public/ds/` or create a starter with **New Kage**.
 
 Repeats use `{each, key?, as?}`; choose a stable string or numeric item key to
 preserve local state through filtering and sorting. Without `key`, identity
@@ -166,8 +165,7 @@ src/engine/     pure engine (resolve/evaluate/validate/describe/generate)
 src/store/      artifactory: signed versions, provenance, RBAC
 src/adapters/   one operation table → REST/MCP/A2A/OpenAPI
 src/runtime/    React renderer + design-system bundle loader
-src/studio/     visual + JSON authoring (pure doc-ops + UI)
-src/app/        Next.js app: dashboard, studio, /k share, /api, auth
+src/app/        Next.js app: dashboard, library, /k share, /api, auth
 src/server/     process store, Supabase persistence, identity
 oracle/         BDD feature files — the behavioural spec
 .claude/skills/ load-bearing patterns, captured as skills

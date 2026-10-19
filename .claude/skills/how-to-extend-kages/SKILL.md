@@ -35,7 +35,7 @@ A system is **a token set plus a role map**; it may `extend` a parent.
 7. Re-run `scripts/extract-data.mjs` then `scripts/golden.mjs`; the engine tests
    pin the new data. If the bundle's `public/ds/tokens.json` changed, also run
    `npm run tokens` to regenerate `public/ds/tokens.css` (the `.kg-kage`-scoped
-   sheet the viewer/studio/preview load) — see `kages-app-design-system`.
+   sheet the viewer and preview load) — see `kages-app-design-system`.
 
 ## Add a component / role override
 

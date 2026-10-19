@@ -7,6 +7,10 @@ All notable changes are recorded here, newest first. The format follows
 
 First public release candidate.
 
+### Removed
+- The Studio editor (`/studio`, `src/studio`). A Kage is edited by an agent through the CLI, MCP or REST. **New Kage** in the Library
+  now creates one from a starter, and `/studio` redirects to the Library.
+
 ### Added
 - `/agents.md`: a site guide for agents with this deployment's own CLI, MCP and REST commands and the order to call operations in.
 - A share link answers agents in markdown: `/k/<uuid>.md`, or `/k/<uuid>` with `Accept: text/markdown`, with install and call

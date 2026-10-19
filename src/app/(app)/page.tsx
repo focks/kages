@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Layers, CheckCircle2, FileEdit, Boxes, ArrowRight, Eye, SquarePen } from "lucide-react";
+import { Layers, CheckCircle2, FileEdit, Boxes, ArrowRight, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -107,7 +107,6 @@ export default function DashboardPage() {
             ))}
             <div className="flex gap-2 pt-2">
               <Button render={<Link href="/artifacts" />} nativeButton={false} size="sm" variant="outline" className="flex-1"><Eye className="size-4" /> Preview</Button>
-              <Button render={<Link href="/studio" />} nativeButton={false} size="sm" variant="outline" className="flex-1"><SquarePen className="size-4" /> Studio</Button>
             </div>
           </CardContent>
         </Card>

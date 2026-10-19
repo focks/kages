@@ -13,7 +13,7 @@ kages mcp         # serve the operations to an agent over stdio
 
 ## The app
 
-The Library, Studio and public share links run as a Next.js app:
+The Library and public share links run as a Next.js app:
 
 ```sh
 npm run dev
