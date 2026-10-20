@@ -10,6 +10,7 @@ import { skillMd } from "../packs/packs.ts";
 import { systemCard } from "../packs/system-card.ts";
 import { LAUNCHER_SH } from "../hooks/manifest.ts";
 import { decisionSkillMd, DECISION_SKILL_NAME } from "../packs/decision-skill.ts";
+import { loginSkillMd, LOGIN_SKILL_NAME } from "../packs/login-skill.ts";
 import { VERSION } from "../version.ts";
 
 export const DEFAULT_MCP_URL = "https://kages-focks-projects.vercel.app/api/mcp";
@@ -19,11 +20,12 @@ export interface Target { id: string; /** root directory of the target, relative
 
 const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
 
-/** Skills: one authoring guide per design system, plus the decision-guide skill. */
+/** Skills: one authoring guide per design system, plus the decision-guide and login skills. */
 function skillFiles(): Files {
   const f: Files = {};
   for (const id of Object.keys(systems)) { f[`skills/kages-${id}/SKILL.md`] = skillMd(id); f[`skills/kages-${id}/reference/system.md`] = systemCard(id).markdown; }
   f[`skills/${DECISION_SKILL_NAME}/SKILL.md`] = decisionSkillMd();
+  f[`skills/${LOGIN_SKILL_NAME}/SKILL.md`] = loginSkillMd();
   return f;
 }
 
@@ -49,7 +51,7 @@ function claudeTarget(o: Required<PluginOptions>): Target {
 Everything you need to author, review and refine Kages from Claude Code, installed in one step (version ${o.version}):
 
 - **MCP tools**: the full Kages operation set, served over the remote endpoint at \`${o.mcpUrl}\`.
-- **Skills**: one authoring guide per design system (\`kages-core\`, \`kages-ledger\`, \`kages-atelier\`) with its system card, plus \`kages-decision-guide\` for turning a technical question into an interactive guide.
+- **Skills**: one authoring guide per design system (\`kages-core\`, \`kages-ledger\`, \`kages-atelier\`) with its system card, plus \`kages-decision-guide\` for turning a technical question into an interactive guide and \`kages-login\` for signing in to your workspace.
 - **Hook**: checks \`*.kage.json\` files as they are edited and reports problems once (needs the \`kages\` CLI on your PATH; silent without it).
 
 ## Install

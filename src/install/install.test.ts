@@ -171,6 +171,8 @@ test("no network is used: fetch throws and install still works", async () => {
 test("generated files agree with the packs and stamp their version", () => {
   const f = filesFor("claude", "project", { project: "/p", home: "/h" }).files;
   assert.ok(f.some((x) => x.path === "/p/.claude/skills/kages-decision-guide/SKILL.md"));
+  const login = f.find((x) => x.path === "/p/.claude/skills/kages-login/SKILL.md");
+  assert.ok(login && /kages auth login/.test(login.content) && /never print/.test(login.content));
   assert.match(stamp("---\nname: x\n---\n"), /^---\nkages-version: /);
   assert.equal(planFiles(["claude"], "project", { project: tmpDir(), home: tmpDir() }, null).writes.every((w) => w.status === "new"), true);
 });

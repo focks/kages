@@ -202,6 +202,14 @@ In `shadcn-conventions`, replace the Geist/theme-token notes with a pointer
 here. Add this skill to the table in `AGENTS.md`: "Before adding or changing
 any UI: tokens, type, states, the Kage boundary."
 
+## The "Are you an agent?" panel
+
+Every Kage view (the `/k/[id]` share page and the preview overlay) ends in a collapsed footer `<details>` from `src/components/dashboard/kage-usage.tsx`. It must stay **quiet**: unboxed, a muted one-line summary, never fixed or floating over the Kage (a floating version was rejected as too noticeable). Open, it shows "Agent instructions for Kages" grouped as install, CLI, MCP and REST, each command copyable, a "Copy a prompt for your agent" button and a "View as markdown" link.
+
+- The content is the pure `kage-usage-model.ts` (`usageGroups`, `agentPrompt`, `cleanOrigin`, `fileStem`) with its own test; the component only renders it. Commands are derived from `location.origin` at runtime, so a local app, a preview and production each show their own host.
+- The open panel is height-capped (`max-h-[45svh]`, scrolls) with bottom padding so the last command clears the floating "Made with Kages" pill.
+- Change a command or add a client in the model and its test, never in the component.
+
 ## Verify with Playwright MCP
 
 Start `npm run dev`, then for each of `/`, `/artifacts`, `/viewer`,

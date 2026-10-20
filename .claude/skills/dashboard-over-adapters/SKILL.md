@@ -89,6 +89,15 @@ ui.tsx`: `Icon`, `StateBadge`, `SystemChip`). Palette mirrors the token roles
 (paper/surface/ink/wire). A system's identity is a monogram tile, matching the
 spec's iconography rule.
 
+## Share pages that agents can read
+
+A share link (`/k/<uuid>`) is for people, and the same address answers agents in markdown. One reader, `readSharedDoc(uuid)` in `src/server/shared-doc.ts`, enforces who may read (link/public visibility only) for the JSON route, the page and the markdown route; never re-implement that check.
+
+- `/k/<uuid>.md`, or `/k/<uuid>` with `Accept: text/markdown`, is rewritten in `next.config.ts` to `/api/shared/<uuid>/md`. The page advertises it with a `Link: rel="alternate"` header (and `Vary: Accept`) plus a `<link rel="alternate" type="text/markdown">` in the head.
+- `src/server/agent-markdown.ts` (pure) puts **install and call instructions first** and the Kage's own text after, **fenced as untrusted data**: the same rule as the workspace brief. Gotcha: `modeOf` returns an object; print `m.mode`/`m.source`, not `${m}`.
+- `/agents.md` (`src/server/agents-guide.ts`, route in `src/app/agents.md`) is the site guide with this deployment's own origin baked in; `public/llms.txt` indexes both. Add an operation or a recommended call order, then update the guide and its test.
+- The human-side counterpart is the "Are you an agent?" panel (`kages-app-design-system`). Both build their commands from the request's origin, so they never name the wrong host.
+
 ## Why this is the scalable shape
 
 Put a filter, a bulk action, or a new view behind an operation and it is

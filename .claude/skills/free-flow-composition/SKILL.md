@@ -62,3 +62,9 @@ these lint-clean: put figures in `data`/`state` and compute them (a typed-in `st
 every button a handler, label made-up figures illustrative on the page, keep one level of containers, and let a
 selection drive a view (`$filter` to one row, then a repeat) instead of reading a field out of an expression.
 Mind contrast: a diagram node with `tone: accent` fills with the accent colour and its label becomes unreadable.
+
+## Stay adaptive, and what can stick
+
+A stack's `columns` is an oracle-owned inline `repeat(N, …)`; `free-flow.css` refits it below 60rem of container width (the container includes any sidebar), so a four-up KPI row stacks on a phone. Stat cards wrap their label, value and sparkline and clip anything that still overflows. Prefer `grid` for new collections; check every new block at 320 and 390px.
+
+A `toc` with `sticky` follows the reader only where the frame scrolls itself (`fill`, see `artifact-sandbox`). Keep `overflow: clip`, never `hidden`, on `.kg-kage`, or sticky stops working for every descendant.
