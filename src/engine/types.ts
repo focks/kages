@@ -161,7 +161,9 @@ export interface KageDoc {
   data?: Record<string, Json>;
   sources?: Record<string, Json>;
   compositions?: Record<string, Composition>;
-  resolved?: { system: string; blocks: Record<string, string>; assets?: { base: string; integrity: Record<string, string>; runtime?: { path: string; integrity: string } } };
+  /** The id of a workspace design (colours, type, radius) this Kage is dressed in. Absent = the system's own look. */
+  design?: string;
+  resolved?: { system: string; blocks: Record<string, string>; assets?: { base: string; integrity: Record<string, string>; runtime?: { path: string; integrity: string } }; design?: import("./design.ts").DesignSnapshot };
   brief?: KageBrief;
   meta?: Json;
 }

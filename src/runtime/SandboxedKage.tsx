@@ -8,8 +8,9 @@ import { sandboxHtml } from "./sandbox.ts";
 import currentAssets from "../../public/ds/assets.json";
 import frameRuntime from "../../public/runtime/frame.json";
 
-export function KageRenderer({ doc, system, className, onState, host, onLayout, onMetrics, onReady, fill }: KageRendererProps) {
+export function KageRenderer({ doc, system, className, onState, host, onLayout, onMetrics, onReady, fill, design, dark: forceDark }: KageRendererProps) {
   const frame = React.useRef<HTMLIFrameElement>(null);
+  const livePort = React.useRef<MessagePort | undefined>(undefined);
   const [origin, setOrigin] = React.useState("");
   const [height, setHeight] = React.useState(48);
   const bridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer", ...host }); b.permitAsk(); return b; }, [doc, host]);
@@ -27,15 +28,15 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
     if (!origin || !html) return;
     let port: MessagePort | undefined;
     let disposed = false;
-    const dark = () => document.documentElement.classList.contains("dark");
+    const dark = () => forceDark ?? document.documentElement.classList.contains("dark");
     const connect = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow || event.data?.type !== "kages-frame-ready" || port) return;
-      const channel = new MessageChannel(); port = channel.port1;
+      const channel = new MessageChannel(); port = channel.port1; livePort.current = port;
       port.onmessage = async ({ data }) => {
         if (data?.type === "error" && typeof data.message === "string") {
           console.error("Kage frame:", data.message.slice(0, 500));
         } else if (data?.type === "ready") {
-          port!.postMessage({ type: "render", dark: dark(), props: { doc, system, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
+          port!.postMessage({ type: "render", dark: dark(), props: { doc, system, design, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
         } else if (data?.type === "settled") {
           current.current.onReady?.();
         } else if (data?.type === "layout" && Number.isFinite(data.height)) {
@@ -68,8 +69,10 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
     frameEl?.addEventListener("kages-scroll", onScrollRequest);
     const observer = new MutationObserver(() => port?.postMessage({ type: "theme", dark: dark() }));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => { disposed = true; port?.close(); frameEl?.removeEventListener("kages-scroll", onScrollRequest); observer.disconnect(); window.removeEventListener("message", connect); };
+    return () => { disposed = true; livePort.current = undefined; port?.close(); frameEl?.removeEventListener("kages-scroll", onScrollRequest); observer.disconnect(); window.removeEventListener("message", connect); };
   }, [origin, html, doc, system, assets.base]);
+  // A new design or theme restyles the open frame; only a changed document reloads it.
+  React.useEffect(() => { livePort.current?.postMessage({ type: "design", design, dark: forceDark }); }, [design, forceDark]);
   if (frameDoc.error) return <div role="alert" className="kg-missing">{frameDoc.error}</div>;
   return <iframe ref={frame} title={doc.title || "Kage artifact"} className={className} srcDoc={html || undefined} sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerPolicy="no-referrer" style={{ width: "100%", height: fill ? "100%" : height, border: 0, display: "block" }} />;
 }

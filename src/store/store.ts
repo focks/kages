@@ -21,6 +21,8 @@ import { CommentThread, type Comment } from "../collab/comments.ts";
 import { Collection, isCollectionError } from "./collection.ts";
 import assets from "../../public/ds/assets.json" with { type: "json" };
 import { mergeBrief, validateBrief, type WorkspaceBriefRecord } from "./brief.ts";
+import { resolveDesign, validateDesign, readSnapshot, type DesignSnapshot } from "../engine/design.ts";
+import { MAX_DESIGNS, type DesignRecord } from "./designs.ts";
 import type {
   VersionRecord, Provenance, Grant, LifecycleState, Visibility, AuditEntry, KageEvent, WriteResult,
 } from "./types.ts";
@@ -63,6 +65,8 @@ export interface StoreSnapshot {
   comments: Comment[];
   /** At most one record; optional so snapshots from before briefs existed still load. */
   briefs?: WorkspaceBriefRecord[];
+  /** Workspace designs; optional so snapshots from before designs existed still load. */
+  designs?: DesignRecord[];
   /** Last comment id number handed out; absent in snapshots written before it was persisted. */
   commentSequence?: number;
   claims?: import("../collab/claims.ts").Claim[];
@@ -85,6 +89,7 @@ export class Store {
   readonly claims = new ClaimRegistry();
   readonly comments = new CommentThread();
   private brief: WorkspaceBriefRecord | null = null;
+  private designs = new Map<string, DesignRecord>();
   /** Dry-run timestamps per workspace and principal. Process-wide on purpose: a persistent deployment
    *  restores a fresh Store from the snapshot on every request, so an instance field would start each
    *  request at zero and enforce nothing. A dry run must stay a read (committing a counter would turn it
@@ -117,6 +122,7 @@ export class Store {
       comments: this.comments.dump(),
       ...(this.comments.sequence ? { commentSequence: this.comments.sequence } : {}),
       briefs: this.brief ? [JSON.parse(JSON.stringify(this.brief))] : [],
+      ...(this.designs.size ? { designs: [...this.designs.values()].map((d) => JSON.parse(JSON.stringify(d))) } : {}),
       claims: this.claims.dump(),
       ...this.limitsSnapshot(),
     };
@@ -152,6 +158,7 @@ export class Store {
     store.events = snap.events;
     store.comments.load(snap.comments, snap.commentSequence);
     store.brief = snap.briefs?.[0] ? JSON.parse(JSON.stringify(snap.briefs[0])) : null;
+    for (const d of snap.designs ?? []) store.designs.set(d.id, JSON.parse(JSON.stringify(d)));
     store.claims.load(snap.claims);
     for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
@@ -351,6 +358,56 @@ export class Store {
     return { ok: true, value: { record: JSON.parse(JSON.stringify(record)), warnings: checked.warnings } };
   }
 
+  // --- workspace designs ---------------------------------------------------
+
+  /** Members read designs (a Kage in the workspace renders with one); admins write them, as for the brief. */
+  listDesigns(author: Provenance): BriefResult<{ designs: DesignRecord[] }> {
+    if (!this.workspaceAllows(author)) return berr("forbidden", `${author.principal} has no access to this workspace`);
+    return { ok: true, value: { designs: [...this.designs.values()].sort((a, b) => a.id.localeCompare(b.id)).map((d) => JSON.parse(JSON.stringify(d))) } };
+  }
+
+  getDesign(id: string, author: Provenance): BriefResult<{ record: DesignRecord }> {
+    if (!this.workspaceAllows(author)) return berr("forbidden", `${author.principal} has no access to this workspace`);
+    const rec = this.designs.get(id);
+    return rec ? { ok: true, value: { record: JSON.parse(JSON.stringify(rec)) } } : berr("not_found", `no design '${id}'`);
+  }
+
+  /** Create or replace a design. `baseRevision` (0 = must not exist yet) makes it optimistic, like the brief.
+   *  Making one the default clears the flag on the rest, so there is never more than one. */
+  setDesign(input: unknown, author: Provenance, opts: { baseRevision?: number; default?: boolean } = {}): BriefResult<{ record: DesignRecord; snapshot: DesignSnapshot }> {
+    if (!this.workspaceAllows(author, "admin")) return berr("forbidden", `${author.principal} needs admin on a project to edit workspace designs`);
+    const checked = validateDesign(input);
+    if (!checked.ok) return berr("invalid_design", checked.errors.join("; "));
+    const def = checked.design;
+    const current = this.designs.get(def.id);
+    if (opts.baseRevision !== undefined && opts.baseRevision !== (current?.revision ?? 0))
+      return berr("conflict", `design '${def.id}' is at revision ${current?.revision ?? 0}, not ${opts.baseRevision}`);
+    if (!current && this.designs.size >= MAX_DESIGNS) return berr("limit_reached", `a workspace holds at most ${MAX_DESIGNS} designs`);
+    const makeDefault = opts.default !== undefined ? opts.default : !!current?.default;
+    if (makeDefault) for (const d of this.designs.values()) d.default = false;
+    const record: DesignRecord = { id: def.id, def, revision: (current?.revision ?? 0) + 1, ...(makeDefault ? { default: true } : {}), updatedAt: new Date(this.clock()).toISOString(), updatedBy: author.principal };
+    this.designs.set(def.id, record);
+    const ref = `kages://${this.workspace}/designs/${def.id}`;
+    this.record(author.principal, "design.set", ref);
+    this.emit("workspace.design.updated", ref, { revision: record.revision });
+    return { ok: true, value: { record: JSON.parse(JSON.stringify(record)), snapshot: resolveDesign(def) } };
+  }
+
+  /** Kages keep the snapshot their version pinned, so deleting a design never breaks one; it only stops being offered. */
+  deleteDesign(id: string, author: Provenance): BriefResult<{ id: string }> {
+    if (!this.workspaceAllows(author, "admin")) return berr("forbidden", `${author.principal} needs admin on a project to delete workspace designs`);
+    if (!this.designs.delete(id)) return berr("not_found", `no design '${id}'`);
+    const ref = `kages://${this.workspace}/designs/${id}`;
+    this.record(author.principal, "design.delete", ref);
+    this.emit("workspace.design.updated", ref, { deleted: true });
+    return { ok: true, value: { id } };
+  }
+
+  private defaultDesignId(): string | undefined {
+    for (const d of this.designs.values()) if (d.default) return d.id;
+    return undefined;
+  }
+
   // --- quota ---------------------------------------------------------------
 
   private underQuota(principal: string): boolean {
@@ -485,12 +542,27 @@ export class Store {
     if (!v.ok) return { ok: false, validation: v, error: { code: "invalid_content", msg: `${v.errors.length} validation errors` } };
 
     const kage = this.kages.get(doc.id) ?? { name: doc.id, versions: [] };
+    if (doc.design !== undefined && (typeof doc.design !== "string" || doc.design.length > 40)) return err("invalid_content", "design is the id of a workspace design (a string of at most 40 characters)");
+    // A new Kage starts in the workspace's default design unless it chose one. `design: ""` means "none, whatever
+    // the default is"; it is dropped so a stored document never carries an empty field.
+    if (doc.design === "") { const { design: _none, ...rest } = doc; doc = rest as KageDoc; }
+    else if (doc.design === undefined && !kage.versions.length) { const d = this.defaultDesignId(); if (d) doc = { ...doc, design: d }; }
+    // Pin the design as the version is made: later edits to the design reach this Kage only through a new version.
+    // A design deleted since keeps the snapshot its previous version pinned, so editing such a Kage still works.
+    let design: DesignSnapshot | undefined;
+    if (doc.design) {
+      const rec = this.designs.get(doc.design);
+      const prior = kage.versions.length ? readSnapshot(kage.versions[kage.versions.length - 1].doc.resolved?.design) : undefined;
+      if (rec) design = resolveDesign(rec.def);
+      else if (prior && prior.id === doc.design) design = prior;
+      else return err("not_found", `no design '${doc.design}' in this workspace`);
+    }
     const vn = kage.versions.length + 1;
     // The Kage's uuid is minted once (first version) and carried forward, so the
     // share link is stable across edits and never reveals the name.
     const uuid = kage.versions[0]?.uuid ?? randomUUID();
     const ref = `kages://${this.workspace}/${repo}/${doc.id}@v${vn}`;
-    const resolved = { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc), assets };
+    const resolved = { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc), assets, ...(design ? { design } : {}) };
     // Deep clone at ingress: the stored, signed document must NOT share object
     // references with the caller's input, or a later mutation of that input
     // would silently change signed content whose digest no longer matches.

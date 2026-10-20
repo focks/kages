@@ -27,6 +27,7 @@ find a new reusable pattern, add it as a skill.
 | `kages-cli` | Adding or changing a `kages` CLI command, or the file-backed workspace store. |
 | `testing-conventions` | Adding a test or a testable module (node --test, native TS, injected clocks). |
 | `kages-app-design-system` | Before adding or changing any UI: tokens, type, states, the Kage boundary. |
+| `workspace-designs` | Workspace colour/type/radius designs: the closed token shape, per-version pinning, the default, the editor. |
 
 ## Layout
 

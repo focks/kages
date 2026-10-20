@@ -78,6 +78,11 @@
       "group": "Reference"
     },
     {
+      "file": "designs.md",
+      "summary": "Your workspace's own colours, type and corners, chosen per Kage and changeable later.",
+      "group": "Reference"
+    },
+    {
       "file": "deployment.md",
       "summary": "Run Kages locally, with Postgres, or hosted.",
       "group": "Operate"

@@ -86,6 +86,8 @@ Exit codes are meaningful: `lint` exits 2 on a P0 or P1 finding, `check` exits 1
                                 workspace brief, and keep working files out of git
   brief show | set --file b.json | import --file b.md | export [-o f]   [--base-revision n] [--merge]
                                 the workspace brief: product truth every agent should load first
+  designs list | show <id> [--css] | set (--file d.json | --id i --name n [--base core|ledger|atelier] [--brand #hex]) [--default] [--base-revision n] | delete <id> | use <kage> <id|none> [--keep-system]
+                                workspace designs: colours, type and corners a Kage can wear; --brand generates a contrast-checked palette
   doctor [--fix] [--strict] [--online] [--area a,b] [--json]
   push <file|name> [--server url] [--token t] [--replace] [--publish [--visibility link|public|workspace]]   send a local Kage to a running app so it shows in the Library
   report [--kage <name>] [--include-doc] [--include-config-values] [--out <file>] [--force] [--verify] [--open]   a redacted diagnostic bundle; nothing is sent

@@ -12,6 +12,12 @@ First public release candidate.
   now creates one from a starter, and `/studio` redirects to the Library.
 
 ### Added
+- Workspace designs: define your own colours (light and dark), type and corner radius once, keep several per workspace, choose one
+  when you create a Kage and change it later. New in the app (**Designs**, with a live preview and a one-colour palette generator),
+  the CLI (`kages designs`) and the operation table (`list_designs`, `get_design`, `set_design`, `delete_design`, `set_kage_design`).
+  Values are validated against a closed shape (hex colours, a 25-font Google Fonts list, integer radii), contrast is checked against the
+  built-in pairs, and each Kage version pins the design it was saved with. See `docs/designs.md`.
+- Stack columns refit and stat cards wrap on narrow canvases, so a four-up KPI row stacks on a phone instead of clipping its figures.
 - `/agents.md`: a site guide for agents with this deployment's own CLI, MCP and REST commands and the order to call operations in.
 - A share link answers agents in markdown: `/k/<uuid>.md`, or `/k/<uuid>` with `Accept: text/markdown`, with install and call
   instructions first and the Kage's own text fenced as untrusted data. Pages advertise it with a `Link` header and `<link rel="alternate">`;

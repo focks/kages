@@ -23,10 +23,10 @@ const patch: InputSchema = { type: "array", items: { type: "object", required: [
 const evidence: InputSchema = { type: "array", items: { type: "object", required: ["kind", "ref"], properties: { kind: choice("data", "quote", "asset", "link"), ref: str, note: str }, additionalProperties: false } };
 const brief: InputSchema = { type: "object", properties: { mode: choice("read", "operate", "persuade", "experience"), users: str, purpose: str, audience: str, job: str, primaryAction: str, evidence, schema: { type: "integer", enum: [1] }, positioning: str, operatingContext: str, voice: str, brandCommitments: str, constraints: strings, absent: strings, principles: strings, openDecisions: strings, inferred: strings, useScene: str, notes: str } };
 const shared: Record<string, InputSchema> = {
-  ...Object.fromEntries(["system", "ref", "text", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
-  ...Object.fromEntries(["apply", "all", "full", "merge", "toc", "resolved"].map(k => [k, bool])),
+  ...Object.fromEntries(["system", "design", "brand", "ref", "text", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
+  ...Object.fromEntries(["apply", "all", "full", "merge", "toc", "resolved", "default", "keepSystem"].map(k => [k, bool])),
   ...Object.fromEntries(["version", "baseVersion", "baseRevision", "index", "limit", "since"].map(k => [k, integer])),
-  doc: obj, intake: obj, spec: obj, envelope: obj, brief, ops: patch, suggestedPatch: patch,
+  doc: obj, definition: obj, intake: obj, spec: obj, envelope: obj, brief, ops: patch, suggestedPatch: patch,
   direction: choice("bolder", "quieter"), amount: { type: "number", minimum: 0 }, scope: { type: ["string", "array"], items: str },
   mode: choice("read", "operate", "persuade", "experience"), advice: choice("full", "quiet", "off"), minSeverity: choice("P0", "P1", "P2", "P3"),
   state: choice("draft", "review", "published", "deprecated", "archived"), visibility: choice("private", "workspace", "link", "public"),

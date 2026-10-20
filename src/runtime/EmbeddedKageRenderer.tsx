@@ -10,6 +10,7 @@ import { initLocals, makeCtx, materialize, runActions, systemOf, type Draft, typ
 import { HostBridge, type BridgeConfig } from "@/host/bridge.ts";
 import type { KageDoc, Json, Contract, Block } from "@/engine/types.ts";
 import { useDsBundle } from "./useDsBundle.ts";
+import { designCss, readSnapshot, type DesignSnapshot } from "../engine/design.ts";
 
 type Impl = React.ComponentType<Record<string, unknown>>;
 type Bundle = Record<string, unknown>;
@@ -64,12 +65,20 @@ export interface KageRendererProps {
   /** Fill the container and scroll inside the frame instead of growing to the content's height. A page that
    *  scrolls inside its frame is the only way a sticky contents rail can follow the reader without lag. */
   fill?: boolean;
+  /** A design to dress the Kage in instead of the one its version pinned (an editor's live preview). */
+  design?: DesignSnapshot;
+  /** Force the frame's theme instead of following the host page (a design editor shows both side by side). */
+  dark?: boolean;
   bridge?: Pick<HostBridge, "ask" | "invokeAgent" | "load" | "emit">;
 }
 
-export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, onState, host, bridge: remoteBridge, assetIntegrity }: KageRendererProps) {
+export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, onState, host, bridge: remoteBridge, assetIntegrity, design: designOverride }: KageRendererProps) {
   const { kages, error } = useDsBundle(dsBase, doc.resolved?.assets?.integrity ?? assetIntegrity);
   const sysId = systemOf(doc, system);
+  // The pinned snapshot is stored data like the rest of the document, so it is rebuilt through the design checks
+  // before it becomes CSS; a tampered one simply renders in the system's own look.
+  const design = React.useMemo(() => readSnapshot(designOverride ?? doc.resolved?.design), [designOverride, doc.resolved?.design]);
+  const designStyle = React.useMemo(() => (design ? designCss(design) : ""), [design]);
 
   const [state, setState] = React.useState<Record<string, Json>>(() => clone(doc.state || {}));
   const [locals, setLocals] = React.useState(() => initLocals(doc, sysId));
@@ -198,9 +207,11 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
     );
   }
 
-  return React.createElement(
+  const page = React.createElement(
     "div",
-    { className: ["kg-kage", sys.className, className].filter(Boolean).join(" "), "data-system": sysId + "@" + sys.version },
+    { className: ["kg-kage", sys.className, design && "kg-design", className].filter(Boolean).join(" "), "data-system": sysId + "@" + sys.version, ...(design ? { "data-design": design.id } : {}) },
     renderBlock(doc.root, {}),
   );
+  // The CSS is assembled only from validated hex, catalogue font names and integers, so it carries no author text.
+  return design ? React.createElement(React.Fragment, null, React.createElement("style", { dangerouslySetInnerHTML: { __html: designStyle } }), page) : page;
 }

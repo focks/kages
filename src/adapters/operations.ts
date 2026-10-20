@@ -21,7 +21,9 @@ import { briefIssues } from "../engine/brief.ts";
 import { modeOf } from "../engine/mode.ts";
 import { outlineToKage } from "../engine/outline.ts";
 import { buildDecisionGuide, type Intake } from "../packs/decision-guide.ts";
-import { applyPatch } from "../collab/patch.ts";
+import { applyPatch, type PatchOp } from "../collab/patch.ts";
+import { FONTS, designContrast, designCss, paletteFromBrand, resolveDesign, type DesignDef } from "../engine/design.ts";
+import { systemOf } from "../engine/resolve.ts";
 import { describe } from "../engine/describe.ts";
 import { catalog } from "../engine/catalog.ts";
 import { generationSchema, fromGenerated } from "../engine/generate.ts";
@@ -60,6 +62,12 @@ const fail = (code: string, msg: string, details?: unknown): OpResult => ({ ok: 
 const cres = <T,>(r: { ok: true; value: T } | { ok: false; error: { code: string; msg: string } }): OpResult => (r.ok ? ok(r.value) : fail(r.error.code, r.error.msg));
 
 type Params = Record<string, any>;
+
+const designRow = (r: { id: string; def: DesignDef; revision: number; default?: boolean; updatedAt: string; updatedBy: string }) => {
+  const snap = resolveDesign(r.def);
+  const pick = (p: Record<string, string>) => [p.paper, p.surface, p.ink, p.accent];
+  return { id: r.id, name: r.def.name, ...(r.def.description ? { description: r.def.description } : {}), base: r.def.base, revision: r.revision, default: !!r.default, updatedAt: r.updatedAt, updatedBy: r.updatedBy, swatch: { light: pick(snap.light), dark: pick(snap.dark) }, fonts: snap.fonts };
+};
 
 /** Declarative description of each operation, so adapters (OpenAPI, MCP tools,
  *  CLI help, A2A skills) are GENERATED from one source and cannot drift. */
@@ -358,6 +366,44 @@ export const OPERATIONS: OpSpec[] = [
     if (!r.ok) return fail(r.error.code, r.error.msg, r.error.current !== undefined ? { current: r.error.current } : undefined);
     const { record, warnings } = r.value;
     return ok({ brief: record.brief, revision: record.revision, updatedAt: record.updatedAt, updatedBy: record.updatedBy, ...(warnings.length ? { warnings } : {}) });
+  } },
+  { name: "list_designs", summary: "The workspace's design definitions (colours for light and dark, type, corner radius) and which one new Kages start in. A Kage picks one with its `design` field", params: [], run: (c) => {
+    const r = c.store.listDesigns(c.author);
+    return r.ok ? ok({ designs: r.value.designs.map(designRow), default: r.value.designs.find((d) => d.default)?.id ?? null, fonts: FONTS.map((f) => ({ name: f.name, kind: f.kind })) }) : fail(r.error.code, r.error.msg);
+  } },
+  { name: "get_design", summary: "One design definition, the complete resolved snapshot a Kage version would pin, its generated CSS and its contrast check against the 21 text pairs", params: ["id"], run: (c, p) => {
+    const r = c.store.getDesign(String(p.id), c.author);
+    if (!r.ok) return fail(r.error.code, r.error.msg);
+    const snapshot = resolveDesign(r.value.record.def);
+    const rows = designContrast(snapshot);
+    return ok({ ...designRow(r.value.record), definition: r.value.record.def, snapshot, css: designCss(snapshot), contrast: { failing: rows.filter((x) => !x.ok), checked: rows.length } });
+  } },
+  { name: "set_design", summary: "Create or replace a workspace design (admin). `definition` is {id, name, base: core|ledger|atelier, colors?: {light?, dark?}, fonts?: {body?, display?, mono?}, radius?: {sm?, md?, lg?}}: only the roles you set change, the rest come from `base`. Or pass `brand` (a hex colour) to generate a complete contrast-checked palette. baseRevision: 0 = must be new; default:true makes it the design new Kages start in", params: ["definition", "brand?", "baseRevision?", "default?"], write: true, run: (c, p) => {
+    let input = p.definition;
+    if (p.brand !== undefined) {
+      const pal = paletteFromBrand(String(p.brand));
+      if (!pal) return fail("invalid_params", "brand must be a hex colour like #0b5fff");
+      input = { ...(input && typeof input === "object" ? input : {}), colors: pal };
+    }
+    const r = c.store.setDesign(input, c.author, { baseRevision: p.baseRevision !== undefined ? Number(p.baseRevision) : undefined, ...(p.default !== undefined ? { default: p.default === true } : {}) });
+    if (!r.ok) return fail(r.error.code, r.error.msg);
+    const rows = designContrast(r.value.snapshot).filter((x) => !x.ok);
+    return ok({ ...designRow(r.value.record), ...(rows.length ? { warnings: [`${rows.length} text/background pairs fall below their WCAG minimum (${[...new Set(rows.map((x) => `${x.text} on ${x.on}`))].slice(0, 4).join(", ")}${rows.length > 4 ? ", …" : ""}); get_design lists them`] } : {}) });
+  } },
+  { name: "delete_design", summary: "Delete a workspace design (admin). Kages already using it keep the snapshot their version pinned", params: ["id"], write: true, run: (c, p) => cres(c.store.deleteDesign(String(p.id), c.author)) },
+  { name: "set_kage_design", summary: "Dress a Kage in a workspace design, or pass design:\"\" to remove it. Creates a new version, which pins the design's current values. Also sets `system` to the design's base unless keepSystem is true", params: ["name", "design", "keepSystem?", "baseVersion?"], write: true, run: (c, p) => {
+    const head = c.store.head(String(p.name));
+    if (!head) return fail("not_found", `no kage '${p.name}'`);
+    const id = typeof p.design === "string" ? p.design : "";
+    const ops: PatchOp[] = [];
+    if (id) {
+      const d = c.store.getDesign(id, c.author);
+      if (!d.ok) return fail(d.error.code, d.error.msg);
+      ops.push({ op: head.doc.design === undefined ? "add" : "replace", path: "/design", value: id });
+      if (p.keepSystem !== true && systemOf(head.doc) !== d.value.record.def.base) ops.push({ op: "replace", path: "/system", value: d.value.record.def.base + "@1" });
+    } else if (head.doc.design !== undefined) ops.push({ op: "remove", path: "/design" });
+    else return ok({ name: head.name, version: head.v, unchanged: true });
+    return toResult(c.store.patch(String(p.name), ops, c.author, { baseVersion: p.baseVersion !== undefined ? Number(p.baseVersion) : undefined, summary: id ? `design: ${id}` : "design: removed" }), () => undefined);
   } },
   { name: "lint_kage", summary: "Lint a stored Kage (or a document): findings with rule id, severity P0-P3, tier and a fix, plus waived findings and the rules that ran", params: ["name?", "doc?", "tier?"], run: (c, p) => {
     let doc = p.doc as KageDoc | undefined;

@@ -11,6 +11,7 @@ let port: MessagePort | undefined;
 window.addEventListener("error", event => { if (event.error) port?.postMessage({ type: "error", message: event.message }); });
 window.addEventListener("unhandledrejection", event => port?.postMessage({ type: "error", message: String(event.reason) }));
 let revision = 0;
+let current: KageRendererProps | undefined;
 let sequence = 0;
 const pending = new Map<number, (v: unknown) => void>();
 const rpc = (method: string, args: unknown[]) => new Promise<unknown>(resolve => {
@@ -31,11 +32,18 @@ window.addEventListener("message", event => {
   port.onmessage = ({ data }) => {
     if (data.type === "result") { pending.get(data.id)?.(data.value); pending.delete(data.id); return; }
     if (data.type === "scrollBy" && Number.isFinite(data.top) && Number.isFinite(data.left)) { scrollBy(data.left, data.top); return; }
+    // A design edit restyles the page in place: same key, so the Kage keeps its state and the frame does not reload.
+    if (data.type === "design" && current) {
+      current = { ...current, design: data.design };
+      if (typeof data.dark === "boolean") document.documentElement.classList.toggle("dark", data.dark);
+      root.render(<EmbeddedKageRenderer key={revision} {...current} bridge={bridge} onState={state => port!.postMessage({ type: "state", state })} />);
+      return;
+    }
     if (data.type === "theme") { document.documentElement.classList.toggle("dark", !!data.dark); return; }
     if (data.type !== "render") return;
-    const props = data.props as KageRendererProps;
+    current = data.props as KageRendererProps;
     document.documentElement.classList.toggle("dark", !!data.dark);
-    root.render(<EmbeddedKageRenderer key={++revision} {...props} bridge={bridge} onState={state => port!.postMessage({ type: "state", state })} />);
+    root.render(<EmbeddedKageRenderer key={++revision} {...current} bridge={bridge} onState={state => port!.postMessage({ type: "state", state })} />);
   };
   port.postMessage({ type: "ready" });
 });

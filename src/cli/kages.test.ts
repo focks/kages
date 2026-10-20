@@ -331,3 +331,27 @@ test("resolveDoc reads only regular *.kage.json files, so a Kage name cannot be 
   assert.doesNotMatch(asDir.err, /EISDIR/, "a directory is not read as a file");
   assert.equal((await cli(["validate", FIXTURE])).code, 0, "a real *.kage.json still works");
 });
+
+test("designs: set from a brand colour, list, show, use on a Kage, delete", async () => {
+  const dir = tmpWorkspace(), ws = ["-C", join(dir, ".kages")];
+  const empty = await cli([...ws, "designs", "list", "--local"]);
+  assert.match(empty.out, /no designs yet/);
+  const set = await cli([...ws, "designs", "set", "--name", "Brand Blue", "--brand", "#0b5fff", "--base", "ledger", "--default", "--local"]);
+  assert.equal(set.code, 0, set.out + set.err); assert.match(set.out, /design 'brand-blue' saved \(revision 1\)/);
+  assert.doesNotMatch(set.out, /^!/m, "a generated palette passes every contrast pair");
+  assert.match((await cli([...ws, "designs", "list", "--local"])).out, /\* brand-blue\s+ledger\s+rev 1\s+Brand Blue/);
+  assert.match((await cli([...ws, "designs", "show", "brand-blue", "--local"])).out, /all 42 contrast checks pass/);
+  assert.match((await cli([...ws, "designs", "show", "brand-blue", "--css", "--local"])).out, /^\.kg-kage\.kg-design\{--kg-paper:#/m);
+  const stale = await cli([...ws, "designs", "set", "--name", "Brand Blue", "--brand", "#0b5fff", "--base-revision", "5", "--local"]);
+  assert.equal(stale.code, 1); assert.match(stale.err + stale.out, /revision/);
+  // A Kage created after a default exists starts in it; `use` changes it later and `none` removes it.
+  assert.equal((await cli([...ws, "create", FIXTURE, "--local"])).code, 0);
+  const use = await cli([...ws, "designs", "use", "ops-console", "none", "--local"]);
+  assert.equal(use.code, 0, use.out + use.err); assert.match(use.out, /design removed/);
+  assert.match((await cli([...ws, "designs", "use", "ops-console", "none", "--local"])).out, /already has no design/);
+  assert.match((await cli([...ws, "designs", "use", "ops-console", "brand-blue", "--keep-system", "--local"])).out, /now uses 'brand-blue'/);
+  assert.equal((await cli([...ws, "designs", "use", "ops-console", "ghost", "--local"])).code, 1);
+  assert.equal((await cli([...ws, "designs", "set", "--id", "x", "--name", "X", "--local"])).code, 0, "a design with nothing overridden is valid: it is just the base system");
+  assert.equal((await cli([...ws, "designs", "delete", "x", "--local"])).code, 0);
+  assert.equal((await cli([...ws, "designs", "delete", "x", "--local"])).code, 1, "a second delete is not_found");
+});

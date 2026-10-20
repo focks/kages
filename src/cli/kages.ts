@@ -118,6 +118,8 @@ workspace  (the files Kages keeps next to your project)
                                 workspace brief, and keep working files out of git
   brief show | set --file b.json | import --file b.md | export [-o f]   [--base-revision n] [--merge]
                                 the workspace brief: product truth every agent should load first
+  designs list | show <id> [--css] | set (--file d.json | --id i --name n [--base core|ledger|atelier] [--brand #hex]) [--default] [--base-revision n] | delete <id> | use <kage> <id|none> [--keep-system]
+                                workspace designs: colours, type and corners a Kage can wear; --brand generates a contrast-checked palette
   doctor [--fix] [--strict] [--online] [--area a,b] [--json]
   push <file|name> [--server url] [--token t] [--replace] [--publish [--visibility link|public|workspace]]   send a local Kage to a running app so it shows in the Library
   report [--kage <name>] [--include-doc] [--include-config-values] [--out <file>] [--force] [--verify] [--open]   a redacted diagnostic bundle; nothing is sent
@@ -662,6 +664,46 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
         return 0;
       }
       throw new Error(`unknown brief command '${sub}' (show, set, import, export)`);
+    }
+    case "designs": case "design": {
+      const sub = rest[0] ?? "list";
+      if (sub === "list") return report(await op("list_designs", {}), (d) => {
+        const r = d as { designs: Array<{ id: string; name: string; base: string; default: boolean; revision: number; fonts: Record<string, string> }>; default: string | null };
+        if (!r.designs.length) { out("no designs yet. Create one: kages designs set --brand '#0b5fff' --id brand --name Brand   (or --file design.json)"); return; }
+        for (const x of r.designs) out(`${x.default ? "*" : " "} ${x.id.padEnd(20)} ${x.base.padEnd(8)} rev ${x.revision}  ${x.name}${Object.values(x.fonts).length ? "  · " + [...new Set(Object.values(x.fonts))].join(", ") : ""}`);
+        out("\n* = new Kages start in this design");
+      });
+      if (sub === "show") {
+        const id = rest[1]; if (!id) throw new Error("usage: kages designs show <id> [--css]");
+        return report(await op("get_design", { id }), (d) => {
+          const r = d as { definition: unknown; css: string; contrast: { failing: Array<{ mode: string; text: string; on: string; ratio: number; min: number }>; checked: number } };
+          if (flags.css === true) { out(r.css); return; }
+          out(JSON.stringify(r.definition, null, 2));
+          out(r.contrast.failing.length ? `\n${r.contrast.failing.length} of ${r.contrast.checked} contrast checks fail:` : `\nall ${r.contrast.checked} contrast checks pass`);
+          for (const f of r.contrast.failing) out(`  ${f.mode} ${f.text} on ${f.on}: ${f.ratio}:1, needs ${f.min}:1`);
+        });
+      }
+      if (sub === "set") {
+        const file = flag<string>(flags, "file") ?? rest[1];
+        let definition: Record<string, unknown> = {};
+        if (file) definition = JSON.parse(readFileSync(file, "utf8"));
+        // Flags fill or override the file, so a one-line `--brand` design needs no JSON at all.
+        for (const k of ["id", "name", "base", "description"] as const) if (flag<string>(flags, k)) definition[k] = flag<string>(flags, k);
+        if (!definition.base) definition.base = "core";
+        if (!definition.id && typeof definition.name === "string") definition.id = definition.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+        if (!definition.id || !definition.name) throw new Error("usage: kages designs set (--file design.json | --id <id> --name <name> [--base core|ledger|atelier] [--brand #hex]) [--default] [--base-revision n]");
+        return report(await op("set_design", { definition, brand: flag<string>(flags, "brand"), baseRevision: flags["base-revision"], ...(flags.default === true ? { default: true } : {}) }, true), (d) => {
+          const r = d as { id: string; revision: number; warnings?: string[] };
+          out(`design '${r.id}' saved (revision ${r.revision})`); for (const w of r.warnings ?? []) out(`! ${w}`);
+        });
+      }
+      if (sub === "delete") { const id = rest[1]; if (!id) throw new Error("usage: kages designs delete <id>"); return report(await op("delete_design", { id }, true), () => out(`design '${id}' deleted; Kages using it keep the look they were saved with`)); }
+      if (sub === "use") {
+        const [, name, id] = rest;
+        if (!name || !id) throw new Error("usage: kages designs use <kage> <design-id|none> [--keep-system]");
+        return report(await op("set_kage_design", { name, design: id === "none" ? "" : id, keepSystem: flags["keep-system"] === true }, true), (d) => { const r = d as { unchanged?: boolean }; out(r.unchanged ? `${name} already has no design` : id === "none" ? `${name}: design removed (new version)` : `${name} now uses '${id}' (new version)`); });
+      }
+      throw new Error(`unknown designs command '${sub}' (list, show, set, delete, use)`);
     }
     case "config": return configCmd(rest, flags, ctx.dir);
     case "gitignore": return gitignoreCmd(flags, process.cwd());

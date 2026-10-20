@@ -20,7 +20,7 @@ Kages is an artifactory for agents: versioned, interactive pages assembled from 
 
 1. \`get_context\` — once per session: the workspace brief, the design system and its rules, and what is missing.
 2. \`search_templates\` — fork a starter before building from scratch. \`get_catalog\` lists the blocks of a design system.
-3. \`create_kage\` with a full document, or \`generate_kage\` from an envelope. Run \`validate_kage\` and \`lint_kage\` first; both name the fix for each finding.
+3. \`create_kage\` with a full document, or \`generate_kage\` from an envelope. The workspace may define designs (colours, type, corners): \`list_designs\`, then set the document's \`design\` to an id, or later \`set_kage_design\`. Run \`validate_kage\` and \`lint_kage\` first; both name the fix for each finding.
 4. Edit with \`validate_patch\` (free dry run), then \`patch_kage\`. Pass \`baseVersion\` so a concurrent edit is not overwritten.
 5. \`describe_kage\` reads a Kage as text. \`publish_kage\` and \`share_kage\` make it visible; both need a grant.
 

@@ -11,7 +11,7 @@ export interface ParsedArgs {
 const ALIASES: Record<string, string> = { C: "workspace", o: "out", s: "system", v: "version", h: "help" };
 // Flags that are always boolean, so they never swallow the following positional
 // (`kages --local create x` must keep `create x` as positionals, not local="create").
-const BOOLEAN = new Set(["local", "json", "help", "dark", "no-sandbox", "create", "reopen"]);
+const BOOLEAN = new Set(["local", "json", "help", "dark", "no-sandbox", "create", "reopen", "default", "css", "keep-system"]);
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];

@@ -15,7 +15,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareMenu } from "@/components/dashboard/share-menu";
 import { StatusMenu } from "@/components/dashboard/status-menu";
-import { KageFrame, StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
+import { KageFrame, StateBadge, SystemChip, ValidationStatus, op, relTime, type KageCard } from "@/components/dashboard/kage-ui";
+import { toast } from "sonner";
+import { DesignSelect, useDesigns } from "@/components/dashboard/designs/design-select";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { DiscussionPanel } from "@/components/dashboard/comments/discussion-panel";
 import { discussionStats } from "@/components/dashboard/comments/comment-model";
@@ -42,6 +44,26 @@ interface Props {
   onExport: (name: string) => void;
   onChanged: () => Promise<void>;
   onDeleted: () => Promise<void>;
+}
+
+/** Change the Kage's design later. It saves a new version, which pins the design as it is right now. */
+function DesignPicker({ name, current, pinned, onChanged }: { name: string; current: string; pinned?: string; onChanged: () => Promise<void> }) {
+  const designs = useDesigns(true);
+  const [busy, setBusy] = useState(false);
+  if (!designs || (designs.designs.length === 0 && !current)) return null;
+  async function apply(id: string) {
+    setBusy(true);
+    try { await op("set_kage_design", { name, design: id }); toast.success(id ? "Design applied in a new version" : "Design removed in a new version"); await onChanged(); }
+    catch (e) { toast.error(String((e as Error).message)); } finally { setBusy(false); }
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <label htmlFor={`design-${name}`} className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Design</label>
+      <div className="w-64"><DesignSelect id={`design-${name}`} value={current} designs={designs.designs} disabled={busy} onChange={(id) => void apply(id)} /></div>
+      {current && !designs.designs.some((d) => d.id === current) && <span className="text-xs text-muted-foreground">“{pinned ?? current}” was deleted; this version keeps its look.</span>}
+      {current && designs.designs.some((d) => d.id === current) && <Button size="xs" variant="ghost" disabled={busy} onClick={() => void apply(current)}>Update to latest</Button>}
+    </div>
+  );
 }
 
 const overline = "font-mono text-[11px] leading-[14px] font-medium uppercase tracking-[0.06em] text-muted-foreground";
@@ -76,6 +98,7 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
                 <ShareMenu name={card.name} uuid={card.uuid} state={card.state} visibility={card.visibility} onChanged={onChanged} />
                 <StatusMenu name={card.name} state={card.state} onChanged={onChanged} onDeleted={onDeleted} />
               </div>
+              <DesignPicker name={card.name} current={doc?.design ?? ""} pinned={doc?.resolved?.design?.name} onChanged={onChanged} />
             </SheetHeader>
 
             <Tabs value={tab} onValueChange={(v) => setTab(String(v))} className="p-5">
