@@ -64,3 +64,10 @@ test("free-flow: asset integrity hashes match every served byte", () => {
     assert.equal(hashes[name], "sha384-" + createHash("sha384").update(readFileSync(new URL(name, base))).digest("base64"), name);
   }
 });
+
+test("a stack's fixed columns refit on a narrow canvas, and a stat's row can wrap instead of overflowing", () => {
+  const css = readFileSync(new URL("bundle.css", base), "utf8");
+  // The inline repeat(N) comes from the oracle's stack; only an !important container rule can override it.
+  assert.match(css, /@container \(max-width: 60rem\) \{\s*\.kg-stack\[style\*="grid-template-columns"\] \{[^}]*auto-fit[^}]*!important/);
+  assert.match(css, /\.lg-stat__top, \.lg-stat__row \{ flex-wrap: wrap; \}/);
+});

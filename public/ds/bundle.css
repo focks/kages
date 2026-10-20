@@ -358,6 +358,18 @@ h4.kg-section__title { font-size: clamp(1rem, 1.5cqi, 1.25rem); }
 .kg-grid__items--medium { --kg-item-min: 18rem; }
 .kg-grid__items--large { --kg-item-min: 24rem; }
 .kg-grid__items > *, .kg-stack > * { min-width: 0; }
+/* A stack's `columns` arrives as an inline repeat(N, ...) the oracle owns, so a four-up KPI row stays
+   four-up on a phone and clips its numbers. Below a small-laptop canvas (the container includes any sidebar) the tracks refit instead: as many
+   as 11rem allows, one on a phone. !important is the only way past that inline style. */
+@container (max-width: 60rem) {
+  .kg-stack[style*="grid-template-columns"] { grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)) !important; }
+}
+/* A stat is a flex column inside a track that can be narrow: let the label, delta and value wrap, let the sparkline
+   shrink first (to 3rem; wrapping is decided from the flex basis, not the shrunk width) and only then drop under the figure, rather than push past the border. */
+.lg-stat__top, .lg-stat__row { flex-wrap: wrap; }
+.lg-stat__label, .lg-stat__value, .kg-stat__label, .kg-stat__value { min-width: 0; overflow-wrap: anywhere; }
+.lg-stat__spark { flex: 1 1 3rem; min-width: 3rem; max-width: 7.5rem; margin-left: auto; height: auto; }
+.lg-stat, .kg-stat { overflow: hidden; }
 .kg-split { min-width: 0; container-type: inline-size; }
 .kg-split__items { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--kg-layout-gap); }
 .kg-split__pane { min-width: 0; display: flex; flex-direction: column; gap: var(--kg-layout-gap); }
