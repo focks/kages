@@ -83,6 +83,10 @@ export const FIXTURES: Record<string, { pos: KageDoc; neg: KageDoc }> = {
     pos: tree({ root: { type: "page", props: {}, slots: { children: ["c"] } }, c: { type: "card", props: { title: "Outer" }, slots: { children: ["d"] } }, d: { type: "card", props: { title: "Inner" } } }),
     neg: tree({ root: { type: "page", props: {}, slots: { children: ["c"] } }, c: { type: "card", props: { title: "Outer" }, slots: { children: ["t"] } }, t: { type: "text", props: { text: "plain" } } }),
   },
+  "fixed-columns": {
+    pos: tree({ root: { type: "page", props: {}, slots: { children: ["s"] } }, s: { type: "stack", props: { columns: 4 }, slots: { children: ["t"] } }, t: { type: "text", props: { text: "x" } } }),
+    neg: tree({ root: { type: "page", props: {}, slots: { children: ["g"] } }, g: { type: "grid", props: { columns: 4 }, slots: { children: ["t"] } }, t: { type: "text", props: { text: "x" } } }),
+  },
   // The shipped registry is empty; FIXTURE_OPTIONS injects a one-entry registry for this rule.
   "deprecated-usage": { pos: mk({ t: { type: "text", props: { text: "x", legacy: true } } }), neg: mk({ t: { type: "text", props: { text: "x" } } }) },
   "unsourced-claim": {

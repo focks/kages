@@ -16,13 +16,14 @@ import { tplMissingBlock, tplPrivateRead, tplUndeclaredState } from "./templates
 import { unreachableBlock } from "./unreachable-block.ts";
 import { briefInvalid } from "./brief-invalid.ts";
 import { nestedSections } from "./nested-sections.ts";
+import { fixedColumns } from "./fixed-columns.ts";
 import { deprecatedUsage } from "./deprecated-usage.ts";
 import { unsourcedClaim, statLiteralUnsourced } from "./unsourced-claim.ts";
 
 export const RULES: readonly Rule[] = [
   tplMissingBlock, tplPrivateRead, tplUndeclaredState,
   deadButton, formUnwired, modalUnreachable, tocMissingAnchor, danglingCite, tabPanelExtraSlot, tabPanelEmpty,
-  duplicateItemId, insecureMedia, emptyChart, selectionUnused, calendarMonth, unreachableBlock, briefInvalid, nestedSections, deprecatedUsage, unsourcedClaim, statLiteralUnsourced,
+  duplicateItemId, insecureMedia, emptyChart, selectionUnused, calendarMonth, unreachableBlock, briefInvalid, nestedSections, fixedColumns, deprecatedUsage, unsourcedClaim, statLiteralUnsourced,
 ];
 
 export const ruleById = (id: string): Rule | undefined => RULES.find((r) => r.id === id);
