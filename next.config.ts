@@ -22,8 +22,6 @@ const nextConfig: NextConfig = {
     const share = { source: "/k/:id([A-Za-z0-9-]+)", headers: [{ key: "Link", value: "</k/:id.md>; rel=\"alternate\"; type=\"text/markdown\"" }, { key: "Vary", value: "Accept" }] };
     return [baseline, ...assets, ...hashed, share];
   },
-  // The docs route reads docs/*.md at build time; make sure they ship with it.
-  outputFileTracingIncludes: { "/docs/[[...slug]]": ["./docs/**/*"] },
   // A share link answers agents in markdown: /k/<uuid>.md, or /k/<uuid> when the client asks for text/markdown.
   async rewrites() {
     return { beforeFiles: [
