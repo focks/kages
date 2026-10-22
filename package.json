@@ -22,9 +22,6 @@
     "prepare": "node scripts/build-cli.mjs",
     "build:plugins": "node scripts/build-plugins.mjs",
     "check:plugins": "node scripts/build-plugins.mjs --check",
-    "docs:gen": "node scripts/gen-docs.mjs",
-    "docs:check": "node scripts/gen-docs.mjs --check",
-    "docs:visual": "node scripts/docs-visual.mjs",
     "build:frame": "node scripts/build-frame.mjs",
     "bench:render": "NODE_ENV=production node scripts/bench-render.mjs"
   },

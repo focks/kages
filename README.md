@@ -9,7 +9,7 @@ by link.
 [![CI](https://github.com/focks/kages/actions/workflows/ci.yml/badge.svg)](https://github.com/focks/kages/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-🔗 **Live:** https://kages-focks-projects.vercel.app · 📖 **Docs:** [`docs/`](docs/getting-started.md), or `/docs` in the running app
+🔗 **Live:** https://kages-focks-projects.vercel.app · 📖 **Docs:** `/docs` in the running app
 
 ## Quick start
 
@@ -154,7 +154,7 @@ the local `./.kages`.
 
 The app is a standard Next.js app and deploys to Vercel or any Node host. Set
 the Supabase env vars in the project (or `DATABASE_URL` for plain Postgres; see
-[deployment](docs/deployment.md)); run the migrations against your
+deployment); run the migrations against your
 Supabase project; enable the Google provider in Supabase Auth with a Google
 Cloud OAuth client (redirect `https://<project>.supabase.co/auth/v1/callback`).
 

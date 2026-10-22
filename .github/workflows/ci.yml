@@ -18,7 +18,6 @@ jobs:
       # The design-system build is deterministic: a dirty tree afterwards means a generated file was not committed.
       - run: npm run build:ds
       - run: git diff --exit-code
-      - run: npm run docs:check
       - run: npm run check:plugins
       - run: npm audit --omit=dev --audit-level=high
   cli-bundle:

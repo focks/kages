@@ -6,7 +6,7 @@
 
 - [ ] `npm run typecheck`
 - [ ] `npm test`
-- [ ] `npm run docs:check` and `npm run check:plugins` (if a command, operation or design system changed)
+- [ ] `npm run check:plugins` (if a command, operation or design system changed)
 - [ ] Added or updated a test that fails without this change
 - [ ] No secrets, personal paths or private data
 
