@@ -13,13 +13,11 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { toast } from "sonner";
-import { KagePreview } from "@/components/dashboard/kage-preview";
 import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
 import { FacetRail } from "@/components/dashboard/library/facet-rail";
 import { NewKageSheet } from "@/components/dashboard/library/new-kage-sheet";
 import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
 import { useComments } from "@/components/dashboard/comments/use-comments";
-import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,7 +48,6 @@ function LibraryInner() {
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [versions, setVersions] = useState<VersionMeta[]>([]);
   const [describe, setDescribe] = useState("");
-  const [fullscreen, setFullscreen] = useState<{ doc: KageDoc; ref: string } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const comments = useComments(openName);
@@ -149,10 +146,9 @@ function LibraryInner() {
       if (r?.version?.name) open(r.version.name);
     } catch (e) { toast.error(String((e as Error).message)); }
   }
-  async function previewCard(card: KageCard) {
-    try { setFullscreen({ doc: await op<KageDoc>("get_kage", { uuid: card.uuid }), ref: card.ref }); }
-    catch (e) { toast.error(String((e as Error).message)); }
-  }
+  // Preview opens the Kage as a full page in a new browser tab (the authored
+  // /preview/<uuid> route, which renders drafts too), not an in-app overlay.
+  function previewCard(card: KageCard) { window.open(`/preview/${card.uuid}`, "_blank", "noopener"); }
 
   // --- keyboard --------------------------------------------------------------
   // "/" jumps to search (the convention in every list-heavy tool); arrows move
@@ -290,7 +286,7 @@ function LibraryInner() {
       </main>
 
       <DetailSheet card={current} doc={doc} versions={versions} describe={describe} comments={comments} workspace={workspace}
-        onClose={() => open(null)} onFullscreen={() => doc && current && setFullscreen({ doc, ref: current.ref })}
+        onClose={() => open(null)} onFullscreen={() => current && window.open(`/preview/${current.uuid}`, "_blank", "noopener")}
         onClone={cloneKage} onExport={exportJson}
         onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
 
@@ -302,9 +298,6 @@ function LibraryInner() {
           <div className="px-3 pb-4">{rail}</div>
         </SheetContent>
       </Sheet>
-
-      {fullscreen && <KagePreview doc={fullscreen.doc} kageRef={fullscreen.ref} onClose={() => setFullscreen(null)}
-        body={openName && fullscreen.doc.id === openName ? <CommentStage doc={fullscreen.doc} api={comments} className="h-full" fill /> : undefined} />}
     </div>
   );
 }
