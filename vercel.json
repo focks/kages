@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "^(www\\.)?getkages\\.com$" }],
+      "destination": "/landing"
+    }
+  ]
+}
