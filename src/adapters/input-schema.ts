@@ -35,7 +35,7 @@ const shared: Record<string, InputSchema> = {
   naReasons: { type: "object", additionalProperties: str },
   priorities: { type: "array", items: { type: "object", required: ["sev", "title", "fix"], properties: { sev: choice("P0", "P1", "P2", "P3"), title: str, why: str, fix: str, command: str, block: str, status: choice("open", "fixed", "wontfix") }, additionalProperties: false } },
   render: { type: "object", properties: { widths: { type: "array", items: integer }, findings: strings, shots: strings, unavailable: str } },
-  blocks: strings, types: strings, ttl: { type: "number", minimum: 1, maximum: 3600 }, x: { type: "number", minimum: 0, maximum: 1 }, y: { type: "number", minimum: 0, maximum: 1 }, value: { type: "integer", enum: [-1, 0, 1] },
+  blocks: strings, projects: strings, types: strings, ttl: { type: "number", minimum: 1, maximum: 3600 }, x: { type: "number", minimum: 0, maximum: 1 }, y: { type: "number", minimum: 0, maximum: 1 }, value: { type: "integer", enum: [-1, 0, 1] },
 };
 
 /** Every declared parameter must have a type; newly added operations cannot silently publish empty schemas. */

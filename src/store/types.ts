@@ -71,6 +71,7 @@ export interface KageEvent {
     | "kage.comment.deleted"
     | "workspace.brief.updated"
     | "workspace.design.updated"
+    | "workspace.project.updated"
     | "system.published";
   ref: string;
   at: string;

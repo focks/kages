@@ -111,6 +111,8 @@ export interface KageCard {
   description: string; kinds: string[];
   /** Declared in the Kage's brief; null when it has none. */
   mode?: string | null;
+  /** Every project this Kage is in: its home `repo` unioned with its extra memberships. */
+  projects?: string[];
 }
 
 /** The shared fetch for the one operation set over REST — UI is an adapter client. */

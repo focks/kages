@@ -12,7 +12,17 @@ export interface LibraryCard {
   description: string; kinds: string[];
   /** The Kage's declared mode, or null/absent when it has no brief. */
   mode?: string | null;
+  /** Every project the Kage is in: its home `repo` unioned with its extra memberships.
+   *  A card can be "in" more than one project, so the project filter and counts read
+   *  this, not just `repo`. Absent on an old card payload → treated as just [repo]. */
+  projects?: string[];
 }
+
+/** The projects a card belongs to, tolerant of an older payload that only had `repo`:
+ *  a card is always in its home repo, even if `projects` was not sent. */
+const projectsOf = (c: LibraryCard): string[] => (c.projects?.length ? c.projects : [c.repo]);
+/** A card passes a project filter iff that project is its home repo or in its membership. */
+export const inProject = (c: LibraryCard, project: string): boolean => c.repo === project || projectsOf(c).includes(project);
 
 export type Scope = "auto" | "mine" | "templates" | "pinned" | "all";
 export type Sort = "updated" | "name" | "blocks" | "status";
@@ -114,7 +124,8 @@ function passes(c: LibraryCard, q: Query, scope: Exclude<Scope, "auto">, pins: R
     if (scope === "templates" && !isTemplate(c)) return false;
     if (scope === "pinned" && !pins.has(c.name)) return false;
   }
-  if (skip !== "repo" && q.repo && c.repo !== q.repo) return false;
+  // A project filter matches on membership, not just the home repo: a Kage tagged into a project shows under it.
+  if (skip !== "repo" && q.repo && !inProject(c, q.repo)) return false;
   if (skip !== "system" && q.systems.length && !q.systems.includes(systemId(c))) return false;
   if (skip !== "mode" && q.modes.length && !(c.mode && q.modes.includes(c.mode))) return false;
   if (skip !== "state") {
@@ -182,7 +193,8 @@ export function facetCounts(cards: readonly LibraryCard[], q: Query, pins: Reado
       if (isTemplate(c)) scopeCounts.templates++;
       if (pins.has(c.name)) scopeCounts.pinned++;
     }
-    if (passes(c, q, scope, pins, keep, "repo")) repos.set(c.repo, (repos.get(c.repo) ?? 0) + 1);
+    // Count under EVERY project the card is in, not just its home repo, so a multi-project Kage lifts each project's count.
+    if (passes(c, q, scope, pins, keep, "repo")) for (const p of projectsOf(c)) repos.set(p, (repos.get(p) ?? 0) + 1);
     if (passes(c, q, scope, pins, keep, "state")) states[c.state] = (states[c.state] ?? 0) + 1;
     if (passes(c, q, scope, pins, keep, "system")) systems[systemId(c)] = (systems[systemId(c)] ?? 0) + 1;
     if (c.mode && passes(c, q, scope, pins, keep, "mode")) modes[c.mode] = (modes[c.mode] ?? 0) + 1;

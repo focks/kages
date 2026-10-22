@@ -114,6 +114,26 @@ test("toggle is immutable and pins parse defensively", () => {
   assert.equal(parsePins(JSON.stringify(Array.from({ length: 9000 }, (_, i) => "k" + i))).size, 500, "bounded");
 });
 
+test("a Kage in multiple projects passes the filter and lifts the count of every project it is in", () => {
+  // Home repo "ops", also tagged into "shared" and "weekly". The home repo is always in the set.
+  const multi = card({ name: "multi", repo: "ops", state: "published", projects: ["ops", "shared", "weekly"] });
+  const plain = card({ name: "plain", repo: "finance", state: "published", projects: ["finance"] });
+  const legacy = card({ name: "legacy", repo: "growth", state: "published" }); // no `projects` field: treated as [repo]
+  const cards = [multi, plain, legacy];
+  const base = q({ scope: "all" as const });
+  const pick = (repo: string) => names(filterCards(cards, q({ scope: "all", repo }), none));
+  assert.deepEqual(pick("ops"), ["multi"], "home repo matches");
+  assert.deepEqual(pick("shared"), ["multi"], "a membership project matches even though it is not the home repo");
+  assert.deepEqual(pick("weekly"), ["multi"]);
+  assert.deepEqual(pick("growth"), ["legacy"], "an old card with no projects field still matches on its repo");
+  assert.deepEqual(pick("finance"), ["plain"]);
+  const f = facetCounts(cards, base, none);
+  const count = (repo: string) => f.repos.find((r) => r.repo === repo)?.count ?? 0;
+  assert.equal(count("ops"), 1); assert.equal(count("shared"), 1); assert.equal(count("weekly"), 1);
+  assert.equal(count("finance"), 1); assert.equal(count("growth"), 1);
+  assert.deepEqual(f.repos.map((r) => r.repo), ["finance", "growth", "ops", "shared", "weekly"], "every project the cards touch is a facet, sorted");
+});
+
 test("mode facet: declared modes filter, count under other filters, round-trip the URL, and undeclared Kages are never counted", () => {
   const card = (name: string, mode: string | null | undefined, over: Partial<LibraryCard> = {}): LibraryCard => ({ name, repo: "kages", title: name, system: "core@1", blocks: 3, version: 1, state: "published", visibility: "private", lastAuthor: "u", createdAt: "2026-01-01T00:00:00Z", description: "", kinds: [], mode, ...over });
   const cards = [card("a", "read"), card("b", "operate"), card("c", "operate", { system: "ledger@2" }), card("d", null), card("e", undefined)];

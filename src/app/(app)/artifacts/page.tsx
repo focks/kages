@@ -44,6 +44,7 @@ function LibraryInner() {
 
   const [cards, setCards] = useState<KageCard[] | null>(null);
   const [workspace, setWorkspace] = useState("workspace");
+  const [projects, setProjects] = useState<{ project: string; count: number }[]>([]);
   const [pins, setPins] = useState<Set<string>>(new Set());
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [versions, setVersions] = useState<VersionMeta[]>([]);
@@ -85,8 +86,10 @@ function LibraryInner() {
   // --- data ------------------------------------------------------------------
   const refresh = useCallback(async () => {
     try {
-      const [k, r] = await Promise.all([op<KageCard[]>("list_kages"), op<{ workspace: string; projects: { repo: string; count: number }[] }>("list_repos")]);
-      setCards(k); setWorkspace(r.workspace);
+      // list_projects supersedes list_repos here: it includes empty/new projects (so the sidebar keeps them)
+      // and counts by membership, not just the home repo.
+      const [k, r] = await Promise.all([op<KageCard[]>("list_kages"), op<{ workspace: string; projects: { project: string; count: number }[] }>("list_projects")]);
+      setCards(k); setWorkspace(r.workspace); setProjects(r.projects);
     } catch (e) { toast.error(String((e as Error).message)); }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
@@ -122,12 +125,18 @@ function LibraryInner() {
   const templateCount = facets.scope.templates;
 
   // --- actions ---------------------------------------------------------------
-  function newProject() {
+  // Creating a project persists it (via create_project) so it stays in the sidebar even empty,
+  // then refreshes and selects it. An org-level act, not a Kage write — the registry is additive.
+  async function newProject() {
     const raw = window.prompt("New project name (a–z, 0–9, -):");
     const slug = (raw ?? "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
     if (!slug) return;
-    setQuery({ repo: slug, scope: "all" });
-    toast.message(`Project “${slug}” — import or create a Kage to populate it`);
+    try {
+      await op("create_project", { name: slug });
+      await refresh();
+      setQuery({ repo: slug, scope: "all" });
+      toast.success(`Project “${slug}” created`);
+    } catch (e) { toast.error(String((e as Error).message)); }
   }
   async function exportJson(name: string) {
     const json = await op<string>("export_kage", { name, format: "json" });
@@ -172,7 +181,7 @@ function LibraryInner() {
   }
 
   const rail = (
-    <FacetRail query={query} resolvedScope={resolvedScope} facets={facets} onChange={setQuery} onNewProject={newProject} />
+    <FacetRail query={query} resolvedScope={resolvedScope} facets={facets} projects={projects} onChange={setQuery} onNewProject={newProject} />
   );
   const empty = cards !== null && cards.length === 0;
 

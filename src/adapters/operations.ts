@@ -182,6 +182,8 @@ export const OPERATIONS: OpSpec[] = [
       blocks: Object.keys(v.doc.blocks).length, version: v.v, state: v.state,
       visibility: v.visibility, lastAuthor: v.author.principal, createdAt: v.createdAt,
       validation: v.validation, description: describeCard(v.doc), kinds: kindsOf(v.doc), mode: v.doc.brief?.mode ?? null,
+      // The full project set (home repo ∪ membership), so a card shows every project the Kage is organized into.
+      projects: c.store.projectsOf(v.name),
     }))) },
 
   { name: "list_repos", summary: "Projects in the workspace: each repo with a Kage count", params: [], run: (c) => {
@@ -192,6 +194,16 @@ export const OPERATIONS: OpSpec[] = [
     const projects = [...counts].map(([repo, count]) => ({ repo, count })).sort((a, b) => a.repo.localeCompare(b.repo));
     return ok({ workspace: c.store.workspaceName, projects });
   } },
+
+  { name: "list_projects", summary: "Projects in the workspace (the organizational membership layer): each project name with a readable-Kage count. Includes empty projects created explicitly, so a new project persists. A Kage counts for a project if its home repo is that project OR it was tagged into it", params: [], run: (c) =>
+    // Counted and listed from what this caller may read, like list_repos; the count unions home repo and membership.
+    ok({ workspace: c.store.workspaceName, projects: c.store.listProjects(c.author) }) },
+
+  { name: "create_project", summary: "Create an (even empty) project so it persists and shows in the Library. Organizational only — it grants no permission and does not change any Kage's signed identity (requires workspace membership)", params: ["name"], write: true, run: (c, p) =>
+    cres(c.store.createProject(String(p.name ?? ""), c.author)) },
+
+  { name: "set_kage_projects", summary: "Set which extra projects a Kage belongs to, beyond its home repo (which is always implicit). Organizational only: reading the Kage still flows through its home repo. Requires write on that home repo", params: ["name", "projects"], write: true, run: (c, p) =>
+    cres(c.store.setKageProjects(String(p.name), Array.isArray(p.projects) ? p.projects.map(String) : p.projects, c.author)) },
 
   { name: "describe_kage", summary: "Text view of a Kage for agents without vision (untrusted content)", params: ["name"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
@@ -663,7 +675,7 @@ export function dispatch(ctx: OpContext, op: string, params: Params = {}): OpRes
   try {
     const errors = inputErrors(operationSchema(spec.name, spec.params), params);
     if (errors.length) return fail("invalid_params", errors.map(e => `${e.at}: ${e.msg}`).join("; "), { errors });
-    return concealPrivate(ctx, params, spec.run(ctx, params));
+    return concealPrivate(ctx, spec.name, params, spec.run(ctx, params));
   } catch (e) {
     return fail("internal", (e as Error).message);
   }
@@ -672,8 +684,12 @@ export function dispatch(ctx: OpContext, op: string, params: Params = {}): OpRes
 /** A refusal must not confirm that a private Kage exists. "forbidden" for a Kage the caller cannot read is
  *  indistinguishable from "no such Kage" (as a private repository is to a stranger on a code host), and it
  *  never names the project. A caller who CAN read the Kage still gets the specific reason (they lack write, say). */
-function concealPrivate(ctx: OpContext, params: Params, r: OpResult): OpResult {
+function concealPrivate(ctx: OpContext, op: string, params: Params, r: OpResult): OpResult {
   if (r.ok || r.error.code !== "forbidden") return r;
+  // `create_project`'s `name` is a NEW project's name, not a Kage reference, so it must not be
+  // mistaken for one: a workspace-permission refusal is identical whether or not a same-named Kage
+  // happens to exist, and rewriting it to not_found would make the two differ (and leak existence).
+  if (op === "create_project") return r;
   const target = typeof params.name === "string" ? params.name : typeof params.kage === "string" ? params.kage : typeof params.uuid === "string" ? ctx.store.nameByUuid(params.uuid) : undefined;
   if (!target) return r;
   const head = ctx.store.head(target);

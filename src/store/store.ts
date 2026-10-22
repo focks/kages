@@ -23,6 +23,7 @@ import assets from "../../public/ds/assets.json" with { type: "json" };
 import { mergeBrief, validateBrief, type WorkspaceBriefRecord } from "./brief.ts";
 import { resolveDesign, validateDesign, readSnapshot, type DesignSnapshot } from "../engine/design.ts";
 import { MAX_DESIGNS, type DesignRecord } from "./designs.ts";
+import { PROJECT_NAME, type ProjectCount } from "./projects.ts";
 import type {
   VersionRecord, Provenance, Grant, LifecycleState, Visibility, AuditEntry, KageEvent, WriteResult,
 } from "./types.ts";
@@ -67,6 +68,12 @@ export interface StoreSnapshot {
   briefs?: WorkspaceBriefRecord[];
   /** Workspace designs; optional so snapshots from before designs existed still load. */
   designs?: DesignRecord[];
+  /** The project registry — names that exist even with no Kage in them. Optional so
+   *  snapshots from before projects existed still load (they restore an empty registry). */
+  projects?: string[];
+  /** Per-Kage extra project membership (beyond the home repo). Optional for the same
+   *  back-compat reason; `[kageName, [project, …]]`. */
+  memberships?: Array<[string, string[]]>;
   /** Last comment id number handed out; absent in snapshots written before it was persisted. */
   commentSequence?: number;
   claims?: import("../collab/claims.ts").Claim[];
@@ -90,6 +97,13 @@ export class Store {
   readonly comments = new CommentThread();
   private brief: WorkspaceBriefRecord | null = null;
   private designs = new Map<string, DesignRecord>();
+  /** Project names that exist in this workspace, so an empty project still shows in the
+   *  sidebar. The home repo of every Kage is a project too (unioned in at read time),
+   *  but only names created explicitly need storing — a repo is implied by its Kages. */
+  private projects = new Set<string>();
+  /** A Kage's EXTRA projects beyond its home repo, keyed by Kage name. The home repo is
+   *  never stored here (it is always implicit), so a value here is purely additive. */
+  private memberships = new Map<string, Set<string>>();
   /** Dry-run timestamps per workspace and principal. Process-wide on purpose: a persistent deployment
    *  restores a fresh Store from the snapshot on every request, so an instance field would start each
    *  request at zero and enforce nothing. A dry run must stay a read (committing a counter would turn it
@@ -123,6 +137,9 @@ export class Store {
       ...(this.comments.sequence ? { commentSequence: this.comments.sequence } : {}),
       briefs: this.brief ? [JSON.parse(JSON.stringify(this.brief))] : [],
       ...(this.designs.size ? { designs: [...this.designs.values()].map((d) => JSON.parse(JSON.stringify(d))) } : {}),
+      // Omitted when empty, so a workspace that never used projects writes the same snapshot it always did.
+      ...(this.projects.size ? { projects: [...this.projects] } : {}),
+      ...(this.memberships.size ? { memberships: [...this.memberships.entries()].map(([name, set]) => [name, [...set]] as [string, string[]]) } : {}),
       claims: this.claims.dump(),
       ...this.limitsSnapshot(),
     };
@@ -159,6 +176,8 @@ export class Store {
     store.comments.load(snap.comments, snap.commentSequence);
     store.brief = snap.briefs?.[0] ? JSON.parse(JSON.stringify(snap.briefs[0])) : null;
     for (const d of snap.designs ?? []) store.designs.set(d.id, JSON.parse(JSON.stringify(d)));
+    for (const name of snap.projects ?? []) store.projects.add(name);
+    for (const [name, list] of snap.memberships ?? []) store.memberships.set(name, new Set(list));
     store.claims.load(snap.claims);
     for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
@@ -406,6 +425,81 @@ export class Store {
   private defaultDesignId(): string | undefined {
     for (const d of this.designs.values()) if (d.default) return d.id;
     return undefined;
+  }
+
+  // --- projects (an additive, organizational membership layer) --------------
+  // A project is NOT part of a Kage's signed identity. The home `repo` in the
+  // ref is untouched; these methods only record which extra projects a Kage is
+  // tagged into, and which project names exist. Reads still go through the home
+  // repo, so a project tag grants nobody anything.
+
+  /** A Kage's home repo — its signed identity, parsed from the head ref. The one
+   *  project it is always in, implicit and unremovable. */
+  private homeRepoOf(name: string): string | undefined {
+    const head = this.head(name);
+    return head ? Store.repoOfRef(head.ref) : undefined;
+  }
+
+  /** Every project a Kage is in: its home repo unioned with its extra memberships.
+   *  What a card shows; the home repo comes first so the identity reads first. */
+  projectsOf(name: string): string[] {
+    const home = this.homeRepoOf(name);
+    if (home === undefined) return [];
+    const extra = [...(this.memberships.get(name) ?? [])].filter((p) => p !== home).sort();
+    return [home, ...extra];
+  }
+
+  /** Register a project name so an empty project persists and lists. Creating a project
+   *  is a workspace-level act (like editing the brief), not a write on any one repo, so
+   *  it needs workspace membership — any grant on any repo. Idempotent: re-creating an
+   *  existing name is a no-op success, not a conflict. */
+  createProject(name: string, author: Provenance): BriefResult<{ project: string }> {
+    if (!this.workspaceAllows(author)) return berr("forbidden", `${author.principal} has no access to this workspace`);
+    if (typeof name !== "string" || !PROJECT_NAME.test(name)) return berr("invalid_name", "a project name is 1–64 chars of a–z, 0–9 and -, starting with a letter or digit");
+    this.projects.add(name);
+    const ref = `kages://${this.workspace}/projects/${name}`;
+    this.record(author.principal, "project.create", ref);
+    this.emit("workspace.project.updated", ref, { created: true });
+    return { ok: true, value: { project: name } };
+  }
+
+  /** The workspace's projects with a readable-Kage count. The set listed is the union of
+   *  the registry (so empty projects appear) and every home repo (so a project is never
+   *  hidden just because it was never explicitly created). Counts and visibility match
+   *  `list_repos`: a Kage counts for a project only if THIS caller may read it, and a
+   *  project with nothing readable still appears with count 0 if it is in the registry. */
+  listProjects(author: Provenance): ProjectCount[] {
+    const counts = new Map<string, number>();
+    for (const name of this.projects) counts.set(name, 0); // registry entries appear even when empty
+    for (const kage of this.kages.values()) {
+      const head = kage.versions[kage.versions.length - 1];
+      if (!head || !this.canAccess(head, author)) continue;
+      for (const project of this.projectsOf(kage.name)) counts.set(project, (counts.get(project) ?? 0) + 1);
+    }
+    return [...counts.entries()].map(([project, count]) => ({ project, count })).sort((a, b) => a.project.localeCompare(b.project));
+  }
+
+  /** Set a Kage's extra project membership. The home repo is implicit and cannot be set
+   *  or removed here, so it is subtracted out before storing — membership is purely the
+   *  projects BEYOND home. Changing where a Kage is organized is a write on its content's
+   *  home repo (the resource), intersected with onBehalfOf exactly like a patch, so a
+   *  project tag can never be the back door a write grant is not. */
+  setKageProjects(name: string, projects: string[], author: Provenance): BriefResult<{ name: string; projects: string[] }> {
+    const home = this.homeRepoOf(name);
+    if (home === undefined) return berr("not_found", `no kage '${name}'`);
+    if (!this.allowed(author, home, "write")) return berr("forbidden", `${author.principal} lacks write on ${home}`);
+    if (!Array.isArray(projects)) return berr("invalid_name", "projects must be a list of project names");
+    for (const p of projects) if (typeof p !== "string" || !PROJECT_NAME.test(p)) return berr("invalid_name", `'${p}' is not a valid project name`);
+    const extra = new Set(projects.filter((p) => p !== home));
+    // Named projects join the registry, so a Kage tagged into a not-yet-created project
+    // makes that project real (and listable) rather than silently vanishing on reload.
+    for (const p of extra) this.projects.add(p);
+    if (extra.size) this.memberships.set(name, extra);
+    else this.memberships.delete(name); // no extra projects: drop the entry entirely, so an empty set adds nothing to a snapshot
+    const ref = `kages://${this.workspace}/${home}/${name}`;
+    this.record(author.principal, "project.membership", ref);
+    this.emit("workspace.project.updated", ref, { projects: this.projectsOf(name) });
+    return { ok: true, value: { name, projects: this.projectsOf(name) } };
   }
 
   // --- quota ---------------------------------------------------------------
@@ -675,6 +769,7 @@ export class Store {
     // purged by the server layer via the returned uuid — it lives in Supabase.)
     this.claims.releaseAll(name);
     this.comments.purge(name);
+    this.memberships.delete(name); // a later Kage reusing this name must not inherit stale project tags
     this.record(author.principal, "delete", head.ref);
     this.emit("kage.deleted", head.ref, { uuid: head.uuid });
     return { ok: true, version: head };
@@ -717,7 +812,7 @@ export class Store {
   card(name: string) {
     const r = this.head(name);
     if (!r) return null;
-    return { ref: r.ref, title: r.doc.title, system: systemOf(r.doc), blocks: Object.keys(r.doc.blocks).length, lastAuthor: r.author.principal, state: r.state };
+    return { ref: r.ref, title: r.doc.title, system: systemOf(r.doc), blocks: Object.keys(r.doc.blocks).length, lastAuthor: r.author.principal, state: r.state, projects: this.projectsOf(name) };
   }
 
   /** Export the document plus its lockfile as JSON (the re-importable form). */

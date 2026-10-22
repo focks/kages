@@ -17,6 +17,7 @@ import { ShareMenu } from "@/components/dashboard/share-menu";
 import { StatusMenu } from "@/components/dashboard/status-menu";
 import { KageFrame, StateBadge, SystemChip, ValidationStatus, op, relTime, type KageCard } from "@/components/dashboard/kage-ui";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { DesignSelect, useDesigns } from "@/components/dashboard/designs/design-select";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { DiscussionPanel } from "@/components/dashboard/comments/discussion-panel";
@@ -66,6 +67,47 @@ function DesignPicker({ name, current, pinned, onChanged }: { name: string; curr
   );
 }
 
+/** Organize a Kage into projects beyond its home repo. The home repo is a fixed, implicit
+ *  member (it is the Kage's signed identity and cannot be toggled off here); every other known
+ *  project is a checkbox. Toggling saves the new membership with set_kage_projects — purely
+ *  organizational, so it grants nobody access and does not create a new version. */
+function ProjectPicker({ name, repo, projects, onChanged }: { name: string; repo: string; projects: string[]; onChanged: () => Promise<void> }) {
+  const [all, setAll] = useState<string[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let live = true;
+    op<{ projects: { project: string }[] }>("list_projects").then((r) => { if (live) setAll(r.projects.map((p) => p.project)); }).catch(() => { if (live) setAll([]); });
+    return () => { live = false; };
+  }, []);
+  // The home repo is shown even if the registry never listed it (a repo is a project), and always first.
+  const options = [...new Set([repo, ...(all ?? []), ...projects])].sort((a, b) => (a === repo ? -1 : b === repo ? 1 : a.localeCompare(b)));
+  const member = new Set(projects);
+  async function toggle(project: string) {
+    if (project === repo) return; // home repo is implicit; never toggled
+    // Send the full desired membership (minus home, which the store treats as implicit either way).
+    const next = member.has(project) ? [...member].filter((p) => p !== project) : [...member, project];
+    setBusy(true);
+    try { await op("set_kage_projects", { name, projects: next.filter((p) => p !== repo) }); await onChanged(); }
+    catch (e) { toast.error(String((e as Error).message)); } finally { setBusy(false); }
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-muted-foreground">Projects</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((project) => {
+          const home = project === repo, on = home || member.has(project);
+          return (
+            <label key={project} className={cn("inline-flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[13px]", on && "bg-primary-soft", home && "cursor-default opacity-80")}>
+              <input type="checkbox" className="size-3.5 accent-[var(--primary)]" checked={on} disabled={busy || home} onChange={() => void toggle(project)} />
+              {project}{home && <span className="font-sans text-[11px] text-muted-foreground">home</span>}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const overline = "font-mono text-[11px] leading-[14px] font-medium uppercase tracking-[0.06em] text-muted-foreground";
 
 export function DetailSheet({ card, doc, versions, describe, comments, workspace, onClose, onFullscreen, onClone, onExport, onChanged, onDeleted }: Props) {
@@ -99,6 +141,7 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
                 <StatusMenu name={card.name} state={card.state} onChanged={onChanged} onDeleted={onDeleted} />
               </div>
               <DesignPicker name={card.name} current={doc?.design ?? ""} pinned={doc?.resolved?.design?.name} onChanged={onChanged} />
+              <ProjectPicker name={card.name} repo={card.repo} projects={card.projects?.length ? card.projects : [card.repo]} onChanged={onChanged} />
             </SheetHeader>
 
             <Tabs value={tab} onValueChange={(v) => setTab(String(v))} className="p-5">
