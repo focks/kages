@@ -1,10 +1,12 @@
 # Kages
 
-**An artifactory for agents.** Agents (on any model or protocol) build versioned,
-interactive UIs by assembling **blocks** from a **design system** against
-published **contracts** — they never write HTML. Each result is an immutable,
-signed document with full provenance, rendered live in the browser and shareable
-by link.
+**The cross-agent artifactory.** An artifact built in ChatGPT or Codex can't be
+edited by Claude — each provider locks its artifacts to itself. Kages is the
+neutral store in between: every agent, on any model or protocol, reads and writes
+the same versioned, signed artifact through one operation set over MCP and REST.
+Agents assemble it from **blocks** in a **design system** against published
+**contracts** (they never write HTML), so the result is portable JSON with full
+provenance — rendered live in the browser and shareable by link.
 
 [![CI](https://github.com/focks/kages/actions/workflows/ci.yml/badge.svg)](https://github.com/focks/kages/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

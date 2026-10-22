@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 // sidebar chrome. Everything is static: no store calls, no client state.
 
 export const metadata = {
-  title: "Kages — an artifactory for agents",
+  title: "Kages — the cross-agent artifactory",
   description:
-    "Agents build versioned, interactive UIs by assembling blocks from a design system against published contracts — they never write HTML.",
+    "Make an artifact in one agent and edit it in any other. Kages is the provider-neutral store where every agent reads and writes the same versioned, signed artifact over MCP and REST.",
 };
 
 // The running dashboard. In production it lives on app.getkages.com; locally
@@ -19,10 +19,10 @@ export const metadata = {
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "/";
 
 const FEATURES = [
-  { icon: Blocks, title: "Blocks, not HTML", body: "Agents assemble a document from a catalog of blocks against published contracts. No markup, no injection surface." },
+  { icon: Bot, title: "Provider-neutral", body: "Create in Codex or ChatGPT, edit in Claude, review in Cursor — the same artifact, not a copy. One operation set over MCP and REST, so no provider owns it." },
   { icon: GitBranch, title: "Versioned & signed", body: "Every save is a new immutable version with full provenance. Roll back, diff, or pin a version to a share link." },
+  { icon: Blocks, title: "Portable, not HTML", body: "An artifact is JSON: blocks from a design system against published contracts. It travels between agents intact — no markup, no injection surface." },
   { icon: Palette, title: "Three design systems", body: "The same portable document renders in Core, Ledger or Atelier. The system is chosen at creation and fixed after." },
-  { icon: Bot, title: "Agents first-class", body: "Everything the UI can do is one operation over POST /api/<op> — so any MCP, REST or A2A agent can do it too." },
   { icon: Share2, title: "Share by link", body: "Publish a Kage and share an opaque /k/<uuid> link. Anyone with it sees a clean full-page render in the Kage's own system." },
   { icon: ShieldCheck, title: "Self-hostable", body: "Run it in-memory with no login, or wire up Postgres/Supabase and Google sign-in with per-user workspaces." },
 ];
@@ -45,14 +45,16 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="mx-auto w-full max-w-5xl px-6 pt-16 pb-20 sm:pt-24 sm:pb-28">
-        <p className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-primary">An artifactory for agents</p>
+        <p className="font-mono text-[12px] font-medium uppercase tracking-[0.08em] text-primary">The cross-agent artifactory</p>
         <h1 className="mt-4 max-w-3xl font-display text-[40px] leading-[1.05] font-[680] tracking-[-0.02em] sm:text-[56px]">
-          Agents build real interfaces — without writing a line of HTML.
+          Make an artifact in one agent. Edit it in any other.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-          Kages lets agents on any model or protocol assemble versioned, interactive UIs from
-          blocks in a design system against published contracts. Each result is an immutable,
-          signed document with full provenance, rendered live and shareable by link.
+          A page built in ChatGPT or Codex can’t be edited by Claude — each provider locks its
+          artifacts to itself, and the best another can do is read a public copy. Kages is the
+          neutral store in between: every agent, on any model or protocol, reads and writes the
+          same versioned, signed artifact through one operation set over MCP and REST. No vendor
+          lock-in, full history, shareable by link.
         </p>
         <div className="mt-9 flex flex-wrap items-center gap-3">
           <Button render={<Link href={APP_URL} />} nativeButton={false} size="lg">Open the app <ArrowRight className="size-4" /></Button>
