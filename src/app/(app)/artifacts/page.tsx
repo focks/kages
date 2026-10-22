@@ -181,7 +181,7 @@ function LibraryInner() {
   }
 
   const rail = (
-    <FacetRail query={query} resolvedScope={resolvedScope} facets={facets} workspace={workspace} onChange={setQuery} onNewProject={newProject} />
+    <FacetRail query={query} resolvedScope={resolvedScope} facets={facets} onChange={setQuery} onNewProject={newProject} />
   );
   const empty = cards !== null && cards.length === 0;
 
