@@ -1,14 +1,14 @@
 "use client";
 
-// The library's navigation: scope, project, status and system, each with a live
-// count under the *other* active filters. It is plain buttons with aria-pressed
-// (a toggle is not a link), so it works the same in the desktop rail and in the
-// mobile filter sheet that reuses this component.
+// The library's navigation: your scopes (mine, pinned) and your projects, each
+// with a live count under the *other* active filters. Plain buttons with
+// aria-pressed (a toggle is not a link), so it works the same in the desktop
+// rail and in the mobile filter sheet that reuses this component.
 
-import { Boxes, Folder, FolderPlus, LayoutTemplate, Layers, Star, type LucideIcon } from "lucide-react";
+import { Folder, FolderPlus, Layers, Star, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MODE_LABEL, MODE_ORDER, STATE_LABEL, STATE_ORDER, SYSTEM_ORDER, toggle, type Facets, type Query, type Scope } from "@/components/dashboard/library-model";
+import { type Facets, type Query, type Scope } from "@/components/dashboard/library-model";
 
 const overline = "px-2 font-mono text-[11px] leading-[14px] font-medium uppercase tracking-[0.06em] text-muted-foreground";
 
@@ -28,16 +28,9 @@ export function FacetRail({ query, resolvedScope, facets, onChange, onNewProject
   onChange: (patch: Partial<Query>) => void; onNewProject: () => void; className?: string;
 }) {
   const scopes: { id: Exclude<Scope, "auto">; label: string; icon: LucideIcon }[] = [
-    { id: "mine", label: "My Kages", icon: Layers }, { id: "templates", label: "Templates", icon: LayoutTemplate },
-    { id: "pinned", label: "Pinned", icon: Star }, { id: "all", label: "Everything", icon: Boxes },
+    { id: "mine", label: "My Kages", icon: Layers },
+    { id: "pinned", label: "Pinned", icon: Star },
   ];
-  // A state is listed if anything has it or it is selected, so a chosen filter
-  // can always be turned off even when its count has dropped to zero. A facet
-  // group is only shown when it offers a real choice: a single value (e.g. every
-  // Kage is "Draft" / "Core") filters nothing, so rendering it is just clutter.
-  const states = STATE_ORDER.filter((s) => (facets.states[s] ?? 0) > 0 || query.states.includes(s));
-  const systems = SYSTEM_ORDER.filter((s) => (facets.systems[s] ?? 0) > 0 || query.systems.includes(s));
-  const modes = MODE_ORDER.filter((m) => (facets.modes[m] ?? 0) > 0 || query.modes.includes(m));
   return (
     <nav aria-label="Library filters" className={cn("flex flex-col gap-5", className)}>
       <div className="flex flex-col gap-0.5">
@@ -52,24 +45,6 @@ export function FacetRail({ query, resolvedScope, facets, onChange, onNewProject
         {facets.repos.map((r) => <Item key={r.repo} icon={Folder} mono label={r.repo} count={r.count} active={query.repo === r.repo} onClick={() => onChange({ repo: query.repo === r.repo ? "" : r.repo })} />)}
         {query.repo && !facets.repos.some((r) => r.repo === query.repo) && <Item icon={Folder} mono label={query.repo} count={0} active onClick={() => onChange({ repo: "" })} />}
       </div>
-      {states.length > 1 && (
-        <div className="flex flex-col gap-0.5">
-          <p className={overline}>Status</p>
-          {states.map((s) => <Item key={s} label={STATE_LABEL[s] ?? s} count={facets.states[s] ?? 0} active={query.states.includes(s)} onClick={() => onChange({ states: toggle(query.states, s) })} />)}
-        </div>
-      )}
-      {modes.length > 1 && (
-        <div className="flex flex-col gap-0.5">
-          <p className={overline}>Mode</p>
-          {modes.map((m) => <Item key={m} label={MODE_LABEL[m] ?? m} count={facets.modes[m] ?? 0} active={query.modes.includes(m)} onClick={() => onChange({ modes: toggle(query.modes, m) })} />)}
-        </div>
-      )}
-      {systems.length > 1 && (
-        <div className="flex flex-col gap-0.5">
-          <p className={overline}>Design system</p>
-          {systems.map((s) => <Item key={s} label={s[0].toUpperCase() + s.slice(1)} count={facets.systems[s] ?? 0} active={query.systems.includes(s)} onClick={() => onChange({ systems: toggle(query.systems, s) })} />)}
-        </div>
-      )}
     </nav>
   );
 }

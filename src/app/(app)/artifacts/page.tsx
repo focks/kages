@@ -11,14 +11,13 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FileText, Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
+import { Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { KagePreview } from "@/components/dashboard/kage-preview";
 import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
 import { FacetRail } from "@/components/dashboard/library/facet-rail";
 import { NewKageSheet } from "@/components/dashboard/library/new-kage-sheet";
 import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
-import { BriefSheet, loadBrief, type BriefData } from "@/components/dashboard/brief/brief-sheet";
 import { useComments } from "@/components/dashboard/comments/use-comments";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { Button } from "@/components/ui/button";
@@ -53,11 +52,7 @@ function LibraryInner() {
   const [describe, setDescribe] = useState("");
   const [fullscreen, setFullscreen] = useState<{ doc: KageDoc; ref: string } | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  // undefined = not loaded; null = this person cannot see a brief (so no prompt to write one).
-  const [brief, setBrief] = useState<BriefData | null | undefined>(undefined);
-  const [briefOpen, setBriefOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
-  useEffect(() => { void loadBrief().then(setBrief); }, []);
   const comments = useComments(openName);
   const [text, setText] = useState(query.q);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -201,7 +196,6 @@ function LibraryInner() {
             <p className="text-sm text-muted-foreground">{cards ? `${visible.length} of ${all.length} Kages` : "Loading…"}</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            {brief !== null && <Button size="sm" variant="outline" onClick={() => setBriefOpen(true)}><FileText /> Brief{brief && !brief.brief ? <span aria-label="not set" className="size-1.5 rounded-full bg-primary" /> : null}</Button>}
             <Button size="sm" variant="outline" nativeButton={false} render={<label />}>
               <input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])} />
               <Upload /> Import
@@ -248,12 +242,6 @@ function LibraryInner() {
           </div>
         )}
 
-        {brief && !brief.brief && !empty && (
-          <div className="flex flex-wrap items-center gap-3 border-b bg-muted px-4 py-2.5 text-sm md:px-6">
-            <span className="min-w-0 flex-1">Agents here have no brief to work from. Add who this is for and what must never be invented.</span>
-            <Button size="sm" onClick={() => setBriefOpen(true)}>Add your brief</Button>
-          </div>
-        )}
 
         <div ref={resultsRef} onKeyDown={onResultsKey} className="@container min-h-0 flex-1 overflow-y-auto px-4 py-4 md:px-6" aria-live="polite" aria-busy={cards === null}>
           {cards === null && (
@@ -307,7 +295,6 @@ function LibraryInner() {
         onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
 
       <NewKageSheet open={newOpen} onOpenChange={setNewOpen} repo={query.repo || "kages"} onCreated={async (name) => { await refresh(); const next = serializeQuery(query); next.set("id", name); go(next, true); }} />
-      <BriefSheet open={briefOpen} onOpenChange={setBriefOpen} onSaved={setBrief} />
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="left" className="w-80 max-w-[85vw] overflow-y-auto">
