@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Layers, CheckCircle2, FileEdit, Boxes, ArrowRight, Eye } from "lucide-react";
+import { Layers, CheckCircle2, FileEdit, Boxes, ArrowRight, Eye, Rocket } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -34,9 +34,12 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
-      <div>
-        <h2 className="font-display text-[22px] leading-7 font-[650] tracking-[-0.01em]">Overview</h2>
-        <p className="text-sm text-muted-foreground">An artifactory for agents — build, version, and ship interactive Kages.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-[22px] leading-7 font-[650] tracking-[-0.01em]">Overview</h2>
+          <p className="text-sm text-muted-foreground">An artifactory for agents — build, version, and ship interactive Kages.</p>
+        </div>
+        <Button render={<Link href="/onboarding" />} nativeButton={false} variant="outline" size="sm"><Rocket className="size-4" /> Set up your agent</Button>
       </div>
 
       {error && <Card className="border-destructive"><CardContent className="pt-6 text-sm text-destructive">{error}</CardContent></Card>}
