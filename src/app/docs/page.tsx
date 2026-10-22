@@ -30,7 +30,7 @@ export default function DocsPage() {
           The quickest way to run Kages is with <code className="font-mono text-[0.9em]">npx</code> — no install,
           no checkout (Node 18 or newer):
         </p>
-        <div className="mt-5"><Code>npx kages --version</Code></div>
+        <div className="mt-5"><Code>npx @ifocksh/kages --version</Code></div>
 
         <p className="mt-8 text-muted-foreground">
           To work on Kages itself, run it from a checkout instead (Node 22.18 or newer):

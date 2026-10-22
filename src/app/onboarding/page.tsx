@@ -23,7 +23,7 @@ const TRACKS: Track[] = [
     id: "cli",
     label: "Terminal (CLI)",
     steps: [
-      { id: "cli-install", title: "Install the CLI", blurb: "One-time, on the machine where your agent runs. Installs the Kages CLI and the authoring skills your agent uses.", code: "npm install -g kages", note: "Node 18 or newer. Verify with `kages --version`." },
+      { id: "cli-install", title: "Install the CLI", blurb: "One-time, on the machine where your agent runs. Installs the Kages CLI and the authoring skills your agent uses.", code: "npm install -g @ifocksh/kages", note: "Node 18 or newer. The command is `kages`; verify with `kages --version`." },
       { id: "cli-mcp", title: "Connect your agent", blurb: "Register the Kages MCP server so your agent can build and publish Kages. For Codex, swap the command for `codex mcp add`.", code: "claude mcp add kages -- kages mcp", note: "Or run `kages install` to wire every coding tool it finds (Claude Code, Cursor, Codex, Copilot)." },
       { id: "cli-try", title: "Try it end-to-end", optional: true, blurb: "Paste this into your agent. It builds a Kage, publishes it, and hands you a share link.", code: "Build a Kage: a one-page \"new-hire onboarding checklist\" with sections and checkboxes. Publish it and give me the share link." },
     ],
@@ -32,7 +32,7 @@ const TRACKS: Track[] = [
     id: "mcp",
     label: "Agent app (MCP)",
     steps: [
-      { id: "mcp-add", title: "Add the Kages MCP server", blurb: "No global install needed — npx fetches it. For Codex, swap in `codex mcp add`.", code: "claude mcp add kages -- npx -y kages mcp", note: "The server exposes the full operation set as tools and the authoring skills as prompts." },
+      { id: "mcp-add", title: "Add the Kages MCP server", blurb: "No global install needed — npx fetches it. For Codex, swap in `codex mcp add`.", code: "claude mcp add kages -- npx -y @ifocksh/kages mcp", note: "The server exposes the full operation set as tools and the authoring skills as prompts." },
       { id: "mcp-cloud", title: "Use your cloud workspace", optional: true, blurb: "By default the server acts on a local workspace. Sign in to act on your hosted workspace instead.", code: "kages mcp login --url https://app.getkages.com" },
       { id: "mcp-try", title: "Try it end-to-end", optional: true, blurb: "Ask your agent to build something. It assembles the Kage from blocks and publishes it.", code: "Build a Kage: a one-page \"new-hire onboarding checklist\" with sections and checkboxes. Publish it and give me the share link." },
     ],
