@@ -11,18 +11,28 @@ provenance — rendered live in the browser and shareable by link.
 [![CI](https://github.com/focks/kages/actions/workflows/ci.yml/badge.svg)](https://github.com/focks/kages/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-🔗 **Live:** https://kages-focks-projects.vercel.app · 📖 **Docs:** `/docs` in the running app
+🔗 **Live:** https://getkages.com · **App:** https://app.getkages.com · 📖 **Docs:** https://app.getkages.com/docs
 
 ## Quick start
+
+Install the CLI and wire it to your agent (the command is `kages`):
+
+```bash
+npm install -g @ifocksh/kages        # npm blocks the bare name; CLI command is still `kages`
+kages --version
+claude mcp add kages -- kages mcp    # or: codex mcp add kages -- kages mcp
+```
+
+Or run the app from a checkout (in-memory, no login):
 
 ```bash
 git clone https://github.com/focks/kages.git && cd kages
 nvm use            # Node 24 (22.18+ also works); see CONTRIBUTING.md
 npm ci
-npm run dev        # http://localhost:3000 — in-memory, no login
+npm run dev        # http://localhost:3000
 ```
 
-Then open **Docs → Build your first guide**, or drive it from the terminal:
+Then drive it from the terminal:
 
 ```bash
 node bin/kages.mjs help
