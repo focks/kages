@@ -962,6 +962,58 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
   .kg-kage .kg-diagram__mobile { display: block; }
 }
 
+/* Layout follows the artifact container, including a narrow Library sheet. The
+   rail stays in normal flow; the mobile menu never traps content under a modal. */
+.kg-kage .kg-guide { display: grid; grid-template-columns: 15rem minmax(0, 1fr); min-height: 100dvh; container-type: inline-size; }
+.kg-kage .kg-guide__rail { position: sticky; top: 0; align-self: start; height: 100dvh; display: flex; flex-direction: column; padding: var(--kg-space-6); background: var(--kg-accent-soft); color: var(--kg-ink); border-right: 1px solid var(--kg-line); overflow-y: auto; }
+.kg-kage .kg-guide__brand { display: flex; gap: var(--kg-space-3); align-items: center; margin-bottom: var(--kg-space-8); }
+.kg-kage .kg-guide__brand strong { font-family: var(--kg-font-display); font-size: 1.5rem; line-height: 1.2; }
+.kg-kage .kg-guide__brand p, .kg-kage .kg-guide__note { font-size: .75rem; line-height: 1.6; color: var(--kg-ink-muted); }
+.kg-kage .kg-guide__mark { display: grid; place-items: center; min-width: 2.5rem; height: 2.5rem; padding: .25rem; border-radius: var(--kg-r-md); background: var(--kg-accent); color: var(--kg-accent-ink); font-family: var(--kg-font-display); font-size: 1.5rem; font-weight: 700; }
+.kg-kage .kg-guide__nav { display: grid; gap: var(--kg-space-2); }
+.kg-kage .kg-guide__nav a { display: flex; align-items: baseline; gap: var(--kg-space-3); padding: var(--kg-space-3); border: 1px solid transparent; border-radius: var(--kg-r-sm); color: var(--kg-ink); text-decoration: none; line-height: 1.5; }
+.kg-kage .kg-guide__nav a span { font-family: var(--kg-font-mono); font-size: .7rem; color: var(--kg-accent); }
+.kg-kage .kg-guide__nav a:hover, .kg-kage .kg-guide__nav a[aria-current] { background: var(--kg-paper); border-color: var(--kg-line-control); }
+.kg-kage .kg-guide__note { margin-top: auto; padding-top: var(--kg-space-8); }
+.kg-kage .kg-guide__body { min-width: 0; }
+.kg-kage .kg-guide__bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--kg-space-3); padding: var(--kg-space-4) var(--kg-space-6); border-bottom: 1px solid var(--kg-line); color: var(--kg-ink-muted); font-size: .75rem; }
+.kg-kage .kg-guide__actions { display: flex; flex-wrap: wrap; gap: var(--kg-space-3); }
+.kg-kage .kg-guide__main { max-width: 76rem; margin-inline: auto; padding: clamp(1rem, 4cqi, 4rem); scroll-margin-top: var(--kg-space-4); }
+.kg-kage .kg-guide__pagination { display: flex; justify-content: space-between; gap: var(--kg-space-4); border-top: 1px solid var(--kg-line); margin-top: var(--kg-space-8); padding-top: var(--kg-space-6); }
+.kg-kage .kg-guide__pagination a { color: var(--kg-accent); text-decoration: none; font-weight: 600; }
+.kg-kage .kg-guide__pagination a:last-child { text-align: right; }
+.kg-kage .kg-guide__pagination small { display: block; color: var(--kg-ink-muted); font-size: .7rem; font-weight: 400; text-transform: uppercase; letter-spacing: .08em; }
+.kg-kage .kg-guide__footer { padding: var(--kg-space-6); border-top: 1px solid var(--kg-line); color: var(--kg-ink-muted); }
+.kg-kage .kg-guide__menu { display: none; }
+.kg-kage .kg-guide__skip { position: absolute; top: 0; left: 0; transform: translateY(-150%); padding: var(--kg-space-3); background: var(--kg-paper); color: var(--kg-accent); z-index: 20; }
+.kg-kage .kg-guide__skip:focus { transform: none; }
+.kg-kage .kg-disclosure { border-block-end: 1px solid var(--kg-line); color: var(--kg-ink); }
+.kg-kage .kg-disclosure summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--kg-space-1) var(--kg-space-3); cursor: pointer; padding: var(--kg-space-4) 0; list-style: none; }
+.kg-kage .kg-disclosure summary::-webkit-details-marker { display: none; }
+.kg-kage .kg-disclosure summary::after { content: "+"; grid-column: 2; grid-row: 1 / 4; align-self: center; color: var(--kg-accent); font-size: 1.4rem; }
+.kg-kage .kg-disclosure[open] > summary::after { content: "−"; }
+.kg-kage .kg-disclosure summary > * { grid-column: 1; }
+.kg-kage .kg-disclosure summary small { display: block; color: var(--kg-accent); font-family: var(--kg-font-mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+.kg-kage .kg-disclosure__title { font-size: 1.1rem; font-weight: 600; line-height: 1.5; }
+.kg-kage .kg-disclosure__badge { display: inline-block; padding: .15rem .5rem; justify-self: start; border-radius: var(--kg-r-sm); background: var(--kg-accent-soft); color: var(--kg-accent); font-size: .75rem; }
+.kg-kage .kg-disclosure__body { display: grid; gap: var(--kg-space-4); padding-block: var(--kg-space-2) var(--kg-space-6); }
+@container (max-width: 48rem) {
+  .kg-kage .kg-guide { grid-template-columns: minmax(0, 1fr); }
+  .kg-kage .kg-guide__rail { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--kg-line); padding: var(--kg-space-4); }
+  .kg-kage .kg-guide__brand { margin-bottom: var(--kg-space-3); }
+  .kg-kage .kg-guide__menu { display: block; align-self: start; border: 1px solid var(--kg-line-control); border-radius: var(--kg-r-sm); padding: var(--kg-space-2) var(--kg-space-4); background: var(--kg-paper); color: var(--kg-ink); }
+  .kg-kage .kg-guide__nav { display: none; margin-top: var(--kg-space-4); }
+  .kg-kage .kg-guide__nav--open { display: grid; }
+  .kg-kage .kg-guide__note { display: none; }
+}
+
+.kg-kage .kg-guide__theme { background: var(--kg-paper); color: var(--kg-ink); border: 1px solid var(--kg-line-control); border-radius: var(--kg-r-sm); padding: var(--kg-space-2) var(--kg-space-3); cursor: pointer; }
+
+/* The reading canvas already supplies the outer margin; a hero should honor
+   its declared inset instead of adding another full canvas of whitespace. */
+.kg-kage .kg-guide .kg-section--hero { padding: var(--kg-layout-inset); }
+.kg-kage .kg-guide .kg-section--hero > .kg-section__content:empty { display: none; }
+
 /* Motion policy. Appended LAST so its global rule wins. The reference stylesheet is
    frozen and still has a few transitions (the sidebar width, the dropdown chevron) that
    know nothing about the reader's preference, so reduced motion is enforced here for the

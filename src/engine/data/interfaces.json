@@ -3188,5 +3188,139 @@
     ],
     "role": "file-upload",
     "slots": {}
+  },
+  "kages/guide@1": {
+    "summary": "Editorial field guide with chapter navigation, responsive menu, reading canvas and previous/next links. Compose each chapter from ordinary blocks.",
+    "props": {
+      "title": {
+        "type": "string",
+        "required": true
+      },
+      "description": {
+        "type": "string"
+      },
+      "mark": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "note": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string"
+      },
+      "themeToggle": {
+        "type": "boolean",
+        "default": true
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "mint"
+      },
+      "chapters": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {},
+      "footer": {}
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "outputs": [
+      "value"
+    ],
+    "role": "guide"
+  },
+  "kages/disclosure@1": {
+    "summary": "Expandable evidence or troubleshooting entry containing real blocks, including citations, code and actions.",
+    "props": {
+      "title": {
+        "type": "string",
+        "required": true
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "badge": {
+        "type": "string"
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "inherit"
+      },
+      "open": {
+        "type": "boolean"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {
+      "open": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "open": "boolean"
+        }
+      }
+    },
+    "outputs": [
+      "open"
+    ],
+    "role": "disclosure"
   }
 }

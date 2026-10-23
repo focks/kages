@@ -6,7 +6,7 @@
     "system": "core",
     "portable": true
   },
-  "description": "Kage \"Math notes — markdown, math and slides\" · system core@1.14.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - body [core/markdown@1.0.0] text=\"## Why compounding wins\\n\\nA balance grows by a factor o…\n    - formula [core/math@1.0.0] label=\"Compound growth\"\n    - series [core/math@1.0.0] label=\"Sum of squares\"\n    - matrix [core/math@1.0.0] label=\"Rotation matrix\"\n    - piecewise [core/math@1.0.0] label=\"Absolute value\"\n    - slides [core/carousel@1.0.0] label=\"Three habits\"",
+  "description": "Kage \"Math notes — markdown, math and slides\" · system core@1.15.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - body [core/markdown@1.0.0] text=\"## Why compounding wins\\n\\nA balance grows by a factor o…\n    - formula [core/math@1.0.0] label=\"Compound growth\"\n    - series [core/math@1.0.0] label=\"Sum of squares\"\n    - matrix [core/math@1.0.0] label=\"Rotation matrix\"\n    - piecewise [core/math@1.0.0] label=\"Absolute value\"\n    - slides [core/carousel@1.0.0] label=\"Three habits\"",
   "envelope": {
     "title": "Math notes — markdown, math and slides",
     "root": "root",

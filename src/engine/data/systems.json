@@ -2,7 +2,7 @@
   "core": {
     "id": "core",
     "name": "Kages Core",
-    "version": "1.14.0",
+    "version": "1.15.0",
     "className": "kg-sys-core",
     "extends": null,
     "summary": "Neutral lattice system. The base every other system extends.",
@@ -79,13 +79,15 @@
       "references": "core/references@1.0.0",
       "gallery": "core/gallery@1.0.0",
       "date-range": "core/date-range@1.0.0",
-      "file-upload": "core/file-upload@1.0.0"
+      "file-upload": "core/file-upload@1.0.0",
+      "guide": "core/guide@1.0.0",
+      "disclosure": "core/disclosure@1.0.0"
     }
   },
   "ledger": {
     "id": "ledger",
     "name": "Ledger",
-    "version": "2.11.0",
+    "version": "2.12.0",
     "className": "kg-sys-ledger",
     "extends": "core@1",
     "summary": "Dense, square, mono-numeral system for data and operations tools.",
@@ -162,13 +164,15 @@
       "references": "core/references@1.0.0",
       "gallery": "core/gallery@1.0.0",
       "date-range": "core/date-range@1.0.0",
-      "file-upload": "core/file-upload@1.0.0"
+      "file-upload": "core/file-upload@1.0.0",
+      "guide": "core/guide@1.0.0",
+      "disclosure": "core/disclosure@1.0.0"
     }
   },
   "atelier": {
     "id": "atelier",
     "name": "Atelier",
-    "version": "1.10.0",
+    "version": "1.11.0",
     "className": "kg-sys-atelier",
     "extends": "core@1",
     "summary": "Soft, editorial, serif system for consumer and storytelling artifacts.",
@@ -245,7 +249,9 @@
       "references": "core/references@1.0.0",
       "gallery": "core/gallery@1.0.0",
       "date-range": "core/date-range@1.0.0",
-      "file-upload": "core/file-upload@1.0.0"
+      "file-upload": "core/file-upload@1.0.0",
+      "guide": "core/guide@1.0.0",
+      "disclosure": "core/disclosure@1.0.0"
     }
   }
 }

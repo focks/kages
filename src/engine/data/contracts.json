@@ -5853,6 +5853,216 @@
     },
     "limits": {}
   },
+  "core/guide@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/guide",
+    "version": "1.0.0",
+    "ref": "core/guide@1.0.0",
+    "system": "core",
+    "name": "guide",
+    "implements": [
+      "kages/guide@1"
+    ],
+    "role": "guide",
+    "summary": "Editorial field guide with chapter navigation, responsive menu, reading canvas and previous/next links. Compose each chapter from ordinary blocks.",
+    "props": {
+      "title": {
+        "type": "string",
+        "required": true
+      },
+      "description": {
+        "type": "string"
+      },
+      "mark": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "note": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string"
+      },
+      "themeToggle": {
+        "type": "boolean",
+        "default": true
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "mint"
+      },
+      "chapters": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {},
+      "footer": {}
+    },
+    "local": {
+      "value": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "value",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "value"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-soft",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use as root for a field guide/handbook. chapters [{id,label}] has at most 40 unique lowercase slug ids. Initialize state.chapter to the first id, bind value to it and set chapter from change {id}. Put chapter sections in children with visible:$eq(state.chapter,id). Native host chapter links/history work in full preview and shared views; embedded copies keep local navigation. Add actions and footer slots. The rail follows scrolling in fill frames, collapses to a Chapters button in narrow containers, and preserves in-chapter state. Use heading level 1 for each chapter opening. One guide per artifact."
+    },
+    "limits": {}
+  },
+  "core/disclosure@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/disclosure",
+    "version": "1.0.0",
+    "ref": "core/disclosure@1.0.0",
+    "system": "core",
+    "name": "disclosure",
+    "implements": [
+      "kages/disclosure@1"
+    ],
+    "role": "disclosure",
+    "summary": "Expandable evidence or troubleshooting entry containing real blocks, including citations, code and actions.",
+    "props": {
+      "title": {
+        "type": "string",
+        "required": true
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "badge": {
+        "type": "string"
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "inherit"
+      },
+      "open": {
+        "type": "boolean"
+      }
+    },
+    "slots": {
+      "children": {}
+    },
+    "local": {
+      "open": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "open": "boolean"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "open",
+          "value": {
+            "$event": "open"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "open"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "accent-soft",
+      "accent-ink",
+      "focus"
+    ],
+    "agent": {
+      "use": "Put rich detail in children: paragraphs, citations, code, links. title is the summary; eyebrow is category, badge is evidence status. Repeat a disclosure over a filtered dataset for searchable caveats or sources, with a stable repeat key. open is public; change emits {open}. Default behavior toggles without wiring. Native details gives keyboard access. Do not hide the only explanation of a critical risk."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

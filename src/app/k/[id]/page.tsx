@@ -53,7 +53,7 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
       </header>
       {/* Comment mode for visitors: click anything and a comment window opens there. They can only add notes. */}
       <div className="flex min-h-0 flex-1 flex-col">
-        <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill />
+        <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill navigation />
       </div>
       <div className="shrink-0"><KageUsage name={doc.id} uuid={id} /></div>
       <ShareFeedback uuid={id} doc={doc} />

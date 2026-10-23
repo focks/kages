@@ -4,11 +4,12 @@
 import * as React from "react";
 import type { KageRendererProps } from "./EmbeddedKageRenderer.tsx";
 import { HostBridge } from "../host/bridge.ts";
+import { guideRoutes, chapterFromHash } from "./guide-navigation.ts";
 import { sandboxHtml } from "./sandbox.ts";
 import currentAssets from "../../public/ds/assets.json";
 import frameRuntime from "../../public/runtime/frame.json";
 
-export function KageRenderer({ doc, system, className, onState, host, onLayout, onMetrics, onReady, fill, design, dark: forceDark }: KageRendererProps) {
+export function KageRenderer({ doc, system, className, onState, host, onLayout, onMetrics, onReady, fill, navigation, design, dark: forceDark }: KageRendererProps) {
   const frame = React.useRef<HTMLIFrameElement>(null);
   const livePort = React.useRef<MessagePort | undefined>(undefined);
   const [origin, setOrigin] = React.useState("");
@@ -28,6 +29,8 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
     if (!origin || !html) return;
     let port: MessagePort | undefined;
     let disposed = false;
+    const routes = navigation ? guideRoutes(doc) : [];
+    const locationChanged = () => { const chapter = chapterFromHash(location.hash, routes); if (chapter) port?.postMessage({ type: "location", chapter }); };
     const dark = () => forceDark ?? document.documentElement.classList.contains("dark");
     const connect = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow || event.data?.type !== "kages-frame-ready" || port) return;
@@ -36,7 +39,9 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
         if (data?.type === "error" && typeof data.message === "string") {
           console.error("Kage frame:", data.message.slice(0, 500));
         } else if (data?.type === "ready") {
-          port!.postMessage({ type: "render", dark: dark(), props: { doc, system, design, fill, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
+          port!.postMessage({ type: "render", dark: dark(), chapter: chapterFromHash(location.hash, routes), props: { doc, system, design, fill, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
+        } else if (data?.type === "navigate" && typeof data.chapter === "string" && routes.includes(data.chapter)) {
+          if (location.hash !== "#" + data.chapter) history.pushState(null, "", "#" + data.chapter);
         } else if (data?.type === "settled") {
           current.current.onReady?.();
         } else if (data?.type === "layout" && Number.isFinite(data.height)) {
@@ -63,14 +68,16 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
       frame.current!.contentWindow!.postMessage({ type: "kages-connect" }, "*", [channel.port2]);
     };
     window.addEventListener("message", connect);
+    window.addEventListener("hashchange", locationChanged);
+    window.addEventListener("popstate", locationChanged);
     // The comment layer covers the frame and swallows the wheel; it hands the scroll back through this event.
     const frameEl = frame.current;
     const onScrollRequest = (e: Event) => { const d = (e as CustomEvent).detail; if (port && d && Number.isFinite(d.top) && Number.isFinite(d.left)) port.postMessage({ type: "scrollBy", left: d.left, top: d.top }); };
     frameEl?.addEventListener("kages-scroll", onScrollRequest);
     const observer = new MutationObserver(() => port?.postMessage({ type: "theme", dark: dark() }));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => { disposed = true; livePort.current = undefined; port?.close(); frameEl?.removeEventListener("kages-scroll", onScrollRequest); observer.disconnect(); window.removeEventListener("message", connect); };
-  }, [origin, html, doc, system, assets.base]);
+    return () => { disposed = true; livePort.current = undefined; port?.close(); frameEl?.removeEventListener("kages-scroll", onScrollRequest); observer.disconnect(); window.removeEventListener("message", connect); window.removeEventListener("hashchange", locationChanged); window.removeEventListener("popstate", locationChanged); };
+  }, [origin, html, doc, system, assets.base, navigation]);
   // A new design or theme restyles the open frame; only a changed document reloads it.
   React.useEffect(() => { livePort.current?.postMessage({ type: "design", design, dark: forceDark }); }, [design, forceDark]);
   if (frameDoc.error) return <div role="alert" className="kg-missing">{frameDoc.error}</div>;

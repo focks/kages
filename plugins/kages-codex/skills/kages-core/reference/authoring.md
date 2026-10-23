@@ -10,7 +10,7 @@ An expression is a JSON object whose first key is an operator; anything else is 
 - Choose a visual direction. Use a workspace design when provided; otherwise use section palettes (ocean, mint, violet, amber, rose) for meaningful regions and diagram roles. Keep the same colour for the same meaning. Pair colour with labels, never colour alone.
 - Choose the artifact's shape from the content. Any catalog block can be the root; shell and sidebar are optional.
 - Use page for a reading, wide or full canvas; section for heroes and chapters; grid for responsive collections; split for two flowing panes; stack for local rows and columns.
-- Navigation is optional. Tabs can be primary navigation; use a sidebar when persistent section navigation helps the artifact.
+- Navigation is optional. Use guide for a chaptered handbook: numbered rail, mobile menu, previous/next navigation, and chapter links in dedicated views. Initialize chapter state and bind guide.value plus chapter visibility. Use toc for one scrolling page and tabs for alternatives.
 - Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.
 - Use declared semantic layout props and token spacing steps (0, 1, 2, 3, 4, 6, 8). Choose width, inset, gap, columns, minSize, ratio, tone and image fit through their contracts.
 - Dynamic text uses $tpl/$concat; dynamic datasets use $filter/$map/$sort. repeat: {each, key, as?} expands a block and its subtree. Use stable item keys, $item for the current row, $index:"" for its position, and $scope for named outer rows. Repeated controls have independent local state.

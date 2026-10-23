@@ -8,6 +8,7 @@ description: "Author a long, evidence-backed page (research brief, explainer, re
 A brief earns trust by letting the reader check it. The blocks below make that cheap; the
 order and the rules make it honest. The complete example is `research-brief` in
 `contentExamples()` (`src/packs/examples.ts`); the user-facing page is `docs/research-briefs.md`.
+For a chaptered handbook with a responsive rail and searchable evidence, read `field-guides` and use the `artifact-field-guide` starter.
 For a page that ends in a calculator and a recommendation, use `decision-guide` instead.
 
 ## Shape (top to bottom)
@@ -46,8 +47,7 @@ per brief, when the wording is the point.
 - `caption` is the sentence under the figure and states **the takeaway**, not the title. `label`
   stays the accessible name and should describe what is drawn.
 - Branch or lane diagrams: draw with `scene` (`line` for the trunk, `path` curves for branches,
-  `circle` commits, `text` lane names) in a 640 × 200 space. `diagram` auto-places nodes in a grid
-  and cannot draw lanes. Colours are tokens only (`accent`, `ink`, `ink-muted`, `success`, `danger`).
+  `circle` commits, `text` lane names) in a 640 × 200 space. `diagram` layers directed graphs by edges, reflows vertically on phones, and uses a grid for cycles; it does not draw arbitrary lanes. Colours are tokens only (`accent`, `ink`, `ink-muted`, `success`, `danger`).
 - Reuse one colour per meaning across every figure and the page (trunk = accent, risk = danger).
 - Wide figures must stay legible at 390 px; `kages screenshot --width 390` reports small text.
 

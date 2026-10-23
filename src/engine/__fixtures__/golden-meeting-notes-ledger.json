@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Meeting notes — decisions and action items\" · system ledger@2.11.0 · 7 blocks\nstate {\"owner\":\"all\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Launch planning\"\n    - agenda [core/rich-text@1.1.0]\n    - decisions [core/rich-text@1.1.0]\n    - owner [ledger/dropdown@2.0.0] label=\"Show action items for\" value=\"all\" options=all|Maya|Jonas|Priya\n        ↳ reads state:owner · writes change→state.owner\n    - summary [core/text@1.0.0] text=\"4 action items shown\"\n        ↳ reads data:actions, state:owner\n    - actions [core/table@1.0.0] rows=4\n        ↳ reads data:actions, state:owner",
+  "description": "Kage \"Meeting notes — decisions and action items\" · system ledger@2.12.0 · 7 blocks\nstate {\"owner\":\"all\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Launch planning\"\n    - agenda [core/rich-text@1.1.0]\n    - decisions [core/rich-text@1.1.0]\n    - owner [ledger/dropdown@2.0.0] label=\"Show action items for\" value=\"all\" options=all|Maya|Jonas|Priya\n        ↳ reads state:owner · writes change→state.owner\n    - summary [core/text@1.0.0] text=\"4 action items shown\"\n        ↳ reads data:actions, state:owner\n    - actions [core/table@1.0.0] rows=4\n        ↳ reads data:actions, state:owner",
   "envelope": {
     "title": "Meeting notes — decisions and action items",
     "root": "root",

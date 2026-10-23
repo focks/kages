@@ -54,6 +54,8 @@ export interface KageRendererProps {
   /** Fill the container and scroll inside the frame instead of growing to the content's height. A page that
    *  scrolls inside its frame is the only way a sticky contents rail can follow the reader without lag. */
   fill?: boolean;
+  /** Dedicated guide pages can opt into host fragment navigation; embedded copies stay local. */
+  navigation?: boolean;
   /** A design to dress the Kage in instead of the one its version pinned (an editor's live preview). */
   design?: DesignSnapshot;
   /** Force the frame's theme instead of following the host page (a design editor shows both side by side). */

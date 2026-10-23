@@ -1,4 +1,4 @@
-# Ledger 2.11.0 (ledger) extends core@1
+# Ledger 2.12.0 (ledger) extends core@1
 Dense, square, mono-numeral system for data and operations tools.
 Any catalog block can be the root. Choose the shape from the content: page for reading/wide/full canvases, section for heroes or chapters, grid for collections, split for two panes, stack for local flow. Navigation is optional; tabs may be primary navigation and sidebars suit persistent workspace navigation.
 
@@ -221,3 +221,9 @@ Any catalog block can be the root. Choose the shape from the content: page for r
 - file-upload → core/file-upload@1.0.0 [kages/file-upload@1] Pick files read locally in the browser: reports name, size, type and the text of small text files; nothing is uploaded.
   props: label*:string, accept:string, multiple:boolean, maxBytes:number, readAs:text|none, name:string, help:string, required:boolean, disabled:boolean, error:string, files:array · events: change · outputs: files
   use: Local read only. accept like '.csv,text/plain'; maxBytes up to 1,000,000 (default 100,000); multiple allows up to 5. change emits {files:[{name,size,type,text|null,error}]}. Bind the output into state to preview or parse it with blocks; there is no upload.
+- guide → core/guide@1.0.0 [kages/guide@1] Editorial field guide with chapter navigation, responsive menu, reading canvas and previous/next links. Compose each chapter from ordinary blocks.
+  props: title*:string, description:string, mark:string, eyebrow:string, note:string, label:string, themeToggle:boolean, palette:inherit|ocean|mint|violet|amber|rose, chapters*:array, value:string · slots: children, actions, footer · events: change · outputs: value
+  use: Use as root for a field guide/handbook. chapters [{id,label}] has at most 40 unique lowercase slug ids. Initialize state.chapter to the first id, bind value to it and set chapter from change {id}. Put chapter sections in children with visible:$eq(state.chapter,id). Native host chapter links/history work in full preview and shared views; embedded copies keep local navigation. Add actions and footer slots. The rail follows scrolling in fill frames, collapses to a Chapters button in narrow containers, and preserves in-chapter state. Use heading level 1 for each chapter opening. One guide per artifact.
+- disclosure → core/disclosure@1.0.0 [kages/disclosure@1] Expandable evidence or troubleshooting entry containing real blocks, including citations, code and actions.
+  props: title*:string, eyebrow:string, badge:string, palette:inherit|ocean|mint|violet|amber|rose, open:boolean · slots: children · events: change · outputs: open
+  use: Put rich detail in children: paragraphs, citations, code, links. title is the summary; eyebrow is category, badge is evidence status. Repeat a disclosure over a filtered dataset for searchable caveats or sources, with a stable repeat key. open is public; change emits {open}. Default behavior toggles without wiring. Native details gives keyboard access. Do not hide the only explanation of a critical risk.

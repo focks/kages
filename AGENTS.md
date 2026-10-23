@@ -19,6 +19,7 @@ find a new reusable pattern, add it as a skill.
 | `comment-doctrine` | Writing or editing any code. Comment the *why* and the *failure mode*, never the *what*. |
 | `dashboard-over-adapters` | Building or changing any page that reads/writes Kages — UI talks to the store only through `/api/<op>`. |
 | `expressive-artifacts` | Changing repeats, computations, reusable compositions, visual blocks, or generation envelopes. |
+| `field-guides` | Chaptered handbooks, guide navigation, expandable evidence and field-guide starters. |
 | `research-briefs` | Writing a long, sourced page: contents, citations, attributed quotes, captioned figures, a self-check, glossary and references. |
 | `artifact-art-direction` | Expressive palettes, interactive diagrams, visual starters, and concise authoring packs. |
 | `visual-review` | Rendering a Kage to a PNG with checks (`kages screenshot`, MCP `render_kage`); the /render page. |

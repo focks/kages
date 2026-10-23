@@ -1,6 +1,6 @@
 ---
 system: atelier
-version: 1.10.0
+version: 1.11.0
 extends: core@1
 tokens:
   colors:
@@ -147,7 +147,7 @@ Structural overrides:
 - `card` → `atelier/card@1.0.0`
 - `stat` → `atelier/stat@1.0.0`
 
-Inherited from Core (67): shell, text-input, stack, text, badge, table, page, section, grid, split, image, code, list, divider, textarea, slider, checkbox, bar-chart, composition, link, rich-text, text-field, number-input, date-input, choice, multiselect, form, scene, diagram, line-chart, scatter-chart, area-chart, donut-chart, gauge, sparkline, heatmap, alert, accordion, stepper, timeline, modal, switch, combobox, tree, data-grid, kanban, calendar, carousel, markdown, math, combo-chart, stacked-bar-chart, funnel-chart, treemap, sankey, map, tab-panel, code-tabs, anchor, toc, video, audio, glossary, references, gallery, date-range, file-upload.
+Inherited from Core (69): shell, text-input, stack, text, badge, table, page, section, grid, split, image, code, list, divider, textarea, slider, checkbox, bar-chart, composition, link, rich-text, text-field, number-input, date-input, choice, multiselect, form, scene, diagram, line-chart, scatter-chart, area-chart, donut-chart, gauge, sparkline, heatmap, alert, accordion, stepper, timeline, modal, switch, combobox, tree, data-grid, kanban, calendar, carousel, markdown, math, combo-chart, stacked-bar-chart, funnel-chart, treemap, sankey, map, tab-panel, code-tabs, anchor, toc, video, audio, glossary, references, gallery, date-range, file-upload, guide, disclosure.
 
 ## Named rules
 

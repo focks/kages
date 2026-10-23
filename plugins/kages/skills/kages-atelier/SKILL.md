@@ -1,6 +1,6 @@
 ---
 name: kages-atelier
-description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.10.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.11.0).
 ---
 
 # Kages — Atelier
@@ -14,6 +14,8 @@ Soft, editorial, serif system for consumer and storytelling artifacts.
 3. Choose a visual direction from the content and any supplied reference. Infer a sensible default; ask only if a missing preference materially changes the result. Use the workspace design when provided. For colourful work, assign a small set of section and diagram palettes by meaning (ocean, mint, violet, amber, rose); repeat those meanings throughout. Labels must also convey the meaning.
 4. Compose a clear opening, a dominant visual or interaction, and supporting detail. Vary the rhythm with page, section, grid and split. Navigation is optional. A hero can use section scale:hero, level:1, palette and backdrop:wash; ordinary chapters stay smaller. Avoid equal emphasis, repetitive cards, and diagrams added merely to fill space.
 5. Make the artifact respond: controls change a result, chart, recommendation or explanation through state and bindings. Give diagrams meaningful labels, directional edges and role colours; interactive selection should reveal a useful detail. Prefer layout:auto for readable phone diagrams. Use imagery when it explains the subject; provide real sources and alt text.
+
+For a research field guide, use guide as the root and disclosure for expandable evidence with real child blocks. Combine search/category filters, a result count, a useful empty state and clear/reset. Label evidence as documented, reported or recommendation; link its source. The artifact-field-guide example demonstrates this complete pattern.
 
 ## Inspect and refine before handoff
 

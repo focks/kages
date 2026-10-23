@@ -30,6 +30,11 @@ window.addEventListener("message", event => {
   if (event.source !== parent || event.data?.type !== "kages-connect" || port || !event.ports[0]) return;
   port = event.ports[0];
   port.onmessage = ({ data }) => {
+    if (data.type === "location" && typeof data.chapter === "string" && /^[a-z][a-z0-9-]{0,47}$/.test(data.chapter)) {
+      document.documentElement.dataset.kagesChapter = data.chapter;
+      window.dispatchEvent(new CustomEvent("kages-location", { detail: { chapter: data.chapter } }));
+      return;
+    }
     if (data.type === "result") { pending.get(data.id)?.(data.value); pending.delete(data.id); return; }
     if (data.type === "scrollBy" && Number.isFinite(data.top) && Number.isFinite(data.left)) { scrollBy(data.left, data.top); return; }
     // A design edit restyles the page in place: same key, so the Kage keeps its state and the frame does not reload.
@@ -42,11 +47,17 @@ window.addEventListener("message", event => {
     if (data.type === "theme") { document.documentElement.classList.toggle("dark", !!data.dark); return; }
     if (data.type !== "render") return;
     current = data.props as KageRendererProps;
+    document.documentElement.dataset.kagesChapter = typeof data.chapter === "string" && /^[a-z][a-z0-9-]{0,47}$/.test(data.chapter) ? data.chapter : "";
     document.documentElement.classList.toggle("dark", !!data.dark);
     root.render(<EmbeddedKageRenderer key={++revision} {...current} bridge={bridge} onState={state => port!.postMessage({ type: "state", state })} />);
   };
   port.postMessage({ type: "ready" });
 });
+// Only chapter slugs cross this boundary; the host validates against its guide.
+window.addEventListener("kages-navigate", ((event: CustomEvent) => {
+  const chapter = event.detail?.chapter;
+  if (typeof chapter === "string" && /^[a-z][a-z0-9-]{0,47}$/.test(chapter)) port?.postMessage({ type: "navigate", chapter });
+}) as EventListener);
 // Union display:contents wrappers so discussion pins keep their semantic anchors.
 function rectOf(el: Element, depth = 0): DOMRect | { left: number; top: number; width: number; height: number } | null {
   const r = el.getBoundingClientRect();

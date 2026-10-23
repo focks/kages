@@ -1,0 +1,1130 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Artifact craft — an operating field guide\" · system ledger@2.12.0 · 44 blocks · 56 instances\nstate {\"chapter\":\"overview\",\"layer\":\"engine\",\"scenario\":\"learn\",\"query\":\"\",\"category\":\"all\",\"checkedContent\":false,\"checkedMobile\":false,\"checkedInteraction\":false}\n- guide [core/guide@1.0.0] title=\"Artifact craft\" value=\"overview\"\n    ↳ reads state:chapter · writes change→state.chapter\n  children:\n    - overview [core/section@1.1.0]\n        ↳ reads state:chapter\n      children:\n        - overview-heading [core/section@1.1.0] title=\"Make the research usable.\"\n        - overview-intro [core/text@1.0.0] text=\"A field guide helps a reader move from orientation to a …\n        - overview-note [core/alert@1.0.0] title=\"How to use this guide\" text=\"Choose a chapter in the rail or use the next/previous li…\n        - flow [core/diagram@1.2.0] label=\"From authoring to a reader\"\n            ↳ reads state:layer · writes select→state.layer\n        - layer-detail~/layer-detail%3A%22engine%22 [core/section@1.1.0] title=\"The engine owns the contract\"\n    - start [core/section@1.1.0] (hidden)\n        ↳ reads state:chapter\n      children:\n        - start-heading [core/section@1.1.0] title=\"Start with the reader.\"\n        - start-intro [core/text@1.0.0] text=\"Start with the reader's task. Then choose the blocks and…\n        - start-table [core/table@1.0.0] rows=3\n        - commands [core/code-tabs@1.0.0]\n    - checklist [core/section@1.1.0] (hidden)\n        ↳ reads state:chapter\n      children:\n        - checklist-heading [core/section@1.1.0] title=\"Review the experience.\"\n        - check-intro [core/text@1.0.0] text=\"This is a review aid, not a certification. Tick a check …\n        - check-content [core/checkbox@1.0.0] label=\"Claims, sources and limits are clear\"\n            ↳ reads state:checkedContent · writes change→state.checkedContent\n        - check-mobile [core/checkbox@1.0.0] label=\"I inspected the mobile and dark layouts\"\n            ↳ reads state:checkedMobile · writes change→state.checkedMobile\n        - check-interaction [core/checkbox@1.0.0] label=\"I tested a changed result and reset\"\n            ↳ reads state:checkedInteraction · writes change→state.checkedInteraction\n        - check-score [ledger/stat@2.0.0] label=\"Review checks completed\" value=0\n            ↳ reads state:checkedContent, state:checkedMobile, state:checkedInteraction\n        - check-reset [ledger/button@2.1.0] label=\"Reset checklist\"\n            ↳ writes click→state.checkedContent, click→state.checkedMobile, click→state.checkedInteraction\n    - scenarios [core/section@1.1.0] (hidden)\n        ↳ reads state:chapter\n      children:\n        - scenarios-heading [core/section@1.1.0] title=\"Choose the right shape.\"\n        - scenario-intro [core/text@1.0.0] text=\"Several formats can explain the same topic. Choose the r…\n        - scenario [ledger/dropdown@2.0.0] label=\"What does the reader need?\" value=\"learn\" options=learn|decide|debug\n            ↳ reads state:scenario · writes change→state.scenario\n        - scenario-result~/scenario-result%3A%22learn%22 [core/section@1.1.0] title=\"An editorial field guide\"\n    - evidence [core/section@1.1.0] (hidden)\n        ↳ reads state:chapter\n      children:\n        - evidence-heading [core/section@1.1.0] title=\"Caveats, with context.\"\n        - evidence-intro [core/text@1.0.0] text=\"Search and filter the entries, then expand one to inspec…\n        - filters [core/grid@1.0.0]\n          - category [ledger/dropdown@2.0.0] label=\"Topic\" value=\"all\" options=all|Reading|Interactions|Evidence\n              ↳ reads state:category · writes change→state.category\n          - query [core/text-input@1.0.0] label=\"Search titles\"\n              ↳ reads state:query · writes change→state.query\n        - result-count [core/text@1.0.0] text=\"4 entries · expand to inspect\"\n            ↳ reads data:entries, state:category, state:query\n        - entry~/entry%3A%22mobile%22 [core/disclosure@1.0.0] title=\"A desktop layout can hide mobile problems\"\n          - entry-detail~/entry%3A%22mobile%22 [core/text@1.0.0] text=\"Long labels, wide charts and a persistent rail compete f…\n          - entry-action~/entry%3A%22mobile%22 [core/text@1.0.0] text=\"What to do: Inspect at 390px and check the chapter menu …\n          - entry-source~/entry%3A%22mobile%22 [core/link@1.0.0] label=\"Inspect the implementation ↗\"\n        - entry~/entry%3A%22reset%22 [core/disclosure@1.0.0] title=\"Reset must restore a meaningful baseline\"\n          - entry-detail~/entry%3A%22reset%22 [core/text@1.0.0] text=\"A reset is an explicit state transition. It does not fol…\n          - entry-action~/entry%3A%22reset%22 [core/text@1.0.0] text=\"What to do: Set every relevant state key and test the ch…\n          - entry-source~/entry%3A%22reset%22 [core/link@1.0.0] label=\"Inspect the implementation ↗\"\n        - entry~/entry%3A%22claims%22 [core/disclosure@1.0.0] title=\"Claims need a traceable source\"\n          - entry-detail~/entry%3A%22claims%22 [core/text@1.0.0] text=\"A polished presentation can make a weak claim look autho…\n          - entry-action~/entry%3A%22claims%22 [core/text@1.0.0] text=\"What to do: Link the primary source, label recommendatio…\n          - entry-source~/entry%3A%22claims%22 [core/link@1.0.0] label=\"Inspect the implementation ↗\"\n        - entry~/entry%3A%22identity%22 [core/disclosure@1.0.0] title=\"Filtered entries need stable identity\"\n          - entry-detail~/entry%3A%22identity%22 [core/text@1.0.0] text=\"Repeated blocks use a stable key so their local state ca…\n          - entry-action~/entry%3A%22identity%22 [core/text@1.0.0] text=\"What to do: Use repeat.key with a unique entry id, then …\n          - entry-source~/entry%3A%22identity%22 [core/link@1.0.0] label=\"Inspect the implementation ↗\"\n        - empty [core/alert@1.0.0] (hidden) title=\"No matching entries\" text=\"Clear the search or choose another topic.\"\n            ↳ reads data:entries, state:category, state:query\n        - filter-reset [ledger/button@2.1.0] label=\"Clear filters\"\n            ↳ writes click→state.query, click→state.category\n    - sources [core/section@1.1.0] (hidden)\n        ↳ reads state:chapter\n      children:\n        - sources-heading [core/section@1.1.0] title=\"Keep the limits visible.\"\n        - sources-intro [core/text@1.0.0] text=\"This guide demonstrates Kages composition from the repos…\n        - references [core/references@1.0.0] title=\"Primary references\" items=repo|engine|runtime\n  actions:\n    - project-link [core/link@1.0.0] label=\"Kages source ↗\"\n  footer:\n    - footer [core/text@1.0.0] text=\"A guide should make its claims inspectable. This example…",
+  "envelope": {
+    "title": "Artifact craft — an operating field guide",
+    "root": "guide",
+    "state_json": "{\"chapter\":\"overview\",\"layer\":\"engine\",\"scenario\":\"learn\",\"query\":\"\",\"category\":\"all\",\"checkedContent\":false,\"checkedMobile\":false,\"checkedInteraction\":false}",
+    "data_json": "{\"layers\":[{\"id\":\"author\",\"title\":\"The author owns the question\",\"detail\":\"Choose the audience, content and interaction. Express them as blocks and data against installed contracts.\",\"palette\":\"violet\"},{\"id\":\"engine\",\"title\":\"The engine owns the contract\",\"detail\":\"Validation, safe expressions and state transitions are shared across adapters and the renderer.\",\"palette\":\"ocean\"},{\"id\":\"reader\",\"title\":\"The reader needs a useful result\",\"detail\":\"Controls should expose a consequence. Selection, filtering and reset make exploration reversible.\",\"palette\":\"mint\"}],\"routes\":[{\"id\":\"learn\",\"title\":\"An editorial field guide\",\"detail\":\"Introduce the model, show a diagram, then move through examples and source-backed caveats.\",\"palette\":\"mint\"},{\"id\":\"decide\",\"title\":\"A comparison with consequences\",\"detail\":\"State the criteria, expose trade-offs and bind a recommendation to the reader's inputs.\",\"palette\":\"ocean\"},{\"id\":\"debug\",\"title\":\"A searchable troubleshooting catalog\",\"detail\":\"Group symptoms by topic. Reveal evidence and a concrete response inside each expandable entry.\",\"palette\":\"amber\"}],\"entries\":[{\"id\":\"mobile\",\"category\":\"Reading\",\"title\":\"A desktop layout can hide mobile problems\",\"evidence\":\"Recommendation\",\"palette\":\"amber\",\"detail\":\"Long labels, wide charts and a persistent rail compete for space on a phone.\",\"action\":\"Inspect at 390px and check the chapter menu and figure labels.\",\"href\":\"https://github.com/focks/kages/tree/main/src/cli\"},{\"id\":\"reset\",\"category\":\"Interactions\",\"title\":\"Reset must restore a meaningful baseline\",\"evidence\":\"Implementation pattern\",\"palette\":\"ocean\",\"detail\":\"A reset is an explicit state transition. It does not follow from the button's label.\",\"action\":\"Set every relevant state key and test the changed result before resetting.\",\"href\":\"https://github.com/focks/kages/tree/main/src/engine\"},{\"id\":\"claims\",\"category\":\"Evidence\",\"title\":\"Claims need a traceable source\",\"evidence\":\"Recommendation\",\"palette\":\"mint\",\"detail\":\"A polished presentation can make a weak claim look authoritative.\",\"action\":\"Link the primary source, label recommendations, and state what was not verified.\",\"href\":\"https://github.com/focks/kages\"},{\"id\":\"identity\",\"category\":\"Interactions\",\"title\":\"Filtered entries need stable identity\",\"evidence\":\"Implementation pattern\",\"palette\":\"violet\",\"detail\":\"Repeated blocks use a stable key so their local state can survive filtering and reordering.\",\"action\":\"Use repeat.key with a unique entry id, then test filter and restore.\",\"href\":\"https://github.com/focks/kages/blob/main/src/engine/advanced.js\"}]}",
+    "blocks": [
+      {
+        "id": "guide",
+        "type": "guide",
+        "props": {
+          "title": "Artifact craft",
+          "description": "The operating field guide",
+          "mark": "a.",
+          "eyebrow": "Field notes",
+          "note": "An interactive authoring example. Check behavior as well as appearance.",
+          "label": null,
+          "themeToggle": null,
+          "palette": "mint",
+          "chapters": [
+            {
+              "id": "overview",
+              "label": "Overview"
+            },
+            {
+              "id": "start",
+              "label": "Getting started"
+            },
+            {
+              "id": "checklist",
+              "label": "Review checklist"
+            },
+            {
+              "id": "scenarios",
+              "label": "Choose a route"
+            },
+            {
+              "id": "evidence",
+              "label": "Caveats & evidence"
+            },
+            {
+              "id": "sources",
+              "label": "Sources & limits"
+            }
+          ],
+          "value": null
+        },
+        "slots": {
+          "children": [
+            "overview",
+            "start",
+            "checklist",
+            "scenarios",
+            "evidence",
+            "sources"
+          ],
+          "actions": [
+            "project-link"
+          ],
+          "footer": [
+            "footer"
+          ]
+        },
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"chapter\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"chapter\",\"value\":{\"$event\":\"id\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "project-link",
+        "type": "link",
+        "props": {
+          "label": "Kages source ↗",
+          "href": "https://github.com/focks/kages",
+          "newTab": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "footer",
+        "type": "text",
+        "props": {
+          "text": "A guide should make its claims inspectable. This example explains the authoring pattern; it is not an independent product benchmark.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "overview-intro",
+        "type": "text",
+        "props": {
+          "text": "A field guide helps a reader move from orientation to a useful decision. Give each chapter one job, make the evidence easy to inspect, and let controls change a real answer.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "overview-note",
+        "type": "alert",
+        "props": {
+          "tone": "info",
+          "title": "How to use this guide",
+          "text": "Choose a chapter in the rail or use the next/previous links. Explore the map, tick the review checklist, then filter the caveats. Your choices stay while you move between chapters."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "flow",
+        "type": "diagram",
+        "props": {
+          "label": "From authoring to a reader",
+          "nodes_json": "[{\"id\":\"author\",\"label\":\"Authoring agent\",\"group\":\"Intent\",\"palette\":\"violet\"},{\"id\":\"engine\",\"label\":\"Shared engine\",\"group\":\"Contracts\",\"palette\":\"ocean\"},{\"id\":\"reader\",\"label\":\"Reader & controls\",\"group\":\"Experience\",\"palette\":\"mint\"}]",
+          "edges_json": "[{\"from\":\"author\",\"to\":\"engine\",\"label\":\"document\"},{\"from\":\"engine\",\"to\":\"reader\",\"label\":\"render\"}]",
+          "interactive": true,
+          "caption": "Select a layer to see its responsibility. Color follows the selected layer.",
+          "layout": null,
+          "selected": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "selected",
+            "expr_json": "{\"$state\":\"layer\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"layer\",\"value\":{\"$event\":\"id\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "layer-detail",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": 2,
+          "tone": "accent",
+          "inset": null,
+          "gap": 3,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"title\"}"
+          },
+          {
+            "prop": "palette",
+            "expr_json": "{\"$item\":\"palette\"}"
+          },
+          {
+            "prop": "description",
+            "expr_json": "{\"$item\":\"detail\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$filter\":{\"list\":{\"$data\":\"layers\"},\"field\":\"id\",\"equals\":{\"$state\":\"layer\"}}},\"key\":\"id\"}"
+      },
+      {
+        "id": "start-intro",
+        "type": "text",
+        "props": {
+          "text": "Start with the reader's task. Then choose the blocks and the smallest interaction that helps them complete it. Keep content in the document and behavior in published contracts.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "start-table",
+        "type": "table",
+        "props": {
+          "columns": [
+            {
+              "key": "need",
+              "label": "Reader needs",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "block",
+              "label": "Use",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "check",
+              "label": "Check",
+              "align": null,
+              "format": null
+            }
+          ],
+          "rows_json": "[{\"need\":\"A clear path through a long subject\",\"block\":\"guide + chapter sections\",\"check\":\"Direct links, back/forward and mobile navigation\"},{\"need\":\"A decision with different outcomes\",\"block\":\"dropdown + bound result\",\"check\":\"Every choice changes the explanation\"},{\"need\":\"Optional evidence and remediation\",\"block\":\"disclosure + rich content\",\"check\":\"Expansion, links and empty search\"}]",
+          "empty": null,
+          "dense": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "commands",
+        "type": "code-tabs",
+        "props": {
+          "caption": "Validate, lint, then inspect the rendered result",
+          "tabs": [
+            {
+              "id": "cli",
+              "label": "CLI",
+              "language": "sh",
+              "code": "kages validate guide.kage.json\nkages lint guide.kage.json\nkages screenshot guide.kage.json --width 390,1200"
+            },
+            {
+              "id": "dark",
+              "label": "Dark review",
+              "language": "sh",
+              "code": "kages screenshot guide.kage.json --width 390,1200 --dark"
+            }
+          ],
+          "value": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check-intro",
+        "type": "text",
+        "props": {
+          "text": "This is a review aid, not a certification. Tick a check only after doing it. The count is computed from your answers, and reset clears all three.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check-content",
+        "type": "checkbox",
+        "props": {
+          "label": "Claims, sources and limits are clear",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"checkedContent\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"checkedContent\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check-mobile",
+        "type": "checkbox",
+        "props": {
+          "label": "I inspected the mobile and dark layouts",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"checkedMobile\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"checkedMobile\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check-interaction",
+        "type": "checkbox",
+        "props": {
+          "label": "I tested a changed result and reset",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"checkedInteraction\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"checkedInteraction\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check-score",
+        "type": "stat",
+        "props": {
+          "label": "Review checks completed",
+          "value": null,
+          "format": null,
+          "delta": null,
+          "caption": "Out of 3. Self-reported, not an automated audit.",
+          "trend": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$add\":[{\"$if\":[{\"$state\":\"checkedContent\"},1,0]},{\"$if\":[{\"$state\":\"checkedMobile\"},1,0]},{\"$if\":[{\"$state\":\"checkedInteraction\"},1,0]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "check-reset",
+        "type": "button",
+        "props": {
+          "label": "Reset checklist",
+          "variant": "secondary",
+          "size": null,
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"checkedContent\",\"value\":false},{\"do\":\"set\",\"path\":\"checkedMobile\",\"value\":false},{\"do\":\"set\",\"path\":\"checkedInteraction\",\"value\":false}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "scenario-intro",
+        "type": "text",
+        "props": {
+          "text": "Several formats can explain the same topic. Choose the reader's immediate need and compare how the recommended structure changes.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "scenario",
+        "type": "dropdown",
+        "props": {
+          "label": "What does the reader need?",
+          "options": [
+            {
+              "value": "learn",
+              "label": "Understand a new topic",
+              "hint": null
+            },
+            {
+              "value": "decide",
+              "label": "Compare a decision",
+              "hint": null
+            },
+            {
+              "value": "debug",
+              "label": "Diagnose a problem",
+              "hint": null
+            }
+          ],
+          "value": null,
+          "placeholder": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"scenario\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"scenario\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "scenario-result",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": 2,
+          "tone": "accent",
+          "inset": null,
+          "gap": 3,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"title\"}"
+          },
+          {
+            "prop": "description",
+            "expr_json": "{\"$item\":\"detail\"}"
+          },
+          {
+            "prop": "palette",
+            "expr_json": "{\"$item\":\"palette\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$filter\":{\"list\":{\"$data\":\"routes\"},\"field\":\"id\",\"equals\":{\"$state\":\"scenario\"}}},\"key\":\"id\"}"
+      },
+      {
+        "id": "evidence-intro",
+        "type": "text",
+        "props": {
+          "text": "Search and filter the entries, then expand one to inspect its context and next step. Evidence labels distinguish implementation facts from authoring recommendations. These are example entries, not a production incident log.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "filters",
+        "type": "grid",
+        "props": {
+          "columns": 2,
+          "minSize": "small",
+          "gap": 4
+        },
+        "slots": {
+          "children": [
+            "category",
+            "query"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "category",
+        "type": "dropdown",
+        "props": {
+          "label": "Topic",
+          "options": [
+            {
+              "value": "all",
+              "label": "All topics",
+              "hint": null
+            },
+            {
+              "value": "Reading",
+              "label": "Reading",
+              "hint": null
+            },
+            {
+              "value": "Interactions",
+              "label": "Interactions",
+              "hint": null
+            },
+            {
+              "value": "Evidence",
+              "label": "Evidence",
+              "hint": null
+            }
+          ],
+          "value": null,
+          "placeholder": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"category\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"category\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "query",
+        "type": "text-input",
+        "props": {
+          "label": "Search titles",
+          "value": null,
+          "placeholder": "Try mobile, reset, or claims…",
+          "help": null,
+          "inputType": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"query\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"query\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "result-count",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[{\"$count\":{\"$filter\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"entries\"},\"field\":\"category\",\"equals\":{\"$state\":\"category\"},\"skipIf\":\"all\"}},\"field\":\"title\",\"contains\":{\"$state\":\"query\"}}}},\" entries · expand to inspect\"]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "entry",
+        "type": "disclosure",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "badge": null,
+          "palette": null,
+          "open": null
+        },
+        "slots": {
+          "children": [
+            "entry-detail",
+            "entry-action",
+            "entry-source"
+          ]
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"title\"}"
+          },
+          {
+            "prop": "eyebrow",
+            "expr_json": "{\"$item\":\"category\"}"
+          },
+          {
+            "prop": "badge",
+            "expr_json": "{\"$item\":\"evidence\"}"
+          },
+          {
+            "prop": "palette",
+            "expr_json": "{\"$item\":\"palette\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$filter\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"entries\"},\"field\":\"category\",\"equals\":{\"$state\":\"category\"},\"skipIf\":\"all\"}},\"field\":\"title\",\"contains\":{\"$state\":\"query\"}}},\"key\":\"id\"}"
+      },
+      {
+        "id": "entry-detail",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$item\":\"detail\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "entry-action",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[\"What to do: \",{\"$item\":\"action\"}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "entry-source",
+        "type": "link",
+        "props": {
+          "label": "Inspect the implementation ↗",
+          "href": null,
+          "newTab": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "href",
+            "expr_json": "{\"$item\":\"href\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "empty",
+        "type": "alert",
+        "props": {
+          "tone": "info",
+          "title": "No matching entries",
+          "text": "Clear the search or choose another topic."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$count\":{\"$filter\":{\"list\":{\"$filter\":{\"list\":{\"$data\":\"entries\"},\"field\":\"category\",\"equals\":{\"$state\":\"category\"},\"skipIf\":\"all\"}},\"field\":\"title\",\"contains\":{\"$state\":\"query\"}}}},0]}",
+        "repeat_json": null
+      },
+      {
+        "id": "filter-reset",
+        "type": "button",
+        "props": {
+          "label": "Clear filters",
+          "variant": "secondary",
+          "size": null,
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"query\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"category\",\"value\":\"all\"}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "sources-intro",
+        "type": "text",
+        "props": {
+          "text": "This guide demonstrates Kages composition from the repository's contracts. The recommendations are authoring advice, not measured outcomes. The diagram simplifies the system; it is not a complete security or deployment model.",
+          "variant": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "references",
+        "type": "references",
+        "props": {
+          "title": "Primary references",
+          "items": [
+            {
+              "id": "repo",
+              "label": "Kages repository",
+              "href": "https://github.com/focks/kages",
+              "detail": "Implementation and usage"
+            },
+            {
+              "id": "engine",
+              "label": "Shared engine",
+              "href": "https://github.com/focks/kages/tree/main/src/engine",
+              "detail": "Validation, expressions and document behavior"
+            },
+            {
+              "id": "runtime",
+              "label": "Artifact runtime",
+              "href": "https://github.com/focks/kages/tree/main/src/runtime",
+              "detail": "Sandbox and rendering boundary"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "overview",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "overview-heading",
+            "overview-intro",
+            "overview-note",
+            "flow",
+            "layer-detail"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"chapter\"},\"overview\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "overview-heading",
+        "type": "section",
+        "props": {
+          "title": "Make the research usable.",
+          "eyebrow": "Independent learning / Field guide",
+          "description": "A guide with a reading path, working controls and inspectable evidence.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": "mint",
+          "scale": "hero",
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "start",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "start-heading",
+            "start-intro",
+            "start-table",
+            "commands"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"chapter\"},\"start\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "start-heading",
+        "type": "section",
+        "props": {
+          "title": "Start with the reader.",
+          "eyebrow": "Independent learning / Field guide",
+          "description": "A small set of blocks can support a complete field guide.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": "mint",
+          "scale": "hero",
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "checklist",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "checklist-heading",
+            "check-intro",
+            "check-content",
+            "check-mobile",
+            "check-interaction",
+            "check-score",
+            "check-reset"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"chapter\"},\"checklist\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "checklist-heading",
+        "type": "section",
+        "props": {
+          "title": "Review the experience.",
+          "eyebrow": "Independent learning / Field guide",
+          "description": "A checklist remembers what you have checked as you move between chapters.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": "mint",
+          "scale": "hero",
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "scenarios",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "scenarios-heading",
+            "scenario-intro",
+            "scenario",
+            "scenario-result"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"chapter\"},\"scenarios\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "scenarios-heading",
+        "type": "section",
+        "props": {
+          "title": "Choose the right shape.",
+          "eyebrow": "Independent learning / Field guide",
+          "description": "Change the reader's need and inspect the recommended route.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": "mint",
+          "scale": "hero",
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "evidence",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "evidence-heading",
+            "evidence-intro",
+            "filters",
+            "result-count",
+            "entry",
+            "empty",
+            "filter-reset"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"chapter\"},\"evidence\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "evidence-heading",
+        "type": "section",
+        "props": {
+          "title": "Caveats, with context.",
+          "eyebrow": "Independent learning / Field guide",
+          "description": "Filter, search, and expand the evidence behind a recommendation.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": "mint",
+          "scale": "hero",
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "sources",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "sources-heading",
+            "sources-intro",
+            "references"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"chapter\"},\"sources\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "sources-heading",
+        "type": "section",
+        "props": {
+          "title": "Keep the limits visible.",
+          "eyebrow": "Independent learning / Field guide",
+          "description": "Let a reader distinguish implementation from advice.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": "mint",
+          "scale": "hero",
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

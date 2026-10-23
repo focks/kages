@@ -27,3 +27,7 @@ By default the frame grows to its content and the host page scrolls. Nothing ins
 - A document change reloads the frame. A **design** change does not: the host posts a `design` message and the frame re-renders with the same React key (state survives); see `workspace-designs`.
 
 Run `KAGES_TEST_URL=http://localhost:3100 KAGES_CHROME_NO_SANDBOX=1 node --test src/runtime/scroll-browser.test.ts` to exercise trusted wheel input on the actual preview and published routes, including the comment overlay. The test stubs document reads in the browser and never publishes to a workspace.
+
+## Chapter links
+
+Dedicated guide hosts opt into `navigation`. The parent validates chapter slugs against `guideRoutes(doc)` before changing its own fragment; iframe code receives location messages, never host DOM access. Embedded Library cards do not opt in. Preview uses a fill frame for root guides so chapter rails stick. See `field-guides` for the message contract and browser test.

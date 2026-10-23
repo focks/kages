@@ -1,0 +1,1076 @@
+{
+  "kages": "1.0",
+  "id": "artifact-field-guide",
+  "title": "Artifact craft — an operating field guide",
+  "system": "atelier@1",
+  "root": "guide",
+  "brief": {
+    "mode": "read",
+    "audience": "An agent or author building an evidence-backed interactive guide",
+    "job": "Learn the pattern, explore a scenario and review an artifact",
+    "notes": "Original example content. Recommendations are labeled; counts describe this example, not product performance."
+  },
+  "state": {
+    "chapter": "overview",
+    "layer": "engine",
+    "scenario": "learn",
+    "query": "",
+    "category": "all",
+    "checkedContent": false,
+    "checkedMobile": false,
+    "checkedInteraction": false
+  },
+  "data": {
+    "layers": [
+      {
+        "id": "author",
+        "title": "The author owns the question",
+        "detail": "Choose the audience, content and interaction. Express them as blocks and data against installed contracts.",
+        "palette": "violet"
+      },
+      {
+        "id": "engine",
+        "title": "The engine owns the contract",
+        "detail": "Validation, safe expressions and state transitions are shared across adapters and the renderer.",
+        "palette": "ocean"
+      },
+      {
+        "id": "reader",
+        "title": "The reader needs a useful result",
+        "detail": "Controls should expose a consequence. Selection, filtering and reset make exploration reversible.",
+        "palette": "mint"
+      }
+    ],
+    "routes": [
+      {
+        "id": "learn",
+        "title": "An editorial field guide",
+        "detail": "Introduce the model, show a diagram, then move through examples and source-backed caveats.",
+        "palette": "mint"
+      },
+      {
+        "id": "decide",
+        "title": "A comparison with consequences",
+        "detail": "State the criteria, expose trade-offs and bind a recommendation to the reader's inputs.",
+        "palette": "ocean"
+      },
+      {
+        "id": "debug",
+        "title": "A searchable troubleshooting catalog",
+        "detail": "Group symptoms by topic. Reveal evidence and a concrete response inside each expandable entry.",
+        "palette": "amber"
+      }
+    ],
+    "entries": [
+      {
+        "id": "mobile",
+        "category": "Reading",
+        "title": "A desktop layout can hide mobile problems",
+        "evidence": "Recommendation",
+        "palette": "amber",
+        "detail": "Long labels, wide charts and a persistent rail compete for space on a phone.",
+        "action": "Inspect at 390px and check the chapter menu and figure labels.",
+        "href": "https://github.com/focks/kages/tree/main/src/cli"
+      },
+      {
+        "id": "reset",
+        "category": "Interactions",
+        "title": "Reset must restore a meaningful baseline",
+        "evidence": "Implementation pattern",
+        "palette": "ocean",
+        "detail": "A reset is an explicit state transition. It does not follow from the button's label.",
+        "action": "Set every relevant state key and test the changed result before resetting.",
+        "href": "https://github.com/focks/kages/tree/main/src/engine"
+      },
+      {
+        "id": "claims",
+        "category": "Evidence",
+        "title": "Claims need a traceable source",
+        "evidence": "Recommendation",
+        "palette": "mint",
+        "detail": "A polished presentation can make a weak claim look authoritative.",
+        "action": "Link the primary source, label recommendations, and state what was not verified.",
+        "href": "https://github.com/focks/kages"
+      },
+      {
+        "id": "identity",
+        "category": "Interactions",
+        "title": "Filtered entries need stable identity",
+        "evidence": "Implementation pattern",
+        "palette": "violet",
+        "detail": "Repeated blocks use a stable key so their local state can survive filtering and reordering.",
+        "action": "Use repeat.key with a unique entry id, then test filter and restore.",
+        "href": "https://github.com/focks/kages/blob/main/src/engine/advanced.js"
+      }
+    ]
+  },
+  "blocks": {
+    "guide": {
+      "type": "guide",
+      "props": {
+        "title": "Artifact craft",
+        "mark": "a.",
+        "description": "The operating field guide",
+        "eyebrow": "Field notes",
+        "note": "An interactive authoring example. Check behavior as well as appearance.",
+        "palette": "mint",
+        "chapters": [
+          {
+            "id": "overview",
+            "label": "Overview"
+          },
+          {
+            "id": "start",
+            "label": "Getting started"
+          },
+          {
+            "id": "checklist",
+            "label": "Review checklist"
+          },
+          {
+            "id": "scenarios",
+            "label": "Choose a route"
+          },
+          {
+            "id": "evidence",
+            "label": "Caveats & evidence"
+          },
+          {
+            "id": "sources",
+            "label": "Sources & limits"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "chapter"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "chapter",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      },
+      "slots": {
+        "children": [
+          "overview",
+          "start",
+          "checklist",
+          "scenarios",
+          "evidence",
+          "sources"
+        ],
+        "actions": [
+          "project-link"
+        ],
+        "footer": [
+          "footer"
+        ]
+      }
+    },
+    "project-link": {
+      "type": "link",
+      "props": {
+        "label": "Kages source ↗",
+        "href": "https://github.com/focks/kages"
+      }
+    },
+    "footer": {
+      "type": "text",
+      "props": {
+        "text": "A guide should make its claims inspectable. This example explains the authoring pattern; it is not an independent product benchmark."
+      }
+    },
+    "overview-intro": {
+      "type": "text",
+      "props": {
+        "text": "A field guide helps a reader move from orientation to a useful decision. Give each chapter one job, make the evidence easy to inspect, and let controls change a real answer."
+      }
+    },
+    "overview-note": {
+      "type": "alert",
+      "props": {
+        "title": "How to use this guide",
+        "text": "Choose a chapter in the rail or use the next/previous links. Explore the map, tick the review checklist, then filter the caveats. Your choices stay while you move between chapters.",
+        "tone": "info"
+      }
+    },
+    "flow": {
+      "type": "diagram",
+      "props": {
+        "label": "From authoring to a reader",
+        "interactive": true,
+        "caption": "Select a layer to see its responsibility. Color follows the selected layer.",
+        "nodes": [
+          {
+            "id": "author",
+            "label": "Authoring agent",
+            "group": "Intent",
+            "palette": "violet"
+          },
+          {
+            "id": "engine",
+            "label": "Shared engine",
+            "group": "Contracts",
+            "palette": "ocean"
+          },
+          {
+            "id": "reader",
+            "label": "Reader & controls",
+            "group": "Experience",
+            "palette": "mint"
+          }
+        ],
+        "edges": [
+          {
+            "from": "author",
+            "to": "engine",
+            "label": "document"
+          },
+          {
+            "from": "engine",
+            "to": "reader",
+            "label": "render"
+          }
+        ]
+      },
+      "bind": {
+        "selected": {
+          "$state": "layer"
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "layer",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "layer-detail": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "tone": "accent",
+        "gap": 3
+      },
+      "bind": {
+        "title": {
+          "$item": "title"
+        },
+        "palette": {
+          "$item": "palette"
+        },
+        "description": {
+          "$item": "detail"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$data": "layers"
+            },
+            "field": "id",
+            "equals": {
+              "$state": "layer"
+            }
+          }
+        },
+        "key": "id"
+      }
+    },
+    "start-intro": {
+      "type": "text",
+      "props": {
+        "text": "Start with the reader's task. Then choose the blocks and the smallest interaction that helps them complete it. Keep content in the document and behavior in published contracts."
+      }
+    },
+    "start-table": {
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "need",
+            "label": "Reader needs"
+          },
+          {
+            "key": "block",
+            "label": "Use"
+          },
+          {
+            "key": "check",
+            "label": "Check"
+          }
+        ],
+        "rows": [
+          {
+            "need": "A clear path through a long subject",
+            "block": "guide + chapter sections",
+            "check": "Direct links, back/forward and mobile navigation"
+          },
+          {
+            "need": "A decision with different outcomes",
+            "block": "dropdown + bound result",
+            "check": "Every choice changes the explanation"
+          },
+          {
+            "need": "Optional evidence and remediation",
+            "block": "disclosure + rich content",
+            "check": "Expansion, links and empty search"
+          }
+        ]
+      }
+    },
+    "commands": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "Validate, lint, then inspect the rendered result",
+        "tabs": [
+          {
+            "id": "cli",
+            "label": "CLI",
+            "language": "sh",
+            "code": "kages validate guide.kage.json\nkages lint guide.kage.json\nkages screenshot guide.kage.json --width 390,1200"
+          },
+          {
+            "id": "dark",
+            "label": "Dark review",
+            "language": "sh",
+            "code": "kages screenshot guide.kage.json --width 390,1200 --dark"
+          }
+        ]
+      }
+    },
+    "check-intro": {
+      "type": "text",
+      "props": {
+        "text": "This is a review aid, not a certification. Tick a check only after doing it. The count is computed from your answers, and reset clears all three."
+      }
+    },
+    "check-content": {
+      "type": "checkbox",
+      "props": {
+        "label": "Claims, sources and limits are clear"
+      },
+      "bind": {
+        "checked": {
+          "$state": "checkedContent"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "checkedContent",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "check-mobile": {
+      "type": "checkbox",
+      "props": {
+        "label": "I inspected the mobile and dark layouts"
+      },
+      "bind": {
+        "checked": {
+          "$state": "checkedMobile"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "checkedMobile",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "check-interaction": {
+      "type": "checkbox",
+      "props": {
+        "label": "I tested a changed result and reset"
+      },
+      "bind": {
+        "checked": {
+          "$state": "checkedInteraction"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "checkedInteraction",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "check-score": {
+      "type": "stat",
+      "props": {
+        "label": "Review checks completed",
+        "caption": "Out of 3. Self-reported, not an automated audit."
+      },
+      "bind": {
+        "value": {
+          "$add": [
+            {
+              "$if": [
+                {
+                  "$state": "checkedContent"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "checkedMobile"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "checkedInteraction"
+                },
+                1,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "check-reset": {
+      "type": "button",
+      "props": {
+        "label": "Reset checklist",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "checkedContent",
+            "value": false
+          },
+          {
+            "do": "set",
+            "path": "checkedMobile",
+            "value": false
+          },
+          {
+            "do": "set",
+            "path": "checkedInteraction",
+            "value": false
+          }
+        ]
+      }
+    },
+    "scenario-intro": {
+      "type": "text",
+      "props": {
+        "text": "Several formats can explain the same topic. Choose the reader's immediate need and compare how the recommended structure changes."
+      }
+    },
+    "scenario": {
+      "type": "dropdown",
+      "props": {
+        "label": "What does the reader need?",
+        "options": [
+          {
+            "value": "learn",
+            "label": "Understand a new topic"
+          },
+          {
+            "value": "decide",
+            "label": "Compare a decision"
+          },
+          {
+            "value": "debug",
+            "label": "Diagnose a problem"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "scenario"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "scenario",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "scenario-result": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "tone": "accent",
+        "gap": 3
+      },
+      "bind": {
+        "title": {
+          "$item": "title"
+        },
+        "description": {
+          "$item": "detail"
+        },
+        "palette": {
+          "$item": "palette"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$data": "routes"
+            },
+            "field": "id",
+            "equals": {
+              "$state": "scenario"
+            }
+          }
+        },
+        "key": "id"
+      }
+    },
+    "evidence-intro": {
+      "type": "text",
+      "props": {
+        "text": "Search and filter the entries, then expand one to inspect its context and next step. Evidence labels distinguish implementation facts from authoring recommendations. These are example entries, not a production incident log."
+      }
+    },
+    "filters": {
+      "type": "grid",
+      "props": {
+        "columns": 2,
+        "minSize": "small",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "category",
+          "query"
+        ]
+      }
+    },
+    "category": {
+      "type": "dropdown",
+      "props": {
+        "label": "Topic",
+        "options": [
+          {
+            "value": "all",
+            "label": "All topics"
+          },
+          {
+            "value": "Reading",
+            "label": "Reading"
+          },
+          {
+            "value": "Interactions",
+            "label": "Interactions"
+          },
+          {
+            "value": "Evidence",
+            "label": "Evidence"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "category"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "category",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "query": {
+      "type": "text-input",
+      "props": {
+        "label": "Search titles",
+        "placeholder": "Try mobile, reset, or claims…"
+      },
+      "bind": {
+        "value": {
+          "$state": "query"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "result-count": {
+      "type": "text",
+      "props": {
+        "variant": "caption"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$count": {
+                "$filter": {
+                  "list": {
+                    "$filter": {
+                      "list": {
+                        "$data": "entries"
+                      },
+                      "field": "category",
+                      "equals": {
+                        "$state": "category"
+                      },
+                      "skipIf": "all"
+                    }
+                  },
+                  "field": "title",
+                  "contains": {
+                    "$state": "query"
+                  }
+                }
+              }
+            },
+            " entries · expand to inspect"
+          ]
+        }
+      }
+    },
+    "entry": {
+      "type": "disclosure",
+      "bind": {
+        "title": {
+          "$item": "title"
+        },
+        "eyebrow": {
+          "$item": "category"
+        },
+        "badge": {
+          "$item": "evidence"
+        },
+        "palette": {
+          "$item": "palette"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "entries"
+                },
+                "field": "category",
+                "equals": {
+                  "$state": "category"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "title",
+            "contains": {
+              "$state": "query"
+            }
+          }
+        },
+        "key": "id"
+      },
+      "slots": {
+        "children": [
+          "entry-detail",
+          "entry-action",
+          "entry-source"
+        ]
+      }
+    },
+    "entry-detail": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$item": "detail"
+        }
+      }
+    },
+    "entry-action": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$concat": [
+            "What to do: ",
+            {
+              "$item": "action"
+            }
+          ]
+        }
+      }
+    },
+    "entry-source": {
+      "type": "link",
+      "props": {
+        "label": "Inspect the implementation ↗"
+      },
+      "bind": {
+        "href": {
+          "$item": "href"
+        }
+      }
+    },
+    "empty": {
+      "type": "alert",
+      "props": {
+        "title": "No matching entries",
+        "text": "Clear the search or choose another topic.",
+        "tone": "info"
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$filter": {
+                    "list": {
+                      "$data": "entries"
+                    },
+                    "field": "category",
+                    "equals": {
+                      "$state": "category"
+                    },
+                    "skipIf": "all"
+                  }
+                },
+                "field": "title",
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    },
+    "filter-reset": {
+      "type": "button",
+      "props": {
+        "label": "Clear filters",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "category",
+            "value": "all"
+          }
+        ]
+      }
+    },
+    "sources-intro": {
+      "type": "text",
+      "props": {
+        "text": "This guide demonstrates Kages composition from the repository's contracts. The recommendations are authoring advice, not measured outcomes. The diagram simplifies the system; it is not a complete security or deployment model."
+      }
+    },
+    "references": {
+      "type": "references",
+      "props": {
+        "title": "Primary references",
+        "items": [
+          {
+            "id": "repo",
+            "label": "Kages repository",
+            "href": "https://github.com/focks/kages",
+            "detail": "Implementation and usage"
+          },
+          {
+            "id": "engine",
+            "label": "Shared engine",
+            "href": "https://github.com/focks/kages/tree/main/src/engine",
+            "detail": "Validation, expressions and document behavior"
+          },
+          {
+            "id": "runtime",
+            "label": "Artifact runtime",
+            "href": "https://github.com/focks/kages/tree/main/src/runtime",
+            "detail": "Sandbox and rendering boundary"
+          }
+        ]
+      }
+    },
+    "overview": {
+      "type": "section",
+      "props": {
+        "gap": 6,
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "overview"
+        ]
+      },
+      "slots": {
+        "children": [
+          "overview-heading",
+          "overview-intro",
+          "overview-note",
+          "flow",
+          "layer-detail"
+        ]
+      }
+    },
+    "overview-heading": {
+      "type": "section",
+      "props": {
+        "title": "Make the research usable.",
+        "description": "A guide with a reading path, working controls and inspectable evidence.",
+        "eyebrow": "Independent learning / Field guide",
+        "level": 1,
+        "scale": "hero",
+        "palette": "mint",
+        "gap": 4,
+        "inset": 0
+      }
+    },
+    "start": {
+      "type": "section",
+      "props": {
+        "gap": 6,
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "start"
+        ]
+      },
+      "slots": {
+        "children": [
+          "start-heading",
+          "start-intro",
+          "start-table",
+          "commands"
+        ]
+      }
+    },
+    "start-heading": {
+      "type": "section",
+      "props": {
+        "title": "Start with the reader.",
+        "description": "A small set of blocks can support a complete field guide.",
+        "eyebrow": "Independent learning / Field guide",
+        "level": 1,
+        "scale": "hero",
+        "palette": "mint",
+        "gap": 4,
+        "inset": 0
+      }
+    },
+    "checklist": {
+      "type": "section",
+      "props": {
+        "gap": 6,
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "checklist"
+        ]
+      },
+      "slots": {
+        "children": [
+          "checklist-heading",
+          "check-intro",
+          "check-content",
+          "check-mobile",
+          "check-interaction",
+          "check-score",
+          "check-reset"
+        ]
+      }
+    },
+    "checklist-heading": {
+      "type": "section",
+      "props": {
+        "title": "Review the experience.",
+        "description": "A checklist remembers what you have checked as you move between chapters.",
+        "eyebrow": "Independent learning / Field guide",
+        "level": 1,
+        "scale": "hero",
+        "palette": "mint",
+        "gap": 4,
+        "inset": 0
+      }
+    },
+    "scenarios": {
+      "type": "section",
+      "props": {
+        "gap": 6,
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "scenarios"
+        ]
+      },
+      "slots": {
+        "children": [
+          "scenarios-heading",
+          "scenario-intro",
+          "scenario",
+          "scenario-result"
+        ]
+      }
+    },
+    "scenarios-heading": {
+      "type": "section",
+      "props": {
+        "title": "Choose the right shape.",
+        "description": "Change the reader's need and inspect the recommended route.",
+        "eyebrow": "Independent learning / Field guide",
+        "level": 1,
+        "scale": "hero",
+        "palette": "mint",
+        "gap": 4,
+        "inset": 0
+      }
+    },
+    "evidence": {
+      "type": "section",
+      "props": {
+        "gap": 6,
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "evidence"
+        ]
+      },
+      "slots": {
+        "children": [
+          "evidence-heading",
+          "evidence-intro",
+          "filters",
+          "result-count",
+          "entry",
+          "empty",
+          "filter-reset"
+        ]
+      }
+    },
+    "evidence-heading": {
+      "type": "section",
+      "props": {
+        "title": "Caveats, with context.",
+        "description": "Filter, search, and expand the evidence behind a recommendation.",
+        "eyebrow": "Independent learning / Field guide",
+        "level": 1,
+        "scale": "hero",
+        "palette": "mint",
+        "gap": 4,
+        "inset": 0
+      }
+    },
+    "sources": {
+      "type": "section",
+      "props": {
+        "gap": 6,
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "sources"
+        ]
+      },
+      "slots": {
+        "children": [
+          "sources-heading",
+          "sources-intro",
+          "references"
+        ]
+      }
+    },
+    "sources-heading": {
+      "type": "section",
+      "props": {
+        "title": "Keep the limits visible.",
+        "description": "Let a reader distinguish implementation from advice.",
+        "eyebrow": "Independent learning / Field guide",
+        "level": 1,
+        "scale": "hero",
+        "palette": "mint",
+        "gap": 4,
+        "inset": 0
+      }
+    }
+  }
+}

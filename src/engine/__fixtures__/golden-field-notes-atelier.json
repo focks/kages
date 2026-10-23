@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Field notes — a reading page\" · system atelier@1.10.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  header:\n    - title [core/text@1.0.0] text=\"Make room for ideas\"\n  children:\n    - intro [core/section@1.1.0] title=\"Start with the content\"\n    - steps [core/list@1.0.0] items=||\n    - rule [core/divider@1.0.0]\n    - example [core/code@1.1.0]\n  footer:\n    - footer [core/text@1.0.0] text=\"Built from portable blocks.\"",
+  "description": "Kage \"Field notes — a reading page\" · system atelier@1.11.0 · 7 blocks\nstate {}\n- root [core/page@1.0.0]\n  header:\n    - title [core/text@1.0.0] text=\"Make room for ideas\"\n  children:\n    - intro [core/section@1.1.0] title=\"Start with the content\"\n    - steps [core/list@1.0.0] items=||\n    - rule [core/divider@1.0.0]\n    - example [core/code@1.1.0]\n  footer:\n    - footer [core/text@1.0.0] text=\"Built from portable blocks.\"",
   "envelope": {
     "title": "Field notes — a reading page",
     "root": "root",

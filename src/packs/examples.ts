@@ -3,6 +3,7 @@
 // these documents demonstrate three independent compositions.
 import type { KageDoc, Expr, Mode } from "../engine/types.ts";
 import { useCaseExamples, USE_CASE_MODES } from "./use-case-examples.ts";
+import { guideExamples } from "./guide-examples.ts";
 import { showcaseExamples } from "./showcase-examples.ts";
 
 /** Every shipped example declares what its visitor is trying to do, so the mode
@@ -342,5 +343,5 @@ export function contentExamples(system = "core"): KageDoc[] {
       { id: "dora", label: "Capabilities: Trunk-based development", href: "https://dora.dev/capabilities/trunk-based-development/", detail: "DORA" },
     ] } },
   };
-  return declared([docs, media, brief, ...useCaseExamples(system), ...showcaseExamples(system)]);
+  return declared([docs, media, brief, ...useCaseExamples(system), ...showcaseExamples(system), ...guideExamples(system)]);
 }

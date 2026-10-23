@@ -8,6 +8,7 @@
 // design system, exactly as a viewer would see it.
 
 import { use, useEffect, useState } from "react";
+import { guideRoutes } from "@/runtime/guide-navigation";
 import { KageRenderer } from "@/runtime/KageRenderer";
 import { MadeWithKages } from "@/components/dashboard/made-with-kages";
 import { op } from "@/components/dashboard/kage-ui";
@@ -37,9 +38,10 @@ export default function PreviewPage({ params }: { params: Promise<{ uuid: string
 
   if (!doc) return <div className="grid min-h-svh place-items-center text-sm text-muted-foreground">Loading…</div>;
 
+  const guide = guideRoutes(doc).length > 0;
   return (
-    <div className="min-h-svh bg-background">
-      <KageRenderer doc={doc} />
+    <div className={guide ? "h-dvh overflow-hidden bg-background" : "min-h-svh bg-background"}>
+      <KageRenderer doc={doc} fill={guide} navigation />
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>
       </div>
