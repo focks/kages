@@ -6,7 +6,8 @@ export const LOGIN_SKILL_NAME = "kages-login";
 
 const LOGIN_SKILL_DESC = "Sign in to a Kages deployment so you can work in the user's own workspace instead of the local one or the anonymous read-only demo: `kages auth login`, checking the session, getting a token for push or the hosted MCP server, and what to do when the sign-in fails or expires. Use when a command says 'not signed in', a write is refused as anonymous, or the user wants their Kages in the cloud.";
 
-export const loginSkillMd = (): string => `---
+/** `shellEscape` is the Claude Code `! <command>` prompt prefix; other harnesses just ask the person to open a terminal. */
+export const loginSkillMd = (o: { shellEscape?: boolean } = { shellEscape: true }): string => `---
 name: ${LOGIN_SKILL_NAME}
 description: ${yamlStr(LOGIN_SKILL_DESC)}
 ---
@@ -22,11 +23,9 @@ kages auth status      # "signed in as <email> @ <deployment>" or "not signed in
 If it says signed in, stop: do not log in again. Expired access tokens refresh by themselves; only a dead refresh token asks for a new login.
 
 ## 2. Ask the person to sign in
-\`kages auth login\` opens a browser for Google sign-in and waits up to three minutes for it. **You cannot complete it for them**, and you must never ask for their password or a Google code. Run it only where they can see the browser; in Claude Code, ask them to type:
-
-\`\`\`
-! kages auth login
-\`\`\`
+\`kages auth login\` opens a browser for Google sign-in and waits up to three minutes for it. **You cannot complete it for them**, and you must never ask for their password or a Google code. ${o.shellEscape
+  ? "Run it only where they can see the browser; in Claude Code, ask them to type:\n\n```\n! kages auth login\n```"
+  : "Run it only where they can see the browser: ask them to run `kages auth login` in their own terminal and tell you when it prints `signed in as`."}
 
 For a self-hosted deployment add \`--url https://their-host\` (or set \`KAGES_API\`). It prints the sign-in URL as well, for a machine where no browser opens: they can open it anywhere, but the callback needs port 52525 on the machine running the command, so over SSH forward that port.
 

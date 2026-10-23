@@ -44,7 +44,8 @@ test("one version everywhere: package.json, both manifests, the marketplace entr
   assert.match(files["plugins/kages/README.md"], new RegExp(`version ${pkg.version.replace(/\./g, "\\.")}`));
   const bumped = generatePlugins({ version: "9.9.9" }).files;
   const changed = Object.keys(bumped).filter((p) => bumped[p] !== files[p]).sort();
-  assert.deepEqual(changed, [".claude-plugin/marketplace.json", "plugins/README.md", "plugins/kages-cursor/.cursor-plugin/plugin.json", "plugins/kages-cursor/README.md", "plugins/kages/.claude-plugin/plugin.json", "plugins/kages/README.md"], "a version bump touches exactly the version-bearing files");
+  assert.equal(JSON.parse(files["plugins/kages-codex/plugin.json"]).version, pkg.version);
+  assert.deepEqual(changed, [".claude-plugin/marketplace.json", "plugins/README.md", "plugins/kages-codex/README.md", "plugins/kages-codex/plugin.json", "plugins/kages-cursor/.cursor-plugin/plugin.json", "plugins/kages-cursor/README.md", "plugins/kages/.claude-plugin/plugin.json", "plugins/kages/README.md"], "a version bump touches exactly the version-bearing files");
 });
 
 test("the MCP URL: only the configured one appears; a private build changes all and only those", () => {
@@ -79,8 +80,8 @@ test("every file a manifest or hook refers to exists in the plugin, and the laun
 
 test("the planned targets are named, not generated", () => {
   const g = generatePlugins();
-  assert.deepEqual(g.planned, ["vscode", "codex", "grok"]);
-  assert.deepEqual(g.targets.map((t) => t.id), ["claude", "cursor"]);
+  assert.deepEqual(g.planned, ["vscode", "grok"]);
+  assert.deepEqual(g.targets.map((t) => t.id), ["claude", "cursor", "codex"]);
   assert.match(g.files["plugins/README.md"], /Planned, not generated:\*\* VS Code/);
 });
 
@@ -91,4 +92,20 @@ test("claude plugin validate accepts the plugin and the marketplace", { skip: !h
     const out = execFileSync("claude", ["plugin", "validate", target, "--strict"], { encoding: "utf8", timeout: 60_000, cwd: root });
     assert.match(out, /Validation passed/, target);
   }
+});
+
+test("the Codex target follows the portable layout, carries no Claude-only syntax, and its marketplace points at it", () => {
+  const { files } = generatePlugins();
+  const m = JSON.parse(files["plugins/kages-codex/plugin.json"]);
+  const ui = m.extensions["com.openai"].interface;
+  assert.ok(ui.displayName.length <= 30 && ui.shortDescription.length <= 30 && ui.longDescription.length <= 4000, "directory length limits");
+  assert.equal(JSON.parse(files["plugins/kages-codex/mcp.json"]).mcpServers.kages.type, "streamable-http");
+  const entry = JSON.parse(files[".agents/plugins/marketplace.json"]).plugins[0];
+  assert.equal(entry.source.path, "./plugins/kages-codex");
+  assert.ok(`${entry.source.path.slice(2)}/plugin.json` in files, "the marketplace path holds a manifest");
+  for (const [p, c] of Object.entries(files)) if (p.startsWith("plugins/kages-codex/")) {
+    assert.doesNotMatch(c, /^! kages|CLAUDE_PLUGIN_ROOT|\.claude-plugin/m, p);
+    assert.doesNotMatch(p, /hooks|bin\//, "hooks are not portable, so the target ships none");
+  }
+  assert.match(files["plugins/kages/skills/kages-login/SKILL.md"], /^! kages auth login$/m, "the Claude copy keeps its shell escape");
 });

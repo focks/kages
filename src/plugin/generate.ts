@@ -3,7 +3,7 @@
 // build script just writes it and a test just compares it with what is committed: drift
 // is impossible to commit by accident. Formats come from each harness's official docs
 // (Claude Code: https://code.claude.com/docs/en/plugins-reference, Cursor:
-// https://cursor.com/docs/reference/plugins), and a target with no verified format is not
+// https://cursor.com/docs/reference/plugins, Codex: https://developers.openai.com/plugins/build/plugins), and a target with no verified format is not
 // generated; it is listed under "planned" in plugins/README.md.
 import { systems } from "../engine/data.ts";
 import { skillMd } from "../packs/packs.ts";
@@ -21,11 +21,11 @@ export interface Target { id: string; /** root directory of the target, relative
 const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
 
 /** Skills: one authoring guide per design system, plus the decision-guide and login skills. */
-function skillFiles(): Files {
+function skillFiles(o: { shellEscape: boolean } = { shellEscape: true }): Files {
   const f: Files = {};
   for (const id of Object.keys(systems)) { f[`skills/kages-${id}/SKILL.md`] = skillMd(id); f[`skills/kages-${id}/reference/system.md`] = systemCard(id).markdown; }
   f[`skills/${DECISION_SKILL_NAME}/SKILL.md`] = decisionSkillMd();
-  f[`skills/${LOGIN_SKILL_NAME}/SKILL.md`] = loginSkillMd();
+  f[`skills/${LOGIN_SKILL_NAME}/SKILL.md`] = loginSkillMd(o);
   return f;
 }
 
@@ -97,6 +97,56 @@ Generated from the Kages sources with \`npm run build:plugins\`; do not edit by 
   return { id: "cursor", dir: "plugins/kages-cursor", files };
 }
 
+/** OpenAI Codex: the portable Agent Plugins layout (root plugin.json, skills/, mcp.json) with the OpenAI extension block.
+ *  Format source: https://developers.openai.com/plugins/build/plugins. No hooks (not portable), no icons or policy URLs yet
+ *  (none exist to point at; the directory submission needs them), and the skills avoid Claude-only prompt syntax. */
+function codexTarget(o: Required<PluginOptions>): Target {
+  const files: Files = skillFiles({ shellEscape: false });
+  files["plugin.json"] = json({
+    $schema: "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+    name: "kages", version: o.version,
+    description: "Author interactive Kages from an agent: the operation set as MCP tools and an authoring guide per design system.",
+    author: { name: "Kages" }, homepage: "https://github.com/focks/kages", repository: "https://github.com/focks/kages", license: "MIT",
+    keywords: ["kages", "mcp", "artifactory", "agents", "design-systems"],
+    extensions: { "com.openai": { interface: {
+      displayName: "Kages",
+      shortDescription: "Build shareable Kages",
+      longDescription: "Create versioned, interactive pages by assembling blocks from a design system, validate and preview them, and share a link. Includes an authoring guide for each design system, a decision-guide playbook and a sign-in guide.",
+      developerName: "Kages", category: "Productivity", capabilities: ["Read", "Write"],
+      websiteURL: "https://github.com/focks/kages",
+      defaultPrompt: ["Use Kages to turn this document into an interactive page.", "Use Kages to build a dashboard for these figures and share it."],
+    } } },
+  });
+  files["mcp.json"] = json({ $schema: "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json", mcpServers: { kages: { type: "streamable-http", url: o.mcpUrl } } });
+  files["README.md"] = `# Kages for Codex
+
+Version ${o.version}. The Kages MCP server (\`${o.mcpUrl}\`) and skills: one authoring guide per design system (\`kages-core\`, \`kages-ledger\`, \`kages-atelier\`), \`kages-decision-guide\` and \`kages-login\`.
+
+## Install
+
+\`\`\`
+codex plugin marketplace add focks/kages
+\`\`\`
+
+Then install **Kages** from the plugin directory in Codex. The repository's \`.agents/plugins/marketplace.json\` lists it.
+
+## Access level
+
+The endpoint is **anonymous** by default: read public Kages and try the tools against the demo workspace. To act on your own workspace use the CLI: \`kages auth login\`, then \`codex mcp add kages -- kages mcp\`.
+
+Generated from the Kages sources with \`npm run build:plugins\`; do not edit by hand.
+`;
+  return { id: "codex", dir: "plugins/kages-codex", files };
+}
+
+/** The Codex marketplace for this repository (`codex plugin marketplace add focks/kages`), one entry per plugin it lists. */
+export function codexMarketplace(): string {
+  return json({
+    name: "kages", interface: { displayName: "Kages" },
+    plugins: [{ name: "kages", source: { source: "local", path: "./plugins/kages-codex" }, policy: { installation: "AVAILABLE", authentication: "ON_INSTALL" }, category: "Productivity" }],
+  });
+}
+
 /** The marketplace index for the Claude target, one entry per plugin it lists. */
 export function claudeMarketplace(o: Required<PluginOptions>): string {
   return json({ name: "kages", description: "Kages: an artifactory for agents.", owner: { name: "Kages", url: "https://github.com/focks/kages" }, plugins: [{ name: "kages", source: "./plugins/kages", description: "MCP tools for the Kages operation set, authoring skills for each design system, improvement moves and an edit hook.", version: o.version }] });
@@ -105,11 +155,11 @@ export function claudeMarketplace(o: Required<PluginOptions>): string {
 /** Everything, keyed by repo-relative path. Pure: no disk, no clock. */
 export function generatePlugins(opts: PluginOptions = {}): { targets: Target[]; files: Files; planned: string[] } {
   const o = { version: opts.version ?? VERSION, mcpUrl: opts.mcpUrl ?? DEFAULT_MCP_URL };
-  const targets = [claudeTarget(o), cursorTarget(o)];
-  const files: Files = { ".claude-plugin/marketplace.json": claudeMarketplace(o) };
+  const targets = [claudeTarget(o), cursorTarget(o), codexTarget(o)];
+  const files: Files = { ".claude-plugin/marketplace.json": claudeMarketplace(o), ".agents/plugins/marketplace.json": codexMarketplace() };
   for (const t of targets) for (const [p, c] of Object.entries(t.files)) files[`${t.dir}/${p}`] = c;
   files["plugins/README.md"] = pluginsReadme(o);
-  return { targets, files, planned: ["vscode", "codex", "grok"] };
+  return { targets, files, planned: ["vscode", "grok"] };
 }
 
 function pluginsReadme(o: Required<PluginOptions>): string {
@@ -121,8 +171,9 @@ Generated from one source (\`src/plugin/generate.ts\`); regenerate with \`npm ru
 | --- | --- | --- |
 | Claude Code | \`plugins/kages\` | \`/plugin marketplace add focks/kages\`, then \`/plugin install kages@kages\`; approve the hook with \`/hooks\` |
 | Cursor | \`plugins/kages-cursor\` | Add the folder as a local plugin (it carries \`.cursor-plugin/plugin.json\`) |
+| Codex | \`plugins/kages-codex\` | \`codex plugin marketplace add focks/kages\`, then install Kages from the plugin directory |
 
-**Planned, not generated:** VS Code (\`chat.pluginLocations\`), Codex and Grok. A target is added only after its current official plugin format is captured and validated; see \`src/plugin/generate.ts\`.
+**Planned, not generated:** VS Code (\`chat.pluginLocations\`) and Grok. A target is added only after its current official plugin format is captured and validated; see \`src/plugin/generate.ts\`.
 
 ## Pointing at your own server
 
@@ -138,7 +189,7 @@ Generated from one source (\`src/plugin/generate.ts\`); regenerate with \`npm ru
 export function validateTarget(t: Target): string[] {
   const problems: string[] = [], has = (p: string) => p in t.files;
   const parse = (p: string): Record<string, unknown> | null => { try { return JSON.parse(t.files[p]) as Record<string, unknown>; } catch { problems.push(`${t.id}: ${p} is not valid JSON`); return null; } };
-  const manifestPath = t.id === "claude" ? ".claude-plugin/plugin.json" : ".cursor-plugin/plugin.json";
+  const manifestPath = t.id === "claude" ? ".claude-plugin/plugin.json" : t.id === "codex" ? "plugin.json" : ".cursor-plugin/plugin.json";
   const m = has(manifestPath) ? parse(manifestPath) : (problems.push(`${t.id}: missing ${manifestPath}`), null);
   if (m) {
     if (typeof m.name !== "string" || !/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/.test(m.name)) problems.push(`${t.id}: name must be kebab-case`);

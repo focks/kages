@@ -1,6 +1,6 @@
 {
   "name": "kages",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Author interactive Kages from an agent: the operation set as MCP tools, the per-system authoring guides, improvement moves and an edit hook.",
   "author": {
     "name": "Kages"

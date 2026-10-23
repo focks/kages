@@ -1,0 +1,39 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "kages",
+  "version": "0.1.0",
+  "description": "Author interactive Kages from an agent: the operation set as MCP tools and an authoring guide per design system.",
+  "author": {
+    "name": "Kages"
+  },
+  "homepage": "https://github.com/focks/kages",
+  "repository": "https://github.com/focks/kages",
+  "license": "MIT",
+  "keywords": [
+    "kages",
+    "mcp",
+    "artifactory",
+    "agents",
+    "design-systems"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Kages",
+        "shortDescription": "Build shareable Kages",
+        "longDescription": "Create versioned, interactive pages by assembling blocks from a design system, validate and preview them, and share a link. Includes an authoring guide for each design system, a decision-guide playbook and a sign-in guide.",
+        "developerName": "Kages",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://github.com/focks/kages",
+        "defaultPrompt": [
+          "Use Kages to turn this document into an interactive page.",
+          "Use Kages to build a dashboard for these figures and share it."
+        ]
+      }
+    }
+  }
+}

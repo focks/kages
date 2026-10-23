@@ -1,0 +1,20 @@
+{
+  "name": "kages",
+  "interface": {
+    "displayName": "Kages"
+  },
+  "plugins": [
+    {
+      "name": "kages",
+      "source": {
+        "source": "local",
+        "path": "./plugins/kages-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

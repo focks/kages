@@ -10,7 +10,7 @@
       "name": "kages",
       "source": "./plugins/kages",
       "description": "MCP tools for the Kages operation set, authoring skills for each design system, improvement moves and an edit hook.",
-      "version": "1.0.0"
+      "version": "0.1.0"
     }
   ]
 }

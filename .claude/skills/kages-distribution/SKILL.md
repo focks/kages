@@ -34,9 +34,9 @@ and a newer one comes from rebuilding the checkout (the package is not on npm ye
 `generatePlugins()` returns every file of every target as a path → content map; `npm run build:plugins`
 writes it, `npm run check:plugins` (and a test) compares it with disk. Targets: Claude Code
 (`plugins/kages`: manifest, MCP, skills, commands, agents, `hooks/hooks.json`, launcher) and
-Cursor (`plugins/kages-cursor`). Private deployments: `KAGES_PLUGIN_MCP_URL`. **Add a target only after
+Cursor (`plugins/kages-cursor`) and Codex (`plugins/kages-codex`, the portable Agent Plugins layout: root `plugin.json` with the `extensions.com.openai` block, `skills/`, `mcp.json`; no hooks; the repo's `.agents/plugins/marketplace.json` lists it, so `codex plugin marketplace add focks/kages` then `codex plugin add kages@kages` installs it, verified with the real CLI under a temp `CODEX_HOME`). Private deployments: `KAGES_PLUGIN_MCP_URL`. **Add a target only after
 its current official plugin format is read from its docs** and a validator exists in `validateTarget`
-(VS Code, Codex and Grok are listed as planned). The Claude target is also checked with
+(VS Code and Grok are listed as planned). The Claude target is also checked with
 `claude plugin validate --strict` when that CLI is installed.
 
 ## Packs
@@ -44,3 +44,6 @@ its current official plugin format is read from its docs** and a validator exist
   the `kages-decision-guide` skill and the `decision_guide_to_kage` operation (no bespoke CLI verb). The intake is the
   contract; add a subject as an intake, never as a hand-built page, and add it to `EXAMPLES` so the tests exercise it. The
   skill text feeds both `kages install` and the generated plugins.
+
+## Skills that ship to every harness
+A skill that mentions a harness-only affordance (Claude Code's `! <command>` prefix) takes an option: `skillFiles({ shellEscape })` gives Codex the neutral wording. Keep new shipped skills free of Claude-only syntax, or add the same switch. The ChatGPT directory (a different, reviewed path) is researched in the changelog; its blockers are OAuth 2.1 on `/api/mcp` and tool annotations, not packaging.
