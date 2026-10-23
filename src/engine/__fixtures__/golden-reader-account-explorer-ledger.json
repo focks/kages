@@ -1,0 +1,769 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "ledger",
+    "portable": true
+  },
+  "description": "Kage \"Reader accounts — share the data, understand the trade-off\" · system ledger@2.11.0 · 32 blocks\nstate {\"node\":\"reader\",\"account\":\"new\",\"ownData\":false,\"hours\":2,\"days\":22,\"rate\":1}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.1.0] title=\"Your data. Their questions. Your compute bill.\"\n      children:\n        - hero-note [core/text@1.0.0] text=\"An interactive field guide · Select a node. Change a sce…\n    - flow-region [core/section@1.1.0] title=\"Three roles. One responsible provider.\"\n      children:\n        - flow [core/diagram@1.2.0] label=\"Provider account grants access through a share to a read…\n            ↳ reads state:node · writes select→state.node\n        - detail~/detail%3A%22reader%22 [core/section@1.1.0] title=\"They query. You fund the compute.\"\n          children:\n            - detail-copy~/detail%3A%22reader%22 [core/rich-text@1.1.0]\n    - decision [core/section@1.1.0] title=\"Start with what the consumer needs.\"\n      children:\n        - decision-split [core/split@1.0.0]\n          start:\n            - questions [core/stack@1.0.0]\n              - account [core/choice@1.1.0] label=\"Does the consumer already have Snowflake?\" value=\"new\" options=new|existing\n                  ↳ reads state:account · writes change→state.account\n              - own-data [core/checkbox@1.0.0] label=\"They need to load and combine their own data\"\n                  ↳ reads state:ownData · writes change→state.ownData\n              - reset-choice [ledger/button@2.1.0] label=\"Reset the scenario\"\n                  ↳ writes click→state.account, click→state.ownData\n          end:\n            - recommendation [core/section@1.1.0] title=\"Explore a reader account\"\n                ↳ reads state:account, state:ownData\n            - decision-source [core/rich-text@1.1.0]\n    - usage [core/section@1.1.0] title=\"What does more usage mean?\"\n      children:\n        - usage-note [core/text@1.0.0] text=\"Illustrative warehouse model. Change the assumptions; th…\n        - usage-split [core/split@1.0.0]\n          start:\n            - assumptions [core/stack@1.0.0]\n              - hours [core/slider@1.0.0] label=\"Warehouse running hours / day\" value=2\n                  ↳ reads state:hours · writes change→state.hours\n              - days [core/slider@1.0.0] label=\"Operating days / month\" value=22\n                  ↳ reads state:days · writes change→state.days\n              - rate [core/slider@1.0.0] label=\"Assumed credits / running hour\" value=1\n                  ↳ reads state:rate · writes change→state.rate\n              - reset-usage [ledger/button@2.1.0] label=\"Reset the assumptions\"\n                  ↳ writes click→state.hours, click→state.days, click→state.rate\n          end:\n            - usage-result [core/section@1.1.0] title=\"A provider-funded workload\"\n              children:\n                - total [ledger/stat@2.0.0] label=\"Illustrative credits / month\" value=44\n                    ↳ reads state:hours, state:days, state:rate\n                - bars [core/bar-chart@1.0.0] label=\"Monthly credits against an illustrative planning allowance\" items=|\n                    ↳ reads state:hours, state:days, state:rate, data:allowance\n                - formula [core/text@1.0.0] text=\"2 h × 22 days × 1 credits/h. The 100-credit allowance is…\n                    ↳ reads state:hours, state:days, state:rate\n                - zero [core/text@1.0.0] (hidden) text=\"No running time is included in this scenario. This does …\n                    ↳ reads state:hours, state:days, state:rate\n                - monitor-note [core/rich-text@1.1.0]\n    - handoff [core/section@1.1.0] title=\"Make the handoff deliberate.\"\n      children:\n        - handoff-copy [core/rich-text@1.1.0]\n    - sources [core/references@1.0.0] title=\"Read the source material\" items=reader|sharing|monitor|configure",
+  "envelope": {
+    "title": "Reader accounts — share the data, understand the trade-off",
+    "root": "root",
+    "state_json": "{\"node\":\"reader\",\"account\":\"new\",\"ownData\":false,\"hours\":2,\"days\":22,\"rate\":1}",
+    "data_json": "{\"allowance\":100,\"roles\":[{\"id\":\"provider\",\"title\":\"You own the relationship\",\"palette\":\"violet\",\"text\":\"The provider creates and manages the reader account, pays its credit charges, and supports its users.\"},{\"id\":\"share\",\"title\":\"Access comes through a share\",\"palette\":\"ocean\",\"text\":\"The reader account consumes data only from the provider that created it.\"},{\"id\":\"reader\",\"title\":\"They query. You fund the compute.\",\"palette\":\"mint\",\"text\":\"The consumer can query shared data without a Snowflake licensing agreement. Uploading data, changing it, and creating shares are restricted.\"}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": 8,
+          "gap": 8
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "hero",
+            "flow-region",
+            "decision",
+            "usage",
+            "handoff",
+            "sources"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "hero",
+        "type": "section",
+        "props": {
+          "title": "Your data. Their questions. Your compute bill.",
+          "eyebrow": "Snowflake / Reader accounts",
+          "description": "Explore who owns what, decide whether a reader account fits, and see how warehouse usage changes the commitment.",
+          "level": 1,
+          "tone": "accent",
+          "inset": null,
+          "gap": null,
+          "palette": "ocean",
+          "scale": "hero",
+          "backdrop": "wash"
+        },
+        "slots": {
+          "children": [
+            "hero-note"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "hero-note",
+        "type": "text",
+        "props": {
+          "text": "An interactive field guide · Select a node. Change a scenario. See what follows.",
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "flow-region",
+        "type": "section",
+        "props": {
+          "title": "Three roles. One responsible provider.",
+          "eyebrow": "01 / The relationship",
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "flow",
+            "detail"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "flow",
+        "type": "diagram",
+        "props": {
+          "label": "Provider account grants access through a share to a reader account",
+          "nodes_json": "[{\"id\":\"provider\",\"label\":\"Provider account\",\"group\":\"OWNER · VIOLET\",\"palette\":\"violet\"},{\"id\":\"share\",\"label\":\"Share\",\"group\":\"ACCESS · OCEAN\",\"palette\":\"ocean\"},{\"id\":\"reader\",\"label\":\"Reader account\",\"group\":\"CONSUMER · MINT\",\"palette\":\"mint\"}]",
+          "edges_json": "[{\"from\":\"provider\",\"to\":\"share\",\"label\":\"grants access\",\"palette\":\"violet\"},{\"from\":\"share\",\"to\":\"reader\",\"label\":\"shared data\",\"palette\":\"ocean\"}]",
+          "interactive": true,
+          "caption": "Select any node to explore its role. Colour follows that role throughout this guide.",
+          "layout": "auto",
+          "selected": null,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "selected",
+            "expr_json": "{\"$state\":\"node\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"node\",\"value\":{\"$event\":\"id\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "detail",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": "accent",
+          "inset": null,
+          "gap": 3,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "detail-copy"
+          ],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"title\"}"
+          },
+          {
+            "prop": "palette",
+            "expr_json": "{\"$item\":\"palette\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$filter\":{\"list\":{\"$data\":\"roles\"},\"field\":\"id\",\"equals\":{\"$state\":\"node\"}}},\"key\":\"id\"}"
+      },
+      {
+        "id": "detail-copy",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "nodes",
+            "expr_json": "[{\"kind\":\"paragraph\",\"runs\":[{\"text\":{\"$item\":\"text\"}},{\"text\":\"1\",\"cite\":\"reader\"}]}]"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "decision",
+        "type": "section",
+        "props": {
+          "title": "Start with what the consumer needs.",
+          "eyebrow": "02 / The fit",
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "decision-split"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "decision-split",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 8
+        },
+        "slots": {
+          "start": [
+            "questions"
+          ],
+          "end": [
+            "recommendation",
+            "decision-source"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "questions",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": 6,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "account",
+            "own-data",
+            "reset-choice"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "account",
+        "type": "choice",
+        "props": {
+          "label": "Does the consumer already have Snowflake?",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "new",
+              "label": "No, they need access"
+            },
+            {
+              "value": "existing",
+              "label": "Yes, they have an account"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"account\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"account\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "own-data",
+        "type": "checkbox",
+        "props": {
+          "label": "They need to load and combine their own data",
+          "checked": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "checked",
+            "expr_json": "{\"$state\":\"ownData\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"ownData\",\"value\":{\"$event\":\"checked\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "reset-choice",
+        "type": "button",
+        "props": {
+          "label": "Reset the scenario",
+          "variant": "quiet",
+          "size": "sm",
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"account\",\"value\":\"new\"},{\"do\":\"set\",\"path\":\"ownData\",\"value\":false}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "recommendation",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": "Your route",
+          "description": null,
+          "level": 3,
+          "tone": "accent",
+          "inset": null,
+          "gap": 4,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "palette",
+            "expr_json": "{\"$if\":[{\"$or\":[{\"$eq\":[{\"$state\":\"account\"},\"existing\"]},{\"$state\":\"ownData\"}]},\"violet\",\"mint\"]}"
+          },
+          {
+            "prop": "title",
+            "expr_json": "{\"$if\":[{\"$state\":\"ownData\"},\"Use a full consumer account\",{\"$if\":[{\"$eq\":[{\"$state\":\"account\"},\"existing\"]},\"Use their existing account\",\"Explore a reader account\"]}]}"
+          },
+          {
+            "prop": "description",
+            "expr_json": "{\"$if\":[{\"$state\":\"ownData\"},\"A reader account cannot load their own data. A full account supports that workflow.\",{\"$if\":[{\"$eq\":[{\"$state\":\"account\"},\"existing\"]},\"Share to their account. Check the region and sharing method before setup.\",\"A reader account offers access without requiring them to become a Snowflake customer. You take responsibility for its operation.\"]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "decision-source",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"paragraph\",\"runs\":[{\"text\":\"A starting recommendation based on account needs. Confirm the sharing method, region and current restrictions. \"},{\"text\":\"1\",\"cite\":\"reader\"},{\"text\":\"2\",\"cite\":\"sharing\"}]}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "usage",
+        "type": "section",
+        "props": {
+          "title": "What does more usage mean?",
+          "eyebrow": "03 / The commitment",
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 6,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "usage-note",
+            "usage-split"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "usage-note",
+        "type": "text",
+        "props": {
+          "text": "Illustrative warehouse model. Change the assumptions; this estimates credits, not a price or an invoice.",
+          "variant": "muted"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "usage-split",
+        "type": "split",
+        "props": {
+          "ratio": "equal",
+          "gap": 8
+        },
+        "slots": {
+          "start": [
+            "assumptions"
+          ],
+          "end": [
+            "usage-result"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "assumptions",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": 6,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "hours",
+            "days",
+            "rate",
+            "reset-usage"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "hours",
+        "type": "slider",
+        "props": {
+          "label": "Warehouse running hours / day",
+          "value": null,
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"hours\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"hours\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "days",
+        "type": "slider",
+        "props": {
+          "label": "Operating days / month",
+          "value": null,
+          "min": 0,
+          "max": 31,
+          "step": 1,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"days\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"days\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "rate",
+        "type": "slider",
+        "props": {
+          "label": "Assumed credits / running hour",
+          "value": null,
+          "min": 0.5,
+          "max": 16,
+          "step": 0.5,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"rate\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"rate\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "reset-usage",
+        "type": "button",
+        "props": {
+          "label": "Reset the assumptions",
+          "variant": "quiet",
+          "size": "sm",
+          "disabled": null,
+          "kbd": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"hours\",\"value\":2},{\"do\":\"set\",\"path\":\"days\",\"value\":22},{\"do\":\"set\",\"path\":\"rate\",\"value\":1}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "usage-result",
+        "type": "section",
+        "props": {
+          "title": "A provider-funded workload",
+          "eyebrow": null,
+          "description": null,
+          "level": 3,
+          "tone": "accent",
+          "inset": null,
+          "gap": 6,
+          "palette": "amber",
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "total",
+            "bars",
+            "formula",
+            "zero",
+            "monitor-note"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "total",
+        "type": "stat",
+        "props": {
+          "label": "Illustrative credits / month",
+          "value": null,
+          "format": "number",
+          "delta": null,
+          "caption": null,
+          "trend": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$round\":[{\"$mul\":[{\"$state\":\"hours\"},{\"$state\":\"days\"},{\"$state\":\"rate\"}]},1]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "bars",
+        "type": "bar-chart",
+        "props": {
+          "label": "Monthly credits against an illustrative planning allowance",
+          "items": null,
+          "format": "number",
+          "empty": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "[{\"label\":\"This scenario\",\"value\":{\"$round\":[{\"$mul\":[{\"$state\":\"hours\"},{\"$state\":\"days\"},{\"$state\":\"rate\"}]},1]}},{\"label\":\"Planning allowance\",\"value\":{\"$data\":\"allowance\"}}]"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "formula",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$concat\":[{\"$state\":\"hours\"},\" h × \",{\"$state\":\"days\"},\" days × \",{\"$state\":\"rate\"},\" credits/h. The 100-credit allowance is illustrative, not an enforced limit. Excludes billing minimums, other compute and storage charges.\"]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "zero",
+        "type": "text",
+        "props": {
+          "text": "No running time is included in this scenario. This does not mean the account has no other charges.",
+          "variant": "muted"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$round\":[{\"$mul\":[{\"$state\":\"hours\"},{\"$state\":\"days\"},{\"$state\":\"rate\"}]},1]},0]}",
+        "repeat_json": null
+      },
+      {
+        "id": "monitor-note",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"paragraph\",\"runs\":[{\"text\":\"Resource monitors can suspend warehouses at configured thresholds. They are not a hard invoice cap and do not control all serverless usage. \"},{\"text\":\"3\",\"cite\":\"monitor\"}]}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "handoff",
+        "type": "section",
+        "props": {
+          "title": "Make the handoff deliberate.",
+          "eyebrow": "04 / Before access",
+          "description": null,
+          "level": null,
+          "tone": null,
+          "inset": 0,
+          "gap": 4,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "handoff-copy"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "handoff-copy",
+        "type": "rich-text",
+        "props": {
+          "nodes_json": "[{\"kind\":\"list\",\"ordered\":true,\"items\":[\"Create and configure the reader account and its users.\",\"Set up a warehouse, shared database and appropriate roles.\",\"Set usage controls and agree who supports the consumer.\"]},{\"kind\":\"paragraph\",\"runs\":[{\"text\":\"Follow the account configuration guide for the required grants and setup order. \"},{\"text\":\"4\",\"cite\":\"configure\"}]}]"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "sources",
+        "type": "references",
+        "props": {
+          "title": "Read the source material",
+          "items": [
+            {
+              "id": "reader",
+              "label": "Manage reader accounts",
+              "href": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-create",
+              "detail": "Snowflake · ownership and restrictions"
+            },
+            {
+              "id": "sharing",
+              "label": "About Secure Data Sharing",
+              "href": "https://docs.snowflake.com/en/user-guide/data-sharing-intro",
+              "detail": "Snowflake · sharing methods"
+            },
+            {
+              "id": "monitor",
+              "label": "Working with resource monitors",
+              "href": "https://docs.snowflake.com/en/user-guide/resource-monitors",
+              "detail": "Snowflake · usage controls"
+            },
+            {
+              "id": "configure",
+              "label": "Configure a reader account",
+              "href": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-config",
+              "detail": "Snowflake · setup guide"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

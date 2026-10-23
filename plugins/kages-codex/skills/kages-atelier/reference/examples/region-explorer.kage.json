@@ -1,0 +1,162 @@
+{
+  "kages": "1.0",
+  "id": "region-explorer",
+  "title": "Region explorer — click a slice to filter",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "layout"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Region explorer",
+        "title": "Where is the pipeline?",
+        "description": "Select a slice (or press Enter on it) to filter the deals; select it again to clear.",
+        "inset": 0
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "mix"
+        ],
+        "end": [
+          "table",
+          "caption"
+        ]
+      }
+    },
+    "mix": {
+      "type": "donut-chart",
+      "props": {
+        "label": "Pipeline value by region",
+        "interactive": true,
+        "items": [
+          {
+            "label": "North",
+            "value": 180
+          },
+          {
+            "label": "South",
+            "value": 80
+          },
+          {
+            "label": "West",
+            "value": 45
+          }
+        ]
+      }
+    },
+    "table": {
+      "type": "data-grid",
+      "props": {
+        "label": "Deals",
+        "sortable": true,
+        "columns": [
+          {
+            "key": "name",
+            "label": "Deal"
+          },
+          {
+            "key": "region",
+            "label": "Region"
+          },
+          {
+            "key": "value",
+            "label": "Value"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$filter": {
+            "list": {
+              "$data": "deals"
+            },
+            "field": "region",
+            "equals": {
+              "$block": "mix.selected"
+            },
+            "skipIf": ""
+          }
+        }
+      }
+    },
+    "caption": {
+      "type": "text",
+      "props": {
+        "variant": "caption"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "Showing ",
+            {
+              "$count": {
+                "$filter": {
+                  "list": {
+                    "$data": "deals"
+                  },
+                  "field": "region",
+                  "equals": {
+                    "$block": "mix.selected"
+                  },
+                  "skipIf": ""
+                }
+              }
+            },
+            " of 4 deals"
+          ]
+        }
+      }
+    }
+  },
+  "data": {
+    "deals": [
+      {
+        "id": "d1",
+        "name": "Northwind",
+        "region": "North",
+        "value": 120
+      },
+      {
+        "id": "d2",
+        "name": "Contoso",
+        "region": "South",
+        "value": 80
+      },
+      {
+        "id": "d3",
+        "name": "Fabrikam",
+        "region": "North",
+        "value": 60
+      },
+      {
+        "id": "d4",
+        "name": "Tailspin",
+        "region": "West",
+        "value": 45
+      }
+    ]
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

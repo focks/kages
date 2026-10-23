@@ -6,7 +6,7 @@
     "system": "core",
     "portable": true
   },
-  "description": "Kage \"Architecture explainer — a web service, piece by piece\" · system core@1.13.0 · 9 blocks\nstate {\"picked\":\"api\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"A web service, piece by piece\"\n    - layout [core/split@1.0.0]\n      start:\n        - map [core/diagram@1.1.0] label=\"How a request flows through the parts of a web service\"\n            ↳ writes select→state.picked\n      end:\n        - detail [core/card@1.0.0] title=\"About this part\"\n          children:\n            - part [core/text@1.0.0] (hidden) text=\"Select a part of the diagram.\"\n                ↳ reads data:parts, state:picked\n            - part-row~/part-row%3A%22api%22 [core/section@1.0.0] title=\"API\"\n              children:\n                - part-role~/part-row%3A%22api%22 [core/text@1.0.0] text=\"Checks the request, applies the rules and answers with d…\n                - part-links~/part-row%3A%22api%22 [core/text@1.0.0] text=\"Talks to: Cache, Database, Queue\"",
+  "description": "Kage \"Architecture explainer — a web service, piece by piece\" · system core@1.14.0 · 9 blocks\nstate {\"picked\":\"api\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"A web service, piece by piece\"\n    - layout [core/split@1.0.0]\n      start:\n        - map [core/diagram@1.2.0] label=\"How a request flows through the parts of a web service\"\n            ↳ writes select→state.picked\n      end:\n        - detail [core/card@1.0.0] title=\"About this part\"\n          children:\n            - part [core/text@1.0.0] (hidden) text=\"Select a part of the diagram.\"\n                ↳ reads data:parts, state:picked\n            - part-row~/part-row%3A%22api%22 [core/section@1.1.0] title=\"API\"\n              children:\n                - part-role~/part-row%3A%22api%22 [core/text@1.0.0] text=\"Checks the request, applies the rules and answers with d…\n                - part-links~/part-row%3A%22api%22 [core/text@1.0.0] text=\"Talks to: Cache, Database, Queue\"",
   "envelope": {
     "title": "Architecture explainer — a web service, piece by piece",
     "root": "root",
@@ -44,7 +44,10 @@
           "level": null,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [],
@@ -83,7 +86,10 @@
           "nodes_json": "[{\"id\":\"browser\",\"label\":\"Browser\",\"x\":20,\"y\":30},{\"id\":\"cdn\",\"label\":\"CDN\",\"x\":260,\"y\":30},{\"id\":\"api\",\"label\":\"API\",\"x\":20,\"y\":170},{\"id\":\"cache\",\"label\":\"Cache\",\"x\":260,\"y\":170},{\"id\":\"db\",\"label\":\"Database\",\"x\":20,\"y\":310},{\"id\":\"queue\",\"label\":\"Queue\",\"x\":260,\"y\":310},{\"id\":\"worker\",\"label\":\"Worker\",\"x\":20,\"y\":450}]",
           "edges_json": "[{\"from\":\"browser\",\"to\":\"cdn\"},{\"from\":\"browser\",\"to\":\"api\"},{\"from\":\"api\",\"to\":\"cache\"},{\"from\":\"api\",\"to\":\"db\"},{\"from\":\"api\",\"to\":\"queue\"},{\"from\":\"queue\",\"to\":\"worker\"}]",
           "interactive": true,
-          "caption": "Arrows show who calls whom. The selected part is described beside the diagram."
+          "caption": "Arrows show who calls whom. The selected part is described beside the diagram.",
+          "layout": null,
+          "selected": null,
+          "empty": null
         },
         "slots": {},
         "bind": [],
@@ -144,7 +150,10 @@
           "level": 3,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [

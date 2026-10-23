@@ -1,0 +1,249 @@
+{
+  "kages": "1.0",
+  "id": "project-portfolio",
+  "title": "Project portfolio — selected work and a contact form",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "filter",
+          "work",
+          "contact",
+          "thanks"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Portfolio",
+        "title": "Design and research for small teams",
+        "description": "Selected work from the last three years, and a way to get in touch.",
+        "inset": 0
+      }
+    },
+    "filter": {
+      "type": "dropdown",
+      "props": {
+        "label": "Show",
+        "options": [
+          {
+            "value": "all",
+            "label": "All work"
+          },
+          {
+            "value": "Product",
+            "label": "Product"
+          },
+          {
+            "value": "Brand",
+            "label": "Brand"
+          },
+          {
+            "value": "Research",
+            "label": "Research"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "kind"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "kind",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "work": {
+      "type": "grid",
+      "props": {
+        "columns": 2,
+        "minSize": "medium",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "project"
+        ]
+      }
+    },
+    "project": {
+      "type": "card",
+      "props": {},
+      "bind": {
+        "title": {
+          "$item": "name"
+        },
+        "subtitle": {
+          "$concat": [
+            {
+              "$item": "kind"
+            },
+            " · ",
+            {
+              "$item": "year"
+            }
+          ]
+        }
+      },
+      "repeat": {
+        "each": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "projects"
+                },
+                "field": "kind",
+                "equals": {
+                  "$state": "kind"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "year",
+            "direction": "desc"
+          }
+        },
+        "key": "id",
+        "as": "project"
+      },
+      "slots": {
+        "children": [
+          "project-summary"
+        ]
+      }
+    },
+    "project-summary": {
+      "type": "text",
+      "props": {
+        "variant": "body"
+      },
+      "bind": {
+        "text": {
+          "$item": "summary"
+        }
+      }
+    },
+    "contact": {
+      "type": "form",
+      "props": {
+        "label": "Get in touch",
+        "submitLabel": "Send message"
+      },
+      "slots": {
+        "children": [
+          "who",
+          "email",
+          "message"
+        ]
+      },
+      "on": {
+        "submit": [
+          {
+            "do": "set",
+            "path": "sent",
+            "value": {
+              "$event": "values"
+            }
+          }
+        ]
+      }
+    },
+    "who": {
+      "type": "text-field",
+      "props": {
+        "label": "Your name",
+        "name": "who",
+        "required": true
+      }
+    },
+    "email": {
+      "type": "text-field",
+      "props": {
+        "label": "Your email",
+        "name": "email",
+        "kind": "email",
+        "required": true
+      }
+    },
+    "message": {
+      "type": "textarea",
+      "props": {
+        "label": "What would you like to talk about?",
+        "rows": 5
+      }
+    },
+    "thanks": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Message ready",
+        "text": "Thanks. Your message has been recorded and a reply will follow."
+      },
+      "visible": {
+        "$neq": [
+          {
+            "$state": "sent"
+          },
+          null
+        ]
+      }
+    }
+  },
+  "state": {
+    "kind": "all",
+    "sent": null
+  },
+  "data": {
+    "projects": [
+      {
+        "id": "p1",
+        "name": "Harbour Notes",
+        "kind": "Product",
+        "summary": "A note-taking app for people who work on boats and at docks.",
+        "year": 2025
+      },
+      {
+        "id": "p2",
+        "name": "Seed to Shelf",
+        "kind": "Brand",
+        "summary": "A visual identity and packaging for a small regional grower.",
+        "year": 2024
+      },
+      {
+        "id": "p3",
+        "name": "Transit Atlas",
+        "kind": "Research",
+        "summary": "A study of how people choose between bus, bike and walking.",
+        "year": 2024
+      },
+      {
+        "id": "p4",
+        "name": "Open Studio Days",
+        "kind": "Product",
+        "summary": "A booking page for neighbourhood art studios.",
+        "year": 2023
+      }
+    ]
+  },
+  "brief": {
+    "mode": "persuade"
+  }
+}

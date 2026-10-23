@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Incident runbook — from alert to resolution\" · system ledger@2.10.0 · 21 blocks\nstate {\"severity\":\"sev2\",\"step\":\"detect\",\"paged\":false,\"statusPosted\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Incident runbook\"\n    - severity [core/choice@1.1.0] label=\"Severity\" value=\"sev2\" options=sev1|sev2|sev3\n        ↳ reads state:severity · writes change→state.severity\n    - guide-sev1 [core/alert@1.0.0] (hidden) title=\"Sev 1\" text=\"Page the on-call engineer and the incident lead now. Pos…\n        ↳ reads state:severity\n    - guide-sev2 [core/alert@1.0.0] title=\"Sev 2\" text=\"Page the on-call engineer. Post a status update every 30…\n        ↳ reads state:severity\n    - guide-sev3 [core/alert@1.0.0] (hidden) title=\"Sev 3\" text=\"Open a ticket for the owning team. A status update is no…\n        ↳ reads state:severity\n    - progress [core/stepper@1.0.0] label=\"Incident progress\" value=\"detect\"\n        ↳ reads state:step · writes change→state.step\n    - detect [core/section@1.0.0] title=\"Detect\"\n        ↳ reads state:step\n      children:\n        - detect-code [core/code-tabs@1.0.0]\n        - detect-next [ledger/button@2.1.0] label=\"It is real: go to triage\"\n            ↳ writes click→state.step\n    - triage [core/section@1.0.0] (hidden) title=\"Triage\"\n        ↳ reads state:step\n      children:\n        - page-owner [core/checkbox@1.0.0] label=\"The owning team is paged\"\n            ↳ reads state:paged · writes change→state.paged\n        - triage-next [ledger/button@2.1.0] label=\"Owner paged: go to mitigation\"\n            ↳ reads state:paged · writes click→state.step\n    - mitigate [core/section@1.0.0] (hidden) title=\"Mitigate\"\n        ↳ reads state:step\n      children:\n        - mitigate-code [core/code-tabs@1.0.0]\n        - status-posted [core/checkbox@1.0.0] label=\"A status update is posted\"\n            ↳ reads state:statusPosted · writes change→state.statusPosted\n        - mitigate-next [ledger/button@2.1.0] label=\"Impact stopped: go to resolution\"\n            ↳ reads state:statusPosted · writes click→state.step\n    - resolve [core/section@1.0.0] (hidden) title=\"Resolve\"\n        ↳ reads state:step\n      children:\n        - resolve-next [ledger/button@2.1.0] label=\"Resolved: go to review\"\n            ↳ writes click→state.step\n    - review [core/section@1.0.0] (hidden) title=\"Review\"\n        ↳ reads state:step\n      children:\n        - restart [ledger/button@2.1.0] label=\"Start a new incident\"\n            ↳ writes click→state.step, click→state.paged, click→state.statusPosted",
+  "description": "Kage \"Incident runbook — from alert to resolution\" · system ledger@2.11.0 · 21 blocks\nstate {\"severity\":\"sev2\",\"step\":\"detect\",\"paged\":false,\"statusPosted\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Incident runbook\"\n    - severity [core/choice@1.1.0] label=\"Severity\" value=\"sev2\" options=sev1|sev2|sev3\n        ↳ reads state:severity · writes change→state.severity\n    - guide-sev1 [core/alert@1.0.0] (hidden) title=\"Sev 1\" text=\"Page the on-call engineer and the incident lead now. Pos…\n        ↳ reads state:severity\n    - guide-sev2 [core/alert@1.0.0] title=\"Sev 2\" text=\"Page the on-call engineer. Post a status update every 30…\n        ↳ reads state:severity\n    - guide-sev3 [core/alert@1.0.0] (hidden) title=\"Sev 3\" text=\"Open a ticket for the owning team. A status update is no…\n        ↳ reads state:severity\n    - progress [core/stepper@1.0.0] label=\"Incident progress\" value=\"detect\"\n        ↳ reads state:step · writes change→state.step\n    - detect [core/section@1.1.0] title=\"Detect\"\n        ↳ reads state:step\n      children:\n        - detect-code [core/code-tabs@1.0.0]\n        - detect-next [ledger/button@2.1.0] label=\"It is real: go to triage\"\n            ↳ writes click→state.step\n    - triage [core/section@1.1.0] (hidden) title=\"Triage\"\n        ↳ reads state:step\n      children:\n        - page-owner [core/checkbox@1.0.0] label=\"The owning team is paged\"\n            ↳ reads state:paged · writes change→state.paged\n        - triage-next [ledger/button@2.1.0] label=\"Owner paged: go to mitigation\"\n            ↳ reads state:paged · writes click→state.step\n    - mitigate [core/section@1.1.0] (hidden) title=\"Mitigate\"\n        ↳ reads state:step\n      children:\n        - mitigate-code [core/code-tabs@1.0.0]\n        - status-posted [core/checkbox@1.0.0] label=\"A status update is posted\"\n            ↳ reads state:statusPosted · writes change→state.statusPosted\n        - mitigate-next [ledger/button@2.1.0] label=\"Impact stopped: go to resolution\"\n            ↳ reads state:statusPosted · writes click→state.step\n    - resolve [core/section@1.1.0] (hidden) title=\"Resolve\"\n        ↳ reads state:step\n      children:\n        - resolve-next [ledger/button@2.1.0] label=\"Resolved: go to review\"\n            ↳ writes click→state.step\n    - review [core/section@1.1.0] (hidden) title=\"Review\"\n        ↳ reads state:step\n      children:\n        - restart [ledger/button@2.1.0] label=\"Start a new incident\"\n            ↳ writes click→state.step, click→state.paged, click→state.statusPosted",
   "envelope": {
     "title": "Incident runbook — from alert to resolution",
     "root": "root",
@@ -53,7 +53,10 @@
           "level": null,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [],
@@ -214,7 +217,10 @@
           "level": 3,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [
@@ -286,7 +292,10 @@
           "level": 3,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [
@@ -360,7 +369,10 @@
           "level": 3,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [
@@ -462,7 +474,10 @@
           "level": 3,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [
@@ -506,7 +521,10 @@
           "level": 3,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [

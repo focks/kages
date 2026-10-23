@@ -1,0 +1,832 @@
+{
+  "kages": "1.0",
+  "id": "reader-account-explorer",
+  "title": "Reader accounts — share the data, understand the trade-off",
+  "system": "ledger@2",
+  "root": "root",
+  "brief": {
+    "mode": "operate",
+    "audience": "A data provider considering access for an external consumer",
+    "job": "Understand ownership, decide which account fits, and explore warehouse usage.",
+    "primaryAction": "Change the consumer's needs and inspect the recommendation.",
+    "notes": "Violet = provider, ocean = access, mint = consumer, amber = usage. A selectable diagram anchors the explanation. Calculator defaults are illustrative, not rates or measurements.",
+    "evidence": [
+      {
+        "block": "flow",
+        "source": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-create"
+      },
+      {
+        "block": "recommendation",
+        "source": "https://docs.snowflake.com/en/user-guide/data-sharing-intro"
+      }
+    ]
+  },
+  "state": {
+    "node": "reader",
+    "account": "new",
+    "ownData": false,
+    "hours": 2,
+    "days": 22,
+    "rate": 1
+  },
+  "data": {
+    "allowance": 100,
+    "roles": [
+      {
+        "id": "provider",
+        "title": "You own the relationship",
+        "palette": "violet",
+        "text": "The provider creates and manages the reader account, pays its credit charges, and supports its users."
+      },
+      {
+        "id": "share",
+        "title": "Access comes through a share",
+        "palette": "ocean",
+        "text": "The reader account consumes data only from the provider that created it."
+      },
+      {
+        "id": "reader",
+        "title": "They query. You fund the compute.",
+        "palette": "mint",
+        "text": "The consumer can query shared data without a Snowflake licensing agreement. Uploading data, changing it, and creating shares are restricted."
+      }
+    ]
+  },
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "inset": 8,
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "flow-region",
+          "decision",
+          "usage",
+          "handoff",
+          "sources"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Snowflake / Reader accounts",
+        "title": "Your data. Their questions. Your compute bill.",
+        "description": "Explore who owns what, decide whether a reader account fits, and see how warehouse usage changes the commitment.",
+        "level": 1,
+        "scale": "hero",
+        "palette": "ocean",
+        "tone": "accent",
+        "backdrop": "wash"
+      },
+      "slots": {
+        "children": [
+          "hero-note"
+        ]
+      }
+    },
+    "hero-note": {
+      "type": "text",
+      "props": {
+        "variant": "caption",
+        "text": "An interactive field guide · Select a node. Change a scenario. See what follows."
+      }
+    },
+    "flow-region": {
+      "type": "section",
+      "props": {
+        "eyebrow": "01 / The relationship",
+        "title": "Three roles. One responsible provider.",
+        "inset": 0,
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "flow",
+          "detail"
+        ]
+      }
+    },
+    "flow": {
+      "type": "diagram",
+      "props": {
+        "label": "Provider account grants access through a share to a reader account",
+        "layout": "auto",
+        "interactive": true,
+        "caption": "Select any node to explore its role. Colour follows that role throughout this guide.",
+        "nodes": [
+          {
+            "id": "provider",
+            "label": "Provider account",
+            "group": "OWNER · VIOLET",
+            "palette": "violet"
+          },
+          {
+            "id": "share",
+            "label": "Share",
+            "group": "ACCESS · OCEAN",
+            "palette": "ocean"
+          },
+          {
+            "id": "reader",
+            "label": "Reader account",
+            "group": "CONSUMER · MINT",
+            "palette": "mint"
+          }
+        ],
+        "edges": [
+          {
+            "from": "provider",
+            "to": "share",
+            "label": "grants access",
+            "palette": "violet"
+          },
+          {
+            "from": "share",
+            "to": "reader",
+            "label": "shared data",
+            "palette": "ocean"
+          }
+        ]
+      },
+      "bind": {
+        "selected": {
+          "$state": "node"
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "node",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "detail": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "tone": "accent",
+        "gap": 3
+      },
+      "bind": {
+        "title": {
+          "$item": "title"
+        },
+        "palette": {
+          "$item": "palette"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$data": "roles"
+            },
+            "field": "id",
+            "equals": {
+              "$state": "node"
+            }
+          }
+        },
+        "key": "id"
+      },
+      "slots": {
+        "children": [
+          "detail-copy"
+        ]
+      }
+    },
+    "detail-copy": {
+      "type": "rich-text",
+      "bind": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": {
+                  "$item": "text"
+                }
+              },
+              {
+                "text": "1",
+                "cite": "reader"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "decision": {
+      "type": "section",
+      "props": {
+        "eyebrow": "02 / The fit",
+        "title": "Start with what the consumer needs.",
+        "inset": 0,
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "decision-split"
+        ]
+      }
+    },
+    "decision-split": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "questions"
+        ],
+        "end": [
+          "recommendation",
+          "decision-source"
+        ]
+      }
+    },
+    "questions": {
+      "type": "stack",
+      "props": {
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "account",
+          "own-data",
+          "reset-choice"
+        ]
+      }
+    },
+    "account": {
+      "type": "choice",
+      "props": {
+        "label": "Does the consumer already have Snowflake?",
+        "options": [
+          {
+            "value": "new",
+            "label": "No, they need access"
+          },
+          {
+            "value": "existing",
+            "label": "Yes, they have an account"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "account"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "account",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "own-data": {
+      "type": "checkbox",
+      "props": {
+        "label": "They need to load and combine their own data"
+      },
+      "bind": {
+        "checked": {
+          "$state": "ownData"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "ownData",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "reset-choice": {
+      "type": "button",
+      "props": {
+        "label": "Reset the scenario",
+        "variant": "quiet",
+        "size": "sm"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "account",
+            "value": "new"
+          },
+          {
+            "do": "set",
+            "path": "ownData",
+            "value": false
+          }
+        ]
+      }
+    },
+    "recommendation": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Your route",
+        "level": 3,
+        "tone": "accent",
+        "gap": 4
+      },
+      "bind": {
+        "palette": {
+          "$if": [
+            {
+              "$or": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "account"
+                    },
+                    "existing"
+                  ]
+                },
+                {
+                  "$state": "ownData"
+                }
+              ]
+            },
+            "violet",
+            "mint"
+          ]
+        },
+        "title": {
+          "$if": [
+            {
+              "$state": "ownData"
+            },
+            "Use a full consumer account",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "account"
+                    },
+                    "existing"
+                  ]
+                },
+                "Use their existing account",
+                "Explore a reader account"
+              ]
+            }
+          ]
+        },
+        "description": {
+          "$if": [
+            {
+              "$state": "ownData"
+            },
+            "A reader account cannot load their own data. A full account supports that workflow.",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "account"
+                    },
+                    "existing"
+                  ]
+                },
+                "Share to their account. Check the region and sharing method before setup.",
+                "A reader account offers access without requiring them to become a Snowflake customer. You take responsibility for its operation."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "decision-source": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "A starting recommendation based on account needs. Confirm the sharing method, region and current restrictions. "
+              },
+              {
+                "text": "1",
+                "cite": "reader"
+              },
+              {
+                "text": "2",
+                "cite": "sharing"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "usage": {
+      "type": "section",
+      "props": {
+        "eyebrow": "03 / The commitment",
+        "title": "What does more usage mean?",
+        "inset": 0,
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "usage-note",
+          "usage-split"
+        ]
+      }
+    },
+    "usage-note": {
+      "type": "text",
+      "props": {
+        "text": "Illustrative warehouse model. Change the assumptions; this estimates credits, not a price or an invoice.",
+        "variant": "muted"
+      }
+    },
+    "usage-split": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "assumptions"
+        ],
+        "end": [
+          "usage-result"
+        ]
+      }
+    },
+    "assumptions": {
+      "type": "stack",
+      "props": {
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "hours",
+          "days",
+          "rate",
+          "reset-usage"
+        ]
+      }
+    },
+    "hours": {
+      "type": "slider",
+      "props": {
+        "label": "Warehouse running hours / day",
+        "min": 0,
+        "max": 24,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "hours"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "hours",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "days": {
+      "type": "slider",
+      "props": {
+        "label": "Operating days / month",
+        "min": 0,
+        "max": 31,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "days"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "days",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "rate": {
+      "type": "slider",
+      "props": {
+        "label": "Assumed credits / running hour",
+        "min": 0.5,
+        "max": 16,
+        "step": 0.5
+      },
+      "bind": {
+        "value": {
+          "$state": "rate"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "rate",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "reset-usage": {
+      "type": "button",
+      "props": {
+        "label": "Reset the assumptions",
+        "variant": "quiet",
+        "size": "sm"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "hours",
+            "value": 2
+          },
+          {
+            "do": "set",
+            "path": "days",
+            "value": 22
+          },
+          {
+            "do": "set",
+            "path": "rate",
+            "value": 1
+          }
+        ]
+      }
+    },
+    "usage-result": {
+      "type": "section",
+      "props": {
+        "palette": "amber",
+        "tone": "accent",
+        "gap": 6,
+        "level": 3,
+        "title": "A provider-funded workload"
+      },
+      "slots": {
+        "children": [
+          "total",
+          "bars",
+          "formula",
+          "zero",
+          "monitor-note"
+        ]
+      }
+    },
+    "total": {
+      "type": "stat",
+      "props": {
+        "label": "Illustrative credits / month",
+        "format": "number"
+      },
+      "bind": {
+        "value": {
+          "$round": [
+            {
+              "$mul": [
+                {
+                  "$state": "hours"
+                },
+                {
+                  "$state": "days"
+                },
+                {
+                  "$state": "rate"
+                }
+              ]
+            },
+            1
+          ]
+        }
+      }
+    },
+    "bars": {
+      "type": "bar-chart",
+      "props": {
+        "label": "Monthly credits against an illustrative planning allowance",
+        "format": "number"
+      },
+      "bind": {
+        "items": [
+          {
+            "label": "This scenario",
+            "value": {
+              "$round": [
+                {
+                  "$mul": [
+                    {
+                      "$state": "hours"
+                    },
+                    {
+                      "$state": "days"
+                    },
+                    {
+                      "$state": "rate"
+                    }
+                  ]
+                },
+                1
+              ]
+            }
+          },
+          {
+            "label": "Planning allowance",
+            "value": {
+              "$data": "allowance"
+            }
+          }
+        ]
+      }
+    },
+    "formula": {
+      "type": "text",
+      "props": {
+        "variant": "caption"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$state": "hours"
+            },
+            " h × ",
+            {
+              "$state": "days"
+            },
+            " days × ",
+            {
+              "$state": "rate"
+            },
+            " credits/h. The 100-credit allowance is illustrative, not an enforced limit. Excludes billing minimums, other compute and storage charges."
+          ]
+        }
+      }
+    },
+    "zero": {
+      "type": "text",
+      "props": {
+        "text": "No running time is included in this scenario. This does not mean the account has no other charges.",
+        "variant": "muted"
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$round": [
+              {
+                "$mul": [
+                  {
+                    "$state": "hours"
+                  },
+                  {
+                    "$state": "days"
+                  },
+                  {
+                    "$state": "rate"
+                  }
+                ]
+              },
+              1
+            ]
+          },
+          0
+        ]
+      }
+    },
+    "monitor-note": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Resource monitors can suspend warehouses at configured thresholds. They are not a hard invoice cap and do not control all serverless usage. "
+              },
+              {
+                "text": "3",
+                "cite": "monitor"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "handoff": {
+      "type": "section",
+      "props": {
+        "eyebrow": "04 / Before access",
+        "title": "Make the handoff deliberate.",
+        "inset": 0,
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "handoff-copy"
+        ]
+      }
+    },
+    "handoff-copy": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "list",
+            "ordered": true,
+            "items": [
+              "Create and configure the reader account and its users.",
+              "Set up a warehouse, shared database and appropriate roles.",
+              "Set usage controls and agree who supports the consumer."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Follow the account configuration guide for the required grants and setup order. "
+              },
+              {
+                "text": "4",
+                "cite": "configure"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "sources": {
+      "type": "references",
+      "props": {
+        "title": "Read the source material",
+        "items": [
+          {
+            "id": "reader",
+            "label": "Manage reader accounts",
+            "href": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-create",
+            "detail": "Snowflake · ownership and restrictions"
+          },
+          {
+            "id": "sharing",
+            "label": "About Secure Data Sharing",
+            "href": "https://docs.snowflake.com/en/user-guide/data-sharing-intro",
+            "detail": "Snowflake · sharing methods"
+          },
+          {
+            "id": "monitor",
+            "label": "Working with resource monitors",
+            "href": "https://docs.snowflake.com/en/user-guide/resource-monitors",
+            "detail": "Snowflake · usage controls"
+          },
+          {
+            "id": "configure",
+            "label": "Configure a reader account",
+            "href": "https://docs.snowflake.com/en/user-guide/data-sharing-reader-config",
+            "detail": "Snowflake · setup guide"
+          }
+        ]
+      }
+    }
+  }
+}

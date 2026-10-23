@@ -9,9 +9,9 @@
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { systems } from "../engine/data.ts";
-import { pack } from "../packs/packs.ts";
+import { skillFiles } from "../packs/packs.ts";
 import { out, err } from "./format.ts";
 import { ALL_HARNESSES, setupHooks } from "../hooks/install.ts";
 import type { HarnessId } from "../hooks/harnesses.ts";
@@ -49,8 +49,11 @@ function installSkills(harnessId: string): string[] {
   if (!h) throw new Error(`unknown harness '${harnessId}' (known: ${Object.keys(HARNESSES).join(", ")})`);
   return Object.keys(systems).map((id) => {
     const { dir, path } = h.file(id);
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(path, pack(id)["SKILL.md"]);
+    for (const [file, content] of Object.entries(skillFiles(id, harnessId === "codex" ? `kages-${id}-reference` : "reference"))) {
+      const target = file === "SKILL.md" ? path : join(dir, file);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, content);
+    }
     return path;
   });
 }

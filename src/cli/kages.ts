@@ -752,7 +752,11 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       const o = flag<string>(flags, "out");
       if (o) {
         mkdirSync(o, { recursive: true });
-        for (const f of ["SKILL.md", "AGENTS.md", "llms.txt", "catalog.txt"] as const) writeFileSync(join(o, f), p[f]);
+        for (const [file, content] of Object.entries(p)) if (typeof content === "string" && file !== "system") {
+          const target = join(o, file);
+          mkdirSync(dirname(target), { recursive: true });
+          writeFileSync(target, content);
+        }
         out(`wrote pack for ${rest[0]} to ${o}/`);
       } else if (ctx.json) printJson(p);
       else out(p["SKILL.md"]);

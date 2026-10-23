@@ -1,0 +1,218 @@
+{
+  "kages": "1.0",
+  "id": "metrics-board",
+  "title": "Metrics board — charts at a glance",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "notice",
+          "kpis",
+          "trend",
+          "mix"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Metrics board",
+        "title": "How the launch is going",
+        "description": "Trend, composition, capacity and intensity in one flowing page.",
+        "inset": 0
+      }
+    },
+    "notice": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Preview data",
+        "text": "Figures are illustrative."
+      }
+    },
+    "kpis": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small"
+      },
+      "slots": {
+        "children": [
+          "signups",
+          "capacity",
+          "weekly"
+        ]
+      }
+    },
+    "signups": {
+      "type": "stat",
+      "props": {
+        "label": "Signups",
+        "format": "number"
+      },
+      "bind": {
+        "value": {
+          "$count": {
+            "$data": "weeks"
+          }
+        }
+      }
+    },
+    "capacity": {
+      "type": "gauge",
+      "props": {
+        "label": "Capacity used",
+        "value": 72,
+        "unit": "%",
+        "tone": "success"
+      }
+    },
+    "weekly": {
+      "type": "section",
+      "props": {
+        "title": "Weekly signups",
+        "level": 3,
+        "tone": "surface"
+      },
+      "slots": {
+        "children": [
+          "trendline"
+        ]
+      }
+    },
+    "trendline": {
+      "type": "sparkline",
+      "props": {
+        "label": "Weekly signups",
+        "values": [
+          120,
+          180,
+          150,
+          240,
+          310,
+          280
+        ]
+      }
+    },
+    "trend": {
+      "type": "area-chart",
+      "props": {
+        "label": "Signups per week",
+        "xLabel": "Week",
+        "yLabel": "Signups"
+      },
+      "bind": {
+        "items": {
+          "$data": "weeks"
+        }
+      }
+    },
+    "mix": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 6
+      },
+      "slots": {
+        "start": [
+          "channels"
+        ],
+        "end": [
+          "activity"
+        ]
+      }
+    },
+    "channels": {
+      "type": "donut-chart",
+      "props": {
+        "label": "Signups by channel",
+        "items": [
+          {
+            "label": "Search",
+            "value": 48
+          },
+          {
+            "label": "Referral",
+            "value": 31
+          },
+          {
+            "label": "Social",
+            "value": 21
+          }
+        ]
+      }
+    },
+    "activity": {
+      "type": "heatmap",
+      "props": {
+        "label": "Activity by day and slot",
+        "rows": [
+          "Mon",
+          "Tue",
+          "Wed"
+        ],
+        "columns": [
+          "AM",
+          "Noon",
+          "PM"
+        ],
+        "values": [
+          [
+            3,
+            8,
+            5
+          ],
+          [
+            6,
+            9,
+            2
+          ],
+          [
+            1,
+            4,
+            7
+          ]
+        ]
+      }
+    }
+  },
+  "data": {
+    "weeks": [
+      {
+        "x": 1,
+        "y": 120
+      },
+      {
+        "x": 2,
+        "y": 180
+      },
+      {
+        "x": 3,
+        "y": 150
+      },
+      {
+        "x": 4,
+        "y": 240
+      },
+      {
+        "x": 5,
+        "y": 310
+      },
+      {
+        "x": 6,
+        "y": 280
+      }
+    ]
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

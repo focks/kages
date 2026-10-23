@@ -1699,6 +1699,128 @@
       "keyboard": "Semantic content; interactive children own their keyboard behavior."
     }
   },
+  "core/section@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/section",
+    "version": "1.1.0",
+    "ref": "core/section@1.1.0",
+    "system": "core",
+    "name": "section",
+    "implements": [
+      "kages/section@1"
+    ],
+    "role": "section",
+    "summary": "Editorial or hero region with optional title, prose, content and actions.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "level": {
+        "type": "number",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "default": 2
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "plain",
+          "surface",
+          "sunken",
+          "accent"
+        ],
+        "default": "plain"
+      },
+      "inset": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 6
+      },
+      "gap": {
+        "type": "number",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "default": 4
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "inherit"
+      },
+      "scale": {
+        "type": "string",
+        "enum": [
+          "standard",
+          "hero"
+        ],
+        "default": "standard"
+      },
+      "backdrop": {
+        "type": "string",
+        "enum": [
+          "flat",
+          "wash"
+        ],
+        "default": "flat"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Compose heroes and chapters. Use scale:hero with level:1 for the opening, palette:ocean|mint|violet|amber|rose for a meaningful colour family, tone:accent for a tinted region, and backdrop:wash for a soft gradient. Palette affects the region and its controls in both themes; inherit preserves the workspace design. Reuse colours by meaning. Bind title, description or palette to state for a live result. Avoid a box around every section."
+    },
+    "limits": {}
+  },
   "core/composition@1.0.0": {
     "$contract": "kages.contract/1",
     "id": "core/composition",
@@ -2643,6 +2765,115 @@
       "use": "items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations."
     },
     "limits": {}
+  },
+  "core/diagram@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/diagram",
+    "version": "1.2.0",
+    "ref": "core/diagram@1.2.0",
+    "system": "core",
+    "name": "diagram",
+    "implements": [
+      "kages/diagram@1"
+    ],
+    "role": "diagram",
+    "summary": "Node and edge diagram with automatic placement or explicit coordinates.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "from",
+            "to"
+          ]
+        }
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "layout": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "horizontal",
+          "vertical",
+          "grid"
+        ],
+        "default": "auto"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes [{id,label,group?,palette?}], edges [{from,to,label?,palette?}]. Palettes: inherit,ocean,mint,violet,amber,rose; assign by role and reuse across the page. Directed graphs are layered by edges; cycles use a grid. layout:auto becomes vertical in narrow containers; horizontal,vertical,grid are explicit. Full nodes support click/Enter/Space when interactive:true; select emits {id} and selected is public. Bind selected and a detail panel to the same state. group is a short category label. Explicit x/y uses the legacy geometry path (no palettes or selected highlight); use scene for arbitrary geometry. Caption states the takeaway, not just the title."
+    },
+    "limits": {},
+    "a11y": {
+      "keyboard": "Tab to a node; Enter or Space selects. Selection is exposed with aria-pressed. Narrow diagrams reflow vertically; large branched graphs scroll without shrinking labels."
+    }
   },
   "core/area-chart@1.0.0": {
     "$contract": "kages.contract/1",

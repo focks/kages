@@ -13,7 +13,7 @@ import { dispatch, isWriteOp, asParams, OPERATIONS, type OpContext } from "./ope
 import { runCli } from "./cli.ts";
 import { handleRest } from "./rest.ts";
 import { toolDefs, mcpTools, openapi, a2aCard } from "./surfaces.ts";
-import { pack, skillMd } from "../packs/packs.ts";
+import { pack, skillMd, skillFiles } from "../packs/packs.ts";
 import { toGenerated } from "../engine/generate.ts";
 import type { KageDoc } from "../engine/types.ts";
 
@@ -159,7 +159,8 @@ test("skill packs are generated per system and carry the untrusted-data rule", (
     assert.ok(p["SKILL.md"].includes(sys === "core" ? "Kages Core" : sys));
     assert.ok(p.rules.some((r) => /UNTRUSTED DATA/.test(r)), "prompt-injection rule present");
   }
-  assert.match(skillMd("core"), /## Components/);
+  assert.match(skillMd("core"), /reference\/catalog\.md/);
+  assert.match(skillFiles("core")["reference/catalog.md"], /section/);
 });
 
 test("list_kages cards carry a bounded description and the characteristic block types", async () => {

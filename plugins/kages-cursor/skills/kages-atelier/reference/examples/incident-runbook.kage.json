@@ -1,0 +1,487 @@
+{
+  "kages": "1.0",
+  "id": "incident-runbook",
+  "title": "Incident runbook — from alert to resolution",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "severity",
+          "guide-sev1",
+          "guide-sev2",
+          "guide-sev3",
+          "progress",
+          "detect",
+          "triage",
+          "mitigate",
+          "resolve",
+          "review"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Operations",
+        "title": "Incident runbook",
+        "description": "Work through the steps in order. Set the severity first: it decides who is paged and how often to update.",
+        "inset": 0
+      }
+    },
+    "severity": {
+      "type": "choice",
+      "props": {
+        "label": "Severity",
+        "name": "severity",
+        "options": [
+          {
+            "value": "sev1",
+            "label": "Sev 1 · service down"
+          },
+          {
+            "value": "sev2",
+            "label": "Sev 2 · major feature degraded"
+          },
+          {
+            "value": "sev3",
+            "label": "Sev 3 · minor issue"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "severity"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "severity",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "guide-sev1": {
+      "type": "alert",
+      "props": {
+        "tone": "danger",
+        "title": "Sev 1",
+        "text": "Page the on-call engineer and the incident lead now. Post a status update every 15 minutes."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "severity"
+          },
+          "sev1"
+        ]
+      }
+    },
+    "guide-sev2": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Sev 2",
+        "text": "Page the on-call engineer. Post a status update every 30 minutes."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "severity"
+          },
+          "sev2"
+        ]
+      }
+    },
+    "guide-sev3": {
+      "type": "alert",
+      "props": {
+        "tone": "info",
+        "title": "Sev 3",
+        "text": "Open a ticket for the owning team. A status update is not needed."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "severity"
+          },
+          "sev3"
+        ]
+      }
+    },
+    "progress": {
+      "type": "stepper",
+      "props": {
+        "label": "Incident progress",
+        "steps": [
+          {
+            "id": "detect",
+            "label": "Detect",
+            "description": "Confirm the alert is real."
+          },
+          {
+            "id": "triage",
+            "label": "Triage",
+            "description": "Set severity and find the owner."
+          },
+          {
+            "id": "mitigate",
+            "label": "Mitigate",
+            "description": "Stop the damage first."
+          },
+          {
+            "id": "resolve",
+            "label": "Resolve",
+            "description": "Fix the cause and verify."
+          },
+          {
+            "id": "review",
+            "label": "Review",
+            "description": "Write down what was learned."
+          }
+        ],
+        "interactive": true
+      },
+      "bind": {
+        "value": {
+          "$state": "step"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "detect": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Detect",
+        "description": "Check the alert against a second signal before waking anyone.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "detect"
+        ]
+      },
+      "slots": {
+        "children": [
+          "detect-code",
+          "detect-next"
+        ]
+      }
+    },
+    "detect-code": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "Quick checks",
+        "tabs": [
+          {
+            "id": "health",
+            "label": "Health",
+            "language": "sh",
+            "code": "curl -fsS https://status.example.com/health || echo \"health check failed\""
+          },
+          {
+            "id": "logs",
+            "label": "Logs",
+            "language": "sh",
+            "code": "kubectl logs deploy/api --since=10m | grep -i error | tail -n 20"
+          }
+        ]
+      }
+    },
+    "detect-next": {
+      "type": "button",
+      "props": {
+        "label": "It is real: go to triage",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "triage"
+          }
+        ]
+      }
+    },
+    "triage": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Triage",
+        "description": "Page the owner, then open the incident channel.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "triage"
+        ]
+      },
+      "slots": {
+        "children": [
+          "page-owner",
+          "triage-next"
+        ]
+      }
+    },
+    "page-owner": {
+      "type": "checkbox",
+      "props": {
+        "label": "The owning team is paged"
+      },
+      "bind": {
+        "checked": {
+          "$state": "paged"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "paged",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "triage-next": {
+      "type": "button",
+      "props": {
+        "label": "Owner paged: go to mitigation",
+        "variant": "primary",
+        "disabled": false
+      },
+      "bind": {
+        "disabled": {
+          "$not": {
+            "$state": "paged"
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "mitigate"
+          }
+        ]
+      }
+    },
+    "mitigate": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Mitigate",
+        "description": "Prefer the fastest safe action: roll back, turn a flag off or shift traffic.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "mitigate"
+        ]
+      },
+      "slots": {
+        "children": [
+          "mitigate-code",
+          "status-posted",
+          "mitigate-next"
+        ]
+      }
+    },
+    "mitigate-code": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "Common mitigations",
+        "tabs": [
+          {
+            "id": "rollback",
+            "label": "Roll back",
+            "language": "sh",
+            "code": "kubectl rollout undo deploy/api\nkubectl rollout status deploy/api"
+          },
+          {
+            "id": "flag",
+            "label": "Turn a flag off",
+            "language": "sh",
+            "code": "flagctl set checkout.new-flow off --env production"
+          }
+        ]
+      }
+    },
+    "status-posted": {
+      "type": "checkbox",
+      "props": {
+        "label": "A status update is posted"
+      },
+      "bind": {
+        "checked": {
+          "$state": "statusPosted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "statusPosted",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "mitigate-next": {
+      "type": "button",
+      "props": {
+        "label": "Impact stopped: go to resolution",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$not": {
+            "$state": "statusPosted"
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "resolve"
+          }
+        ]
+      }
+    },
+    "resolve": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Resolve",
+        "description": "Fix the cause, watch the graphs return to normal and close the alert.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "resolve"
+        ]
+      },
+      "slots": {
+        "children": [
+          "resolve-next"
+        ]
+      }
+    },
+    "resolve-next": {
+      "type": "button",
+      "props": {
+        "label": "Resolved: go to review",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "review"
+          }
+        ]
+      }
+    },
+    "review": {
+      "type": "section",
+      "props": {
+        "level": 3,
+        "title": "Review",
+        "description": "Within two working days, write what happened, what helped and what to change. Keep it about the system, not a person.",
+        "inset": 0
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "review"
+        ]
+      },
+      "slots": {
+        "children": [
+          "restart"
+        ]
+      }
+    },
+    "restart": {
+      "type": "button",
+      "props": {
+        "label": "Start a new incident",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "detect"
+          },
+          {
+            "do": "set",
+            "path": "paged",
+            "value": false
+          },
+          {
+            "do": "set",
+            "path": "statusPosted",
+            "value": false
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "severity": "sev2",
+    "step": "detect",
+    "paged": false,
+    "statusPosted": false
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

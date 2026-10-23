@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Launch flow — a guided checklist\" · system atelier@1.9.0 · 10 blocks\nstate {\"step\":\"plan\",\"faq\":\"\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Ship it in three steps\"\n    - stepper [core/stepper@1.0.0] label=\"Launch steps\" value=\"plan\"\n        ↳ reads state:step · writes change→state.step\n    - panel [core/alert@1.0.0] title=\"Current step: plan\"\n    - help [core/accordion@1.0.0] items=what|undo\n        ↳ reads state:faq · writes change→state.faq\n    - history [core/timeline@1.0.0] label=\"Recent activity\" items=||\n    - openConfirm [atelier/button@1.0.0] label=\"Launch now\"\n        ↳ calls click→dialog.open\n    - dialog [core/modal@1.0.0] label=\"Launch this artifact?\"\n      - sure [core/text@1.0.0] text=\"This publishes a new version for everyone with access.\"\n      - go [atelier/button@1.0.0] label=\"Confirm\"\n          ↳ calls click→dialog.close",
+  "description": "Kage \"Launch flow — a guided checklist\" · system atelier@1.10.0 · 10 blocks\nstate {\"step\":\"plan\",\"faq\":\"\"}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Ship it in three steps\"\n    - stepper [core/stepper@1.0.0] label=\"Launch steps\" value=\"plan\"\n        ↳ reads state:step · writes change→state.step\n    - panel [core/alert@1.0.0] title=\"Current step: plan\"\n    - help [core/accordion@1.0.0] items=what|undo\n        ↳ reads state:faq · writes change→state.faq\n    - history [core/timeline@1.0.0] label=\"Recent activity\" items=||\n    - openConfirm [atelier/button@1.0.0] label=\"Launch now\"\n        ↳ calls click→dialog.open\n    - dialog [core/modal@1.0.0] label=\"Launch this artifact?\"\n      - sure [core/text@1.0.0] text=\"This publishes a new version for everyone with access.\"\n      - go [atelier/button@1.0.0] label=\"Confirm\"\n          ↳ calls click→dialog.close",
   "envelope": {
     "title": "Launch flow — a guided checklist",
     "root": "root",
@@ -49,7 +49,10 @@
           "level": null,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [],

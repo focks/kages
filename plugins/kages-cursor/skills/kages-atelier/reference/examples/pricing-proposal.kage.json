@@ -1,0 +1,403 @@
+{
+  "kages": "1.0",
+  "id": "pricing-proposal",
+  "title": "Pricing proposal — plans, seats and a live estimate",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "controls",
+          "plans",
+          "estimate",
+          "faq",
+          "ask",
+          "thanks"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Proposal",
+        "title": "Plans that grow with the team",
+        "description": "Pick a plan, set the number of seats and see the cost. All prices on this page are illustrative.",
+        "inset": 0
+      }
+    },
+    "controls": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 6,
+        "wrap": true,
+        "align": "center"
+      },
+      "slots": {
+        "children": [
+          "billing",
+          "seats"
+        ]
+      }
+    },
+    "billing": {
+      "type": "switch",
+      "props": {
+        "label": "Bill yearly (ten months for twelve)"
+      },
+      "bind": {
+        "checked": {
+          "$state": "annual"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "annual",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "seats": {
+      "type": "slider",
+      "props": {
+        "label": "Seats",
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "seats"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "seats",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "plans": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "medium",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "plan"
+        ]
+      }
+    },
+    "plan": {
+      "type": "card",
+      "props": {},
+      "bind": {
+        "title": {
+          "$item": "name"
+        },
+        "subtitle": {
+          "$item": "summary"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$data": "plans"
+        },
+        "key": "id",
+        "as": "plan"
+      },
+      "slots": {
+        "children": [
+          "plan-price",
+          "plan-limit",
+          "plan-pick"
+        ]
+      }
+    },
+    "plan-price": {
+      "type": "text",
+      "props": {
+        "variant": "title"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$format": {
+                "value": {
+                  "$if": [
+                    {
+                      "$state": "annual"
+                    },
+                    {
+                      "$mul": [
+                        {
+                          "$item": "perSeat"
+                        },
+                        10
+                      ]
+                    },
+                    {
+                      "$item": "perSeat"
+                    }
+                  ]
+                },
+                "style": "currency",
+                "digits": 0
+              }
+            },
+            {
+              "$if": [
+                {
+                  "$state": "annual"
+                },
+                " per seat a year",
+                " per seat a month"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "plan-limit": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "Up to ",
+            {
+              "$item": "limit"
+            },
+            " seats"
+          ]
+        }
+      }
+    },
+    "plan-pick": {
+      "type": "button",
+      "props": {
+        "label": "Choose this plan",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "plan",
+            "value": {
+              "$item": "id"
+            }
+          }
+        ]
+      }
+    },
+    "estimate": {
+      "type": "stat",
+      "props": {
+        "label": "Estimated cost",
+        "caption": "For the chosen plan and seats; illustrative."
+      },
+      "bind": {
+        "value": {
+          "$format": {
+            "value": {
+              "$mul": [
+                {
+                  "$if": [
+                    {
+                      "$state": "annual"
+                    },
+                    {
+                      "$mul": [
+                        {
+                          "$sum": [
+                            {
+                              "$filter": {
+                                "list": {
+                                  "$data": "plans"
+                                },
+                                "field": "id",
+                                "equals": {
+                                  "$state": "plan"
+                                }
+                              }
+                            },
+                            "perSeat"
+                          ]
+                        },
+                        10
+                      ]
+                    },
+                    {
+                      "$sum": [
+                        {
+                          "$filter": {
+                            "list": {
+                              "$data": "plans"
+                            },
+                            "field": "id",
+                            "equals": {
+                              "$state": "plan"
+                            }
+                          }
+                        },
+                        "perSeat"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "$state": "seats"
+                }
+              ]
+            },
+            "style": "currency",
+            "digits": 0
+          }
+        },
+        "caption": {
+          "$concat": [
+            "Plan: ",
+            {
+              "$state": "plan"
+            },
+            ", ",
+            {
+              "$state": "seats"
+            },
+            " seats, billed ",
+            {
+              "$if": [
+                {
+                  "$state": "annual"
+                },
+                "yearly",
+                "monthly"
+              ]
+            },
+            ". Illustrative."
+          ]
+        }
+      }
+    },
+    "faq": {
+      "type": "accordion",
+      "props": {
+        "items": [
+          {
+            "id": "change",
+            "title": "Can I change plan later?",
+            "body": "Yes. Pick another plan at any time; the estimate above updates to show the difference."
+          },
+          {
+            "id": "seats",
+            "title": "What counts as a seat?",
+            "body": "One person who signs in. People who only read shared pages do not need a seat."
+          },
+          {
+            "id": "yearly",
+            "title": "How does yearly billing work?",
+            "body": "You pay for ten months and use twelve. The calculator applies this when you switch it on."
+          }
+        ]
+      }
+    },
+    "ask": {
+      "type": "button",
+      "props": {
+        "label": "Ask for this plan",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "interest",
+            "value": true
+          }
+        ]
+      }
+    },
+    "thanks": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Request noted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "We will follow up about the ",
+            {
+              "$state": "plan"
+            },
+            " plan for ",
+            {
+              "$state": "seats"
+            },
+            " seats."
+          ]
+        }
+      },
+      "visible": {
+        "$state": "interest"
+      }
+    }
+  },
+  "state": {
+    "annual": false,
+    "seats": 5,
+    "plan": "team",
+    "interest": false
+  },
+  "data": {
+    "plans": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "perSeat": 8,
+        "summary": "For one small group getting started.",
+        "limit": 3
+      },
+      {
+        "id": "team",
+        "name": "Team",
+        "perSeat": 15,
+        "summary": "For teams that share work every day.",
+        "limit": 25
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "perSeat": 29,
+        "summary": "For several teams that need review and control.",
+        "limit": 200
+      }
+    ]
+  },
+  "brief": {
+    "mode": "persuade"
+  }
+}

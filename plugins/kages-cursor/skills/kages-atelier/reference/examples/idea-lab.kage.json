@@ -1,0 +1,187 @@
+{
+  "kages": "1.0",
+  "id": "idea-lab",
+  "title": "Idea lab — an interactive split tool",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "header": [
+          "heading"
+        ],
+        "children": [
+          "workspace"
+        ]
+      }
+    },
+    "heading": {
+      "type": "section",
+      "props": {
+        "eyebrow": "An interactive exploration",
+        "title": "Give your idea a little space",
+        "description": "Write a draft, adjust your confidence and compare possible directions. Everything updates in place.",
+        "inset": 0
+      }
+    },
+    "workspace": {
+      "type": "split",
+      "props": {
+        "ratio": "equal",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "inputs"
+        ],
+        "end": [
+          "outputs"
+        ]
+      }
+    },
+    "inputs": {
+      "type": "section",
+      "props": {
+        "title": "Your starting point",
+        "level": 3,
+        "tone": "surface"
+      },
+      "slots": {
+        "children": [
+          "draft",
+          "confidence",
+          "details"
+        ]
+      }
+    },
+    "draft": {
+      "type": "textarea",
+      "props": {
+        "label": "Draft an idea",
+        "rows": 5,
+        "placeholder": "What would you like to make?"
+      },
+      "bind": {
+        "value": {
+          "$state": "draft"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "draft",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "confidence": {
+      "type": "slider",
+      "props": {
+        "label": "Confidence",
+        "min": 0,
+        "max": 100,
+        "step": 5
+      },
+      "bind": {
+        "value": {
+          "$state": "confidence"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "confidence",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "details": {
+      "type": "checkbox",
+      "props": {
+        "label": "Show a structured draft"
+      }
+    },
+    "outputs": {
+      "type": "section",
+      "props": {
+        "title": "Where it could go",
+        "level": 3,
+        "inset": 0
+      },
+      "slots": {
+        "children": [
+          "summary",
+          "comparison",
+          "structured"
+        ]
+      }
+    },
+    "summary": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$tpl": "Your idea: {{state.draft}}\nConfidence: {{state.confidence}}%"
+        }
+      }
+    },
+    "comparison": {
+      "type": "bar-chart",
+      "props": {
+        "label": "Possible directions"
+      },
+      "bind": {
+        "items": [
+          {
+            "label": "Story",
+            "value": 70
+          },
+          {
+            "label": "Interactive tool",
+            "value": {
+              "$state": "confidence"
+            }
+          },
+          {
+            "label": "Visual collection",
+            "value": 45
+          }
+        ]
+      }
+    },
+    "structured": {
+      "type": "code",
+      "props": {
+        "caption": "Your draft as data",
+        "wrap": true
+      },
+      "bind": {
+        "code": {
+          "$tpl": "Draft: {{state.draft}}\nConfidence: {{state.confidence}}"
+        }
+      },
+      "visible": {
+        "$block": "details.checked"
+      }
+    }
+  },
+  "state": {
+    "draft": "A small tool for a big idea",
+    "confidence": 60
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

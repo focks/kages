@@ -1,0 +1,290 @@
+{
+  "kages": "1.0",
+  "id": "docs-guide",
+  "title": "Docs guide — outline, tabs, code and validated fields",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "layout"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Documentation",
+        "title": "Getting started",
+        "description": "A long page with an outline that follows you, tabbed alternatives, copyable code and fields that explain themselves.",
+        "inset": 0
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-end",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "toc"
+        ],
+        "end": [
+          "a-install",
+          "h-install",
+          "platforms",
+          "a-usage",
+          "h-usage",
+          "snippet",
+          "a-check",
+          "h-check",
+          "age",
+          "period",
+          "report"
+        ]
+      }
+    },
+    "toc": {
+      "type": "toc",
+      "props": {
+        "title": "On this page",
+        "sticky": true,
+        "items": [
+          {
+            "label": "Install",
+            "target": "install"
+          },
+          {
+            "label": "Usage",
+            "target": "usage"
+          },
+          {
+            "label": "Check your details",
+            "target": "check"
+          }
+        ]
+      }
+    },
+    "a-install": {
+      "type": "anchor",
+      "props": {
+        "name": "install"
+      }
+    },
+    "h-install": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Install"
+          }
+        ]
+      }
+    },
+    "platforms": {
+      "type": "tab-panel",
+      "props": {
+        "label": "Platform",
+        "tabs": [
+          {
+            "id": "mac",
+            "label": "macOS"
+          },
+          {
+            "id": "linux",
+            "label": "Linux"
+          },
+          {
+            "id": "win",
+            "label": "Windows"
+          }
+        ]
+      },
+      "slots": {
+        "panel1": [
+          "mac"
+        ],
+        "panel2": [
+          "linux"
+        ],
+        "panel3": [
+          "win"
+        ]
+      }
+    },
+    "mac": {
+      "type": "text",
+      "props": {
+        "text": "Install with Homebrew, then restart your terminal."
+      }
+    },
+    "linux": {
+      "type": "text",
+      "props": {
+        "text": "Use your package manager or download the static binary."
+      }
+    },
+    "win": {
+      "type": "text",
+      "props": {
+        "text": "Use the installer or winget."
+      }
+    },
+    "a-usage": {
+      "type": "anchor",
+      "props": {
+        "name": "usage"
+      }
+    },
+    "h-usage": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Usage"
+          }
+        ]
+      }
+    },
+    "snippet": {
+      "type": "code-tabs",
+      "props": {
+        "caption": "List your Kages",
+        "tabs": [
+          {
+            "id": "sh",
+            "label": "Shell",
+            "language": "sh",
+            "code": "kages ls --json"
+          },
+          {
+            "id": "js",
+            "label": "JavaScript",
+            "language": "js",
+            "code": "const kages = await fetch('/api/list_kages').then(r => r.json());"
+          },
+          {
+            "id": "py",
+            "label": "Python",
+            "language": "py",
+            "code": "import requests\nkages = requests.post(url + '/api/list_kages').json()"
+          }
+        ]
+      }
+    },
+    "a-check": {
+      "type": "anchor",
+      "props": {
+        "name": "check"
+      }
+    },
+    "h-check": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Check your details"
+          }
+        ]
+      }
+    },
+    "age": {
+      "type": "number-input",
+      "props": {
+        "label": "Your age",
+        "min": 0,
+        "max": 120,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "age"
+        },
+        "error": {
+          "$if": [
+            {
+              "$lt": [
+                {
+                  "$state": "age"
+                },
+                18
+              ]
+            },
+            "You must be 18 or older.",
+            ""
+          ]
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "age",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "period": {
+      "type": "date-range",
+      "props": {
+        "label": "Reporting period"
+      },
+      "bind": {
+        "value": {
+          "$state": "period"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "period",
+            "value": {
+              "start": {
+                "$event": "start"
+              },
+              "end": {
+                "$event": "end"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "report": {
+      "type": "file-upload",
+      "props": {
+        "label": "Attach a CSV (read locally)",
+        "accept": ".csv,text/csv,text/plain",
+        "maxBytes": 50000
+      }
+    }
+  },
+  "state": {
+    "age": null,
+    "period": {
+      "start": "",
+      "end": ""
+    }
+  },
+  "brief": {
+    "mode": "read"
+  }
+}

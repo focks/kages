@@ -12,7 +12,7 @@ export const FONTS_CSS = "https://fonts.googleapis.com/css2?family=Bricolage+Gro
 // downloads queue one behind the other; preloaded, they overlap. The preload carries the same integrity and
 // credentials mode as the later fetch, which is what lets the browser reuse it, and an unexpected base is
 // simply not preloaded.
-export function sandboxHtml(origin: string, runtime: { path: string; integrity: string }, integrity: Record<string, string>, instance: string, dsBase?: string): string {
+export function sandboxHtml(origin: string, runtime: { path: string; integrity: string }, integrity: Record<string, string>, instance: string, dsBase?: string, fill = false): string {
   if (!/^\/runtime\/[A-Za-z0-9_-]+\.js$/.test(runtime.path) || !/^[A-Za-z0-9_-]+$/.test(instance)) throw new Error("invalid frame asset path");
   const scriptHashes = [runtime.integrity, integrity["bundle.js"]];
   if (!scriptHashes.every(h => /^sha384-[A-Za-z0-9+/]+={0,2}$/.test(h))) throw new Error("invalid frame integrity");
@@ -21,5 +21,7 @@ export function sandboxHtml(origin: string, runtime: { path: string; integrity: 
   const files = ["tokens.css", "bundle.css", "bundle.js"];
   const preload = dsBase && /^\/ds(\/versions\/[A-Za-z0-9_-]+)?$/.test(dsBase) && files.every(f => /^sha384-[A-Za-z0-9+/]+={0,2}$/.test(integrity[f] ?? ""))
     ? files.map(f => `<link rel="preload" as="${f.endsWith(".js") ? "script" : "style"}" href="${base}${dsBase}/${f}" integrity="${integrity[f]}" crossorigin="anonymous">`).join("") + `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="${FONTS_CSS}">` : "";
-  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="viewport" content="width=device-width,initial-scale=1">${preload}<style>html,body{margin:0;padding:0}#root{display:flow-root}</style></head><body><div id="root"></div><script src="${base}${runtime.path}" integrity="${runtime.integrity}" crossorigin="anonymous"></script><!--${instance}--></body></html>`;
+  // Auto-height frames must chain wheel/touch scrolling to their host. This host-owned
+  // rule also overrides the unconditional inline containment in older pinned runtimes.
+  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="viewport" content="width=device-width,initial-scale=1">${preload}<style>html{overscroll-behavior:${fill ? "contain" : "auto"}!important}html,body{margin:0;padding:0}#root{display:flow-root}</style></head><body><div id="root"></div><script src="${base}${runtime.path}" integrity="${runtime.integrity}" crossorigin="anonymous"></script><!--${instance}--></body></html>`;
 }

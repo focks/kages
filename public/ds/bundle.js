@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -559,6 +559,35 @@
   };
   freeFlowExports.authoring = authoring;
 
+/* Presentation choices are closed enums, so an agent can art-direct a region
+ * without supplying CSS. New contracts retain the old refs and implementations
+ * for pinned documents. Palette CSS is generated from the checked token recipes. */
+  var REGION_PALETTES = ["inherit", "ocean", "mint", "violet", "amber", "rose"];
+  function regionPalette(value) { return choice(value, REGION_PALETTES, "inherit"); }
+  function CoreSectionV2(p) {
+    var scale = choice(p.scale, ["standard", "hero"], "standard");
+    var level = choice(p.level, [1, 2, 3, 4], scale === "hero" ? 1 : 2);
+    return h("section", { className: "kg-section kg-section--" + choice(p.tone, ["plain", "surface", "sunken", "accent"], "plain") + " kg-section--" + scale + " kg-palette-" + regionPalette(p.palette) + " kg-section--" + choice(p.backdrop, ["flat", "wash"], "flat"), style: spacingProps(p), "aria-label": p.title || undefined },
+      p.eyebrow ? h("p", { className: "kg-section__eyebrow" }, p.eyebrow) : null,
+      p.title ? h("h" + level, { className: "kg-section__title" }, p.title) : null,
+      p.description ? h("p", { className: "kg-section__description" }, p.description) : null,
+      h("div", { className: "kg-section__content" }, p.children),
+      p.actions && p.actions.length ? h("div", { className: "kg-section__actions" }, p.actions) : null);
+  }
+  core.section = contract("core", "section", "1.1.0", "kages/section@1", CoreSectionV2, {
+    props: { level: S("number", { enum: [1, 2, 3, 4], default: 2 }), palette: S("string", { enum: REGION_PALETTES, default: "inherit" }), scale: S("string", { enum: ["standard", "hero"], default: "standard" }), backdrop: S("string", { enum: ["flat", "wash"], default: "flat" }) },
+    tokens: contracts["core/section@1.0.0"].tokens,
+    agent: { use: "Compose heroes and chapters. Use scale:hero with level:1 for the opening, palette:ocean|mint|violet|amber|rose for a meaningful colour family, tone:accent for a tinted region, and backdrop:wash for a soft gradient. Palette affects the region and its controls in both themes; inherit preserves the workspace design. Reuse colours by meaning. Bind title, description or palette to state for a live result. Avoid a box around every section." }
+  });
+  Object.assign(interfaces["kages/section@1"].props, contracts[core.section].props);
+  Object.assign(freeFlowExports, { CoreSectionV2: CoreSectionV2 });
+
+  // Role resolution follows the current system; signed lockfiles instead need
+  // the exact registered implementation, including superseded contract versions.
+  freeFlowExports.implementation = function (ref) {
+    return Object.prototype.hasOwnProperty.call(impls, ref) ? impls[ref] : undefined;
+  };
+
 /* Portable expressive blocks accept data, never markup or arbitrary SVG props.
  * Native controls own validation and keyboard behavior; shapes expose only a
  * fixed geometry vocabulary. See oracle/expressive-artifacts.feature. */
@@ -778,6 +807,110 @@
     // Fields gained the optional `error` prop: a minor contract release.
     core[name] = contract("core", name, /^(text-field|number-input|date-input|choice|multiselect|rich-text|scene|diagram)$/.test(name) ? "1.1.0" : "1.0.0", "kages/" + name + "@1", freeFlowExports[exportKey], { tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "accent", "focus"], agent: { use: EXPRESSIVE_NOTES[name] } });
   });
+
+/* Directed diagrams use graph structure for placement and retain a vertical
+ * rendering for narrow containers. Labels and whole-node keyboard targets stay
+ * readable instead of shrinking a desktop drawing to a phone. Old diagram refs
+ * keep their renderer; explicit coordinates still use that established path. */
+  function diagramLines(value, limit, count) {
+    var words = String(value == null ? "" : value).slice(0, 2000).split(/\s+/), lines = [""];
+    words.forEach(function (word) {
+      while (word.length > limit) { if (lines[lines.length - 1]) lines.push(""); lines[lines.length - 1] = word.slice(0, limit); word = word.slice(limit); lines.push(""); }
+      var last = lines.length - 1;
+      if ((lines[last] + " " + word).trim().length > limit) lines.push(word); else lines[last] = (lines[last] + " " + word).trim();
+    });
+    var result = lines.slice(0, count);
+    if (lines.length > count) result[count - 1] = result[count - 1].slice(0, limit - 1) + "…";
+    return result;
+  }
+
+  // Kahn's algorithm gives DAGs stable, longest-path layers. A cycle falls back
+  // to a bounded grid without dropping nodes or hiding a relationship.
+  function diagramLayers(nodes, edges) {
+    var degree = Object.create(null), rank = Object.create(null), outgoing = Object.create(null);
+    nodes.forEach(function (n) { degree[n.id] = 0; rank[n.id] = 0; outgoing[n.id] = []; });
+    edges.forEach(function (e) { degree[e.to]++; outgoing[e.from].push(e.to); });
+    var queue = nodes.filter(function (n) { return !degree[n.id]; }).map(function (n) { return n.id; }), visited = 0;
+    while (visited < queue.length) {
+      var id = queue[visited++];
+      outgoing[id].forEach(function (to) { rank[to] = Math.max(rank[to], rank[id] + 1); if (--degree[to] === 0) queue.push(to); });
+    }
+    return visited === nodes.length ? rank : null;
+  }
+
+  function CoreDiagramV2(p) {
+    var seen = Object.create(null);
+    var nodes = (Array.isArray(p.nodes) ? p.nodes : []).filter(function (n) {
+      if (!n || typeof n.id !== "string" || seen[n.id]) return false;
+      seen[n.id] = true; return true;
+    }).slice(0, 200);
+    var ids = Object.create(null); nodes.forEach(function (n) { ids[n.id] = true; });
+    var edges = (Array.isArray(p.edges) ? p.edges : []).filter(function (e) { return e && ids[e.from] && ids[e.to] && e.from !== e.to; }).slice(0, 400);
+    // An explicit-coordinate document has already chosen its geometry; keep it.
+    if (nodes.some(function (n) { return typeof n.x === "number" || typeof n.y === "number"; })) return CoreDiagram(p);
+    if (!nodes.length) return h("figure", { className: "kg-diagram" }, h("p", null, p.empty || "No connections to show"));
+    var layout = choice(p.layout, ["auto", "horizontal", "vertical", "grid"], "auto"), ranks = layout === "grid" ? null : diagramLayers(nodes, edges);
+    function drawing(vertical) {
+      var pos = Object.create(null), lanes = Object.create(null), width = 248, height = 136;
+      nodes.forEach(function (n, i) {
+        var col, row;
+        if (ranks) {
+          var rank = ranks[n.id], lane = lanes[rank] || 0; lanes[rank] = lane + 1;
+          col = vertical ? lane : rank; row = vertical ? rank : lane;
+        } else { col = vertical ? 0 : i % 3; row = vertical ? i : Math.floor(i / 3); }
+        pos[n.id] = { x: 20 + col * (vertical ? 248 : 328), y: 20 + row * 184 };
+        width = Math.max(width, pos[n.id].x + 228); height = Math.max(height, pos[n.id].y + 116);
+      });
+      var labels = [];
+      var connections = edges.map(function (edge, i) {
+        var a = pos[edge.from], b = pos[edge.to], forward = vertical ? b.y >= a.y : b.x >= a.x;
+        var sx = vertical ? a.x + 104 : a.x + (forward ? 210 : -2), sy = vertical ? a.y + (forward ? 98 : -2) : a.y + 48;
+        var ex = vertical ? b.x + 104 : b.x + (forward ? -8 : 216), ey = vertical ? b.y + (forward ? -8 : 104) : b.y + 48;
+        var mx = (sx + ex) / 2, my = (sy + ey) / 2;
+        var path = vertical ? "M" + sx + " " + sy + " C" + sx + " " + my + " " + ex + " " + my + " " + ex + " " + ey
+          : "M" + sx + " " + sy + " C" + mx + " " + sy + " " + mx + " " + ey + " " + ex + " " + ey;
+        var arrow = vertical ? ex + "," + (ey + (forward ? 6 : -6)) + " " + (ex - 5) + "," + (ey + (forward ? -3 : 3)) + " " + (ex + 5) + "," + (ey + (forward ? -3 : 3))
+          : (ex + (forward ? 6 : -6)) + "," + ey + " " + (ex + (forward ? -3 : 3)) + "," + (ey - 5) + " " + (ex + (forward ? -3 : 3)) + "," + (ey + 5);
+        if (edge.label) {
+          var text = diagramLines(edge.label, 16, 1)[0], lw = Math.max(30, text.length * 7 + 12);
+          labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
+        }
+        return h("g", { key: i, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
+      });
+      return h("svg", { viewBox: "0 0 " + width + " " + height, style: { minWidth: Math.round(width * .85) }, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label), connections,
+        nodes.map(function (n) {
+          var at = pos[n.id], selected = p.selected === n.id;
+          var attrs = { key: n.id, transform: "translate(" + at.x + " " + at.y + ")", className: "kg-diagram__node kg-palette-" + regionPalette(n.palette), "aria-label": String(n.label || n.id) + (n.group ? ": " + String(n.group) : "") };
+          if (p.interactive) {
+            attrs.role = "button"; attrs.tabIndex = 0; attrs["aria-pressed"] = selected;
+            attrs.onClick = function () { fire(p.onSelect, { id: n.id }); };
+            attrs.onKeyDown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fire(p.onSelect, { id: n.id }); } };
+          }
+          var lines = diagramLines(n.label || n.id, 23, n.group ? 2 : 3), start = n.group ? 49 : 48 - (lines.length - 1) * 10;
+          return h("g", attrs, h("title", null, String(n.label || n.id)),
+            h("rect", { className: "kg-diagram__box", x: 0, y: 0, width: 208, height: 96, rx: 12 }),
+            h("rect", { className: "kg-diagram__stripe", x: 0, y: 16, width: 4, height: 64, rx: 2 }),
+            n.group ? h("text", { className: "kg-diagram__group", x: 16, y: 25 }, diagramLines(n.group, 26, 1)[0]) : null,
+            h("text", { className: "kg-diagram__label", x: 16, y: start }, lines.map(function (line, i) { return h("tspan", { key: i, x: 16, dy: i ? 20 : 0 }, line); })));
+        }), labels);
+    }
+    return h("figure", { className: "kg-diagram", "aria-label": p.label },
+      layout === "auto" ? [h("div", { key: "desktop", className: "kg-diagram__viewport kg-diagram__desktop" }, drawing(false)), h("div", { key: "mobile", className: "kg-diagram__viewport kg-diagram__mobile" }, drawing(true))]
+        : h("div", { className: "kg-diagram__viewport" }, drawing(layout === "vertical")),
+      h("figcaption", { className: "kg-diagram__caption" }, p.caption || p.label));
+  }
+  core.diagram = contract("core", "diagram", "1.2.0", "kages/diagram@1", CoreDiagramV2, {
+    props: { layout: S("string", { enum: ["auto", "horizontal", "vertical", "grid"], default: "auto" }), selected: S("string"), empty: S("string") },
+    tokens: contracts["core/diagram@1.1.0"].tokens,
+    agent: { use: "nodes [{id,label,group?,palette?}], edges [{from,to,label?,palette?}]. Palettes: inherit,ocean,mint,violet,amber,rose; assign by role and reuse across the page. Directed graphs are layered by edges; cycles use a grid. layout:auto becomes vertical in narrow containers; horizontal,vertical,grid are explicit. Full nodes support click/Enter/Space when interactive:true; select emits {id} and selected is public. Bind selected and a detail panel to the same state. group is a short category label. Explicit x/y uses the legacy geometry path (no palettes or selected highlight); use scene for arbitrary geometry. Caption states the takeaway, not just the title." }
+  });
+  contracts[core.diagram].local = { selected: { type: "string", default: "" } };
+  contracts[core.diagram].outputs = ["selected"];
+  contracts[core.diagram].defaults = { select: [{ do: "setLocal", key: "selected", value: { $event: "id" } }] };
+  Object.assign(interfaces["kages/diagram@1"].props, contracts[core.diagram].props);
+  interfaces["kages/diagram@1"].outputs = ["selected"];
+  contracts[core.diagram].a11y = { keyboard: "Tab to a node; Enter or Space selects. Selection is exposed with aria-pressed. Narrow diagrams reflow vertically; large branched graphs scroll without shrinking labels." };
+  Object.assign(freeFlowExports, { CoreDiagramV2: CoreDiagramV2 });
 
 /* Batch 1 of the rich-artifact roles: data visualisation and disclosure.
  * Runs inside the reference closure after the expressive roles. Charts compute
@@ -1866,9 +1999,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.13.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.10.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.9.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.14.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.11.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.10.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:

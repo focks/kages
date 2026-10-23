@@ -23,7 +23,7 @@ import { mcpTools, a2aCard } from "./surfaces.ts";
 import { formatDetails, type OpResult } from "./operations.ts";
 import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
-import { pack } from "../packs/packs.ts";
+import { pack, skillFiles } from "../packs/packs.ts";
 import { INIT_PROMPT, INIT_PROMPT_NAME } from "../packs/init-prompt.ts";
 
 export type Exec = (op: string, params: Record<string, unknown>) => Promise<OpResult>;
@@ -65,6 +65,11 @@ const resourceList = () => [
     description: `Component catalog for ${s.id}@${s.version}.`,
     mimeType: "text/plain",
   })),
+  ...Object.keys(systems).flatMap(id => Object.keys(skillFiles(id)).filter(path => path.startsWith("reference/")).map(path => ({
+    uri: `kages://guide/${id}/${path.slice("reference/".length)}`,
+    name: `${systems[id].name} ${path.slice("reference/".length)}`,
+    mimeType: path.endsWith(".json") ? "application/json" : "text/markdown",
+  }))),
   { uri: "kages://agent-card", name: "Kages agent card", mimeType: "application/json" },
 ];
 
@@ -74,6 +79,11 @@ function readResourceResult(uri: string) {
   }
   const m = /^kages:\/\/catalog\/(.+)$/.exec(uri);
   if (m && systems[m[1]]) return { contents: [{ uri, mimeType: "text/plain", text: catalog(m[1]) }] };
+  const guide = /^kages:\/\/guide\/([a-z]+)\/(.+)$/.exec(uri);
+  if (guide && Object.hasOwn(systems, guide[1])) {
+    const files = skillFiles(guide[1]), path = "reference/" + guide[2];
+    if (Object.hasOwn(files, path)) return { contents: [{ uri, mimeType: path.endsWith(".json") ? "application/json" : "text/markdown", text: files[path] }] };
+  }
   throw new Error(`unknown resource '${uri}'`);
 }
 

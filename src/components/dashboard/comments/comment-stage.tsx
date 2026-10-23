@@ -16,6 +16,7 @@ import { createPortal } from "react-dom";
 import { Check, Eye, EyeOff, MessageSquarePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { wheelPixels } from "@/runtime/scroll";
 import { KageRenderer } from "@/runtime/KageRenderer";
 import type { KageDoc } from "@/engine/types";
 import { CommentNode, Composer } from "./comment-thread";
@@ -182,7 +183,7 @@ export function CommentStage({ doc, api, className, flash, toolbarSlot, fill }: 
           <div ref={contentRef} className={fill ? "h-full" : undefined}><KageRenderer doc={doc} onLayout={onLayout} fill={fill} /></div>
 
           {mode && (
-            <div ref={overlayRef} className="absolute inset-0 z-10 cursor-crosshair bg-primary/[0.03]" aria-hidden onMouseMove={onOverlayMove} onMouseLeave={() => setHover(null)} onClick={onOverlayClick} onWheel={(e) => { if (fill) contentRef.current?.querySelector("iframe")?.dispatchEvent(new CustomEvent("kages-scroll", { detail: { left: e.deltaX, top: e.deltaY } })); }} />
+            <div ref={overlayRef} className="absolute inset-0 z-10 cursor-crosshair bg-primary/[0.03]" aria-hidden onMouseMove={onOverlayMove} onMouseLeave={() => setHover(null)} onClick={onOverlayClick} onWheel={(e) => { if (fill) contentRef.current?.querySelector("iframe")?.dispatchEvent(new CustomEvent("kages-scroll", { detail: wheelPixels(e, e.currentTarget.clientHeight) })); }} />
           )}
           {mode && hover && <div aria-hidden className="pointer-events-none absolute z-10 rounded-sm border-2 border-wire bg-wire/10" style={{ left: hover.left, top: hover.top, width: hover.width, height: hover.height }} />}
           {flashRect && <div aria-hidden className="pointer-events-none absolute z-10 animate-pulse rounded-sm border-2 border-wire bg-wire/15" style={{ left: flashRect.left, top: flashRect.top, width: flashRect.width, height: flashRect.height }} />}

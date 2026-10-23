@@ -13,18 +13,7 @@ import { useDsBundle } from "./useDsBundle.ts";
 import { designCss, readSnapshot, type DesignSnapshot } from "../engine/design.ts";
 
 type Impl = React.ComponentType<Record<string, unknown>>;
-type Bundle = Record<string, unknown>;
-
-/** Map a contract ref ("ledger/dropdown@2.0.0") to its bundle export
- *  ("LedgerDropdown"). Inherited roles resolve to a core ref and so to a
- *  Core* export, which is exactly right — the parent's implementation runs,
- *  restyled by the active system's token scope. */
-function exportName(ref: string): string {
-  const [sysSlashName] = ref.split("@");
-  const [sys, name] = sysSlashName.split("/");
-  const pascal = (s: string) => s.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join("");
-  return pascal(sys) + pascal(name);
-}
+type Bundle = { implementation?: (ref: string) => Impl | undefined; resolve: (system: string, ref: string) => { impl?: Impl } };
 
 function MissingBox({ id, msg }: { id: string; msg: string }) {
   return React.createElement("div", { className: "kg-missing", role: "alert" }, React.createElement("strong", null, id), " — ", msg);
@@ -198,8 +187,12 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
       props[c.events[ev].handler] = (payload: Json) => dispatch(id, ev, payload);
     });
 
-    const Impl = (kages as Bundle)[exportName(ref)] as Impl | undefined;
-    if (!Impl) return React.createElement(MissingBox, { key: id, id, msg: `no implementation ${exportName(ref)}` });
+    // A role can have several immutable implementations in one trusted bundle.
+    // Deriving an export name discarded the version and silently rendered new
+    // section/diagram contracts with the old implementation.
+    const bundle = kages as unknown as Bundle;
+    const Impl = bundle.implementation ? bundle.implementation(ref) : bundle.resolve(sysId, ref).impl;
+    if (!Impl) return React.createElement(MissingBox, { key: id, id, msg: `no implementation ${ref}` });
     return React.createElement(
       "div",
       { key: id, className: "kg-block", "data-block": id, "data-type": ref, style: { display: "contents" } },

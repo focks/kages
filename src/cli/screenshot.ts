@@ -81,7 +81,8 @@ export function summarize(m: PageMetrics, consoleErrors: string[], truncated: bo
 
 // --- a minimal DevTools client ------------------------------------------------
 
-class Cdp {
+/** Shared by browser regressions so trusted input events exercise the same Chrome connection as screenshots. */
+export class Cdp {
   private ws: WebSocket;
   private id = 0;
   private pending = new Map<number, { resolve: (v: any) => void; reject: (e: Error) => void }>();
@@ -101,8 +102,8 @@ class Cdp {
     await new Promise<void>((resolve, reject) => { ws.addEventListener("open", () => resolve(), { once: true }); ws.addEventListener("error", () => reject(new Error("could not connect to the browser")), { once: true }); });
     return new Cdp(ws);
   }
-  send<T = any>(method: string, params: object = {}): Promise<T> {
-    return new Promise((resolve, reject) => { const id = ++this.id; this.pending.set(id, { resolve, reject }); this.ws.send(JSON.stringify({ id, method, params })); });
+  send<T = any>(method: string, params: object = {}, sessionId?: string): Promise<T> {
+    return new Promise((resolve, reject) => { const id = ++this.id; this.pending.set(id, { resolve, reject }); this.ws.send(JSON.stringify({ id, method, params, sessionId })); });
   }
   on(l: (method: string, params: any) => void) { this.listeners.push(l); }
   close() { try { this.ws.close(); } catch { /* already closed */ } }

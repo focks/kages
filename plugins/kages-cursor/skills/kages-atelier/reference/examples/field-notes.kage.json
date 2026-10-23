@@ -1,0 +1,78 @@
+{
+  "kages": "1.0",
+  "id": "field-notes",
+  "title": "Field notes — a reading page",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 8
+      },
+      "slots": {
+        "header": [
+          "title"
+        ],
+        "children": [
+          "intro",
+          "steps",
+          "rule",
+          "example"
+        ],
+        "footer": [
+          "footer"
+        ]
+      }
+    },
+    "title": {
+      "type": "text",
+      "props": {
+        "variant": "display",
+        "text": "Make room for ideas"
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Start with the content",
+        "description": "A report can be a single flowing page. Choose navigation only when the reader needs it.",
+        "inset": 0
+      }
+    },
+    "steps": {
+      "type": "list",
+      "props": {
+        "ordered": true,
+        "items": [
+          "Choose a reading, wide or full canvas.",
+          "Compose sections, imagery and interactive blocks.",
+          "Use grids and splits when the content benefits from comparison."
+        ]
+      }
+    },
+    "rule": {
+      "type": "divider"
+    },
+    "example": {
+      "type": "code",
+      "props": {
+        "caption": "A complete minimal page",
+        "language": "json",
+        "wrap": true,
+        "code": "{\"kages\":\"1.0\",\"id\":\"note\",\"title\":\"A note\",\"system\":\"core@1\",\"root\":\"note\",\"blocks\":{\"note\":{\"type\":\"text\",\"props\":{\"text\":\"Any block can be the root.\"}}}}"
+      }
+    },
+    "footer": {
+      "type": "text",
+      "props": {
+        "variant": "caption",
+        "text": "Built from portable blocks."
+      }
+    }
+  },
+  "brief": {
+    "mode": "read"
+  }
+}

@@ -1,0 +1,239 @@
+{
+  "kages": "1.0",
+  "id": "collection-lab",
+  "title": "Collection lab — reusable, data-driven cards",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide"
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "search",
+          "cards",
+          "empty"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Find your next workspace",
+        "eyebrow": "Collection lab",
+        "description": "Three cards share one typed composition. Filter the collection; each note survives filtering and reordering.",
+        "inset": 0
+      }
+    },
+    "search": {
+      "type": "text-field",
+      "props": {
+        "label": "Filter workspaces",
+        "placeholder": "Try Design"
+      },
+      "bind": {
+        "value": {
+          "$state": "query"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "cards": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small"
+      },
+      "slots": {
+        "children": [
+          "product"
+        ]
+      }
+    },
+    "product": {
+      "type": "composition",
+      "props": {
+        "name": "product"
+      },
+      "bind": {
+        "inputs": {
+          "name": {
+            "$item": "name"
+          },
+          "category": {
+            "$item": "category"
+          },
+          "price": {
+            "$item": "price"
+          }
+        }
+      },
+      "repeat": {
+        "each": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "products"
+                },
+                "fields": [
+                  "name",
+                  "category"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            },
+            "field": "name"
+          }
+        },
+        "key": "id",
+        "as": "product"
+      }
+    },
+    "empty": {
+      "type": "text",
+      "props": {
+        "text": "No matching workspaces. Try a different search."
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$data": "products"
+                },
+                "fields": [
+                  "name",
+                  "category"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  "state": {
+    "query": "",
+    "selected": ""
+  },
+  "data": {
+    "products": [
+      {
+        "id": "atlas",
+        "name": "Atlas",
+        "category": "Research",
+        "price": 29
+      },
+      {
+        "id": "canvas",
+        "name": "Canvas",
+        "category": "Design",
+        "price": 49
+      },
+      {
+        "id": "compass",
+        "name": "Compass",
+        "category": "Planning",
+        "price": 19
+      }
+    ]
+  },
+  "compositions": {
+    "product": {
+      "inputs": {
+        "name": {
+          "type": "string",
+          "required": true
+        },
+        "category": {
+          "type": "string",
+          "required": true
+        },
+        "price": {
+          "type": "number",
+          "required": true
+        }
+      },
+      "root": "card",
+      "blocks": {
+        "card": {
+          "type": "section",
+          "props": {
+            "level": 3,
+            "tone": "surface"
+          },
+          "bind": {
+            "title": {
+              "$input": "name"
+            }
+          },
+          "slots": {
+            "children": [
+              "category",
+              "price",
+              "notes"
+            ]
+          }
+        },
+        "category": {
+          "type": "text",
+          "bind": {
+            "text": {
+              "$input": "category"
+            }
+          }
+        },
+        "price": {
+          "type": "text",
+          "bind": {
+            "text": {
+              "$format": {
+                "value": {
+                  "$input": "price"
+                },
+                "style": "currency"
+              }
+            }
+          }
+        },
+        "notes": {
+          "type": "text-field",
+          "props": {
+            "label": "Personal note",
+            "placeholder": "Each card keeps its own note"
+          }
+        }
+      },
+      "output": {
+        "$block": "notes.value"
+      },
+      "outputType": {
+        "type": "string"
+      }
+    }
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

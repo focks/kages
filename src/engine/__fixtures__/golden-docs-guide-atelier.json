@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Docs guide — outline, tabs, code and validated fields\" · system atelier@1.9.0 · 18 blocks\nstate {\"age\":null,\"period\":{\"start\":\"\",\"end\":\"\"}}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.0.0] title=\"Getting started\"\n    - layout [core/split@1.0.0]\n      start:\n        - toc [core/toc@1.0.0] title=\"On this page\" items=||\n      end:\n        - a-install [core/anchor@1.0.0]\n        - h-install [core/rich-text@1.1.0]\n        - platforms [core/tab-panel@1.0.0] label=\"Platform\"\n          panel1:\n            - mac [core/text@1.0.0] text=\"Install with Homebrew, then restart your terminal.\"\n          panel2:\n            - linux [core/text@1.0.0] text=\"Use your package manager or download the static binary.\"\n          panel3:\n            - win [core/text@1.0.0] text=\"Use the installer or winget.\"\n        - a-usage [core/anchor@1.0.0]\n        - h-usage [core/rich-text@1.1.0]\n        - snippet [core/code-tabs@1.0.0]\n        - a-check [core/anchor@1.0.0]\n        - h-check [core/rich-text@1.1.0]\n        - age [core/number-input@1.1.0] label=\"Your age\"\n            ↳ reads state:age · writes change→state.age\n        - period [core/date-range@1.0.0] label=\"Reporting period\" value={\"start\":\"\",\"end\":\"\"}\n            ↳ reads state:period · writes change→state.period\n        - report [core/file-upload@1.0.0] label=\"Attach a CSV (read locally)\"",
+  "description": "Kage \"Docs guide — outline, tabs, code and validated fields\" · system atelier@1.10.0 · 18 blocks\nstate {\"age\":null,\"period\":{\"start\":\"\",\"end\":\"\"}}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Getting started\"\n    - layout [core/split@1.0.0]\n      start:\n        - toc [core/toc@1.0.0] title=\"On this page\" items=||\n      end:\n        - a-install [core/anchor@1.0.0]\n        - h-install [core/rich-text@1.1.0]\n        - platforms [core/tab-panel@1.0.0] label=\"Platform\"\n          panel1:\n            - mac [core/text@1.0.0] text=\"Install with Homebrew, then restart your terminal.\"\n          panel2:\n            - linux [core/text@1.0.0] text=\"Use your package manager or download the static binary.\"\n          panel3:\n            - win [core/text@1.0.0] text=\"Use the installer or winget.\"\n        - a-usage [core/anchor@1.0.0]\n        - h-usage [core/rich-text@1.1.0]\n        - snippet [core/code-tabs@1.0.0]\n        - a-check [core/anchor@1.0.0]\n        - h-check [core/rich-text@1.1.0]\n        - age [core/number-input@1.1.0] label=\"Your age\"\n            ↳ reads state:age · writes change→state.age\n        - period [core/date-range@1.0.0] label=\"Reporting period\" value={\"start\":\"\",\"end\":\"\"}\n            ↳ reads state:period · writes change→state.period\n        - report [core/file-upload@1.0.0] label=\"Attach a CSV (read locally)\"",
   "envelope": {
     "title": "Docs guide — outline, tabs, code and validated fields",
     "root": "root",
@@ -44,7 +44,10 @@
           "level": null,
           "tone": null,
           "inset": 0,
-          "gap": null
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
         },
         "slots": {
           "children": [],

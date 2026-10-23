@@ -6,8 +6,7 @@
 // https://cursor.com/docs/reference/plugins, Codex: https://developers.openai.com/plugins/build/plugins), and a target with no verified format is not
 // generated; it is listed under "planned" in plugins/README.md.
 import { systems } from "../engine/data.ts";
-import { skillMd } from "../packs/packs.ts";
-import { systemCard } from "../packs/system-card.ts";
+import { skillFiles as authoringFiles } from "../packs/packs.ts";
 import { LAUNCHER_SH } from "../hooks/manifest.ts";
 import { decisionSkillMd, DECISION_SKILL_NAME } from "../packs/decision-skill.ts";
 import { loginSkillMd, LOGIN_SKILL_NAME } from "../packs/login-skill.ts";
@@ -23,7 +22,7 @@ const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
 /** Skills: one authoring guide per design system, plus the decision-guide and login skills. */
 function skillFiles(o: { shellEscape: boolean } = { shellEscape: true }): Files {
   const f: Files = {};
-  for (const id of Object.keys(systems)) { f[`skills/kages-${id}/SKILL.md`] = skillMd(id); f[`skills/kages-${id}/reference/system.md`] = systemCard(id).markdown; }
+  for (const id of Object.keys(systems)) for (const [path, content] of Object.entries(authoringFiles(id))) f[`skills/kages-${id}/${path}`] = content;
   f[`skills/${DECISION_SKILL_NAME}/SKILL.md`] = decisionSkillMd();
   f[`skills/${LOGIN_SKILL_NAME}/SKILL.md`] = loginSkillMd(o);
   return f;

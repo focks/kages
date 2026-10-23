@@ -37,7 +37,7 @@ test("free-flow: every installed role is available to structured generation and 
   for (const system of ["core", "ledger", "atelier"]) {
     const variants = generationSchema(system).properties.blocks.items.anyOf;
     for (const role of roles) {
-      assert.equal(resolve(system, role).ref, `core/${role}@${role === "code" ? "1.1.0" : "1.0.0"}`); // code gained highlighting: a minor release
+      assert.equal(resolve(system, role).ref, `core/${role}@${["code", "section"].includes(role) ? "1.1.0" : "1.0.0"}`); // code gained highlighting: a minor release
       assert.ok(variants.some((v: any) => v.properties.type.enum[0] === role));
     }
     assert.match(skillMd(system), /Navigation is optional/);

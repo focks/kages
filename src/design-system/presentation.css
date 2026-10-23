@@ -1,0 +1,35 @@
+/* A region owns its foreground as well as its background; otherwise inherited
+   body text would retain the parent's colour when the palette changes. */
+.kg-kage .kg-section { color: var(--kg-ink); }
+.kg-kage .kg-section--wash { background: linear-gradient(125deg, var(--kg-accent-soft), var(--kg-surface)); }
+.kg-kage .kg-section--hero { padding: clamp(1.25rem, 5cqi, 4rem); gap: var(--kg-space-6); }
+.kg-kage .kg-section--hero > .kg-section__title { max-width: 19ch; font-size: clamp(2.25rem, 6cqi, 4.5rem); line-height: 1.05; letter-spacing: -.035em; text-wrap: balance; color: var(--kg-accent); }
+.kg-kage .kg-section--hero > .kg-section__description { max-width: 55ch; font-size: clamp(1rem, 1.7cqi, 1.25rem); }
+.kg-kage .kg-section--hero > .kg-section__eyebrow { color: var(--kg-accent); letter-spacing: .08em; text-transform: uppercase; }
+
+/* Motion communicates a changed value or selection. Reduced motion is enforced
+   by motion.css, which the build appends after this sheet. */
+.kg-kage .kg-bar-chart__bar { transition: width var(--motion-duration-base) var(--motion-ease-out); }
+.kg-kage .kg-diagram { container-type: inline-size; margin: 0; min-width: 0; color: var(--kg-ink); }
+.kg-kage .kg-diagram__viewport { overflow: auto; padding: var(--kg-space-1); }
+.kg-kage .kg-diagram svg { display: block; width: 100%; height: auto; }
+.kg-kage .kg-diagram text { font-family: var(--kg-font-body); }
+.kg-kage .kg-diagram__caption { margin-top: var(--kg-space-3); color: var(--kg-ink-muted); line-height: 1.6; }
+.kg-kage .kg-diagram__node { color: var(--kg-ink); }
+.kg-kage .kg-diagram__node[role=button] { cursor: pointer; }
+.kg-kage .kg-diagram__box { fill: var(--kg-accent-soft); stroke: var(--kg-line-control); stroke-width: 1; }
+.kg-kage .kg-diagram__node[role=button]:hover .kg-diagram__box,
+.kg-kage .kg-diagram__node[aria-pressed=true] .kg-diagram__box { stroke: var(--kg-accent); stroke-width: 3; }
+.kg-kage .kg-diagram__node:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 4px; border-radius: 12px; }
+.kg-kage .kg-diagram__stripe { fill: var(--kg-accent); }
+.kg-kage .kg-diagram__label { fill: var(--kg-ink); font-size: 15px; font-weight: 650; }
+.kg-kage .kg-diagram__group { fill: var(--kg-accent); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.kg-kage .kg-diagram__edge { fill: none; stroke: var(--kg-accent); stroke-width: 2; }
+.kg-kage .kg-diagram__arrow { fill: var(--kg-accent); }
+.kg-kage .kg-diagram__edge-label { fill: var(--kg-ink); font-size: 12px; }
+.kg-kage .kg-diagram__edge-chip { fill: var(--kg-paper); }
+.kg-kage .kg-diagram__mobile { display: none; }
+@container (max-width: 40rem) {
+  .kg-kage .kg-diagram__desktop { display: none; }
+  .kg-kage .kg-diagram__mobile { display: block; }
+}

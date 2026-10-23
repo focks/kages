@@ -1,0 +1,224 @@
+{
+  "kages": "1.0",
+  "id": "meeting-notes",
+  "title": "Meeting notes — decisions and action items",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "agenda",
+          "decisions",
+          "owner",
+          "summary",
+          "actions"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Meeting notes · 21 October 2026",
+        "title": "Launch planning",
+        "description": "Attendees: Maya, Jonas and Priya. Purpose: agree the plan and who does what.",
+        "inset": 0
+      }
+    },
+    "agenda": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Agenda"
+          },
+          {
+            "kind": "list",
+            "ordered": true,
+            "items": [
+              "Where the launch stands",
+              "Venue and catering",
+              "Budget",
+              "Who does what next"
+            ]
+          }
+        ]
+      }
+    },
+    "decisions": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Decisions"
+          },
+          {
+            "kind": "list",
+            "items": [
+              "Launch on the planned date; no change to the schedule.",
+              "Use the smaller venue and spend the difference on catering.",
+              "Review the budget again once the new quote arrives."
+            ]
+          }
+        ]
+      }
+    },
+    "owner": {
+      "type": "dropdown",
+      "props": {
+        "label": "Show action items for",
+        "options": [
+          {
+            "value": "all",
+            "label": "Everyone"
+          },
+          {
+            "value": "Maya",
+            "label": "Maya"
+          },
+          {
+            "value": "Jonas",
+            "label": "Jonas"
+          },
+          {
+            "value": "Priya",
+            "label": "Priya"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "owner"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "owner",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "summary": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$count": {
+                "$filter": {
+                  "list": {
+                    "$data": "actions"
+                  },
+                  "field": "owner",
+                  "equals": {
+                    "$state": "owner"
+                  },
+                  "skipIf": "all"
+                }
+              }
+            },
+            " action items shown"
+          ]
+        }
+      }
+    },
+    "actions": {
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "task",
+            "label": "Action"
+          },
+          {
+            "key": "owner",
+            "label": "Owner"
+          },
+          {
+            "key": "due",
+            "label": "Due"
+          },
+          {
+            "key": "status",
+            "label": "Status"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "actions"
+                },
+                "field": "owner",
+                "equals": {
+                  "$state": "owner"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "due"
+          }
+        }
+      }
+    }
+  },
+  "state": {
+    "owner": "all"
+  },
+  "data": {
+    "actions": [
+      {
+        "id": "a1",
+        "task": "Draft the launch checklist",
+        "owner": "Maya",
+        "due": "2026-11-02",
+        "status": "Open"
+      },
+      {
+        "id": "a2",
+        "task": "Confirm the venue and catering",
+        "owner": "Jonas",
+        "due": "2026-11-04",
+        "status": "Open"
+      },
+      {
+        "id": "a3",
+        "task": "Send the invitation list for review",
+        "owner": "Maya",
+        "due": "2026-10-28",
+        "status": "Done"
+      },
+      {
+        "id": "a4",
+        "task": "Update the budget with the new quote",
+        "owner": "Priya",
+        "due": "2026-11-06",
+        "status": "Open"
+      }
+    ]
+  },
+  "brief": {
+    "mode": "read"
+  }
+}

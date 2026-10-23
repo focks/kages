@@ -19,9 +19,9 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
   const assets = doc.resolved?.assets ?? currentAssets;
   // Each document edit restarts execution and clears failed block boundaries.
   const frameDoc = React.useMemo(() => {
-    try { return { html: origin ? sandboxHtml(origin, assets.runtime ?? frameRuntime, assets.integrity, crypto.randomUUID(), assets.base) : "", error: "" }; }
+    try { return { html: origin ? sandboxHtml(origin, assets.runtime ?? frameRuntime, assets.integrity, crypto.randomUUID(), assets.base, fill) : "", error: "" }; }
     catch (e) { return { html: "", error: `Artifact assets unavailable: ${(e as Error).message}` }; }
-  }, [origin, doc, assets.integrity]);
+  }, [origin, doc, assets.integrity, fill]);
   const html = frameDoc.html;
   React.useEffect(() => { setOrigin(location.origin); }, []);
   React.useEffect(() => {
@@ -36,7 +36,7 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
         if (data?.type === "error" && typeof data.message === "string") {
           console.error("Kage frame:", data.message.slice(0, 500));
         } else if (data?.type === "ready") {
-          port!.postMessage({ type: "render", dark: dark(), props: { doc, system, design, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
+          port!.postMessage({ type: "render", dark: dark(), props: { doc, system, design, fill, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
         } else if (data?.type === "settled") {
           current.current.onReady?.();
         } else if (data?.type === "layout" && Number.isFinite(data.height)) {

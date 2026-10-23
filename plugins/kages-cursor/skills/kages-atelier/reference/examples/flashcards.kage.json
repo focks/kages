@@ -1,0 +1,189 @@
+{
+  "kages": "1.0",
+  "id": "flashcards",
+  "title": "Flashcards — the parts of a cell",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "search",
+          "deck",
+          "none"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Study",
+        "title": "The parts of a cell",
+        "description": "Read the term, say what it does, then open the card to check yourself.",
+        "inset": 0
+      }
+    },
+    "search": {
+      "type": "text-field",
+      "props": {
+        "label": "Find a card",
+        "placeholder": "Try energy"
+      },
+      "bind": {
+        "value": {
+          "$state": "query"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "deck": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "card"
+        ]
+      }
+    },
+    "card": {
+      "type": "card",
+      "props": {},
+      "bind": {
+        "title": {
+          "$item": "term"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$sort": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "cards"
+                },
+                "fields": [
+                  "term",
+                  "definition"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            },
+            "field": "term"
+          }
+        },
+        "key": "id",
+        "as": "card"
+      },
+      "slots": {
+        "children": [
+          "answer"
+        ]
+      }
+    },
+    "answer": {
+      "type": "accordion",
+      "props": {},
+      "bind": {
+        "items": [
+          {
+            "id": "a",
+            "title": "Show the answer",
+            "body": {
+              "$item": "definition"
+            }
+          }
+        ]
+      }
+    },
+    "none": {
+      "type": "text",
+      "props": {
+        "text": "No card matches. Try a different word.",
+        "variant": "muted"
+      },
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$data": "cards"
+                },
+                "fields": [
+                  "term",
+                  "definition"
+                ],
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            }
+          },
+          0
+        ]
+      }
+    }
+  },
+  "data": {
+    "cards": [
+      {
+        "id": "nucleus",
+        "term": "Nucleus",
+        "definition": "Holds the cell's DNA and directs its activity."
+      },
+      {
+        "id": "mito",
+        "term": "Mitochondrion",
+        "definition": "Releases usable energy from food molecules."
+      },
+      {
+        "id": "ribosome",
+        "term": "Ribosome",
+        "definition": "Builds proteins from instructions copied from DNA."
+      },
+      {
+        "id": "membrane",
+        "term": "Cell membrane",
+        "definition": "A thin boundary that controls what enters and leaves."
+      },
+      {
+        "id": "golgi",
+        "term": "Golgi apparatus",
+        "definition": "Sorts, packages and ships proteins to where they are needed."
+      },
+      {
+        "id": "chloroplast",
+        "term": "Chloroplast",
+        "definition": "Captures light to make sugar in plant cells."
+      }
+    ]
+  },
+  "state": {
+    "query": ""
+  },
+  "brief": {
+    "mode": "experience"
+  }
+}

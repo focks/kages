@@ -67,7 +67,7 @@ Ledger for dense tables).
 
 ## Verify
 
-`kages lint` (zero findings), `kages advice`, `kages screenshot --width 390` and `--theme dark`, and
+`kages lint` (zero findings), `kages screenshot --width 390` and `--dark`, and
 check every link with the keyboard: Tab to a citation, Enter, and land on its source.
 
 ## Extending the blocks

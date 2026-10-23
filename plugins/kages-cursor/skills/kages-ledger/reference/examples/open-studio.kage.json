@@ -1,0 +1,112 @@
+{
+  "kages": "1.0",
+  "id": "open-studio",
+  "title": "Open studio — a landing page",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "features",
+          "closing"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "A space for your next idea",
+        "title": "Create something that feels like yours",
+        "description": "Stories, tools and explorations can share a design system without sharing a layout.",
+        "tone": "accent",
+        "inset": 8
+      },
+      "slots": {
+        "actions": [
+          "explore"
+        ]
+      }
+    },
+    "explore": {
+      "type": "button",
+      "props": {
+        "label": "Explore the possibilities",
+        "variant": "primary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "toggle",
+            "path": "showDetails"
+          }
+        ]
+      }
+    },
+    "features": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "story",
+          "tool",
+          "gallery"
+        ]
+      }
+    },
+    "story": {
+      "type": "section",
+      "props": {
+        "title": "Tell a story",
+        "level": 3,
+        "tone": "surface",
+        "description": "Reading-width prose, captions, lists and code examples."
+      }
+    },
+    "tool": {
+      "type": "section",
+      "props": {
+        "title": "Build a tool",
+        "level": 3,
+        "tone": "surface",
+        "description": "Inputs and outputs side by side, with state connecting them."
+      }
+    },
+    "gallery": {
+      "type": "section",
+      "props": {
+        "title": "Show the work",
+        "level": 3,
+        "tone": "surface",
+        "description": "Images and feature cards in a grid that fits the available space."
+      }
+    },
+    "closing": {
+      "type": "section",
+      "props": {
+        "title": "Choose your own shape",
+        "description": "Start with a page, section, grid, split, stack or a single block. Add tabs or a sidebar when they help the experience.",
+        "inset": 0
+      },
+      "visible": {
+        "$state": "showDetails"
+      }
+    }
+  },
+  "state": {
+    "showDetails": false
+  },
+  "brief": {
+    "mode": "persuade"
+  }
+}

@@ -1,0 +1,592 @@
+{
+  "kages": "1.0",
+  "id": "research-brief",
+  "title": "Trunk-based development — a research brief",
+  "system": "core@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "hero",
+          "figures",
+          "layout"
+        ]
+      }
+    },
+    "hero": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Source control · research brief · October 2026",
+        "title": "Trunk-based development",
+        "description": "Everyone integrates small changes into one shared branch at least once a day. DORA ties the habit to faster, more stable delivery.",
+        "inset": 0
+      }
+    },
+    "figures": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 4
+      },
+      "slots": {
+        "children": [
+          "f1",
+          "f2",
+          "f3"
+        ]
+      }
+    },
+    "f1": {
+      "type": "stat",
+      "props": {
+        "label": "Active branches, trunk included",
+        "value": "3 or fewer",
+        "caption": "DORA threshold"
+      }
+    },
+    "f2": {
+      "type": "stat",
+      "props": {
+        "label": "Merges per developer",
+        "value": "1+ a day",
+        "caption": "DORA threshold"
+      }
+    },
+    "f3": {
+      "type": "stat",
+      "props": {
+        "label": "Code freezes",
+        "value": "None",
+        "caption": "DORA threshold"
+      }
+    },
+    "layout": {
+      "type": "split",
+      "props": {
+        "ratio": "wide-end",
+        "gap": 8
+      },
+      "slots": {
+        "start": [
+          "toc"
+        ],
+        "end": [
+          "a-what",
+          "what",
+          "quote",
+          "fig",
+          "a-check",
+          "h-check",
+          "checks",
+          "score",
+          "verdict",
+          "a-code",
+          "h-code",
+          "snippet",
+          "a-terms",
+          "terms",
+          "a-sources",
+          "sources"
+        ]
+      }
+    },
+    "toc": {
+      "type": "toc",
+      "props": {
+        "title": "Contents",
+        "sticky": true,
+        "items": [
+          {
+            "label": "What it is",
+            "target": "what"
+          },
+          {
+            "label": "Self-check",
+            "target": "check"
+          },
+          {
+            "label": "In code",
+            "target": "code"
+          },
+          {
+            "label": "Glossary",
+            "target": "terms"
+          },
+          {
+            "label": "Sources",
+            "target": "sources"
+          }
+        ]
+      }
+    },
+    "a-what": {
+      "type": "anchor",
+      "props": {
+        "name": "what"
+      }
+    },
+    "what": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "What it is"
+          },
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Developers collaborate on one branch called trunk and resist long-lived development branches"
+              },
+              {
+                "text": "1",
+                "cite": "tbd"
+              },
+              {
+                "text": ". DORA puts it in operational terms: small batches merged at least once a day"
+              },
+              {
+                "text": "2",
+                "cite": "dora"
+              },
+              {
+                "text": "."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "quote": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "quote",
+            "text": "If it hurts, do it more often.",
+            "attribution": "Martin Fowler on integration frequency",
+            "href": "https://martinfowler.com/articles/branching-patterns.html"
+          }
+        ]
+      }
+    },
+    "fig": {
+      "type": "scene",
+      "props": {
+        "label": "Trunk with short-lived branches and one release branch",
+        "caption": "Branches rejoin within a day; the release branch is cut late and only receives cherry-picks.",
+        "width": 640,
+        "height": 200,
+        "shapes": [
+          {
+            "kind": "text",
+            "x": 12,
+            "y": 64,
+            "text": "trunk",
+            "size": 12,
+            "fill": "ink-muted"
+          },
+          {
+            "kind": "line",
+            "x": 60,
+            "y": 60,
+            "x2": 620,
+            "y2": 60,
+            "stroke": "accent",
+            "strokeWidth": 4
+          },
+          {
+            "kind": "path",
+            "d": "M140 60 Q150 20 175 20 L215 20 Q240 20 250 60",
+            "stroke": "ink-muted",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "path",
+            "d": "M330 60 Q340 20 365 20 L405 20 Q430 20 440 60",
+            "stroke": "ink-muted",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "text",
+            "x": 12,
+            "y": 154,
+            "text": "release",
+            "size": 12,
+            "fill": "ink-muted"
+          },
+          {
+            "kind": "path",
+            "d": "M470 60 Q485 150 520 150 L620 150",
+            "stroke": "ink",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "circle",
+            "x": 140,
+            "y": 60,
+            "radius": 5,
+            "fill": "paper",
+            "stroke": "accent",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "circle",
+            "x": 250,
+            "y": 60,
+            "radius": 5,
+            "fill": "paper",
+            "stroke": "accent",
+            "strokeWidth": 2
+          },
+          {
+            "kind": "circle",
+            "x": 440,
+            "y": 60,
+            "radius": 5,
+            "fill": "paper",
+            "stroke": "accent",
+            "strokeWidth": 2
+          }
+        ]
+      }
+    },
+    "a-check": {
+      "type": "anchor",
+      "props": {
+        "name": "check"
+      }
+    },
+    "h-check": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "Self-check"
+          },
+          {
+            "kind": "paragraph",
+            "text": "Tick what is true for your team today. Your ticks stay in this browser."
+          }
+        ]
+      }
+    },
+    "checks": {
+      "type": "stack",
+      "props": {
+        "gap": 2
+      },
+      "slots": {
+        "children": [
+          "k1",
+          "k2",
+          "k3",
+          "k4"
+        ]
+      }
+    },
+    "k1": {
+      "type": "checkbox",
+      "props": {
+        "label": "Three or fewer active branches"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c1"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c1",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "k2": {
+      "type": "checkbox",
+      "props": {
+        "label": "Every developer merges to trunk daily"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c2"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c2",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "k3": {
+      "type": "checkbox",
+      "props": {
+        "label": "No code freezes"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c3"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c3",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "k4": {
+      "type": "checkbox",
+      "props": {
+        "label": "Unfinished features ship behind flags"
+      },
+      "bind": {
+        "checked": {
+          "$state": "c4"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "c4",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "score": {
+      "type": "stat",
+      "props": {
+        "label": "Your score out of 4"
+      },
+      "bind": {
+        "value": {
+          "$add": [
+            {
+              "$if": [
+                {
+                  "$state": "c1"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "c2"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "c3"
+                },
+                1,
+                0
+              ]
+            },
+            {
+              "$if": [
+                {
+                  "$state": "c4"
+                },
+                1,
+                0
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "verdict": {
+      "type": "text",
+      "props": {
+        "variant": "muted"
+      },
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$gte": [
+                {
+                  "$add": [
+                    {
+                      "$if": [
+                        {
+                          "$state": "c1"
+                        },
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$state": "c2"
+                        },
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$state": "c3"
+                        },
+                        1,
+                        0
+                      ]
+                    },
+                    {
+                      "$if": [
+                        {
+                          "$state": "c4"
+                        },
+                        1,
+                        0
+                      ]
+                    }
+                  ]
+                },
+                4
+              ]
+            },
+            "All four hold. You are practising trunk-based development.",
+            "Tick what is true. Fewer than four means there is room to move toward trunk."
+          ]
+        }
+      }
+    },
+    "a-code": {
+      "type": "anchor",
+      "props": {
+        "name": "code"
+      }
+    },
+    "h-code": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "heading",
+            "level": 2,
+            "text": "In code"
+          },
+          {
+            "kind": "paragraph",
+            "text": "A release flag chooses the implementation while both ship on trunk."
+          }
+        ]
+      }
+    },
+    "snippet": {
+      "type": "code",
+      "props": {
+        "language": "ts",
+        "caption": "Branch by abstraction behind a flag",
+        "code": "// Commit 1: the abstraction. Behaviour unchanged.\ninterface PaymentGateway { charge(order: Order): Promise<Receipt>; }\n\nfunction gatewayFor(user: User): PaymentGateway {\n  return flags.isEnabled(\"payments.new-gateway\", { userId: user.id })\n    ? new NewGateway()\n    : new LegacyGateway();\n}"
+      }
+    },
+    "a-terms": {
+      "type": "anchor",
+      "props": {
+        "name": "terms"
+      }
+    },
+    "terms": {
+      "type": "glossary",
+      "props": {
+        "title": "Glossary",
+        "items": [
+          {
+            "term": "Trunk",
+            "definition": "The single shared branch, also called main or master. It should always be releasable."
+          },
+          {
+            "term": "Feature flag",
+            "definition": "A runtime switch that turns a code path on or off, separating deployment from release."
+          },
+          {
+            "term": "Cherry-pick",
+            "definition": "Copying one commit from trunk to a release branch."
+          }
+        ]
+      }
+    },
+    "a-sources": {
+      "type": "anchor",
+      "props": {
+        "name": "sources"
+      }
+    },
+    "sources": {
+      "type": "references",
+      "props": {
+        "title": "Sources",
+        "items": [
+          {
+            "id": "tbd",
+            "label": "Trunk Based Development",
+            "href": "https://trunkbaseddevelopment.com/",
+            "detail": "Paul Hammant et al."
+          },
+          {
+            "id": "dora",
+            "label": "Capabilities: Trunk-based development",
+            "href": "https://dora.dev/capabilities/trunk-based-development/",
+            "detail": "DORA"
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "c1": false,
+    "c2": false,
+    "c3": false,
+    "c4": false
+  },
+  "persist": {
+    "c1": "personal",
+    "c2": "personal",
+    "c3": "personal",
+    "c4": "personal"
+  },
+  "brief": {
+    "mode": "read"
+  }
+}

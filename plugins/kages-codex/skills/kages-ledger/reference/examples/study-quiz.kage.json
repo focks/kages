@@ -1,0 +1,504 @@
+{
+  "kages": "1.0",
+  "id": "study-quiz",
+  "title": "Quiz — how photosynthesis works",
+  "system": "ledger@2",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "card-q1",
+          "card-q2",
+          "card-q3",
+          "actions",
+          "result"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "eyebrow": "Biology",
+        "title": "How photosynthesis works",
+        "description": "Three questions. Answer them all, then check your work: each answer comes with a one-line reason.",
+        "inset": 0
+      }
+    },
+    "actions": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "gap": 3,
+        "wrap": true
+      },
+      "slots": {
+        "children": [
+          "check",
+          "again"
+        ]
+      }
+    },
+    "check": {
+      "type": "button",
+      "props": {
+        "label": "Check my answers",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$or": [
+            {
+              "$eq": [
+                {
+                  "$state": "q1"
+                },
+                ""
+              ]
+            },
+            {
+              "$eq": [
+                {
+                  "$state": "q2"
+                },
+                ""
+              ]
+            },
+            {
+              "$eq": [
+                {
+                  "$state": "q3"
+                },
+                ""
+              ]
+            }
+          ]
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": true
+          }
+        ]
+      }
+    },
+    "again": {
+      "type": "button",
+      "props": {
+        "label": "Start over",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "q1",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "q2",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "q3",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": false
+          }
+        ]
+      }
+    },
+    "result": {
+      "type": "alert",
+      "props": {
+        "tone": "info",
+        "title": "Your result"
+      },
+      "bind": {
+        "text": {
+          "$concat": [
+            "You got ",
+            {
+              "$add": [
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "q1"
+                        },
+                        "Chloroplast"
+                      ]
+                    },
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "q2"
+                        },
+                        "Carbon dioxide"
+                      ]
+                    },
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "$if": [
+                    {
+                      "$eq": [
+                        {
+                          "$state": "q3"
+                        },
+                        "Glucose"
+                      ]
+                    },
+                    1,
+                    0
+                  ]
+                }
+              ]
+            },
+            " of ",
+            3,
+            " right."
+          ]
+        }
+      },
+      "visible": {
+        "$state": "submitted"
+      }
+    },
+    "card-q1": {
+      "type": "card",
+      "props": {
+        "title": "Question 1"
+      },
+      "slots": {
+        "children": [
+          "q1",
+          "q1-ok",
+          "q1-no"
+        ]
+      }
+    },
+    "q1": {
+      "type": "choice",
+      "props": {
+        "label": "Where in a plant cell does photosynthesis take place?",
+        "name": "q1",
+        "options": [
+          {
+            "value": "Chloroplast",
+            "label": "Chloroplast"
+          },
+          {
+            "value": "Mitochondrion",
+            "label": "Mitochondrion"
+          },
+          {
+            "value": "Nucleus",
+            "label": "Nucleus"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "q1"
+        },
+        "disabled": {
+          "$state": "submitted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "q1",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "q1-ok": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Correct",
+        "text": "Chloroplasts hold the chlorophyll that captures light."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$eq": [
+              {
+                "$state": "q1"
+              },
+              "Chloroplast"
+            ]
+          }
+        ]
+      }
+    },
+    "q1-no": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Not quite",
+        "text": "The answer is Chloroplast. Chloroplasts hold the chlorophyll that captures light."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$not": {
+              "$eq": [
+                {
+                  "$state": "q1"
+                },
+                "Chloroplast"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "card-q2": {
+      "type": "card",
+      "props": {
+        "title": "Question 2"
+      },
+      "slots": {
+        "children": [
+          "q2",
+          "q2-ok",
+          "q2-no"
+        ]
+      }
+    },
+    "q2": {
+      "type": "choice",
+      "props": {
+        "label": "Which gas do plants take in for photosynthesis?",
+        "name": "q2",
+        "options": [
+          {
+            "value": "Oxygen",
+            "label": "Oxygen"
+          },
+          {
+            "value": "Carbon dioxide",
+            "label": "Carbon dioxide"
+          },
+          {
+            "value": "Nitrogen",
+            "label": "Nitrogen"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "q2"
+        },
+        "disabled": {
+          "$state": "submitted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "q2",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "q2-ok": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Correct",
+        "text": "Carbon from carbon dioxide is built into sugar."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$eq": [
+              {
+                "$state": "q2"
+              },
+              "Carbon dioxide"
+            ]
+          }
+        ]
+      }
+    },
+    "q2-no": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Not quite",
+        "text": "The answer is Carbon dioxide. Carbon from carbon dioxide is built into sugar."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$not": {
+              "$eq": [
+                {
+                  "$state": "q2"
+                },
+                "Carbon dioxide"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "card-q3": {
+      "type": "card",
+      "props": {
+        "title": "Question 3"
+      },
+      "slots": {
+        "children": [
+          "q3",
+          "q3-ok",
+          "q3-no"
+        ]
+      }
+    },
+    "q3": {
+      "type": "choice",
+      "props": {
+        "label": "What do plants make using the energy of light?",
+        "name": "q3",
+        "options": [
+          {
+            "value": "Protein",
+            "label": "Protein"
+          },
+          {
+            "value": "Wax",
+            "label": "Wax"
+          },
+          {
+            "value": "Glucose",
+            "label": "Glucose"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "q3"
+        },
+        "disabled": {
+          "$state": "submitted"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "q3",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "q3-ok": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "Correct",
+        "text": "Glucose is the sugar the plant uses for energy and growth."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$eq": [
+              {
+                "$state": "q3"
+              },
+              "Glucose"
+            ]
+          }
+        ]
+      }
+    },
+    "q3-no": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Not quite",
+        "text": "The answer is Glucose. Glucose is the sugar the plant uses for energy and growth."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$state": "submitted"
+          },
+          {
+            "$not": {
+              "$eq": [
+                {
+                  "$state": "q3"
+                },
+                "Glucose"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "state": {
+    "q1": "",
+    "q2": "",
+    "q3": "",
+    "submitted": false
+  },
+  "brief": {
+    "mode": "experience"
+  }
+}

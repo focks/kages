@@ -18,7 +18,9 @@ export function measurePage() {
       const out = [];
       for (const svg of root.querySelectorAll('svg[viewBox]')) {
         const vb = svg.viewBox.baseVal; if (!vb || !vb.width) continue;
-        const k = svg.getBoundingClientRect().width / vb.width; let min = Infinity;
+        // Responsive diagrams keep an alternate layout hidden; it has no rendered text.
+        const width = svg.getBoundingClientRect().width; if (!width || !svg.getClientRects().length) continue;
+        const k = width / vb.width; let min = Infinity;
         for (const t of svg.querySelectorAll('text')) { const fs = parseFloat(t.getAttribute('font-size') || getComputedStyle(t).fontSize) || 16; min = Math.min(min, fs * k); }
         if (min < 8) out.push(label(svg) + ' ' + (Math.round(min * 10) / 10) + 'px');
       }

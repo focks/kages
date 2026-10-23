@@ -1,0 +1,160 @@
+{
+  "kages": "1.0",
+  "id": "event-planner",
+  "title": "Event planner — a validated form",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading"
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "form",
+          "receipt"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Plan a gathering",
+        "description": "Pick a date, group size and activities. Required fields are checked before submission.",
+        "inset": 0
+      }
+    },
+    "form": {
+      "type": "form",
+      "props": {
+        "label": "Gathering details",
+        "submitLabel": "Create plan"
+      },
+      "slots": {
+        "children": [
+          "name",
+          "email",
+          "date",
+          "count",
+          "venue",
+          "activities"
+        ]
+      },
+      "on": {
+        "submit": [
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": {
+              "$event": "values"
+            }
+          }
+        ]
+      }
+    },
+    "name": {
+      "type": "text-field",
+      "props": {
+        "label": "Gathering name",
+        "name": "name",
+        "required": true,
+        "minLength": 3
+      }
+    },
+    "email": {
+      "type": "text-field",
+      "props": {
+        "label": "Contact email",
+        "name": "email",
+        "kind": "email",
+        "required": true
+      }
+    },
+    "date": {
+      "type": "date-input",
+      "props": {
+        "label": "Date",
+        "name": "date",
+        "required": true
+      }
+    },
+    "count": {
+      "type": "number-input",
+      "props": {
+        "label": "Group size",
+        "name": "count",
+        "min": 1,
+        "max": 100,
+        "step": 1,
+        "required": true
+      }
+    },
+    "venue": {
+      "type": "choice",
+      "props": {
+        "label": "Venue",
+        "name": "venue",
+        "required": true,
+        "options": [
+          {
+            "value": "studio",
+            "label": "Studio"
+          },
+          {
+            "value": "garden",
+            "label": "Garden"
+          }
+        ]
+      }
+    },
+    "activities": {
+      "type": "multiselect",
+      "props": {
+        "label": "Activities",
+        "name": "activities",
+        "options": [
+          {
+            "value": "talk",
+            "label": "A conversation"
+          },
+          {
+            "value": "workshop",
+            "label": "A workshop"
+          },
+          {
+            "value": "exhibition",
+            "label": "An exhibition"
+          }
+        ]
+      }
+    },
+    "receipt": {
+      "type": "code",
+      "props": {
+        "caption": "Your plan",
+        "wrap": true
+      },
+      "bind": {
+        "code": {
+          "$tpl": "{{state.submitted}}"
+        }
+      },
+      "visible": {
+        "$neq": [
+          {
+            "$state": "submitted"
+          },
+          null
+        ]
+      }
+    }
+  },
+  "state": {
+    "submitted": null
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

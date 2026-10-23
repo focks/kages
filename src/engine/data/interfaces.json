@@ -550,6 +550,7 @@
       "level": {
         "type": "number",
         "enum": [
+          1,
           2,
           3,
           4
@@ -591,6 +592,34 @@
           8
         ],
         "default": 4
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "inherit"
+      },
+      "scale": {
+        "type": "string",
+        "enum": [
+          "standard",
+          "hero"
+        ],
+        "default": "standard"
+      },
+      "backdrop": {
+        "type": "string",
+        "enum": [
+          "flat",
+          "wash"
+        ],
+        "default": "flat"
       }
     },
     "slots": {
@@ -1391,6 +1420,22 @@
       },
       "caption": {
         "type": "string"
+      },
+      "layout": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "horizontal",
+          "vertical",
+          "grid"
+        ],
+        "default": "auto"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
       }
     },
     "events": {
@@ -1402,7 +1447,9 @@
     },
     "role": "diagram",
     "slots": {},
-    "outputs": []
+    "outputs": [
+      "selected"
+    ]
   },
   "kages/line-chart@1": {
     "summary": "Responsive numeric X/Y line chart with an accessible data table.",

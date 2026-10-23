@@ -1,0 +1,194 @@
+{
+  "kages": "1.0",
+  "id": "signup-rules",
+  "title": "Signup rules — conditional behaviour",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "age",
+          "consent",
+          "minor",
+          "submit",
+          "done"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "title": "Join the programme",
+        "description": "Rules: adults only, with consent. The button enables itself when both hold.",
+        "inset": 0
+      }
+    },
+    "age": {
+      "type": "number-input",
+      "props": {
+        "label": "Your age",
+        "min": 0,
+        "max": 120,
+        "step": 1
+      },
+      "bind": {
+        "value": {
+          "$state": "age"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "age",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "consent": {
+      "type": "switch",
+      "props": {
+        "label": "I agree to the terms"
+      },
+      "bind": {
+        "checked": {
+          "$state": "consent"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "consent",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "minor": {
+      "type": "alert",
+      "props": {
+        "tone": "warning",
+        "title": "Adults only",
+        "text": "You must be 18 or older to join."
+      },
+      "visible": {
+        "$and": [
+          {
+            "$neq": [
+              {
+                "$state": "age"
+              },
+              null
+            ]
+          },
+          {
+            "$lt": [
+              {
+                "$state": "age"
+              },
+              18
+            ]
+          }
+        ]
+      }
+    },
+    "submit": {
+      "type": "button",
+      "props": {
+        "label": "Join",
+        "variant": "primary"
+      },
+      "bind": {
+        "disabled": {
+          "$not": {
+            "$and": [
+              {
+                "$neq": [
+                  {
+                    "$state": "age"
+                  },
+                  null
+                ]
+              },
+              {
+                "$gte": [
+                  {
+                    "$state": "age"
+                  },
+                  18
+                ]
+              },
+              {
+                "$state": "consent"
+              }
+            ]
+          }
+        }
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "submitted",
+            "value": true,
+            "when": {
+              "$and": [
+                {
+                  "$neq": [
+                    {
+                      "$state": "age"
+                    },
+                    null
+                  ]
+                },
+                {
+                  "$gte": [
+                    {
+                      "$state": "age"
+                    },
+                    18
+                  ]
+                },
+                {
+                  "$state": "consent"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "done": {
+      "type": "alert",
+      "props": {
+        "tone": "success",
+        "title": "You're in",
+        "text": "Welcome aboard."
+      },
+      "visible": {
+        "$state": "submitted"
+      }
+    }
+  },
+  "state": {
+    "age": null,
+    "consent": false,
+    "submitted": false
+  },
+  "brief": {
+    "mode": "operate"
+  }
+}

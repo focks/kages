@@ -746,6 +746,222 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
   .kg-switch__thumb { forced-color-adjust: none; background: Highlight; }
 }
 
+.kg-kage .kg-palette-ocean {
+  --kg-paper: #f3f4f7;
+  --kg-surface: #fdfefe;
+  --kg-sunken: #e6e9ef;
+  --kg-line: #cfd4dd;
+  --kg-line-control: #555c6d;
+  --kg-ink: #14181f;
+  --kg-ink-muted: #555c6d;
+  --kg-accent: #1146bb;
+  --kg-accent-ink: #ffffff;
+  --kg-accent-soft: #d9e1f2;
+  --kg-wire: #305ab6;
+  --kg-wire-soft: #dbe2f0;
+  --kg-success: #21733c;
+  --kg-danger: #b12a25;
+  --kg-danger-soft: #f5e1e0;
+  --kg-focus: #1146bb;
+}
+.dark .kg-kage .kg-palette-ocean {
+  --kg-paper: #101319;
+  --kg-surface: #161a22;
+  --kg-sunken: #1c212b;
+  --kg-line: #2f3541;
+  --kg-line-control: #a9afbc;
+  --kg-ink: #e9ecf1;
+  --kg-ink-muted: #a9afbc;
+  --kg-accent: #628ef0;
+  --kg-accent-ink: #111111;
+  --kg-accent-soft: #1a294c;
+  --kg-wire: #5e83d4;
+  --kg-wire-soft: #1e2b48;
+  --kg-success: #75d795;
+  --kg-danger: #e27c78;
+  --kg-danger-soft: #541e1c;
+  --kg-focus: #628ef0;
+}
+.kg-kage .kg-palette-mint {
+  --kg-paper: #f3f7f7;
+  --kg-surface: #fdfefe;
+  --kg-sunken: #e6efee;
+  --kg-line: #cfdddc;
+  --kg-line-control: #556d6b;
+  --kg-ink: #141f1e;
+  --kg-ink-muted: #556d6b;
+  --kg-accent: #0a756c;
+  --kg-accent-ink: #ffffff;
+  --kg-accent-soft: #d9f2f0;
+  --kg-wire: #289a90;
+  --kg-wire-soft: #dbf0ee;
+  --kg-success: #22773e;
+  --kg-danger: #b12a25;
+  --kg-danger-soft: #f5e1e0;
+  --kg-focus: #0a756c;
+}
+.dark .kg-kage .kg-palette-mint {
+  --kg-paper: #101918;
+  --kg-surface: #162221;
+  --kg-sunken: #1c2b2a;
+  --kg-line: #2f4240;
+  --kg-line-control: #a9bcba;
+  --kg-ink: #e9f1f0;
+  --kg-ink-muted: #a9bcba;
+  --kg-accent: #5bf1e3;
+  --kg-accent-ink: #111111;
+  --kg-accent-soft: #194d48;
+  --kg-wire: #5dd5ca;
+  --kg-wire-soft: #1e4845;
+  --kg-success: #75d795;
+  --kg-danger: #e27c78;
+  --kg-danger-soft: #541e1c;
+  --kg-focus: #5bf1e3;
+}
+.kg-kage .kg-palette-violet {
+  --kg-paper: #f4f3f7;
+  --kg-surface: #fefdfe;
+  --kg-sunken: #e9e6ef;
+  --kg-line: #d4cfdd;
+  --kg-line-control: #5e556d;
+  --kg-ink: #18141f;
+  --kg-ink-muted: #5e556d;
+  --kg-accent: #5011bb;
+  --kg-accent-ink: #ffffff;
+  --kg-accent-soft: #e2d9f2;
+  --kg-wire: #6130b6;
+  --kg-wire-soft: #e3dbf0;
+  --kg-success: #21733c;
+  --kg-danger: #b12a25;
+  --kg-danger-soft: #f5e1e0;
+  --kg-focus: #5011bb;
+}
+.dark .kg-kage .kg-palette-violet {
+  --kg-paper: #131019;
+  --kg-surface: #1b1622;
+  --kg-sunken: #221c2b;
+  --kg-line: #362f41;
+  --kg-line-control: #b0a9bc;
+  --kg-ink: #ece9f1;
+  --kg-ink-muted: #b0a9bc;
+  --kg-accent: #a172f2;
+  --kg-accent-ink: #111111;
+  --kg-accent-soft: #2c1a4c;
+  --kg-wire: #895ed4;
+  --kg-wire-soft: #2d1e48;
+  --kg-success: #75d795;
+  --kg-danger: #e27c78;
+  --kg-danger-soft: #541e1c;
+  --kg-focus: #a172f2;
+}
+.kg-kage .kg-palette-amber {
+  --kg-paper: #f7f5f2;
+  --kg-surface: #fefefd;
+  --kg-sunken: #efebe6;
+  --kg-line: #ded7ce;
+  --kg-line-control: #6f6253;
+  --kg-ink: #201a13;
+  --kg-ink-muted: #6f6253;
+  --kg-accent: #9e5604;
+  --kg-accent-ink: #ffffff;
+  --kg-accent-soft: #f4e7d7;
+  --kg-wire: #bf7827;
+  --kg-wire-soft: #f2e6d9;
+  --kg-success: #22773e;
+  --kg-danger: #b12a25;
+  --kg-danger-soft: #f5e1e0;
+  --kg-focus: #9e5604;
+}
+.dark .kg-kage .kg-palette-amber {
+  --kg-paper: #191510;
+  --kg-surface: #231d15;
+  --kg-sunken: #2c241b;
+  --kg-line: #43392d;
+  --kg-line-control: #bdb3a8;
+  --kg-ink: #f1ede9;
+  --kg-ink-muted: #bdb3a8;
+  --kg-accent: #faac51;
+  --kg-accent-ink: #111111;
+  --kg-accent-soft: #503516;
+  --kg-wire: #dd9e55;
+  --kg-wire-soft: #4b351b;
+  --kg-success: #75d795;
+  --kg-danger: #e27c78;
+  --kg-danger-soft: #541e1c;
+  --kg-focus: #faac51;
+}
+.kg-kage .kg-palette-rose {
+  --kg-paper: #f7f3f4;
+  --kg-surface: #fefdfe;
+  --kg-sunken: #efe7e8;
+  --kg-line: #dcd0d3;
+  --kg-line-control: #6c565b;
+  --kg-ink: #1e1517;
+  --kg-ink-muted: #6c565b;
+  --kg-accent: #b5173a;
+  --kg-accent-ink: #ffffff;
+  --kg-accent-soft: #f1dadf;
+  --kg-wire: #b13550;
+  --kg-wire-soft: #efdce0;
+  --kg-success: #21733c;
+  --kg-danger: #b12a25;
+  --kg-danger-soft: #f5e1e0;
+  --kg-focus: #b5173a;
+}
+.dark .kg-kage .kg-palette-rose {
+  --kg-paper: #181012;
+  --kg-surface: #211719;
+  --kg-sunken: #2b1d20;
+  --kg-line: #412f33;
+  --kg-line-control: #bbaaae;
+  --kg-ink: #f1eaeb;
+  --kg-ink-muted: #bbaaae;
+  --kg-accent: #eb6582;
+  --kg-accent-ink: #111111;
+  --kg-accent-soft: #4b1b26;
+  --kg-wire: #d0627a;
+  --kg-wire-soft: #471f28;
+  --kg-success: #75d795;
+  --kg-danger: #e27c78;
+  --kg-danger-soft: #541e1c;
+  --kg-focus: #eb6582;
+}
+/* A region owns its foreground as well as its background; otherwise inherited
+   body text would retain the parent's colour when the palette changes. */
+.kg-kage .kg-section { color: var(--kg-ink); }
+.kg-kage .kg-section--wash { background: linear-gradient(125deg, var(--kg-accent-soft), var(--kg-surface)); }
+.kg-kage .kg-section--hero { padding: clamp(1.25rem, 5cqi, 4rem); gap: var(--kg-space-6); }
+.kg-kage .kg-section--hero > .kg-section__title { max-width: 19ch; font-size: clamp(2.25rem, 6cqi, 4.5rem); line-height: 1.05; letter-spacing: -.035em; text-wrap: balance; color: var(--kg-accent); }
+.kg-kage .kg-section--hero > .kg-section__description { max-width: 55ch; font-size: clamp(1rem, 1.7cqi, 1.25rem); }
+.kg-kage .kg-section--hero > .kg-section__eyebrow { color: var(--kg-accent); letter-spacing: .08em; text-transform: uppercase; }
+
+/* Motion communicates a changed value or selection. Reduced motion is enforced
+   by motion.css, which the build appends after this sheet. */
+.kg-kage .kg-bar-chart__bar { transition: width var(--motion-duration-base) var(--motion-ease-out); }
+.kg-kage .kg-diagram { container-type: inline-size; margin: 0; min-width: 0; color: var(--kg-ink); }
+.kg-kage .kg-diagram__viewport { overflow: auto; padding: var(--kg-space-1); }
+.kg-kage .kg-diagram svg { display: block; width: 100%; height: auto; }
+.kg-kage .kg-diagram text { font-family: var(--kg-font-body); }
+.kg-kage .kg-diagram__caption { margin-top: var(--kg-space-3); color: var(--kg-ink-muted); line-height: 1.6; }
+.kg-kage .kg-diagram__node { color: var(--kg-ink); }
+.kg-kage .kg-diagram__node[role=button] { cursor: pointer; }
+.kg-kage .kg-diagram__box { fill: var(--kg-accent-soft); stroke: var(--kg-line-control); stroke-width: 1; }
+.kg-kage .kg-diagram__node[role=button]:hover .kg-diagram__box,
+.kg-kage .kg-diagram__node[aria-pressed=true] .kg-diagram__box { stroke: var(--kg-accent); stroke-width: 3; }
+.kg-kage .kg-diagram__node:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 4px; border-radius: 12px; }
+.kg-kage .kg-diagram__stripe { fill: var(--kg-accent); }
+.kg-kage .kg-diagram__label { fill: var(--kg-ink); font-size: 15px; font-weight: 650; }
+.kg-kage .kg-diagram__group { fill: var(--kg-accent); font-size: 11px; font-weight: 600; letter-spacing: .04em; }
+.kg-kage .kg-diagram__edge { fill: none; stroke: var(--kg-accent); stroke-width: 2; }
+.kg-kage .kg-diagram__arrow { fill: var(--kg-accent); }
+.kg-kage .kg-diagram__edge-label { fill: var(--kg-ink); font-size: 12px; }
+.kg-kage .kg-diagram__edge-chip { fill: var(--kg-paper); }
+.kg-kage .kg-diagram__mobile { display: none; }
+@container (max-width: 40rem) {
+  .kg-kage .kg-diagram__desktop { display: none; }
+  .kg-kage .kg-diagram__mobile { display: block; }
+}
+
 /* Motion policy. Appended LAST so its global rule wins. The reference stylesheet is
    frozen and still has a few transitions (the sidebar width, the dropdown chevron) that
    know nothing about the reader's preference, so reduced motion is enforced here for the
