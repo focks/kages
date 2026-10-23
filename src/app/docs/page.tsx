@@ -45,6 +45,19 @@ kages --version`}</Code></div>
         </p>
         <div className="mt-5"><Code>kages install</Code></div>
 
+        <h2 className="mt-10 font-display text-[22px] font-[650] tracking-[-0.01em]">Or install it as a plugin</h2>
+        <p className="mt-3 text-muted-foreground">
+          No CLI needed. The plugin bundles the hosted MCP server with the authoring skills, and installs once for every project. In Claude Code, pick <em>User scope</em> when asked:
+        </p>
+        <div className="mt-5"><Code>{`/plugin marketplace add focks/kages
+/plugin install kages@kages`}</Code></div>
+        <p className="mt-3 text-muted-foreground">In Codex:</p>
+        <div className="mt-5"><Code>{`codex plugin marketplace add focks/kages
+codex plugin add kages@kages`}</Code></div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          The hosted server needs a sign-in. Run <code className="font-mono text-[0.9em]">kages auth login</code> once in your own terminal.
+        </p>
+
         <p className="mt-10 text-sm text-muted-foreground">
           Building on Kages itself? See the <a href="https://github.com/focks/kages" target="_blank" rel="noreferrer" className="text-wire underline underline-offset-4 hover:text-foreground">source on GitHub</a>.
         </p>

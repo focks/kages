@@ -128,6 +128,9 @@ export default function LandingPage() {
             <h2 className="font-display text-[30px] leading-[1.08] font-[680] tracking-[-0.02em] sm:text-[38px]">Wire up your agent.</h2>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">Install the CLI, register the MCP server, and your agent can build and publish Kages. The command stays <code className="font-mono text-[0.9em]">kages</code>.</p>
             <div className="mt-6"><Terminal lines={["npm install -g @ifocksh/kages", "claude mcp add kages -- kages mcp", "kages mcp info"]} /></div>
+            <p className="mt-8 text-[15px] leading-relaxed text-muted-foreground">Prefer a plugin? It installs once, for every project, with the skills included.</p>
+            <div className="mt-4"><Terminal label="claude code" prompt="" lines={["/plugin marketplace add focks/kages", "/plugin install kages@kages"]} /></div>
+            <p className="mt-3 font-mono text-[12px] text-muted-foreground">Codex: codex plugin marketplace add focks/kages</p>
             <div className="mt-5"><Button render={<a href="/docs" />} nativeButton={false} variant="outline" size="sm" className="font-mono">read the docs <ArrowRight className="size-4" /></Button></div>
           </div>
         </div>
