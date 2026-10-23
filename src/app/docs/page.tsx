@@ -27,31 +27,26 @@ export default function DocsPage() {
       <article className="mx-auto w-full max-w-2xl px-6 py-14">
         <h1 className="font-display text-[32px] font-[680] tracking-[-0.02em]">Install Kages</h1>
         <p className="mt-4 text-muted-foreground">
-          The quickest way to run Kages is with <code className="font-mono text-[0.9em]">npx</code> — no install,
-          no checkout (Node 18 or newer):
+          Install the CLI from npm (Node 18 or newer). The command is <code className="font-mono text-[0.9em]">kages</code>:
         </p>
-        <div className="mt-5"><Code>npx @ifocksh/kages --version</Code></div>
-
-        <p className="mt-8 text-muted-foreground">
-          To work on Kages itself, run it from a checkout instead (Node 22.18 or newer):
+        <div className="mt-5"><Code>{`npm install -g @ifocksh/kages
+kages --version`}</Code></div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Or run it without installing: <code className="font-mono text-[0.9em]">npx @ifocksh/kages --version</code>.
         </p>
-        <div className="mt-5">
-          <Code>{`git clone https://github.com/focks/kages && cd kages
-npm install
-npm run build:cli          # writes dist/kages.mjs, runs on Node 18+
-alias kages="node $PWD/dist/kages.mjs"
-kages --version`}</Code>
-        </div>
 
-        <p className="mt-8 text-muted-foreground">
-          Then, in the project where you work, <code className="font-mono text-[0.9em]">kages install</code> shows
-          the files it would write for the coding tools it finds (Claude Code, Cursor, Codex, Copilot) and writes
-          nothing until you agree:
+        <h2 className="mt-10 font-display text-[22px] font-[650] tracking-[-0.01em]">Connect your agent</h2>
+        <p className="mt-3 text-muted-foreground">
+          Register the Kages MCP server so your agent can build and publish Kages (for Codex, use <code className="font-mono text-[0.9em]">codex mcp add</code>):
+        </p>
+        <div className="mt-5"><Code>claude mcp add kages -- kages mcp</Code></div>
+        <p className="mt-3 text-muted-foreground">
+          Or let <code className="font-mono text-[0.9em]">kages install</code> wire every coding tool it finds (Claude Code, Cursor, Codex, Copilot) — it shows each file first and writes nothing until you agree:
         </p>
         <div className="mt-5"><Code>kages install</Code></div>
 
         <p className="mt-10 text-sm text-muted-foreground">
-          Source and issues on <a href="https://github.com/focks/kages" target="_blank" rel="noreferrer" className="text-wire underline underline-offset-4 hover:text-foreground">GitHub</a>.
+          Building on Kages itself? See the <a href="https://github.com/focks/kages" target="_blank" rel="noreferrer" className="text-wire underline underline-offset-4 hover:text-foreground">source on GitHub</a>.
         </p>
       </article>
     </main>
