@@ -11,7 +11,13 @@ First public release candidate.
 - The Studio editor (`/studio`, `src/studio`). A Kage is edited by an agent through the CLI, MCP or REST. **New Kage** in the Library
   now creates one from a starter, and `/studio` redirects to the Library.
 
+### Removed
+- Templates: the `templates` scope and its Library button, the `search_templates` operation, and the special `templates` repo. Shipped examples are ordinary Kages in an `examples` project, and a clone stays in the source's project. Existing `templates` projects simply become ordinary projects.
+
 ### Added
+- A Codex plugin: `plugins/kages-codex` (portable `plugin.json`, `mcp.json`, skills) and `.agents/plugins/marketplace.json`, so `codex plugin marketplace add focks/kages` lists Kages. Generated with the other targets; skills carry no Claude-only syntax.
+- One link for a whole project: `/r/<uuid>` lists the project's Kages that are published with a public link (live), and sharing with `publish_all` / `kages project share --all` / **Share all** publishes everything in the folder with a link at once (archived and invalid Kages are skipped), with `/r/<uuid>.md` for agents, a **Share project** panel in the Library, `kages project share|link|unshare`, and the `share_repo`, `unshare_repo` and `get_repo_share` operations.
+- A hidden note in a share page's raw HTML points agents at the markdown and JSON routes; and a `kages-login` skill ships with the installer and plugins.
 - Workspace designs: define your own colours (light and dark), type and corner radius once, keep several per workspace, choose one
   when you create a Kage and change it later. New in the app (**Designs**, with a live preview and a one-colour palette generator),
   the CLI (`kages designs`) and the operation table (`list_designs`, `get_design`, `set_design`, `delete_design`, `set_kage_design`).

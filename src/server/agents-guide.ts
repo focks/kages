@@ -19,14 +19,14 @@ Kages is an artifactory for agents: versioned, interactive pages assembled from 
 ## Work in this order
 
 1. \`get_context\` — once per session: the workspace brief, the design system and its rules, and what is missing.
-2. \`search_templates\` — fork a starter before building from scratch. \`get_catalog\` lists the blocks of a design system.
+2. \`search_kages\` — look for a close Kage to clone before building from scratch. \`get_catalog\` lists the blocks of a design system.
 3. \`create_kage\` with a full document, or \`generate_kage\` from an envelope. The workspace may define designs (colours, type, corners): \`list_designs\`, then set the document's \`design\` to an id, or later \`set_kage_design\`. Run \`validate_kage\` and \`lint_kage\` first; both name the fix for each finding.
 4. Edit with \`validate_patch\` (free dry run), then \`patch_kage\`. Pass \`baseVersion\` so a concurrent edit is not overwritten.
 5. \`describe_kage\` reads a Kage as text. \`publish_kage\` and \`share_kage\` make it visible; both need a grant.
 
 ## Read a Kage someone shared
 
-- \`${o}/k/<uuid>.md\`, or \`${o}/k/<uuid>\` with \`Accept: text/markdown\`, returns the Kage as text with instructions for that Kage first.
+- \`${o}/k/<uuid>.md\`, or \`${o}/k/<uuid>\` with \`Accept: text/markdown\`, returns the Kage as text with instructions for that Kage first. A shared project is \`${o}/r/<uuid>.md\`: a list of its published Kages, each linking to its own text version.
 - \`${o}/api/shared/<uuid>\` returns the document as JSON.
 
 ## Rules

@@ -11,10 +11,11 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Folder, LayoutGrid, List, Plus, Search, SlidersHorizontal, Upload, X } from "lucide-react";
+import { Folder, LayoutGrid, List, Plus, Search, Share2, SlidersHorizontal, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { KageRow, KageTile } from "@/components/dashboard/library/kage-tile";
 import { FacetRail } from "@/components/dashboard/library/facet-rail";
+import { ProjectShareSheet } from "@/components/dashboard/library/project-share-sheet";
 import { NewKageSheet } from "@/components/dashboard/library/new-kage-sheet";
 import { DetailSheet, type VersionMeta } from "@/components/dashboard/library/detail-sheet";
 import { useComments } from "@/components/dashboard/comments/use-comments";
@@ -51,6 +52,7 @@ function LibraryInner() {
   const [describe, setDescribe] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const comments = useComments(openName);
   const [text, setText] = useState(query.q);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -118,11 +120,12 @@ function LibraryInner() {
   const all = cards ?? [];
   const resolvedScope = resolveScope(query.scope, all);
   const visible = useMemo(() => sortCards(filterCards(all, query, pins, openName ?? undefined), query.sort), [all, query, pins, openName]);
+  const totalInProject = useMemo(() => all.filter((c) => c.repo === query.repo && c.state !== "archived").length, [all, query.repo]);
+  const listedInProject = useMemo(() => all.filter((c) => c.repo === query.repo && c.state === "published" && (c.visibility === "link" || c.visibility === "public")).length, [all, query.repo]);
   const groups = useMemo(() => groupCards(visible, query.group), [visible, query.group]);
   const facets = useMemo(() => facetCounts(all, query, pins, openName ?? undefined), [all, query, pins, openName]);
   const chips = activeChips(query);
   const current = all.find((c) => c.name === openName) ?? null;
-  const templateCount = facets.scope.templates;
 
   // --- actions ---------------------------------------------------------------
   // Creating a project persists it (via create_project) so it stays in the sidebar even empty,
@@ -229,6 +232,7 @@ function LibraryInner() {
             <SelectTrigger className="w-44" aria-label="Grouping"><SelectValue>{GROUP_LABEL[query.group]}</SelectValue></SelectTrigger>
             <SelectContent>{(Object.keys(GROUP_LABEL) as Group[]).map((g) => <SelectItem key={g} value={g}>{GROUP_LABEL[g]}</SelectItem>)}</SelectContent>
           </Select>
+          {query.repo && <Button variant="outline" onClick={() => setShareOpen(true)}><Share2 />Share project</Button>}
           <div role="group" aria-label="View" className="flex rounded-md border border-input">
             <Button size="icon" variant={query.view === "grid" ? "secondary" : "ghost"} aria-pressed={query.view === "grid"} aria-label="Grid view" className="rounded-r-none" onClick={() => setQuery({ view: "grid" })}><LayoutGrid /></Button>
             <Button size="icon" variant={query.view === "list" ? "secondary" : "ghost"} aria-pressed={query.view === "list"} aria-label="List view" className="rounded-l-none" onClick={() => setQuery({ view: "list" })}><List /></Button>
@@ -271,7 +275,6 @@ function LibraryInner() {
               </p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {chips.length > 0 && <Button variant="outline" onClick={() => { setText(""); setQuery({ q: "", repo: "", states: [], systems: [], modes: [] }); }}>Clear filters</Button>}
-                {resolvedScope !== "templates" && templateCount > 0 && <Button variant="outline" onClick={() => setQuery({ scope: "templates", repo: "" })}>Browse {templateCount} templates</Button>}
                 {resolvedScope !== "all" && <Button variant="ghost" onClick={() => setQuery({ scope: "all", repo: "", states: [], systems: [], modes: [] })}>Show everything</Button>}
               </div>
             </div>
@@ -299,6 +302,7 @@ function LibraryInner() {
         onClone={cloneKage} onExport={exportJson}
         onChanged={async () => { await refresh(); }} onDeleted={async () => { open(null); await refresh(); }} />
 
+      {query.repo && <ProjectShareSheet open={shareOpen} onOpenChange={setShareOpen} repo={query.repo} listed={listedInProject} total={totalInProject} onChanged={() => void refresh()} />}
       <NewKageSheet open={newOpen} onOpenChange={setNewOpen} repo={query.repo || "kages"} onCreated={async (name) => { await refresh(); const next = serializeQuery(query); next.set("id", name); go(next, true); }} />
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>

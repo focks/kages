@@ -20,13 +20,16 @@ const nextConfig: NextConfig = {
     const hashed = [{ source: "/ds/versions/:hash([A-Za-z0-9_-]+)/:file", headers: [forever] }, { source: "/runtime/:file([A-Za-z0-9_-]{16,}\\.js)", headers: [forever] }];
     // Tell clients that fetch a share page that a text version exists (RFC 8288 alternate link).
     const share = { source: "/k/:id([A-Za-z0-9-]+)", headers: [{ key: "Link", value: "</k/:id.md>; rel=\"alternate\"; type=\"text/markdown\"" }, { key: "Vary", value: "Accept" }] };
-    return [baseline, ...assets, ...hashed, share];
+    const project = { source: "/r/:id([A-Za-z0-9-]+)", headers: [{ key: "Link", value: "</r/:id.md>; rel=\"alternate\"; type=\"text/markdown\"" }, { key: "Vary", value: "Accept" }] };
+    return [baseline, ...assets, ...hashed, share, project];
   },
   // A share link answers agents in markdown: /k/<uuid>.md, or /k/<uuid> when the client asks for text/markdown.
   async rewrites() {
     return { beforeFiles: [
       { source: "/k/:id([A-Za-z0-9-]+).md", destination: "/api/shared/:id/md" },
       { source: "/k/:id([A-Za-z0-9-]+)", has: [{ type: "header" as const, key: "accept", value: ".*text/markdown.*" }], destination: "/api/shared/:id/md" },
+      { source: "/r/:id([A-Za-z0-9-]+).md", destination: "/api/shared-repo/:id/md" },
+      { source: "/r/:id([A-Za-z0-9-]+)", has: [{ type: "header" as const, key: "accept", value: ".*text/markdown.*" }], destination: "/api/shared-repo/:id/md" },
     ], afterFiles: [], fallback: [] };
   },
   // The library has been called "Kages" and "Artifacts" in turn; both old paths

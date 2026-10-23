@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { freeFlowExamples } from "../packs/examples.ts";
 import { skillMd } from "../packs/packs.ts";
-import { introTemplates } from "../server/templates.ts";
+import { introKages } from "../server/intro-kages.ts";
 import { validate } from "./validate.ts";
 import { describe } from "./describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "./generate.ts";
@@ -70,21 +70,17 @@ test("free-flow: wired controls update text, charts and visibility in one transa
   assert.equal(session.visible("structured"), true);
 });
 
-test("free-flow: starters validate and create/clone/publish through the operation table", () => {
+test("free-flow: intro Kages validate and create/clone/publish through the operation table", () => {
   const store = new Store({ clock: () => 1_000 });
   const ctx = { store, author: { principal: "agent:acme/author" } };
-  for (const doc of introTemplates()) {
+  for (const doc of introKages()) {
     assert.equal(validate(doc).ok, true, doc.id);
     assert.deepEqual(validate(doc).warnings, [], doc.id);
-    assert.equal(dispatch(ctx, "create_kage", { doc, repo: "templates" }).ok, true);
+    assert.equal(dispatch(ctx, "create_kage", { doc, repo: "getting-started" }).ok, true);
   }
   assert.equal(dispatch(ctx, "clone_kage", { name: "idea-lab", title: "My lab" }).ok, true);
   assert.equal(dispatch(ctx, "publish_kage", { name: "idea-lab" }).ok, true);
-  // Cloning a template deliberately lands the copy in the user's project, not in
-  // Templates (so a starter copy is not hidden among the templates). Templates is
-  // therefore unchanged, while the clone is an ordinary, findable Kage.
-  const templates = dispatch(ctx, "search_templates", {}) as any;
-  assert.equal(templates.data.length, introTemplates().length);
+  assert.equal((dispatch(ctx, "search_templates", {}) as any).ok, false, "there is no template search any more");
   const found = dispatch(ctx, "search_kages", { text: "My lab" }) as any;
   assert.ok(found.data.some((v: any) => v.name === "my-lab"), "the clone is an ordinary searchable Kage");
 });

@@ -36,7 +36,7 @@ export function FacetRail({ query, resolvedScope, facets, projects, onChange, on
   ];
   // The persisted set names which projects EXIST (so an empty one shows); the facet counts give the
   // live number under the active filters. Union the two so neither an empty project nor one that only
-  // the facets know about (e.g. templates) is dropped. The facet count wins; a project with none visible
+  // the facets know about is dropped. The facet count wins; a project with none visible
   // falls back to 0, which is exactly what an empty project should read.
   const facetByName = new Map(facets.repos.map((r) => [r.repo, r.count]));
   const names = projects ? [...new Set([...projects.map((p) => p.project), ...facets.repos.map((r) => r.repo)])] : facets.repos.map((r) => r.repo);

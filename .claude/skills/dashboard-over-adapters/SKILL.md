@@ -55,8 +55,9 @@ layout over it (`library/facet-rail`, `kage-tile`, `detail-sheet`).
 - **The URL is the state** (`q scope repo state sys sort group view id`); only
   non-defaults are written; unknown values fall back. Filters `replace`, opening a
   Kage `push`es so Back closes the panel.
-- **Scopes** split "My Kages" from the shipped `templates` repo (`auto` picks mine
-  when you have any). Facet counts exclude the facet's own selection, otherwise
+- **Scopes** are "My Kages" (every readable Kage; `auto` opens on it) and Pinned.
+  There is no template class: shipped examples are ordinary Kages in an `examples`
+  project. Facet counts exclude the facet's own selection, otherwise
   choosing a value hides its siblings.
 - **A card is one button** whose `::after` stretches over it; pin/preview sit above.
   Pins are per-viewer (`localStorage` `kages.pins`), never a server field.
@@ -104,3 +105,7 @@ Put a filter, a bulk action, or a new view behind an operation and it is
 instantly available to the dashboard, the CLI, an MCP client, and an A2A agent
 at once. Put it in a component and only that component has it. Logic lives in
 the operation table; pages are layout over `fetch`.
+
+## One link for a whole project
+
+`/r/<uuid>` (page), `/r/<uuid>.md` and `Accept: text/markdown` (agents), `/api/shared-repo/<uuid>` (JSON) mirror the per-Kage share routes. The store keeps a `repoShares` record (repo → uuid) and nothing else: `repoListing()` in `src/store/repo-share.ts` is the single rule, run against a live Store, a Postgres row (trimmed in SQL to a few fields per head, never whole documents) and a REST snapshot, so the three cannot disagree. The listing is computed on every read from heads that are published with link or public visibility, so there is no mirror to go stale. A plain share publishes nothing; `publish_all` (CLI `--all`, the sheet's **Share all**) is the explicit opt-in that publishes every live, valid Kage in the project with link visibility in the same call, and reports the invalid ones as `skipped`. Keep it that way: do not copy a project's Kages into `public_shares`, and keep titles out of markdown syntax (`repoMarkdown`). Needs `publish` on the repo; unshare deletes the record so a re-share mints a new uuid and the old link stays dead. A new page under `/r` needs the same server layout with the hidden agent note as `/k`.

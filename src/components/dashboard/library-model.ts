@@ -24,7 +24,7 @@ const projectsOf = (c: LibraryCard): string[] => (c.projects?.length ? c.project
 /** A card passes a project filter iff that project is its home repo or in its membership. */
 export const inProject = (c: LibraryCard, project: string): boolean => c.repo === project || projectsOf(c).includes(project);
 
-export type Scope = "auto" | "mine" | "templates" | "pinned" | "all";
+export type Scope = "auto" | "mine" | "pinned" | "all";
 export type Sort = "updated" | "name" | "blocks" | "status";
 export type Group = "none" | "project" | "status" | "system";
 export type View = "grid" | "list";
@@ -45,8 +45,6 @@ export const DEFAULT_QUERY: Query = { q: "", scope: "auto", repo: "", states: []
 
 /** The repo that holds shipped example Kages. They are real Kages, but a person
  *  browsing for their own work should not have to wade through them. */
-export const TEMPLATE_REPO = "templates";
-export const isTemplate = (c: Pick<LibraryCard, "repo">): boolean => c.repo === TEMPLATE_REPO;
 
 /** Lifecycle order is the order people think in (draft → live → retired), not alphabetical. */
 export const STATE_ORDER = ["draft", "review", "published", "deprecated", "archived"];
@@ -54,7 +52,7 @@ export const STATE_LABEL: Record<string, string> = { draft: "Draft", review: "In
 export const SYSTEM_ORDER = ["core", "ledger", "atelier"];
 export const MODE_ORDER = ["read", "operate", "persuade", "experience"];
 export const MODE_LABEL: Record<string, string> = { read: "Read", operate: "Operate", persuade: "Persuade", experience: "Experience" };
-const SCOPES: Scope[] = ["auto", "mine", "templates", "pinned", "all"];
+const SCOPES: Scope[] = ["auto", "mine", "pinned", "all"];
 const SORTS: Sort[] = ["updated", "name", "blocks", "status"];
 const GROUPS: Group[] = ["none", "project", "status", "system"];
 const VIEWS: View[] = ["grid", "list"];
@@ -96,11 +94,12 @@ export function serializeQuery(q: Query): URLSearchParams {
   return p;
 }
 
-/** "auto" means: show my work if I have any, otherwise everything. Without this a
- *  brand-new workspace (templates only) would open on an empty "My Kages". */
+/** "auto" opens on "mine". There is no separate class of starter Kage any more, so
+ *  "mine" is every Kage the caller can read and never opens empty on a seeded workspace. */
 export function resolveScope(scope: Scope, cards: readonly LibraryCard[]): Exclude<Scope, "auto"> {
   if (scope !== "auto") return scope;
-  return cards.some((c) => !isTemplate(c) && c.state !== "archived") ? "mine" : "all";
+  void cards;
+  return "mine";
 }
 
 const systemId = (c: LibraryCard) => c.system.split("@")[0];
@@ -120,8 +119,6 @@ type FacetName = "scope" | "repo" | "state" | "system" | "mode";
 function passes(c: LibraryCard, q: Query, scope: Exclude<Scope, "auto">, pins: ReadonlySet<string>, keep: string | undefined, skip?: FacetName): boolean {
   if (!matchesText(c, q.q)) return false;
   if (skip !== "scope") {
-    if (scope === "mine" && isTemplate(c)) return false;
-    if (scope === "templates" && !isTemplate(c)) return false;
     if (scope === "pinned" && !pins.has(c.name)) return false;
   }
   // A project filter matches on membership, not just the home repo: a Kage tagged into a project shows under it.
@@ -167,7 +164,7 @@ export function groupCards<T extends LibraryCard>(cards: readonly T[], group: Gr
   const rank = (k: string) => group === "status" ? STATE_ORDER.indexOf(k) : group === "system" ? SYSTEM_ORDER.indexOf(k) : 0;
   const label = (k: string) => group === "status" ? STATE_LABEL[k] ?? k : k;
   return [...map.entries()]
-    .sort(([a], [b]) => (group === "project" ? (a === TEMPLATE_REPO ? 1 : 0) - (b === TEMPLATE_REPO ? 1 : 0) || a.localeCompare(b) : (rank(a) < 0 ? 99 : rank(a)) - (rank(b) < 0 ? 99 : rank(b)) || a.localeCompare(b)))
+    .sort(([a], [b]) => (group === "project" ? a.localeCompare(b) : (rank(a) < 0 ? 99 : rank(a)) - (rank(b) < 0 ? 99 : rank(b)) || a.localeCompare(b)))
     .map(([key, items]) => ({ key, label: label(key), items }));
 }
 
@@ -183,14 +180,13 @@ export interface Facets {
 /** Counts for every facet value under the *other* active filters. */
 export function facetCounts(cards: readonly LibraryCard[], q: Query, pins: ReadonlySet<string>, keep?: string): Facets {
   const scope = resolveScope(q.scope, cards);
-  const scopeCounts = { mine: 0, templates: 0, pinned: 0, all: 0 };
+  const scopeCounts = { mine: 0, pinned: 0, all: 0 };
   const repos = new Map<string, number>(), states: Record<string, number> = {}, systems: Record<string, number> = {}, modes: Record<string, number> = {};
   for (const c of cards) {
     // Scope counts ignore the scope facet itself so the tabs show what each would contain.
     if (passes(c, q, "all", pins, keep, "scope")) {
       scopeCounts.all++;
-      if (!isTemplate(c)) scopeCounts.mine++;
-      if (isTemplate(c)) scopeCounts.templates++;
+      scopeCounts.mine++;
       if (pins.has(c.name)) scopeCounts.pinned++;
     }
     // Count under EVERY project the card is in, not just its home repo, so a multi-project Kage lifts each project's count.
@@ -201,7 +197,7 @@ export function facetCounts(cards: readonly LibraryCard[], q: Query, pins: Reado
   }
   return {
     scope: scopeCounts,
-    repos: [...repos.entries()].map(([repo, count]) => ({ repo, count })).sort((a, b) => (a.repo === TEMPLATE_REPO ? 1 : 0) - (b.repo === TEMPLATE_REPO ? 1 : 0) || a.repo.localeCompare(b.repo)),
+    repos: [...repos.entries()].map(([repo, count]) => ({ repo, count })).sort((a, b) => a.repo.localeCompare(b.repo)),
     states, systems, modes,
   };
 }

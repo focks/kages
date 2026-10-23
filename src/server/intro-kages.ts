@@ -21,7 +21,7 @@ function doc(id: string, title: string, blocks: KageDoc["blocks"]): KageDoc {
 }
 
 /** The intro Kages for a fresh workspace. Plain, valid, and self-explanatory. */
-export function introTemplates(): KageDoc[] {
+export function introKages(): KageDoc[] {
   return [
     doc("welcome", "Welcome to Kages", {
       root: page(["h", "lead", "c1", "c2"]),

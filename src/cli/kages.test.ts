@@ -55,7 +55,7 @@ test("help and version exit 0", async () => {
   assert.equal((await cli(["help"])).code, 0);
   const v = await cli(["version"]);
   assert.equal(v.code, 0);
-  assert.match(v.out, /kages 1\.0\.0/);
+  assert.match(v.out, /kages \d+\.\d+\.\d+/);
 });
 
 test("systems --json lists three design systems", async () => {
@@ -354,4 +354,19 @@ test("designs: set from a brand colour, list, show, use on a Kage, delete", asyn
   assert.equal((await cli([...ws, "designs", "set", "--id", "x", "--name", "X", "--local"])).code, 0, "a design with nothing overridden is valid: it is just the base system");
   assert.equal((await cli([...ws, "designs", "delete", "x", "--local"])).code, 0);
   assert.equal((await cli([...ws, "designs", "delete", "x", "--local"])).code, 1, "a second delete is not_found");
+});
+
+test("project: share is stable, link reads it back, unshare kills it", async () => {
+  const dir = tmpWorkspace(), ws = ["-C", join(dir, ".kages")];
+  assert.match((await cli([...ws, "project", "link", "kages", "--local"])).out, /is not shared/);
+  const a = await cli([...ws, "project", "share", "kages", "--local"]);
+  assert.equal(a.code, 0, a.out + a.err);
+  const path = /^shared: (\/r\/[0-9a-f-]+)$/m.exec(a.out)?.[1];
+  assert.ok(path, a.out);
+  assert.match(a.out, /nothing else/);
+  assert.match((await cli([...ws, "project", "share", "kages", "--local"])).out, new RegExp(`already shared: ${path}`));
+  assert.equal((await cli([...ws, "project", "link", "kages", "--local"])).out.trim(), path);
+  assert.equal((await cli([...ws, "project", "unshare", "kages", "--local"])).code, 0);
+  assert.equal((await cli([...ws, "project", "unshare", "kages", "--local"])).code, 1, "a second unshare is not_found");
+  assert.equal((await cli([...ws, "project", "bogus", "kages", "--local"])).code, 1);
 });

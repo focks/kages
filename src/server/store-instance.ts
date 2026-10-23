@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
 import { loadSnapshotRev, casSave, persistenceEnabled } from "./persistence.ts";
-import { introTemplates } from "./templates.ts";
+import { introKages } from "./intro-kages.ts";
 import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../packs/examples.ts";
 import type { OpResult } from "../adapters/operations.ts";
 import type { Provenance } from "../store/types.ts";
@@ -22,7 +22,7 @@ export const DEMO_PRINCIPAL: Provenance = {
 const ANALYST: Provenance = { principal: "agent:acme/analyst", runtime: { framework: "crewai", model: "x/y", adapter: "mcp" }, run: "run_a" };
 
 /** Fork the reference Kage into another system with a new id/title, via the
- *  generation round trip — the same path an agent uses to retarget a template. */
+ *  generation round trip — the same path an agent uses to retarget a Kage. */
 function fork(base: KageDoc, system: string, id: string, title: string): KageDoc {
   const doc = fromGenerated(toGenerated(base, system), system);
   return { ...doc, id, title };
@@ -79,7 +79,7 @@ export async function mutateStore(
 }
 
 /** Seed a brand-new workspace in memory (no persistence). Shared "acme" gets the
- *  demo content; a user's own workspace gets the intro templates. */
+ *  demo content; a user's own workspace gets the intro Kages. */
 function buildSeeded(workspace: string): Store {
   const store = new Store({ workspace });
   if (workspace === "acme") seed(store);
@@ -104,15 +104,15 @@ async function initStore(workspace: string): Promise<Store> {
 }
 
 /** Add any shipped example documents that a persisted workspace lacks, into its
- *  `templates` repo, as the principal that originally seeded it. Never touches an
- *  existing document (users may have edited a template), so it is idempotent.
+ *  `examples` project, as the principal that originally seeded it. Never touches an
+ *  existing document (users may have edited one), so it is idempotent.
  *  Returns whether anything was added. */
 function backfillExamples(store: Store, workspace: string): boolean {
   const owner: Provenance = workspace === "acme" ? DEMO_PRINCIPAL : { principal: "user:" + workspace.replace(/^ws-/, ""), runtime: { framework: "next", adapter: "rest" } };
   let added = false;
   for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()]) {
     if (store.head(doc.id)) continue;
-    try { added = store.create("templates", doc, owner).ok || added; } catch { /* best-effort, like seeding */ }
+    try { added = store.create("examples", doc, owner).ok || added; } catch { /* best-effort, like seeding */ }
   }
   return added;
 }
@@ -125,12 +125,11 @@ function seedStarters(store: Store, workspace: string): void {
   const principal = "user:" + workspace.replace(/^ws-/, "");
   const owner: Provenance = { principal, runtime: { framework: "next", adapter: "rest" } };
   store.grant(principal, "getting-started", ["write", "publish", "review", "admin"]);
-  store.grant(principal, "templates", ["write", "publish", "review", "admin"]);
+  store.grant(principal, "examples", ["write", "publish", "review", "admin"]);
   try {
-    // search_templates discovers the templates repo. Keep the free-flow
-    // examples there so the guidance to fork a starter also works for agents.
+    // The shipped examples live in their own `examples` project, so the intro Kages stay a short list.
     const exampleIds = new Set([...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()].map((doc) => doc.id));
-    for (const t of introTemplates()) store.create(exampleIds.has(t.id) ? "templates" : "getting-started", t, owner);
+    for (const t of introKages()) store.create(exampleIds.has(t.id) ? "examples" : "getting-started", t, owner);
   } catch {
     /* best-effort: an empty workspace is still valid */
   }
@@ -142,10 +141,10 @@ function seed(store: Store): Store {
   // new project auto-grants the creator (see Store.create), so the UI can open
   // fresh projects too.
   for (const p of [DEMO_PRINCIPAL.principal, ANALYST.principal])
-    for (const repo of ["ops", "finance", "growth", "templates"]) store.grant(p, repo, ["write", "publish", "review", "admin"]);
+    for (const repo of ["ops", "finance", "growth", "examples"]) store.grant(p, repo, ["write", "publish", "review", "admin"]);
 
   try {
-    for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()]) store.create("templates", doc, DEMO_PRINCIPAL);
+    for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()]) store.create("examples", doc, DEMO_PRINCIPAL);
     const base = JSON.parse(readFileSync(join(process.cwd(), "public/ds/ops-console.kage.json"), "utf8")) as KageDoc;
 
     // ops · the reference console: a second version + published to the workspace.

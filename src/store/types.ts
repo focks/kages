@@ -9,7 +9,7 @@ export type PrincipalKind = "user" | "agent" | "service";
 export type Grant = "read" | "write" | "review" | "publish" | "admin";
 export type LifecycleState = "draft" | "review" | "published" | "deprecated" | "archived";
 export type Visibility = "private" | "workspace" | "link" | "public";
-export type RepoKind = "kages" | "systems" | "templates" | "skills" | "data";
+export type RepoKind = "kages" | "systems" | "skills" | "data";
 
 export interface Principal {
   /** e.g. "user:ada", "agent:acme/support-triage", "service:ci". */

@@ -61,11 +61,12 @@ node bin/kages.mjs validate public/ds/ops-console.kage.json
 - **Projects & workspaces** — organize Kages into projects within a workspace
   (`workspace → project → Kage`), visible in the dashboard.
 - **Share links** — publish a Kage and share an opaque `/k/<uuid>` link; anyone
-  with it sees a clean full-page render in the Kage's own system.
+  with it sees a clean full-page render in the Kage's own system. A whole project
+  shares as one `/r/<uuid>` link that lists its published Kages.
 - **Agents as first-class** — everything the UI can do is one operation over
   `POST /api/<op>`, so an MCP/REST/A2A agent can do it too (and vice versa).
 - **Auth & multi-tenancy (optional)** — Google sign-in via Supabase, with an
-  isolated per-user workspace seeded with intro templates on first login.
+  isolated per-user workspace seeded with intro Kages on first login.
 
 ## Architecture
 
@@ -99,7 +100,7 @@ through `patch_kage` from the CLI, MCP or REST.
 
 Complete examples live in `src/packs/examples.ts`; generated catalogs and packs
 teach their contracts and expression syntax. Fresh workspaces include the
-examples in the templates project. Existing workspaces can import the JSON
+examples in the examples project. Existing workspaces can import the JSON
 documents under `public/ds/` or create a starter with **New Kage**.
 
 Repeats use `{each, key?, as?}`; choose a stable string or numeric item key to

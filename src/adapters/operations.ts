@@ -152,8 +152,6 @@ export const OPERATIONS: OpSpec[] = [
   { name: "search_kages", summary: "Full-text + filtered search over stored Kages", params: ["text?", "system?", "author?", "state?"], run: (c, p) =>
     ok(c.store.search(p).filter((v) => c.store.canAccess(v, c.author))) },
 
-  { name: "search_templates", summary: "Rank starter templates for an intent (fork before scratch)", params: ["intent?"], run: (c, p) =>
-    ok(c.store.search({ ...p, text: p.intent }).filter((v) => v.ref.includes("/templates/") && c.store.canAccess(v, c.author))) },
 
   { name: "get_kage", summary: "Fetch a Kage document by name or uuid (latest or a version)", params: ["name?", "uuid?", "version?"], run: (c, p) => {
     // Accept the opaque uuid as well as the name, so preview/links identify a
@@ -204,6 +202,18 @@ export const OPERATIONS: OpSpec[] = [
 
   { name: "set_kage_projects", summary: "Set which extra projects a Kage belongs to, beyond its home repo (which is always implicit). Organizational only: reading the Kage still flows through its home repo. Requires write on that home repo", params: ["name", "projects"], write: true, run: (c, p) =>
     cres(c.store.setKageProjects(String(p.name), Array.isArray(p.projects) ? p.projects.map(String) : p.projects, c.author)) },
+
+  { name: "share_repo", summary: "Get (or create) the one link for a whole project (needs publish): /r/<uuid> lists the project's Kages that are already published with link or public visibility. It publishes nothing unless publish_all is true, which publishes every live Kage in the project with link visibility (invalid ones are skipped and listed)", params: ["repo", "title?", "publish_all?"], write: true, run: (c, p) => {
+    const r = c.store.shareRepo(String(p.repo ?? ""), c.author, typeof p.title === "string" ? p.title : undefined, { publishAll: p.publish_all === true });
+    return r.ok ? ok({ uuid: r.value.share.uuid, repo: r.value.share.repo, title: r.value.share.title ?? r.value.share.repo, path: `/r/${r.value.share.uuid}`, created: r.value.created, published: r.value.published, skipped: r.value.skipped }) : fail(r.error.code, r.error.msg);
+  } },
+  { name: "unshare_repo", summary: "Turn a project's link off (needs publish). Sharing again mints a new link; the old one stays dead", params: ["repo"], write: true, run: (c, p) => cres(c.store.unshareRepo(String(p.repo ?? ""), c.author)) },
+  { name: "get_repo_share", summary: "Is this project shared, and at what link? (needs publish)", params: ["repo"], run: (c, p) => {
+    const r = c.store.getRepoShare(String(p.repo ?? ""), c.author);
+    if (!r.ok) return fail(r.error.code, r.error.msg);
+    const s = r.value.share;
+    return ok(s ? { shared: true, uuid: s.uuid, path: `/r/${s.uuid}`, title: s.title ?? s.repo } : { shared: false });
+  } },
 
   { name: "describe_kage", summary: "Text view of a Kage for agents without vision (untrusted content)", params: ["name"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
@@ -269,9 +279,7 @@ export const OPERATIONS: OpSpec[] = [
   } },
 
   { name: "clone_kage", summary: "Create an independent copy of a Kage (fresh id + uuid)", params: ["name", "title?", "repo?"], write: true, run: (c, p) => {
-    // Templates are classified by their repo. Copying that destination would
-    // hide a user's new Kage in Templates, so default those copies to kages.
-    // Ordinary projects and explicitly requested destinations stay intact.
+    // A copy lands in the source's project unless a destination is requested.
     const r = c.store.authorizeRead(String(p.name), c.author);
     if (!r.ok) return fail(r.code, r.msg);
     const src = r.record.doc;
@@ -280,7 +288,7 @@ export const OPERATIONS: OpSpec[] = [
     void resolved;
     const doc = { ...bare, id, title: String(p.title ?? (src.title ? src.title + " copy" : id)) } as KageDoc;
     const sourceRepo = c.store.repoOf(r.record.ref);
-    const repo = p.repo ? String(p.repo) : sourceRepo === "templates" ? "kages" : sourceRepo;
+    const repo = p.repo ? String(p.repo) : sourceRepo;
     return toResult(c.store.create(repo, doc, c.author));
   } },
 

@@ -24,6 +24,7 @@ import { mergeBrief, validateBrief, type WorkspaceBriefRecord } from "./brief.ts
 import { resolveDesign, validateDesign, readSnapshot, type DesignSnapshot } from "../engine/design.ts";
 import { MAX_DESIGNS, type DesignRecord } from "./designs.ts";
 import { PROJECT_NAME, type ProjectCount } from "./projects.ts";
+import { repoListing, repoOfRef, type RepoListing, type RepoShare, type ShareHead } from "./repo-share.ts";
 import type {
   VersionRecord, Provenance, Grant, LifecycleState, Visibility, AuditEntry, KageEvent, WriteResult,
 } from "./types.ts";
@@ -74,6 +75,8 @@ export interface StoreSnapshot {
   /** Per-Kage extra project membership (beyond the home repo). Optional for the same
    *  back-compat reason; `[kageName, [project, …]]`. */
   memberships?: Array<[string, string[]]>;
+  /** One link per shared project; optional so snapshots from before folder links existed still load. */
+  repoShares?: RepoShare[];
   /** Last comment id number handed out; absent in snapshots written before it was persisted. */
   commentSequence?: number;
   claims?: import("../collab/claims.ts").Claim[];
@@ -104,6 +107,7 @@ export class Store {
   /** A Kage's EXTRA projects beyond its home repo, keyed by Kage name. The home repo is
    *  never stored here (it is always implicit), so a value here is purely additive. */
   private memberships = new Map<string, Set<string>>();
+  private repoShares = new Map<string, RepoShare>(); // repo -> its folder link
   /** Dry-run timestamps per workspace and principal. Process-wide on purpose: a persistent deployment
    *  restores a fresh Store from the snapshot on every request, so an instance field would start each
    *  request at zero and enforce nothing. A dry run must stay a read (committing a counter would turn it
@@ -140,6 +144,7 @@ export class Store {
       // Omitted when empty, so a workspace that never used projects writes the same snapshot it always did.
       ...(this.projects.size ? { projects: [...this.projects] } : {}),
       ...(this.memberships.size ? { memberships: [...this.memberships.entries()].map(([name, set]) => [name, [...set]] as [string, string[]]) } : {}),
+      ...(this.repoShares.size ? { repoShares: [...this.repoShares.values()].map((r) => ({ ...r })) } : {}),
       claims: this.claims.dump(),
       ...this.limitsSnapshot(),
     };
@@ -178,6 +183,7 @@ export class Store {
     for (const d of snap.designs ?? []) store.designs.set(d.id, JSON.parse(JSON.stringify(d)));
     for (const name of snap.projects ?? []) store.projects.add(name);
     for (const [name, list] of snap.memberships ?? []) store.memberships.set(name, new Set(list));
+    for (const r of snap.repoShares ?? []) store.repoShares.set(r.repo, { ...r });
     store.claims.load(snap.claims);
     for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
@@ -253,7 +259,7 @@ export class Store {
    *  from the caller. `kages://<ws>/<repo>/<name>@vN`. Permission checks bind to
    *  THIS, so a grant on repo A can't be used to touch a resource in repo B. */
   private static repoOfRef(ref: string): string {
-    return ref.replace(/^kages:\/\//, "").split("/")[1] ?? "";
+    return repoOfRef(ref);
   }
 
   /** Can this principal READ this version? Repo readers see everything in the
@@ -500,6 +506,68 @@ export class Store {
     this.record(author.principal, "project.membership", ref);
     this.emit("workspace.project.updated", ref, { projects: this.projectsOf(name) });
     return { ok: true, value: { name, projects: this.projectsOf(name) } };
+  }
+
+  // --- folder links ----------------------------------------------------------
+
+  /** The project's one link, minted on first use and kept after, so a link already sent keeps working. Needs
+   *  `publish` on the project: the link advertises its published Kages, which is publishing's business.
+   *  `publishAll` is the explicit "share everything now": every live Kage in the project that is not yet visible
+   *  by link (drafts, in review, published-private, deprecated) is published with link visibility in the same
+   *  call. Archived Kages stay away, and one that fails validation is skipped and reported rather than blocking
+   *  the rest, because validation is the gate no path into `published` may bypass. Without the flag nothing is
+   *  published, so a link alone can never widen who sees a Kage. */
+  shareRepo(repo: string, author: Provenance, title?: string, opts: { publishAll?: boolean } = {}): BriefResult<{ share: RepoShare; created: boolean; published: string[]; skipped: Array<{ name: string; reason: string }> }> {
+    if (!repo || /[/@\s]/.test(repo)) return berr("invalid_content", "a project name is required");
+    if (!this.allowed(author, repo, "publish")) return berr("forbidden", `${author.principal} needs publish on ${repo} to share it`);
+    const cleaned = title?.trim().slice(0, 120) || undefined;
+    const current = this.repoShares.get(repo);
+    let share: RepoShare;
+    if (current && (cleaned === undefined || cleaned === current.title)) share = { ...current };
+    else {
+      share = current
+        ? { ...current, title: cleaned }
+        : { uuid: randomUUID(), repo, ...(cleaned ? { title: cleaned } : {}), createdAt: new Date(this.clock()).toISOString(), createdBy: author.principal };
+      this.repoShares.set(repo, share);
+      this.record(author.principal, current ? "repo.share.retitle" : "repo.share", `kages://${this.workspace}/${repo}`);
+    }
+    const published: string[] = [];
+    const skipped: Array<{ name: string; reason: string }> = [];
+    if (opts.publishAll) {
+      for (const k of [...this.kages.values()]) {
+        const head = k.versions[k.versions.length - 1];
+        if (!head || Store.repoOfRef(head.ref) !== repo || head.state === "archived") continue;
+        if (head.state === "published" && (head.visibility === "link" || head.visibility === "public")) continue;
+        const r = head.state === "published" ? this.share(k.name, author, "link") : this.publish(k.name, author, "link");
+        if (r.ok) published.push(k.name); else skipped.push({ name: k.name, reason: r.error?.msg ?? "failed" });
+      }
+    }
+    return { ok: true, value: { share: share, created: !current, published, skipped } };
+  }
+
+  /** Turn the link off. A later share mints a new uuid, so the old link stays dead. */
+  unshareRepo(repo: string, author: Provenance): BriefResult<{ repo: string }> {
+    if (!this.allowed(author, repo, "publish")) return berr("forbidden", `${author.principal} needs publish on ${repo} to unshare it`);
+    if (!this.repoShares.delete(repo)) return berr("not_found", `${repo} has no folder link`);
+    this.record(author.principal, "repo.unshare", `kages://${this.workspace}/${repo}`);
+    return { ok: true, value: { repo } };
+  }
+
+  /** Whether a project is shared, for someone who can publish to it. Others learn nothing, not even that it exists. */
+  getRepoShare(repo: string, author: Provenance): BriefResult<{ share: RepoShare | null }> {
+    if (!this.allowed(author, repo, "publish")) return berr("forbidden", `${author.principal} needs publish on ${repo}`);
+    const s = this.repoShares.get(repo);
+    return { ok: true, value: { share: s ? { ...s } : null } };
+  }
+
+  /** What a folder link shows, resolved the same way a Postgres row is (see src/server/shared-repo.ts). */
+  sharedRepo(uuid: string): RepoListing | null {
+    const heads: ShareHead[] = [];
+    for (const k of this.kages.values()) {
+      const h = k.versions.at(-1);
+      if (h) heads.push({ uuid: h.uuid, ref: h.ref, state: h.state, visibility: h.visibility, title: h.doc.title, system: h.doc.system, mode: h.doc.brief?.mode ?? null });
+    }
+    return repoListing([...this.repoShares.values()], heads, uuid);
   }
 
   // --- quota ---------------------------------------------------------------

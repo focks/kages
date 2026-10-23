@@ -120,6 +120,8 @@ workspace  (the files Kages keeps next to your project)
                                 the workspace brief: product truth every agent should load first
   designs list | show <id> [--css] | set (--file d.json | --id i --name n [--base core|ledger|atelier] [--brand #hex]) [--default] [--base-revision n] | delete <id> | use <kage> <id|none> [--keep-system]
                                 workspace designs: colours, type and corners a Kage can wear; --brand generates a contrast-checked palette
+  project share <repo> [--title t] [--all] | link <repo> | unshare <repo>
+                                one link for a whole project: /r/<uuid> lists its Kages that are published with a public link (never publishes)
   doctor [--fix] [--strict] [--online] [--area a,b] [--json]
   push <file|name> [--server url] [--token t] [--replace] [--publish [--visibility link|public|workspace]]   send a local Kage to a running app so it shows in the Library
   report [--kage <name>] [--include-doc] [--include-config-values] [--out <file>] [--force] [--verify] [--open]   a redacted diagnostic bundle; nothing is sent
@@ -704,6 +706,21 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
         return report(await op("set_kage_design", { name, design: id === "none" ? "" : id, keepSystem: flags["keep-system"] === true }, true), (d) => { const r = d as { unchanged?: boolean }; out(r.unchanged ? `${name} already has no design` : id === "none" ? `${name}: design removed (new version)` : `${name} now uses '${id}' (new version)`); });
       }
       throw new Error(`unknown designs command '${sub}' (list, show, set, delete, use)`);
+    }
+    case "project": case "projects": {
+      const [sub, repo] = [rest[0], rest[1]];
+      if (!sub || !repo || !["share", "link", "unshare"].includes(sub)) throw new Error("usage: kages project <share|link|unshare> <repo> [--title t] [--all]");
+      // A full URL only when the host is known (signed in); a local workspace has no public address of its own.
+      const where = (path: string) => (useRemote ? `${status()?.apiUrl ?? ""}${path}` : path);
+      if (sub === "unshare") return report(await op("unshare_repo", { repo }, true), () => out(`${repo}: link turned off; sharing again makes a new one`));
+      if (sub === "link") return report(await op("get_repo_share", { repo }, true), (d) => { const r = d as { shared: boolean; path?: string }; out(r.shared ? where(r.path!) : `${repo} is not shared (kages project share ${repo})`); });
+      const all = flags.all === true;
+      return report(await op("share_repo", { repo, title: flag<string>(flags, "title"), ...(all ? { publish_all: true } : {}) }, true), (d) => {
+        const r = d as { path: string; created: boolean; published?: string[]; skipped?: Array<{ name: string; reason: string }> };
+        out(`${r.created ? "shared" : "already shared"}: ${where(r.path)}`);
+        if (all) out(`published ${r.published?.length ?? 0} Kage(s) with a link${r.skipped?.length ? `; skipped ${r.skipped.map((x) => `${x.name} (${x.reason})`).join(", ")}` : ""}`);
+        else out(`it lists the Kages in ${repo} that are published with a public link, nothing else (add --all to publish everything in it)`);
+      });
     }
     case "config": return configCmd(rest, flags, ctx.dir);
     case "gitignore": return gitignoreCmd(flags, process.cwd());
