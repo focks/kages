@@ -1,6 +1,6 @@
 // Edge middleware: when auth is enabled, refresh the Supabase session on every
 // request and redirect signed-out users to /login — EXCEPT the public surfaces
-// (/login, /auth/*, /docs/* the documentation, /k/* share links, /render which only shows a document it is handed, /api/* which gate themselves). When auth
+// (/login, /auth/*, /docs/* the documentation, /k/* Kage links, /r/* shared projects, /render which only shows a document it is handed, /api/* which gate themselves). When auth
 // is OFF (no NEXT_PUBLIC Supabase vars, i.e. local/dev), this is a pass-through:
 // no login, exactly today's behaviour. The apex host (getkages.com) serves the
 // public /landing page at the root with no auth.
@@ -9,13 +9,12 @@
 // server/identity, to keep next/headers out of the edge bundle.
 
 import { type NextRequest, NextResponse } from "next/server";
+import { isPublicPath } from "./server/public-path";
 import { updateSession } from "@/lib/supabase/middleware";
 
 function authEnabled(): boolean {
   return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 }
-
-const PUBLIC = ["/login", "/auth", "/k", "/api", "/render", "/docs", "/landing"];
 
 // The apex host is the public marketing site; app.getkages.com (and the
 // *.vercel.app default) is the dashboard. Matched here rather than in
@@ -36,7 +35,7 @@ export async function middleware(request: NextRequest) {
   if (!authEnabled()) return NextResponse.next();
 
   const { response, user } = await updateSession(request);
-  const isPublic = PUBLIC.some((p) => path === p || path.startsWith(p + "/"));
+  const isPublic = isPublicPath(path);
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
