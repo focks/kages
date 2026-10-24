@@ -137,6 +137,8 @@ language sql stable as $$
 $$;
 
 -- One-shot backfill from the legacy blob. Idempotent: existing rows win.
+-- Kage entries without a name (observed corruption from a write that slipped
+-- past doc-id validation) are skipped; they remain in the legacy blob.
 insert into public.workspaces (id, rev, meta, updated_at)
 select id, coalesce((snapshot->>'_rev')::bigint, 0), (snapshot - 'kages' - '_rev'), coalesce(updated_at, now())
 from public.kages_state
@@ -145,7 +147,7 @@ on conflict (id) do nothing;
 insert into public.kages (workspace_id, name, head_seq)
 select s.id, k->>'name', jsonb_array_length(k->'versions') - 1
 from public.kages_state s, jsonb_array_elements(s.snapshot->'kages') k
-where jsonb_array_length(k->'versions') > 0
+where jsonb_array_length(k->'versions') > 0 and k->>'name' is not null
 on conflict (workspace_id, name) do nothing;
 
 insert into public.kage_versions (workspace_id, name, seq, uuid, state, visibility, record)
@@ -153,6 +155,7 @@ select s.id, k->>'name', t.ord - 1, t.r->>'uuid', t.r->>'state', t.r->>'visibili
 from public.kages_state s,
      jsonb_array_elements(s.snapshot->'kages') k,
      jsonb_array_elements(k->'versions') with ordinality t(r, ord)
+where k->>'name' is not null
 on conflict (workspace_id, name, seq) do nothing;
 
 -- Supabase: make PostgREST pick up the new rpc functions without a restart.

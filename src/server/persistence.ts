@@ -99,6 +99,9 @@ export async function casSave(
   const upserts: { name: string; base: number; versions: VersionRecord[] }[] = [];
   const deletions: string[] = [];
   for (const k of kages as StoreSnapshot["kages"]) {
+    // Observed legacy corruption: a kage entry without a name. It cannot be
+    // keyed in the normalized tables; skip it rather than fail the whole save.
+    if (typeof k.name !== "string") continue;
     const old = prev?.get(k.name);
     let from = 0;
     // Non-head versions are immutable (signed); only the head's lifecycle
