@@ -1,5 +1,5 @@
 # Archive the tested CLI as a release attachment. Anonymous onboarding uses the
-# versioned public/downloads asset shipped with the site, not this private repo.
+# versioned public/downloads asset shipped with the site, not this release.
 name: release
 on:
   push: { tags: ["v*"] }

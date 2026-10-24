@@ -187,11 +187,12 @@ shows selectable text. “Are you an agent?” remains a separate header entry.
 
 ## Deploying
 
-The app is a standard Next.js app and deploys to Vercel or any Node host. Set
-the Supabase env vars in the project (or `DATABASE_URL` for plain Postgres; see
-deployment); run the migrations against your
-Supabase project; enable the Google provider in Supabase Auth with a Google
-Cloud OAuth client (redirect `https://<project>.supabase.co/auth/v1/callback`).
+The app is a standard Next.js app and deploys to Vercel or any Node host. Choose
+persistence (plain Postgres via `DATABASE_URL`, or Supabase), configure Supabase
+Auth with Google, then `npm run build && npm start`. Without auth a built app is
+read-only by design. The full self-hosting guide, including migrations, auth
+redirects, build-time variables and pointing the CLI at your own instance, is in
+[docs/deployment.md](docs/deployment.md).
 
 ## Project layout
 

@@ -25,13 +25,11 @@ or Supabase) and sign-in are optional; see `.env.example` and the
 ```bash
 npm run typecheck
 npm test
-npm run docs:check      # generated CLI and MCP reference is current
 npm run check:plugins   # generated plugin files are current
 ```
 
-Generated files are committed, and CI fails if they drift. After you change a CLI
-command or an operation, run `npm run docs:gen`; after you change a design
-system, run `npm run build:ds` (it falls back to the tracked `reference/`
+Generated files are committed, and CI fails if they drift. After you change a
+design system, run `npm run build:ds` (it falls back to the tracked `reference/`
 snapshot when `originals/` is absent) and commit what it produces.
 
 ## The rules that do not bend

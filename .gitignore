@@ -17,3 +17,8 @@ dist/
 .next-review-fixes/
 
 .next-review-build/
+
+# Operational data never lives in the checkout (see docs/deployment.md). Root-only
+# patterns: Playwright MCP drops page snapshots here, and they can show live keys.
+/backups/
+/*.yml
