@@ -173,3 +173,11 @@ function seed(store: Store): Store {
 
   return store;
 }
+
+
+/** Memory mode has no database-wide query. Expose only already loaded stores;
+ * never initialize guessed workspace names while browsing the public gallery. */
+export async function memoryGalleryStores(): Promise<Store[]> {
+  await getStore("acme");
+  return [...stores.values()];
+}

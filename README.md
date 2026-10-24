@@ -18,7 +18,7 @@ provenance — rendered live in the browser and shareable by link.
 Install the CLI and wire it to your agent (the command is `kages`):
 
 ```bash
-npm install -g https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz
+npm install -g https://app.getkages.com/downloads/ifocksh-kages-0.1.3.tgz
 kages --version
 claude mcp add kages -- kages mcp    # or: codex mcp add kages -- kages mcp
 ```
@@ -63,6 +63,7 @@ node bin/kages.mjs validate public/ds/ops-console.kage.json
 - **Share links** — publish a Kage and share an opaque `/k/<uuid>` link; anyone
   with it sees a clean full-page render in the Kage's own system. A whole project
   shares as one `/r/<uuid>` link that lists its published Kages.
+- **Public gallery** — choose **Share → Publish to gallery** in the Library to make a Kage public and discoverable at `/gallery`. Anyone can browse; signed-in users can add or remove one upvote. Ordinary share links stay unlisted. The CLI supports `kages publish <name> --gallery` and `kages gallery list|upvote|unvote|remove`.
 - **Agents as first-class** — everything the UI can do is one operation over
   `POST /api/<op>`, so an MCP/REST/A2A agent can do it too (and vice versa).
 - **Auth & multi-tenancy (optional)** — Google sign-in via Supabase, with an

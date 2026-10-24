@@ -5,6 +5,12 @@ All notable changes are recorded here, newest first. The format follows
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-10-24
+
+- Added an opt-in public gallery at `/gallery`, search and ranking, one removable upvote per account, and matching CLI/MCP/REST operations. Publishing to the gallery makes a Kage public; revoking access or saving a new draft withdraws the listing.
+- Replaced landing-page technical counters with benefits covering self-hosting, AI choice, interactive content, sharing, version history and exports. Fixed narrow-screen overflow from installation commands.
+
+
 First public release candidate.
 
 ### Removed

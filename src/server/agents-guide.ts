@@ -43,6 +43,10 @@ Intentional offline work: \`${CLI_RUN} mcp --local\`. Local publication has no h
 
 REST operations: POST ${o}/api/<op> with JSON and the appropriate identity. OpenAPI: ${o}/api/openapi.json. Agent card: ${o}/.well-known/agent-card.json.
 
+## Public gallery
+
+Browse ${o}/gallery or call \`list_gallery\`. Only when the user asks to publish to the gallery, call \`publish_to_gallery\` with name and baseVersion: this makes the Kage public and discoverable. Ordinary public/link publication stays unlisted. \`get_gallery_kage\` reads the current public document by uuid. Authenticated callers can use \`vote_gallery_kage\` with uuid and value:1 (upvote) or value:0 (remove their vote). \`remove_from_gallery\` removes discovery while keeping the public link. A new draft or revoked public access withdraws the listing; re-list explicitly after review.
+
 ## Read shared work
 
 - ${o}/k/<uuid>.md or the public URL with Accept: text/markdown.

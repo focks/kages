@@ -25,6 +25,7 @@ find a new reusable pattern, add it as a skill.
 | `coherent-presentation` | Canvas personalities, shared chart framing, stable data colors and analytical reports. |
 | `visual-review` | Rendering a Kage to a PNG with checks (`kages screenshot`, MCP `render_kage`); the /render page. |
 | `discussion-comments` | Threaded comments, votes, pinned point comments and comment mode; `src/collab/comments.ts` and `src/components/dashboard/comments`. |
+| `public-gallery` | Public gallery discovery, explicit publication, cross-workspace votes and snapshot projections. |
 | `persistence-backends` | Changing how workspaces persist: Postgres/Supabase/in-memory, CAS writes, `db:setup`. |
 | `rich-artifacts` | Adding or changing a chart, disclosure, overlay or other rich block in `src/design-system/rich*.js`. |
 | `kages-cli` | Adding or changing a `kages` CLI command, or the file-backed workspace store. |

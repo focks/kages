@@ -10,7 +10,7 @@
 // a URL that would 404 for the recipient.
 
 import { useState } from "react";
-import { Share2, Link as LinkIcon, Check } from "lucide-react";
+import { Share2, Link as LinkIcon, Check, Globe, Images } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,13 +24,13 @@ const LEVELS: { value: string; label: string; hint: string }[] = [
   { value: "private", label: "Private", hint: "Only you and repo editors" },
   { value: "workspace", label: "Workspace", hint: "Anyone in the workspace" },
   { value: "link", label: "Anyone with the link", hint: "View-only, no sign-in" },
-  { value: "public", label: "Public", hint: "Listed and viewable by anyone" },
+  { value: "public", label: "Public", hint: "Viewable by anyone" },
 ];
 
 const LINKABLE = new Set(["link", "public"]);
 
-export function ShareMenu({ name, uuid, state, visibility, onChanged }: {
-  name: string; uuid: string; state: string; visibility: string; onChanged: () => void | Promise<void>;
+export function ShareMenu({ name, uuid, state, visibility, gallery = false, version, onChanged }: {
+  name: string; uuid: string; state: string; visibility: string; gallery?: boolean; version?: number; onChanged: () => void | Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
   // The link uses the opaque uuid, never the name slug — so it doesn't reveal
@@ -49,6 +49,16 @@ export function ShareMenu({ name, uuid, state, visibility, onChanged }: {
     } catch (e) {
       toast.error(String((e as Error).message));
     } finally { setBusy(false); }
+  }
+
+  async function setGallery(listed: boolean) {
+    setBusy(true);
+    try {
+      await op(listed ? "publish_to_gallery" : "remove_from_gallery", { name, ...(listed && version !== undefined ? { baseVersion: version } : {}) });
+      toast.success(listed ? "Published to the gallery. This Kage is now public." : "Removed from the gallery. Its public link is still available.");
+      await onChanged();
+    } catch (e) { toast.error((e as Error).message); }
+    finally { setBusy(false); }
   }
 
   async function copyLink() {
@@ -76,6 +86,13 @@ export function ShareMenu({ name, uuid, state, visibility, onChanged }: {
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled={busy} onClick={() => void setGallery(!gallery)}>
+          {gallery ? <Images className="size-4" /> : <Globe className="size-4" />}
+          {gallery ? "Remove from gallery" : "Publish to gallery"}
+        </DropdownMenuItem>
+        <p className="px-2 pb-2 text-xs text-muted-foreground">{gallery ? "Listed publicly in the gallery and open for upvotes." : "Makes this Kage public and discoverable. Anyone can view it; signed-in readers can upvote."}</p>
+        {gallery && <DropdownMenuItem render={<a href="/gallery" />}>Open gallery</DropdownMenuItem>}
         <DropdownMenuSeparator />
         {linkable ? (
           <>

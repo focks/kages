@@ -7,7 +7,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Layers, Code2, BookOpen, Palette } from "lucide-react";
+import { LayoutDashboard, Layers, Code2, BookOpen, Palette, Images } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -18,6 +18,7 @@ import { WorkspaceLabel } from "@/components/dashboard/workspace-label";
 const NAV = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
   { title: "Library", href: "/artifacts", icon: Layers },
+  { title: "Gallery", href: "/gallery", icon: Images },
   { title: "Designs", href: "/designs", icon: Palette },
 ];
 

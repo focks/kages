@@ -1,3 +1,4 @@
+import { projectGallery, galleryCard, canVoteGallery, galleryVoter, type GalleryRecord, type GallerySnapshot, type GalleryCard } from "./gallery.ts";
 // @kages/store — the artifactory. Any agent can create a Kage; the store keeps
 // it as an immutable, signed version with provenance and hands it to people and
 // other agents. Every write validates the result BEFORE committing (atomic, via
@@ -77,6 +78,8 @@ export interface StoreSnapshot {
   memberships?: Array<[string, string[]]>;
   /** One link per shared project; optional so snapshots from before folder links existed still load. */
   repoShares?: RepoShare[];
+  /** Opt-in membership and votes, plus a public projection derived in this same commit. */
+  gallery?: GallerySnapshot[];
   /** Last comment id number handed out; absent in snapshots written before it was persisted. */
   commentSequence?: number;
   claims?: import("../collab/claims.ts").Claim[];
@@ -107,6 +110,7 @@ export class Store {
   /** A Kage's EXTRA projects beyond its home repo, keyed by Kage name. The home repo is
    *  never stored here (it is always implicit), so a value here is purely additive. */
   private memberships = new Map<string, Set<string>>();
+  private gallery = new Map<string, GalleryRecord>();
   private repoShares = new Map<string, RepoShare>(); // repo -> its folder link
   /** Dry-run timestamps per workspace and principal. Process-wide on purpose: a persistent deployment
    *  restores a fresh Store from the snapshot on every request, so an instance field would start each
@@ -145,6 +149,7 @@ export class Store {
       ...(this.projects.size ? { projects: [...this.projects] } : {}),
       ...(this.memberships.size ? { memberships: [...this.memberships.entries()].map(([name, set]) => [name, [...set]] as [string, string[]]) } : {}),
       ...(this.repoShares.size ? { repoShares: [...this.repoShares.values()].map((r) => ({ ...r })) } : {}),
+      ...(this.gallery.size ? { gallery: this.galleryEntries() } : {}),
       claims: this.claims.dump(),
       ...this.limitsSnapshot(),
     };
@@ -184,6 +189,7 @@ export class Store {
     for (const name of snap.projects ?? []) store.projects.add(name);
     for (const [name, list] of snap.memberships ?? []) store.memberships.set(name, new Set(list));
     for (const r of snap.repoShares ?? []) store.repoShares.set(r.repo, { ...r });
+    for (const { card: _card, ...entry } of snap.gallery ?? []) store.gallery.set(entry.uuid, { ...entry, votes: { ...entry.votes } });
     store.claims.load(snap.claims);
     for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
@@ -741,6 +747,7 @@ export class Store {
     };
     kage.versions.push(record);
     this.kages.set(doc.id, kage);
+    this.withdrawGallery(uuid);
     this.tickQuota(author.principal);
     this.record(author.principal, parent ? "patch" : "create", ref);
     this.emit("kage.version.created", ref);
@@ -762,6 +769,7 @@ export class Store {
     // with validation errors can never become published, no back door.
     if (to === "published" && !head.validation.ok) return err("invalid_content", "cannot publish a version with validation errors");
     head.state = to;
+    if (to !== "published") this.withdrawGallery(head.uuid);
     this.record(author.principal, to, head.ref);
     this.emit("kage.state.changed", head.ref, { to });
     return { ok: true, version: head };
@@ -774,7 +782,7 @@ export class Store {
     if (!head) return err("not_found", `no kage '${name}'`);
     if (!head.validation.ok) return err("invalid_content", "cannot publish a version with validation errors");
     const r = this.transition(name, "published", author, "publish");
-    if (r.ok && r.version) { r.version.visibility = visibility; this.emit("kage.published", r.version.ref); }
+    if (r.ok && r.version) { r.version.visibility = visibility; if (visibility !== "public") this.withdrawGallery(r.version.uuid); this.emit("kage.published", r.version.ref); }
     return r;
   }
 
@@ -788,6 +796,7 @@ export class Store {
     if (!this.allowed(author, repo, "publish")) return err("forbidden", `${author.principal} lacks publish on ${repo}`);
     if (head.state !== "published") return err("bad_state", "only a published Kage can be shared");
     head.visibility = visibility;
+    if (visibility !== "public") this.withdrawGallery(head.uuid);
     this.record(author.principal, "share:" + visibility, head.ref);
     this.emit("kage.state.changed", head.ref, { visibility });
     return { ok: true, version: head };
@@ -832,6 +841,7 @@ export class Store {
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, "admin")) return err("forbidden", `${author.principal} lacks admin on ${repo}`);
     this.kages.delete(name);
+    this.gallery.delete(head.uuid);
     // Drop everything else keyed by this name, so a later Kage reusing it can't
     // inherit a stale lease or someone else's old comments. (public_shares is
     // purged by the server layer via the returned uuid — it lives in Supabase.)
@@ -841,6 +851,75 @@ export class Store {
     this.record(author.principal, "delete", head.ref);
     this.emit("kage.deleted", head.ref, { uuid: head.uuid });
     return { ok: true, version: head };
+  }
+
+  // --- public gallery -----------------------------------------------------
+
+  private withdrawGallery(uuid: string): void {
+    const entry = this.gallery.get(uuid);
+    if (entry) entry.listed = false;
+  }
+
+  /** Internal snapshot projection; callers must use galleryCard/page before
+   * returning anything publicly because this includes private vote identities. */
+  galleryEntries(): GallerySnapshot[] {
+    return [...this.gallery.values()].map(entry => projectGallery(entry, this.head(entry.name)));
+  }
+
+  /** Constant-time membership check for library cards and public reads. */
+  isInGallery(uuid: string): boolean {
+    const entry = this.gallery.get(uuid), head = entry && this.head(entry.name);
+    return !!entry?.listed && head?.uuid === uuid && head.state === "published" && head.visibility === "public";
+  }
+
+  /** Publishing to the gallery is explicit consent to public visibility. The
+   * same permission/validation gate as ordinary publishing runs before opt-in. */
+  publishToGallery(name: string, author: Provenance, baseVersion?: number): WriteResult {
+    const read = this.authorizeRead(name, author);
+    if (!read.ok) return err(read.code, read.msg);
+    const head = read.record;
+    if (baseVersion !== undefined && head.v !== baseVersion) return err("conflict", "The Kage changed; review its current version before publishing to the gallery.");
+    const result = head.state === "published" ? this.share(name, author, "public") : this.publish(name, author, "public");
+    if (!result.ok) return result;
+    const previous = this.gallery.get(head.uuid);
+    this.gallery.set(head.uuid, { uuid: head.uuid, name, listed: true, publishedAt: previous?.publishedAt ?? new Date(this.clock()).toISOString(), votes: previous?.votes ?? {} });
+    this.record(author.principal, "gallery:publish", head.ref);
+    this.emit("kage.gallery.changed", head.ref, { listed: true });
+    return result;
+  }
+
+  /** Removing a listing does not revoke the public link. Keep existing votes
+   * for this UUID so removing/relisting cannot manufacture a fresh score. */
+  removeFromGallery(name: string, author: Provenance): WriteResult {
+    const read = this.authorizeRead(name, author);
+    if (!read.ok) return err(read.code, read.msg);
+    const head = read.record;
+    if (!this.allowed(author, Store.repoOfRef(head.ref), "publish")) return err("forbidden", "Publishing permission is required to remove a gallery listing.");
+    this.withdrawGallery(head.uuid);
+    this.record(author.principal, "gallery:remove", head.ref);
+    this.emit("kage.gallery.changed", head.ref, { listed: false });
+    return { ok: true, version: head };
+  }
+
+  /** A vote is a desired state, not a toggle: network retries cannot count twice.
+   * Recheck visibility on the target store inside CAS, not just at UUID lookup. */
+  voteGallery(uuid: string, author: Provenance, value: number): { ok: true; value: GalleryCard } | { ok: false; error: { code: string; msg: string } } {
+    const entry = this.gallery.get(uuid), head = entry && this.head(entry.name);
+    if (!entry || !projectGallery(entry, head).card) return cerr("not_found", "No such gallery Kage.");
+    if (!canVoteGallery(author)) return cerr("unauthorized", "Sign in to upvote gallery Kages.");
+    if (value !== 0 && value !== 1) return cerr("invalid_params", "A gallery vote is 1 (upvote) or 0 (remove vote).");
+    const principal = galleryVoter(author), existing = Object.hasOwn(entry.votes, principal);
+    if (existing !== Boolean(value)) {
+      // Snapshot-backed voting has a deliberate size ceiling. Never silently
+      // discard older votes to make room for a new one.
+      if (value && Object.keys(entry.votes).length >= 10000) return cerr("rate_limited", "This Kage has reached the gallery vote capacity.");
+      const limited = this.throttleDiscussion({ principal });
+      if (limited) return limited;
+      if (value) Object.defineProperty(entry.votes, principal, { value: true, enumerable: true, configurable: true, writable: true });
+      else delete entry.votes[principal];
+      this.emit("kage.gallery.changed", head!.ref, { upvotes: Object.keys(entry.votes).length });
+    }
+    return { ok: true, value: galleryCard(projectGallery(entry, head), author)! };
   }
 
   // --- read / search / export ---------------------------------------------

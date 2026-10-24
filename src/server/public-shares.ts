@@ -85,7 +85,7 @@ export async function delPublicShare(uuid: string): Promise<void> {
 // Ops whose success can change what a /k/<uuid> link should serve. delete_kage is
 // handled separately (afterWriteShareSync) because its Kage is gone afterwards.
 const SHARE_AFFECTING = new Set([
-  "publish_kage", "share_kage", "patch_kage",
+  "publish_to_gallery", "publish_kage", "share_kage", "patch_kage",
   "unpublish_kage", "deprecate_kage", "archive_kage", "restore_kage",
 ]);
 export const isShareAffecting = (op: string): boolean => SHARE_AFFECTING.has(op);

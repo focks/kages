@@ -113,6 +113,7 @@ export interface KageCard {
   mode?: string | null;
   /** Every project this Kage is in: its home `repo` unioned with its extra memberships. */
   projects?: string[];
+  gallery?: boolean;
 }
 
 /** The shared fetch for the one operation set over REST — UI is an adapter client. */

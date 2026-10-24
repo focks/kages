@@ -1,3 +1,4 @@
+import { galleryPage, type GallerySnapshot } from "../store/gallery.ts";
 import { conversionSkills, conversionIndex } from "../packs/conversion-skills.ts";
 import { setupInfo } from "./onboarding.ts";
 import { skillMd, skillFiles } from "../packs/packs.ts";
@@ -43,6 +44,8 @@ export interface OpContext {
   /** Who is calling — the adapter resolves auth → principal before dispatch. */
   author: Provenance;
   repo?: string;
+  /** Server-supplied global projection; absent for a local CLI workspace. */
+  galleryEntries?: GallerySnapshot[];
   /** Actual transport destination, never supplied by tool arguments. */
   connection?: { mode: "cloud" | "local" | "setup"; origin?: string };
   /** The caller's default for advice on a successful write; a request param wins over it. */
@@ -218,7 +221,7 @@ export const OPERATIONS: OpSpec[] = [
       visibility: v.visibility, lastAuthor: v.author.principal, createdAt: v.createdAt,
       validation: v.validation, description: describeCard(v.doc), kinds: kindsOf(v.doc), mode: v.doc.brief?.mode ?? null,
       // The full project set (home repo ∪ membership), so a card shows every project the Kage is organized into.
-      projects: c.store.projectsOf(v.name),
+      projects: c.store.projectsOf(v.name), gallery: c.store.isInGallery(v.uuid),
     }))) },
 
   { name: "list_repos", summary: "Projects in the workspace: each repo with a Kage count", params: [], run: (c) => {
@@ -508,6 +511,15 @@ export const OPERATIONS: OpSpec[] = [
   } },
 
   // --- release ---
+  { name: "publish_to_gallery", summary: "Publish a Kage to the public gallery. Explicitly makes it public and discoverable at /gallery; requires publish permission and valid content. Does not list other public Kages automatically.", params: ["name", "baseVersion?"], write: true, run: (c, p) => toResult(c.store.publishToGallery(p.name, c.author, p.baseVersion)) },
+  { name: "remove_from_gallery", summary: "Remove a Kage from the gallery while keeping its current public link and existing votes. Requires publish permission.", params: ["name"], write: true, run: (c, p) => toResult(c.store.removeFromGallery(p.name, c.author)) },
+  { name: "list_gallery", summary: "Browse explicitly listed public Kages, ranked by upvotes or newest. Anonymous reads allowed. Hosted servers list across workspaces; offline CLI lists its workspace only.", params: ["text?", "sort?", "offset?", "limit?"], run: (c, p) => ok(galleryPage(c.galleryEntries ?? c.store.galleryEntries(), c.author, p)) },
+  { name: "get_gallery_kage", summary: "Read the currently published public document for a gallery UUID. Earlier private versions are never returned.", params: ["uuid", "version?"], run: (c, p) => {
+    const name = c.store.nameByUuid(p.uuid), head = name && c.store.head(name);
+    return head && c.store.isInGallery(p.uuid) && (p.version === undefined || p.version === head.v) ? ok(head.doc) : fail("not_found", "No such gallery Kage.");
+  } },
+  { name: "vote_gallery_kage", summary: "Set your gallery upvote: value 1 adds one vote, 0 removes it. Signed-in identity required; repeated requests never add duplicate votes.", params: ["uuid", "value"], write: true, run: (c, p) => cres(c.store.voteGallery(p.uuid, c.author, p.value)) },
+
   { name: "publish_kage", summary: "Publish the head version (requires publish grant, clean validation)", params: ["name", "visibility?"], write: true, run: (c, p) =>
     toResult(c.store.publish(p.name, c.author, p.visibility ?? "private")) },
 

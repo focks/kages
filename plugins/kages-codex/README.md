@@ -1,6 +1,6 @@
 # Kages for Codex
 
-Version 0.1.2. The Kages MCP server (`https://app.getkages.com/api/mcp`) and skills: one authoring guide per design system (`kages-core`, `kages-ledger`, `kages-atelier`), `kages-decision-guide` and `kages-login`.
+Version 0.1.3. The Kages MCP server (`https://app.getkages.com/api/mcp`) and skills: one authoring guide per design system (`kages-core`, `kages-ledger`, `kages-atelier`), `kages-decision-guide` and `kages-login`.
 
 Conversion skills: kages-markdown-to-kage, kages-data-to-kage (CSV/TSV/JSON/spreadsheets), kages-document-to-kage (PDF/DOCX/text) and kages-web-to-kage. Retrieve any recipe through get_authoring_guide with its name.
 

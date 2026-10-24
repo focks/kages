@@ -139,7 +139,7 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
                 <Button size="sm" variant="outline" disabled={!doc} onClick={onFullscreen}><Expand /> Fullscreen</Button>
                 <Button size="sm" variant="outline" onClick={() => onClone(card.name)}><Copy /> Clone</Button>
                 <Button size="sm" variant="outline" onClick={() => onExport(card.name)}><Download /> Export</Button>
-                <ShareMenu name={card.name} uuid={card.uuid} state={card.state} visibility={card.visibility} onChanged={onChanged} />
+                <ShareMenu name={card.name} uuid={card.uuid} state={card.state} visibility={card.visibility} gallery={card.gallery} version={card.version} onChanged={onChanged} />
                 <StatusMenu name={card.name} state={card.state} onChanged={onChanged} onDeleted={onDeleted} />
               </div>
               <DesignPicker name={card.name} current={doc?.design ?? ""} pinned={doc?.resolved?.design?.name} onChanged={onChanged} />

@@ -88,7 +88,10 @@ manage  (your CLOUD workspace when signed in, else the local ./.kages; --local f
   search <query> [-s sys]       full-text search
   get <name> [-v n] [-o file]   print a stored Kage document
   versions <name>               revision history with provenance
-  publish <name> [--visibility private|workspace|link|public]
+  publish <name> [--gallery | --visibility private|workspace|link|public]
+  gallery [list] [--sort top|newest] [--text query]
+  gallery remove <name>        withdraw a listing; keep the public link
+  gallery upvote|unvote <uuid>  set or remove your gallery vote
   unpublish <name>              pull a published Kage back to draft
   review <name>                 send a draft to review
   deprecate <name>              mark a published Kage deprecated
@@ -456,8 +459,17 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       return pushCmd(await push(resolveDoc(rest[0]), server, httpCall(server, token), { replace: flags.replace === true, publish: flags.publish === true, visibility: flag<string>(flags, "visibility") }));
     }
     case "publish":
-      need(1, "publish <name> [--visibility v]");
-      return report(await op("publish_kage", { name: rest[0], visibility: flag(flags, "visibility") }, true), (d) => out(`published ${(d as any).version.ref}`));
+      need(1, "publish <name> [--gallery | --visibility v]");
+      if (flags.gallery && flags.visibility && flags.visibility !== "public") throw new Error("Publishing to the gallery makes the Kage public; omit --visibility or use public.");
+      return report(await op(flags.gallery ? "publish_to_gallery" : "publish_kage", { name: rest[0], ...(flags.gallery ? {} : { visibility: flag(flags, "visibility") }) }, true), (d) => out(`${flags.gallery ? "published to gallery (public)" : "published"} ${(d as any).version.ref}`));
+    case "gallery": {
+      const sub = rest[0] ?? "list";
+      if (sub === "list") return report(await op("list_gallery", { sort: flag(flags, "sort"), text: flag(flags, "text"), limit: flag(flags, "limit"), offset: flag(flags, "offset") }), printJson);
+      need(2, "gallery remove <name> | gallery upvote|unvote <uuid>");
+      if (sub === "remove") return report(await op("remove_from_gallery", { name: rest[1] }, true), () => out("Removed from gallery; visibility unchanged."));
+      if (sub === "upvote" || sub === "unvote") return report(await op("vote_gallery_kage", { uuid: rest[1], value: sub === "upvote" ? 1 : 0 }, true), printJson);
+      throw new Error("usage: kages gallery list|remove|upvote|unvote");
+    }
     case "unpublish":
       need(1, "unpublish <name>");
       return report(await op("unpublish_kage", { name: rest[0] }, true), (d) => out(`unpublished → draft ${(d as any).version.ref}`));

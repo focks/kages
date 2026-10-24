@@ -8,8 +8,8 @@ test("anonymous readers reach shared project pages, markdown and their access-ch
 });
 
 test("sharing prefixes do not make workspace pages public", () => {
-  for (const path of ["/", "/artifacts", "/preview/private-id", "/settings", "/reports", "/rendering", "/knowledge", "/api-keys", "/authentication", "/embedding"]) assert.equal(isPublicPath(path), false, path);
-  for (const path of ["/login", "/auth/callback", "/docs", "/docs/authoring", "/render", "/landing"]) assert.equal(isPublicPath(path), true, path);
+  for (const path of ["/", "/artifacts", "/preview/private-id", "/settings", "/reports", "/rendering", "/knowledge", "/api-keys", "/authentication", "/embedding", "/gallery-private"]) assert.equal(isPublicPath(path), false, path);
+  for (const path of ["/gallery", "/onboarding", "/login", "/auth/callback", "/docs", "/docs/authoring", "/render", "/landing"]) assert.equal(isPublicPath(path), true, path);
 });
 
 

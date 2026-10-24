@@ -24,6 +24,7 @@ const evidence: InputSchema = { type: "array", items: { type: "object", required
 const brief: InputSchema = { type: "object", properties: { mode: choice("read", "operate", "persuade", "experience"), users: str, purpose: str, audience: str, job: str, primaryAction: str, evidence, schema: { type: "integer", enum: [1] }, positioning: str, operatingContext: str, voice: str, brandCommitments: str, constraints: strings, absent: strings, principles: strings, openDecisions: strings, inferred: strings, useScene: str, notes: str } };
 const shared: Record<string, InputSchema> = {
   personality: choice("analytical", "editorial", "exploratory", "teaching", "showcase"),
+  sort: choice("top", "newest"), offset: integer,
   origins: strings, toc: choice("auto", "always", "never"),
   density: choice("comfortable", "compact"), appearance: choice("inherit", "light", "dark"),
   ...Object.fromEntries(["path", "system", "design", "brand", "ref", "text", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
@@ -51,6 +52,9 @@ export function operationSchema(op: string, params: string[]): InputSchema {
     let actual = schema;
     if (key === "brief" && op !== "set_brief") actual = { ...brief, properties: { ...brief.properties, evidence: { type: "array", items: { anyOf: [str, { type: "object", required: ["source"], properties: { source: str, block: str, claim: str }, additionalProperties: false }] } } } };
     if (key === "brief" && op === "set_brief") actual = { ...brief, properties: Object.fromEntries(Object.entries(brief.properties!).map(([k, v]) => [k, { anyOf: [v, { type: "null" }] }])) };
+    if (op === "vote_gallery_kage" && key === "value") actual = { type: "integer", enum: [0, 1] };
+    if (op === "list_gallery" && key === "limit") actual = { type: "integer", minimum: 1, maximum: 48 };
+    if (op === "list_gallery" && key === "text") actual = { type: "string" };
     properties[key] = { ...actual, description: key === "fingerprint" ? "The digest from the reviewed critique packet target.digest; never substitute a newer head." : `${key} parameter` };
   }
   return { type: "object", properties, required: params.filter(p => !p.endsWith("?")), additionalProperties: true };

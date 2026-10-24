@@ -1,3 +1,4 @@
+import { readGalleryEntries, galleryWorkspace } from "./gallery.ts";
 import { authMode } from "./auth-mode.ts";
 // Run one operation in a workspace with the full server-side lifecycle. Reads hit
 // the latest committed store. Writes go through mutateStore: anonymous callers are
@@ -31,9 +32,17 @@ export async function executeOp(
     if (anonWriteBlocked(author, write))
       return { ok: false, error: { code: "unauthorized", msg: "Sign in to write. Call get_setup for login, workspace and MCP authentication instructions; anonymous access is read-only" } };
 
+    // Only these UUID operations cross workspace boundaries. The selected
+    // store still enforces public gallery membership inside the transaction.
+    if (op === "vote_gallery_kage" || op === "get_gallery_kage") {
+      const target = await galleryWorkspace(String(params?.uuid ?? ""));
+      if (!target) return { ok: false, error: { code: "not_found", msg: "No such gallery Kage." } };
+      workspace = target;
+    }
     if (!write) {
+      const galleryEntries = op === "list_gallery" ? await readGalleryEntries() : undefined;
       const store = await getStore(workspace);
-      return dispatch({ store, author, adapter, connection, adviceLog: sink }, op, params);
+      return dispatch({ store, author, adapter, connection, galleryEntries, adviceLog: sink }, op, params);
     }
 
     return await mutateStore(workspace, (store) => ({ result: dispatch({ store, author, adapter, connection, adviceLog: sink }, op, params) }));
