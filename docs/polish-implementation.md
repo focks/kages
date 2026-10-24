@@ -1,6 +1,6 @@
 # Product polish delivery tracker
 
-Active objective: implement the research proposal and the supplied analytical
+Delivered objective: implement the research proposal and the supplied analytical
 dashboard reference, verify, commit and push (which deploys), then create four
 new cloud Kages demonstrating the improvements. This tracker preserves the full
 scope across work sessions; unchecked items are not delivered.
@@ -18,8 +18,8 @@ scope across work sessions; unchecked items are not delivered.
 - [x] Data import/types, source/freshness/refresh/error and persistence UX.
 - [x] Library/publishing polish, copy/remix, export/print, controlled embeds and links.
 - [x] Automated tests, browser interactions and rendered review across themes/sizes.
-- [ ] Commit and push implementation; confirm deployment serves new contracts.
-- [ ] Create and review four new cloud demonstration Kages; deliver their links.
+- [x] Commit and push implementation; confirm deployment serves new contracts.
+- [x] Create and review four new cloud demonstration Kages; deliver their links.
 
 The image is a visual reference, not a verified source for the numerical claims
 inside it. Demonstrations must label synthetic data or cite verified evidence.
@@ -141,3 +141,31 @@ browser checks passed separately (including chapter history, copy, print,
 embeds, selection links and Library). The latest production build passed;
 authoring-pack regeneration and its 11 focused tests passed. Cloud creation
 and final live verification remain outstanding until the final code deploys.
+
+
+## Completion evidence — 24 October 2026
+
+Implementation commit `7f4a6e6` is on origin/main. Vercel deployment
+`RJ7dFWXXzAwNjSgb1hxA7duadxVf` succeeded. Public component JS, both stylesheets
+and runtime match the committed SHA-384 hashes. The earlier commits `3c2248b`
+and `4295fa3` contain the canvas/chart and routing/embed foundations.
+
+Four new cloud Kages were created after the implementation deployment, added to
+`getting-started`, and published with link visibility. All four public document
+endpoints return HTTP 200 without credentials and pin the deployed runtime.
+Each was rendered against production at 390 and 1200 pixels: no truncation,
+overflow findings or console errors. Live anonymous browser checks exercised
+scenario/reset, CSV import/source label/refresh/reset, guide filters/checklist,
+and diagram selection/quiz/restart; every mobile view fit without horizontal
+overflow. The user's existing shared-project URL also returned its repo/title/
+items anonymously with HTTP 200.
+
+- [allocation-lab-polish-20261024](https://app.getkages.com/k/8deb3af0-debb-47d6-9f0d-e9f6d7b6cca3)
+- [evidence-workbench-polish-20261024](https://app.getkages.com/k/d14796ff-dc86-4bdf-bd45-48c08a65995e)
+- [signal-field-guide-polish-20261024](https://app.getkages.com/k/332d7de4-183c-40e1-85ce-14e658f02e84)
+- [systems-classroom-polish-20261024](https://app.getkages.com/k/71ae84be-7d7f-4033-bca5-dca0e1b2ad2a)
+
+The full delivery checklist above is satisfied. Public state remains session-only
+unless a host supplies persistence, and numerical demos are explicitly synthetic.
+This delivery demonstrates the implemented capabilities; it does not claim a
+measured superiority or parity score against competing products.

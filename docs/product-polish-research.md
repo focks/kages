@@ -33,10 +33,16 @@ box plot, waterfall and small multiples; and a local CSV preview/import block.
 These are implementation changes, not evidence of complete
 competitor parity. Existing immutable component references remain available.
 
-The remaining gaps include deeper graph routing, a polished design-picker and
-comparison flow, complete data refresh/persistence journeys, print/export,
-controlled embeds and discoverable public copying. Five canvas personality
-values alone do not complete five convincing end-to-end experiences.
+The follow-through now includes gutter-routed graph connections, a Library
+original/proposed polish preview, existing workspace font/design controls,
+explicit refresh outcomes and session-state disclosure, PDF printing,
+exact-origin controlled embeds, public copying and allowlisted selection links.
+Library tiles render their immutable revision as a thumbnail. Four complete
+cloud experiences demonstrate analytics, data exploration, sourced editorial
+reading and diagram-based teaching; Showcase styling was also rendered and
+reviewed. See `polish-implementation.md` for deployment, test evidence and links.
+Host-backed personal/shared persistence still requires a configured host; the
+public viewer states that limitation rather than implying saved progress.
 
 ## Product decisions I would make
 
