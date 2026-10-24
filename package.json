@@ -52,7 +52,7 @@
     "postcss": "^8.5.29",
     "shadcn": "^4.21.4",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.7.0"
+    "typescript": "^7.0.2"
   },
   "license": "MIT",
   "engines": {
