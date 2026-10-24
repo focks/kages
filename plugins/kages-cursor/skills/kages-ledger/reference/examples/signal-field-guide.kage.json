@@ -15,6 +15,12 @@
     ],
     "notes": "Documented guidance is separated from this guide's recommendations; this is not a competitor benchmark."
   },
+  "meta": {
+    "shareState": [
+      "category",
+      "query"
+    ]
+  },
   "state": {
     "chapter": "overview",
     "category": "all",

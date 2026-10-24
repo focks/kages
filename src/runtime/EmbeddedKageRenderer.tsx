@@ -74,6 +74,9 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
   const designStyle = React.useMemo(() => (design ? designCss(design) : ""), [design]);
 
   const [state, setState] = React.useState<Record<string, Json>>(() => clone(doc.state || {}));
+  // Initial linked views and asynchronous refreshes must reach the host too;
+  // reporting only button dispatches leaves copy-view actions with stale state.
+  React.useEffect(() => { onState?.(state); }, [state, onState]);
   const [locals, setLocals] = React.useState(() => initLocals(doc, sysId));
   const fetches = React.useRef(fetchTracker());
 
@@ -122,7 +125,6 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
     runActions(doc, sysId, (b.on || {})[evName], draft, id, payload, log, 0, opts);
     setState(draft.state);
     setLocals(draft.locals);
-    onState?.(draft.state);
     for (const t of hostTasks) void runHost(t);
   }
 

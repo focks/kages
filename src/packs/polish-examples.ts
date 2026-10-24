@@ -13,7 +13,7 @@ export const POLISH_MODES: Record<string, Mode> = {
 export function polishExamples(system = "core"): KageDoc[] {
   return [{
     kages: "1.0", id: "allocation-lab", title: "Allocation Lab — an analytical report", system,
-    root: "root", brief: { mode: "operate", audience: "Readers exploring a worked allocation example", job: "Compare scenarios and inspect a category", notes: "All figures and company names are illustrative." },
+    root: "root", meta: { shareState: ["scenario", "selected"] }, brief: { mode: "operate", audience: "Readers exploring a worked allocation example", job: "Compare scenarios and inspect a category", notes: "All figures and company names are illustrative." },
     state: { scenario: "baseline", selected: "" },
     data: {
       metrics: { share: .72, teams: 48, retention: .85, growth: .63 },

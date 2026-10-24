@@ -22,6 +22,7 @@ test("analytical report supports selection, scenario/reset, mobile bars and whee
     };
     await cdp.send("Target.setAutoAttach", { autoAttach: true, waitForDebuggerOnStart: false, flatten: true }, sessionId);
     await cdp.send("Page.enable", {}, sessionId);
+    await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: "Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{window.__copiedView=text;}}});" }, sessionId);
     await cdp.send("Emulation.setDeviceMetricsOverride", { width: 1200, height: 800, deviceScaleFactor: 1, mobile: false }, sessionId);
     await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: `const originalFetch=window.fetch;window.fetch=(url,...args)=>String(url).startsWith('/api/shared/')?Promise.resolve(new Response(${JSON.stringify(JSON.stringify(polishExamples()[0]))})):originalFetch(url,...args);` }, sessionId);
     await cdp.send("Page.navigate", { url: url + "/k/polish-fixture" }, sessionId);
@@ -41,6 +42,22 @@ test("analytical report supports selection, scenario/reset, mobile bars and whee
     await evaluate("document.querySelector('input[value=alternate]').click()"); await delay(100);
     assert.ok(await evaluate("document.querySelector('.kg-analytical-bars__value').textContent.includes('90K')"));
     assert.equal(await evaluate("getComputedStyle(document.querySelector('.kg-analytical-bars__bar')).backgroundColor"), color);
+    await evaluate("[...document.querySelectorAll('summary')].find(b=>b.textContent==='Use this Kage').click()", sessionId);
+    await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='Copy link to this view').click()", sessionId);
+    await delay(100);
+    const shared = await evaluate("window.__copiedView", sessionId);
+    assert.ok(shared.includes("~view="), "sharing includes the allowed scenario and selection");
+    child = undefined;
+    await cdp.send("Page.navigate", { url: shared }, sessionId);
+    await cdp.send("Page.reload", {}, sessionId);
+    ready = false;
+    for (let i = 0; i < 100; i++) {
+      if (child && await evaluate("!!document.querySelector('.kg-analytical-bars__value')")) { ready = true; break; }
+      await delay(100);
+    }
+    assert.ok(ready);
+    assert.ok(await evaluate("document.querySelector('.kg-analytical-bars__value').textContent.includes('90K')"), "a fresh view restores the scenario: " + shared + " → " + await evaluate("document.querySelector('.kg-analytical-bars__value').textContent"));
+    assert.equal(await evaluate("document.querySelector('.kg-analytical-bars__row').getAttribute('aria-pressed')"), "true", "a fresh view restores selection");
     await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='Reset exploration').click()"); await delay(100);
     assert.ok(await evaluate("document.querySelector('.kg-analytical-bars__value').textContent.includes('120K')"));
     assert.equal(await evaluate("document.querySelector('.kg-analytical-bars__row').getAttribute('aria-pressed')"), "false");

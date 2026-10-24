@@ -4,6 +4,12 @@
   "title": "Allocation Lab — an analytical report",
   "system": "ledger",
   "root": "root",
+  "meta": {
+    "shareState": [
+      "scenario",
+      "selected"
+    ]
+  },
   "brief": {
     "mode": "operate",
     "audience": "Readers exploring a worked allocation example",

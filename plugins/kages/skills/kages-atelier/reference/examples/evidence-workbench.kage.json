@@ -10,6 +10,13 @@
     "job": "Filter a cohort, adjust an assumption, inspect a point and import a CSV",
     "notes": "All built-in data is synthetic. The ±10% band is a sensitivity illustration, not a confidence interval."
   },
+  "meta": {
+    "shareState": [
+      "category",
+      "factor",
+      "selected"
+    ]
+  },
   "state": {
     "range": null,
     "hiddenSeries": [],

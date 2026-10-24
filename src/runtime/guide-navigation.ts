@@ -14,6 +14,7 @@ export function guideRoutes(doc: KageDoc): string[] {
 /** Empty fragment means the first chapter; unknown/anchor fragments leave state alone. */
 export function chapterFromHash(hash: string, routes: string[]): string | undefined {
   if (!hash || hash === "#") return routes[0];
-  const slug = hash.slice(1);
+  const slug = hash.slice(1).split("~view=")[0];
+  if (!slug) return routes[0];
   return routes.includes(slug) ? slug : undefined;
 }

@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { wheelPixels } from "@/runtime/scroll";
 import { KageRenderer } from "@/runtime/KageRenderer";
-import type { KageDoc } from "@/engine/types";
+import type { KageDoc, Json } from "@/engine/types";
 import { CommentNode, Composer } from "./comment-thread";
 import { buildThreads, discussionStats, fractionIn, pinNumbers, popoverPlacement, shortName, visiblePins } from "./comment-model";
 import type { CommentsApi } from "./use-comments";
@@ -27,7 +27,7 @@ interface Rect { left: number; top: number; width: number; height: number }
 const POP = { width: 340, height: 280 };
 /** `toolbarSlot`: a host element (e.g. the page header) to receive a compact toggle instead of
  *  the stage drawing its own second bar. Until the slot exists nothing is drawn, so the bar never flashes in twice. */
-export function CommentStage({ doc, api, className, flash, toolbarSlot, fill, navigation }: { doc: KageDoc; api: CommentsApi; className?: string; flash?: { block: string; nonce: number } | null; toolbarSlot?: HTMLElement | null; fill?: boolean; navigation?: boolean }) {
+export function CommentStage({ doc, api, className, flash, toolbarSlot, fill, navigation, onState }: { doc: KageDoc; api: CommentsApi; className?: string; flash?: { block: string; nonce: number } | null; toolbarSlot?: HTMLElement | null; fill?: boolean; navigation?: boolean; onState?: (state: Record<string, Json>) => void }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -180,7 +180,7 @@ export function CommentStage({ doc, api, className, flash, toolbarSlot, fill, na
 
       <div className={cn("min-h-0 flex-1", fill ? "relative overflow-hidden" : "overflow-auto")}>
         <div ref={stageRef} className={fill ? "absolute inset-0" : "relative"}>
-          <div ref={contentRef} className={fill ? "h-full" : undefined}><KageRenderer doc={doc} onLayout={onLayout} fill={fill} navigation={navigation} /></div>
+          <div ref={contentRef} className={fill ? "h-full" : undefined}><KageRenderer doc={doc} onLayout={onLayout} fill={fill} navigation={navigation} onState={onState} /></div>
 
           {mode && (
             <div ref={overlayRef} className="absolute inset-0 z-10 cursor-crosshair bg-primary/[0.03]" aria-hidden onMouseMove={onOverlayMove} onMouseLeave={() => setHover(null)} onClick={onOverlayClick} onWheel={(e) => { if (fill) contentRef.current?.querySelector("iframe")?.dispatchEvent(new CustomEvent("kages-scroll", { detail: wheelPixels(e, e.currentTarget.clientHeight) })); }} />

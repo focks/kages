@@ -5,6 +5,7 @@ import * as React from "react";
 import type { KageRendererProps } from "./EmbeddedKageRenderer.tsx";
 import { HostBridge } from "../host/bridge.ts";
 import { guideRoutes, chapterFromHash } from "./guide-navigation.ts";
+import { docWithSharedView } from "./shared-view.ts";
 import { sandboxHtml } from "./sandbox.ts";
 import currentAssets from "../../public/ds/assets.json";
 import frameRuntime from "../../public/runtime/frame.json";
@@ -30,8 +31,15 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
     let port: MessagePort | undefined;
     let disposed = false;
     const routes = navigation ? guideRoutes(doc) : [];
-    const locationChanged = () => { const chapter = chapterFromHash(location.hash, routes); if (chapter) port?.postMessage({ type: "location", chapter }); };
     const dark = () => forceDark ?? document.documentElement.classList.contains("dark");
+    let lastView = location.hash.split("~view=")[1] ?? "";
+    const render = () => port?.postMessage({ type: "render", dark: dark(), chapter: chapterFromHash(location.hash, routes), props: { doc: navigation ? docWithSharedView(doc, location.hash) : doc, system, design, fill, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
+    const locationChanged = () => {
+      const nextView = location.hash.split("~view=")[1] ?? "";
+      if (navigation && nextView !== lastView) { lastView = nextView; render(); return; }
+      const chapter = chapterFromHash(location.hash, routes);
+      if (chapter) port?.postMessage({ type: "location", chapter });
+    };
     const connect = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow || event.data?.type !== "kages-frame-ready" || port) return;
       const channel = new MessageChannel(); port = channel.port1; livePort.current = port;
@@ -39,9 +47,10 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
         if (data?.type === "error" && typeof data.message === "string") {
           console.error("Kage frame:", data.message.slice(0, 500));
         } else if (data?.type === "ready") {
-          port!.postMessage({ type: "render", dark: dark(), chapter: chapterFromHash(location.hash, routes), props: { doc, system, design, fill, assetIntegrity: assets.integrity, dsBase: new URL(assets.base, origin).href } });
+          render();
         } else if (data?.type === "navigate" && typeof data.chapter === "string" && routes.includes(data.chapter)) {
-          if (location.hash !== "#" + data.chapter) history.pushState(null, "", "#" + data.chapter);
+          const view = location.hash.includes("~view=") ? "~view=" + location.hash.split("~view=")[1] : "";
+          if (location.hash !== "#" + data.chapter + view) history.pushState(null, "", "#" + data.chapter + view);
         } else if (data?.type === "settled") {
           current.current.onReady?.();
         } else if (data?.type === "layout" && Number.isFinite(data.height)) {

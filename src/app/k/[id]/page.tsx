@@ -7,13 +7,13 @@
 // private Kage's link 404s for an outsider. The Kage renders in its OWN design
 // system — the system is fixed at creation and not swappable here.
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef } from "react";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { useGuestComments } from "@/components/dashboard/comments/use-guest-comments";
 import { ShareFeedback } from "@/components/dashboard/share-feedback";
 import { KageUsage } from "@/components/dashboard/kage-usage";
 import { MadeWithKages } from "@/components/dashboard/made-with-kages";
-import type { KageDoc } from "@/engine/types";
+import type { KageDoc, Json } from "@/engine/types";
 import { PublishedActions } from "@/components/dashboard/published-actions";
 import { KageRenderer } from "@/runtime/SandboxedKage";
 import { DataSessionNotice } from "@/components/dashboard/data-session-notice";
@@ -23,6 +23,7 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const guest = useGuestComments(id);
+  const readerState = useRef<Record<string, Json> | undefined>(undefined);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const [printView, setPrintView] = useState(false), [printReady, setPrintReady] = useState(false);
   const [printTooTall, setPrintTooTall] = useState(false);
@@ -30,6 +31,7 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
   // Read through the dedicated public route (resolves across workspaces), not the
   // per-workspace operation dispatcher.
   useEffect(() => {
+    readerState.current = undefined;
     setPrintView(new URL(location.href).searchParams.get("print") === "1");
     fetch(`/api/shared/${encodeURIComponent(id)}`)
       .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d?.error?.msg || r.statusText); return d as KageDoc; })
@@ -65,12 +67,12 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
       {/* One bar: the title on the left, the comment toggle on the right. The design system and version are machine detail, so they live in the tooltip, not the chrome. */}
       <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
         <span title={doc.system} className="min-w-0 flex-1 truncate font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
-        <PublishedActions doc={doc} uuid={id} />
+        <PublishedActions doc={doc} uuid={id} readerState={() => readerState.current} />
         <div ref={setSlot} className="flex shrink-0 items-center gap-1" />
       </header>
       {/* Comment mode for visitors: click anything and a comment window opens there. They can only add notes. */}
       <div className="flex min-h-0 flex-1 flex-col">
-        <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill navigation />
+        <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill navigation onState={state => { readerState.current = state; }} />
       </div>
       <div className="shrink-0"><DataSessionNotice doc={doc} /><KageUsage name={doc.id} uuid={id} /></div>
       <ShareFeedback uuid={id} doc={doc} />

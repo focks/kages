@@ -1,6 +1,7 @@
 // A real Library review, apply and undo using an isolated, disposable local Kage.
 import { test } from 'node:test';
 import { randomUUID } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
 import { Cdp, findChrome, launch } from '../cli/screenshot.ts';
 import { polishExamples } from '../packs/polish-examples.ts';
 import assert from 'node:assert/strict';
@@ -14,8 +15,27 @@ const browser=await launch(findChrome()!, process.env.KAGES_CHROME_NO_SANDBOX ==
 try {
  const {targetId}=await cdp.send('Target.createTarget',{url:'about:blank'}); const {sessionId}=await cdp.send('Target.attachToTarget',{targetId,flatten:true});
  await cdp.send('Page.enable',{},sessionId);
+ let thumbnailFrame: string | undefined;
+ cdp.on((method,params)=>{if(method==='Target.attachedToTarget' && params.targetInfo.type==='iframe')thumbnailFrame=params.sessionId;});
+ await cdp.send('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true},sessionId);
  const evaluate=async(expression: string)=>{const r=await cdp.send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},sessionId);if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
  const wait=async(expression: string)=>{for(let i=0;i<120;i++){if(await evaluate(expression))return;await new Promise(r=>setTimeout(r,150));}throw Error('Timeout '+expression);};
+ await cdp.send('Page.addScriptToEvaluateOnNewDocument',{source:"window.__thumbnailReads=[];const originalFetch=window.fetch;window.fetch=(url,options)=>{if(String(url)==='/api/get_kage')window.__thumbnailReads.push(JSON.parse(options.body));return originalFetch(url,options);};"},sessionId);
+ await cdp.send('Emulation.setDeviceMetricsOverride',{width:1200,height:900,deviceScaleFactor:1,mobile:false},sessionId);
+ await cdp.send('Page.navigate',{url:origin+'/artifacts?view=grid&q='+doc.id},sessionId);
+ await wait("!!document.querySelector('[data-kage-thumbnail] iframe')");
+ assert.ok(await evaluate("document.querySelector('[data-kage-thumbnail]').inert"));
+ assert.ok(await evaluate("window.__thumbnailReads.some(r=>r.uuid && r.version===1)"), 'thumbnail reads an exact immutable revision');
+ let rendered=false;
+ for(let i=0;i<120;i++) {
+   if(thumbnailFrame) {const r=await cdp.send('Runtime.evaluate',{expression:"!!document.querySelector('.kg-analytical-bars__row')",returnByValue:true},thumbnailFrame);if(r.result?.value){rendered=true;break;}}
+   await new Promise(r=>setTimeout(r,100));
+ }
+ assert.ok(rendered,'thumbnail renders the real chart inside its isolated frame');
+ if(process.env.KAGES_REVIEW_IMAGE) {
+   const shot=await cdp.send('Page.captureScreenshot',{format:'png'},sessionId);
+   writeFileSync(process.env.KAGES_REVIEW_IMAGE,Buffer.from(shot.data,'base64'));
+ }
  await cdp.send('Page.navigate',{url:origin+'/artifacts?id='+doc.id},sessionId);
  await wait("[...document.querySelectorAll('summary')].some(s=>s.textContent==='Polish presentation')");
  await evaluate("[...document.querySelectorAll('summary')].find(s=>s.textContent==='Polish presentation').click()");

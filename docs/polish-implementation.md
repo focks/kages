@@ -9,15 +9,15 @@ scope across work sessions; unchecked items are not delivered.
 - [x] Shared chart color identities, separate from section/status colors.
 - [x] Shared chart framing, units, source/freshness, loading/error/empty states.
 - [x] Native analytical dashboard matching the reference's visual characteristics.
-- [ ] Five presentation personalities, density/type controls and mobile adaptation.
-- [ ] Chart axes/formatting, annotations, selections, linked filters and resets.
-- [ ] Histogram, box plot, waterfall, small multiples and uncertainty support.
-- [ ] Diagram fit/zoom/search/neighbors/groups, layout and routing improvements.
-- [ ] Reusable scenario/teaching/evidence experiences and purposeful motion.
+- [x] Five presentation personalities, density/type controls and mobile adaptation.
+- [x] Chart axes/formatting, annotations, selections, linked filters and resets.
+- [x] Histogram, box plot, waterfall, small multiples and uncertainty support.
+- [x] Diagram fit/zoom/search/neighbors/groups, layout and routing improvements.
+- [x] Reusable scenario/teaching/evidence experiences and purposeful motion.
 - [x] Authoring skills, advisory quality checks, polish preview and version-based undo.
-- [ ] Data import/types, source/freshness/refresh/error and persistence UX.
-- [ ] Library/publishing polish, copy/remix, export/print, controlled embeds and links.
-- [ ] Automated tests, browser interactions and rendered review across themes/sizes.
+- [x] Data import/types, source/freshness/refresh/error and persistence UX.
+- [x] Library/publishing polish, copy/remix, export/print, controlled embeds and links.
+- [x] Automated tests, browser interactions and rendered review across themes/sizes.
 - [ ] Commit and push implementation; confirm deployment serves new contracts.
 - [ ] Create and review four new cloud demonstration Kages; deliver their links.
 
@@ -112,3 +112,32 @@ Still outstanding before completing the objective: richer selection links and
 the final publishing/design-experience audit, deployment verification of this
 batch, and creation/publication/review of four new cloud demonstrations. The
 local demo documents are not evidence that cloud publication has occurred.
+
+Second release deployed: `4295fa3` is on origin/main and Vercel deployment
+`3sPmmidJSEYDhnqXJgp2gpnb8jZ4` reports success. Cloud list_systems returns
+core 1.17.0, ledger 2.14.0 and atelier 1.13.0. Public bundle.js, bundle.css and
+tokens.css at the committed content-addressed base match their SHA-384 hashes.
+
+
+Final presentation/sharing checkpoint: scalar selection links now round-trip
+through a URL fragment, preserving chapter navigation. Authors explicitly list
+shareable controls in meta.shareState; imported/object data and persisted keys
+are excluded. Unit tests cover malformed/oversized/prototype input and type
+checks. A real browser copies a scenario/selected-bar link and restores both in
+a fresh page, then resets and scrolls by mouse. Initial and asynchronous state
+updates now reach the host callback as well as dispatched controls.
+
+Library grid thumbnails render the listed immutable version through get_kage
+in inert, opaque frames. Intersection observation releases offscreen renderers;
+the browser check verifies the pinned read, actual chart rendering and unchanged
+polish/apply/undo flow. The Library screenshot was visually reviewed. Workspace
+font controls and preview remain available in the Designs editor; the Polish
+panel supplies five personalities, two densities, appearance and before/after
+phone previews. Showcase was reviewed at 390/1200 and the full dark workbench at
+390, with no overflow or console diagnostics.
+
+Validation: 842 tests, 819 passed, 23 opt-in skips, zero failures. Seven opt-in
+browser checks passed separately (including chapter history, copy, print,
+embeds, selection links and Library). The latest production build passed;
+authoring-pack regeneration and its 11 focused tests passed. Cloud creation
+and final live verification remain outstanding until the final code deploys.

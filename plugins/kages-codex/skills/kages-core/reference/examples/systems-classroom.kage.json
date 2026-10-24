@@ -10,6 +10,13 @@
     "job": "Explore a diagram, inspect a node and answer a self-check",
     "notes": "This is a simplified explanatory model of Kages, not a complete implementation diagram."
   },
+  "meta": {
+    "shareState": [
+      "step",
+      "selected",
+      "layout"
+    ]
+  },
   "state": {
     "step": "model",
     "selected": "source",

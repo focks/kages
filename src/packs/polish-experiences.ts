@@ -23,6 +23,7 @@ export function polishExperiences(system = "core"): KageDoc[] {
   const workbench: KageDoc = {
     kages: "1.0", id: "evidence-workbench", title: "Evidence Workbench — explore, import and compare", system, root: "root",
     brief: { mode: "operate", audience: "Readers exploring chart and data capabilities", job: "Filter a cohort, adjust an assumption, inspect a point and import a CSV", notes: "All built-in data is synthetic. The ±10% band is a sensitivity illustration, not a confidence interval." },
+    meta: { shareState: ["category", "factor", "selected"] },
     state: { range: null, hiddenSeries: [], histogramSelection: "", multipleSelection: {}, rows, category: "all", factor: 1, selected: "", loading: false, outcome: { status: "sample", message: "Bundled synthetic data. No live refresh has occurred.", updatedAt: "" } }, data: { sample: rows },
     sources: { sample: { from: "url", url: "https://example.com/kages-demo.json", maxItems: 100 } },
     blocks: {
@@ -55,6 +56,7 @@ export function polishExperiences(system = "core"): KageDoc[] {
   const guide: KageDoc = {
     kages: "1.0", id: "signal-field-guide", title: "Signal Field Guide — evidence you can explore", system, root: "guide",
     brief: { mode: "read", audience: "Readers evaluating interactive documents", job: "Navigate a sourced guide, filter evidence and complete a review", evidence: entries.map(entry => entry.href), notes: "Documented guidance is separated from this guide's recommendations; this is not a competitor benchmark." },
+    meta: { shareState: ["category", "query"] },
     state: { chapter: "overview", category: "all", query: "", checkedMeaning: false, checkedMobile: false, checkedControl: false }, data: { entries },
     blocks: {
       guide: { type: "guide", props: { title: "Signal", mark: "s.", eyebrow: "03 / Field guide", description: "Design that explains", chapters, palette: "inherit", note: "Sources, recommendations and a working review checklist." }, bind: { value: state("chapter") }, on: set("chapter", "id"), slots: { children: chapters.map(chapter => chapter.id) } },
@@ -97,6 +99,7 @@ export function polishExperiences(system = "core"): KageDoc[] {
   const classroom: KageDoc = {
     kages: "1.0", id: "systems-classroom", title: "Systems Classroom — explore a living diagram", system, root: "root",
     brief: { mode: "experience", audience: "Readers learning how interactive Kages fit together", job: "Explore a diagram, inspect a node and answer a self-check", notes: "This is a simplified explanatory model of Kages, not a complete implementation diagram." },
+    meta: { shareState: ["step", "selected", "layout"] },
     state: { step: "model", selected: "source", collapsed: [], layout: "auto", answer: "" }, data: { lessons },
     blocks: {
       root: { type: "canvas", props: { title: "Follow an idea from input to interaction.", eyebrow: "04 / Systems classroom", personality: "teaching", description: "Explore a simplified system, inspect each responsibility, then test your understanding. Your choices stay in this session." }, slots: { children: ["steps", "instructions", "controls", "graph", "detail", "quiz", "reset"], footer: ["reference"] } },

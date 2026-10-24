@@ -65,3 +65,11 @@ Controlled embeds require `set_embed_policy` with exact allowed origins and the
 current `baseVersion`, followed by publishing the resulting draft. The dedicated
 `/embed/<uuid>` route checks published visibility and origin policy; it does not
 enable host services. A copied artifact does not inherit that origin policy.
+
+For shareable selections, declare `meta.shareState` as up to twelve existing
+top-level scalar state keys, such as `scenario`, `category` or `selected`.
+“Copy link to this view” records those controls and the current chapter in the
+URL fragment; opening it restores a session view without changing the published
+version. Never opt in sensitive inputs. Imported rows, object/array values and
+keys declared in `persist` are excluded. Shareable strings are bounded to 120
+characters, and the encoded selection is capped at 4,000 characters.

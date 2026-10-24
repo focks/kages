@@ -9,6 +9,7 @@ import { Eye, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ModeChip, StateBadge, SystemChip, ValidationStatus, relTime, type KageCard } from "@/components/dashboard/kage-ui";
+import { KageThumbnail } from "./kage-thumbnail";
 
 interface TileProps {
   card: KageCard;
@@ -48,6 +49,7 @@ export function KageTile({ card, selected, pinned, onOpen, onPin, onPreview }: T
         <span className="ml-auto"><StateBadge state={card.state} /></span>
         <PinButton card={card} pinned={pinned} onPin={onPin} className="-mr-1.5" />
       </div>
+      <KageThumbnail key={card.uuid + ":" + card.version} uuid={card.uuid} version={card.version} />
       <h3 className="font-medium leading-snug">
         <button type="button" data-open className="line-clamp-2 text-left outline-none after:absolute after:inset-0 after:content-['']" onClick={() => onOpen(card.name)} aria-label={`Open ${card.title}`}>{card.title}</button>
       </h3>

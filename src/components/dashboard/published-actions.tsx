@@ -2,14 +2,21 @@
 // Public viewing stays anonymous. Saving a copy uses the ordinary create API,
 // so destination workspace permissions and quotas remain authoritative.
 import { useState } from "react";
-import type { KageDoc } from "@/engine/types";
+import type { KageDoc, Json } from "@/engine/types";
 import { Button } from "@/components/ui/button";
 import { publishedEmbedOrigins } from "@/store/embed-policy";
+import { docWithSharedView, shareKeys, viewHash } from "@/runtime/shared-view";
 
-export function PublishedActions({ doc, uuid }: { doc: KageDoc; uuid: string }) {
+export function PublishedActions({ doc, uuid, readerState }: { doc: KageDoc; uuid: string; readerState?: () => Record<string, Json> | undefined }) {
   const [busy, setBusy] = useState(false), [message, setMessage] = useState("");
   const [login, setLogin] = useState(false);
   const origins = publishedEmbedOrigins(doc.meta);
+  async function copyView() {
+    const url = new URL(location.href);
+    url.hash = viewHash(doc, readerState?.() ?? docWithSharedView(doc, url.hash).state ?? {}, url.hash);
+    try { await navigator.clipboard.writeText(url.href); setMessage(shareKeys(doc).length ? "Link copied with the chapter and shareable control values. Imported data and private state are excluded." : "Link copied, including the selected chapter."); }
+    catch { setMessage("Clipboard access is unavailable. Copy the page address to share its starting view."); }
+  }
   function download() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
     const a = document.createElement("a"); a.href = url; a.download = "kage-" + uuid + ".json"; a.click();
@@ -41,7 +48,7 @@ export function PublishedActions({ doc, uuid }: { doc: KageDoc; uuid: string }) 
         <Button variant="outline" size="sm" disabled={busy} onClick={() => void copy()}>Make a copy</Button>
         <Button variant="outline" size="sm" onClick={download}>Download Kage JSON</Button>
         <a className="rounded-md border border-input px-3 py-2 text-center text-sm" href={`/k/${encodeURIComponent(uuid)}?print=1`} target="_blank" rel="noopener noreferrer">Print / save PDF</a>
-        <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => { navigator.clipboard.writeText(location.href).then(() => setMessage("Link copied, including the selected chapter."), () => setMessage("Copy the address from your browser to share this view.")); }}>Copy link to this view</button>
+        <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => void copyView()}>Copy link to this view</button>
         {origins.length > 0 && <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => { const code = `<iframe src="${location.origin}/embed/${encodeURIComponent(uuid)}" title="Kage artifact" width="100%" height="720" loading="lazy" referrerpolicy="no-referrer"></iframe>`; navigator.clipboard.writeText(code).then(() => setMessage("Embed code copied. Allowed websites: " + origins.join(", ")), () => setMessage("Clipboard access is unavailable.")); }}>Copy embed code</button>}
       </div>
       {message && <p role="status" className="text-xs">{message}</p>}

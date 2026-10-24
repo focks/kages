@@ -1,12 +1,12 @@
 {
-  "base": "/ds/versions/7de532c667fdaeb86a54e675e46336b1b95ea63bff1ae09f23f75a89ed91159f",
+  "base": "/ds/versions/95975431964c91212b2c20a7c1d636e1fc3d72a90256a0740cbd97491ef17c44",
   "integrity": {
     "bundle.js": "sha384-Qogitan7Lg25mEN5Ve2A2Iv66E8r9BNnWKwQ7/XB+IroYgADUa6I6xD/TWnk6aMk",
     "bundle.css": "sha384-8H1ywphdlwJIZercFTHfjUzZJXPWzLf1PhJOaKLdlkQKKY5RxVe2BNto/FQlTJ6r",
     "tokens.css": "sha384-si2CvdRmXAHbowURyyaaOwR9xFjb0oziwQd2sDh/X5oJO1M6z7dIkNKYKV/nYBly"
   },
   "runtime": {
-    "path": "/runtime/289e175aff16a78296e067f07519a73025428405010131f3c85361b86edc993b.js",
-    "integrity": "sha384-0KArXakKmKU+sQRjfG0V8PTmWT84zMPXjuYVJN/KQEQnR4kr30C9qrfaBIOr7LBt"
+    "path": "/runtime/5bb0e734c7a6d708f3f208544e6cb2fa634ff482dd3364c4cb081018efca3512.js",
+    "integrity": "sha384-f+zmIRfXgyg5Ab3k7ftjTdztOtnGC95MEqKt+/vRlZAGmXH7bfWx6SXXND1kRpkN"
   }
 }
