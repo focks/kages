@@ -8,7 +8,8 @@
 // is unchanged.
 
 import { asParams, isWriteOp, queryParams } from "@/adapters/operations.ts";
-import { httpStatus } from "@/adapters/rest.ts";
+import { httpStatus, tooLargeResponse } from "@/adapters/rest.ts";
+import { readJsonCapped } from "@/server/body-limit.ts";
 import { executeOp } from "@/server/run-op.ts";
 import { resolveIdentity } from "@/server/identity.ts";
 import { crossSiteWrite } from "@/server/web-safety.ts";
@@ -20,10 +21,10 @@ async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
   const { author, workspace } = await resolveIdentity(req);
 
   const method = req.method.toUpperCase();
+  const body = method === "POST" ? await readJsonCapped(req) : undefined;
+  if (body?.tooLarge) return tooLargeResponse();
   // A safe method must never mutate, regardless of auth.
-  const params = method === "POST"
-    ? asParams(await req.json().catch(() => ({})))
-    : queryParams(op, new URL(req.url).searchParams);
+  const params = body ? asParams(body.value) : queryParams(op, new URL(req.url).searchParams);
   if (method !== "POST" && isWriteOp(op, params))
     return Response.json({ error: { code: "method_not_allowed", msg: `${op} is a write; use POST` } }, { status: 405, headers: { Allow: "POST" } });
 

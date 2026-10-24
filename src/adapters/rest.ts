@@ -5,7 +5,8 @@
 // for now a fixed demo principal. No business logic — same as every adapter.
 // See oracle/agent-access.feature.
 
-import { dispatch, isWriteOp, queryParams, type OpContext } from "./operations.ts";
+import { asParams, dispatch, isWriteOp, queryParams, type OpContext } from "./operations.ts";
+import { MAX_REQUEST_BYTES, readJsonCapped } from "../server/body-limit.ts";
 
 /** Handle POST /api/<op> (and GET for read-only ops). Returns a Web Response,
  *  so it works in Next route handlers and in tests without any Next import. A
@@ -15,7 +16,9 @@ export async function handleRest(ctx: OpContext, op: string, req: Request): Prom
   const method = req.method.toUpperCase();
   let params: Record<string, unknown> = {};
   if (method === "POST") {
-    try { params = await req.json(); } catch { params = {}; }
+    const body = await readJsonCapped(req);
+    if (body.tooLarge) return tooLargeResponse();
+    params = asParams(body.value);
   } else {
     params = queryParams(op, new URL(req.url).searchParams);
   }
@@ -40,10 +43,16 @@ export function httpStatus(code: string): number {
     case "unauthorized": return 401;
     case "forbidden": return 403;
     case "rate_limited": return 429;
+    case "too_large": return 413;
     case "claimed": return 409;
     case "conflict": return 409;
     case "invalid_content":
     case "invalid_patch": return 422;
     default: return 400;
   }
+}
+
+/** The 413 every operation endpoint answers when a body passes MAX_REQUEST_BYTES. */
+export function tooLargeResponse(): Response {
+  return Response.json({ error: { code: "too_large", msg: `request bodies are limited to ${MAX_REQUEST_BYTES / 1024 / 1024} MB` } }, { status: 413 });
 }

@@ -104,13 +104,19 @@ function removeAt(root: Json, tokens: string[]): Json {
   return root;
 }
 
+/** Total JSON characters one patch may duplicate with `copy`. A copy deep-clones its
+ *  source, so copying a subtree into itself 40 times grows a document 2^40-fold from a
+ *  request of a few KB, exhausting memory before any later size check could run. */
+export const MAX_COPY_CHARS = 1_000_000;
+
 /** Apply a patch to a document. Pure: returns a new document, never mutates the
  *  input. Throws PatchError on any invalid op, which the caller treats as a
  *  rejected (atomic) edit. */
 export function applyPatch<T>(doc: T, ops: PatchOp[]): T {
   let root: Json = clone(doc);
+  const budget = { copied: 0 };
   for (const [i, op] of ops.entries()) {
-    try { root = applyOne(root, op); }
+    try { root = applyOne(root, op, budget); }
     catch (e) {
       if (!(e instanceof PatchError)) throw e;
       const named = new PatchError(`op ${i} (${op?.op} ${op?.path}): ${e.message}`);
@@ -121,7 +127,7 @@ export function applyPatch<T>(doc: T, ops: PatchOp[]): T {
   return root as T;
 }
 
-function applyOne(root: Json, op: PatchOp): Json {
+function applyOne(root: Json, op: PatchOp, budget: { copied: number }): Json {
   const tokens = parsePointer(op.path);
   switch (op.op) {
     case "add": return addAt(root, tokens, clone(op.value));
@@ -135,7 +141,13 @@ function applyOne(root: Json, op: PatchOp): Json {
       removeAt(root, from);
       return addAt(root, tokens, moved);
     }
-    case "copy": return addAt(root, tokens, clone(getAt(root, parsePointer(op.from as string))));
+    case "copy": {
+      const source = getAt(root, parsePointer(op.from as string));
+      // Measured before cloning: earlier copies were within budget, so the source is bounded too.
+      budget.copied += JSON.stringify(source)?.length ?? 0;
+      if (budget.copied > MAX_COPY_CHARS) throw new PatchError(`copy limit exceeded: a patch may duplicate at most ${MAX_COPY_CHARS} characters`);
+      return addAt(root, tokens, clone(source));
+    }
     case "test": {
       const actual = getAt(root, tokens);
       if (!equal(actual, op.value)) throw new PatchError(`test failed at '${op.path}'`);

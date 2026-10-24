@@ -5,6 +5,7 @@
 // to a visitor as saved.
 import type { Store } from "../store/store.ts";
 import type { OpResult } from "../adapters/operations.ts";
+export { readBodyCapped } from "./body-limit.ts";
 
 export const MAX_BODY = 16_384;
 export interface FeedbackReply { status: number; body: unknown }
@@ -12,23 +13,6 @@ export interface FeedbackDeps {
   /** The workspace holding this shared Kage, or null when there is none. */
   findWorkspace: (uuid: string) => Promise<string | null>;
   mutate: (workspace: string, apply: (store: Store) => { result: OpResult }) => Promise<OpResult>;
-}
-
-/** Read a request body but never more than `max` bytes. Content-Length is only a hint (a chunked
- *  upload has none), so the count is kept while streaming and the source is cancelled at the limit:
- *  an anonymous caller cannot make the server buffer more than `max` plus one chunk. */
-export async function readBodyCapped(req: Request, max: number): Promise<{ text: string; tooLarge: boolean }> {
-  if (!req.body) return { text: "", tooLarge: false };
-  const reader = req.body.getReader(), parts: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > max) { await reader.cancel().catch(() => {}); return { text: "", tooLarge: true }; }
-    parts.push(value);
-  }
-  return { text: Buffer.concat(parts).toString("utf8"), tooLarge: false };
 }
 
 const err = (status: number, code: string, msg: string): FeedbackReply => ({ status, body: { error: { code, msg } } });

@@ -692,7 +692,7 @@ export class Store {
     const doc = planned.doc;
     const validation = validate(doc);
     if (!error && !this.underQuota(author.principal)) error = { code: "rate_limited", msg: `${author.principal} exceeded ${this.quota} versions/hour` };
-    if (!error && JSON.stringify(doc).includes("\\u0000")) error = { code: "invalid_content", msg: "documents may not contain the NUL character (U+0000)" };
+    if (!error) error = contentError(JSON.stringify(doc));
     if (!error && !validation.ok) error = { code: "invalid_content", msg: `${validation.errors.length} validation errors` };
     return { ok: !error, head: head.v, ...(error ? {} : { wouldCreate: head.v + 1 }), merged: planned.merged, candidate: doc, previous: head.doc, validation, claims, ...(error ? { error } : {}) };
   }
@@ -701,10 +701,8 @@ export class Store {
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
     if (!this.underQuota(author.principal)) return err("rate_limited", `${author.principal} exceeded ${this.quota} versions/hour`);
 
-    // U+0000 cannot be stored by jsonb-backed persistence (Postgres rejects the
-    // whole snapshot), and silently stripping it would break the signed digest.
-    // Refuse it up front, for every backend alike, rather than lose a write later.
-    if (JSON.stringify(doc).includes("\\u0000")) return err("invalid_content", "documents may not contain the NUL character (U+0000)");
+    const bad = contentError(JSON.stringify(doc));
+    if (bad) return err(bad.code, bad.msg);
 
     const v = validate(doc);
     if (!v.ok) return { ok: false, validation: v, error: { code: "invalid_content", msg: `${v.errors.length} validation errors` } };
@@ -1163,6 +1161,19 @@ export class Store {
     this.comments.vote(id, author.principal, value);
     return { ok: true, value: this.commentView(this.comments.get(id)!, author, repo) };
   }
+}
+
+/** Largest stored document, in UTF-8 bytes of its JSON. The biggest real Kage is ~140 KB; every
+ *  version is kept, signed and loaded with its workspace, so one oversized write is paid forever. */
+export const MAX_DOC_BYTES = 1024 * 1024;
+
+/** Why a serialized document cannot be stored, or undefined. U+0000 cannot be stored by
+ *  jsonb-backed persistence (Postgres rejects the whole snapshot), and silently stripping it
+ *  would break the signed digest, so it is refused up front for every backend alike. */
+function contentError(json: string): { code: string; msg: string } | undefined {
+  if (Buffer.byteLength(json) > MAX_DOC_BYTES) return { code: "too_large", msg: `documents are limited to ${MAX_DOC_BYTES / 1024 / 1024} MB` };
+  if (json.includes("\\u0000")) return { code: "invalid_content", msg: "documents may not contain the NUL character (U+0000)" };
+  return undefined;
 }
 
 const MAX_COMMENT_CHARS = 4000, MAX_PATCH_CHARS = 16_000, MAX_COMMENT_DEPTH = 8, MAX_COMMENTS_PER_KAGE = 2000, MAX_COMMENTS_PER_HOUR = 60, MAX_DISCUSSION_WRITES_PER_HOUR = 200, MAX_GUEST_COMMENTS_PER_KAGE = 50;

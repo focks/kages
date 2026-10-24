@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { Store } from "./store.ts";
+import { Store, MAX_DOC_BYTES } from "./store.ts";
 import { verifyDigest } from "./crypto.ts";
 import { mergeThreeWay } from "../collab/merge.ts";
 import { applyPatch } from "../collab/patch.ts";
@@ -378,4 +378,21 @@ test("documents containing NUL are refused at the store boundary, not lost at pe
   assert.equal(bad.ok, false); assert.equal(bad.error?.code, "invalid_content");
   assert.equal(s.create("r", { ...doc, id: "nul2", title: "x\u0000y" }, a).ok, false);
   assert.equal((s.head("nul")!.doc.blocks.t.props as any).text, "ok", "the failed patch changed nothing");
+});
+
+// Every create, patch and import goes through one write path; a document past the cap is
+// refused there, before validation or signing, whatever adapter it arrived through.
+test("a document larger than MAX_DOC_BYTES is refused on create and on patch", () => {
+  const s = seeded();
+  const huge = { ...ops(), id: "huge", blocks: { ...ops().blocks, pad: { type: "text", props: { text: "x".repeat(MAX_DOC_BYTES) } } } } as KageDoc;
+  const created = s.create("kages", huge, agent);
+  assert.equal(created.ok, false); assert.equal(created.error?.code, "too_large");
+  assert.equal(s.exists("huge"), false);
+
+  const doc = ops();
+  assert.equal(s.create("kages", doc, agent).ok, true);
+  const grow = [{ op: "add" as const, path: "/blocks/pad", value: { type: "text", props: { text: "x".repeat(MAX_DOC_BYTES) } } }];
+  assert.equal(s.checkPatch(doc.id, grow, agent).error?.code, "too_large");
+  const patched = s.patch(doc.id, grow, agent);
+  assert.equal(patched.error?.code, "too_large");
 });

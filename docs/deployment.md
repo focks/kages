@@ -98,6 +98,11 @@ npm start          # honours PORT; put a TLS-terminating proxy in front
 On Vercel, import the repository and set the same variables in the project
 settings. Any Node host that runs `next start` works.
 
+The app refuses request bodies over 4 MB and stored documents over 1 MB, but it
+only stops *reading* at the limit. Set a matching cap at the proxy so oversized
+uploads are dropped before they reach Node, for example `client_max_body_size 4m;`
+in nginx. Vercel already limits function bodies to 4.5 MB.
+
 Keep old files under `public/` when you redeploy. Stored versions pin the renderer
 and design-system assets by hash, so deleting old bundles breaks older versions.
 

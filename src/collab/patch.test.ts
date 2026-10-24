@@ -42,3 +42,13 @@ test("JSON Patch respects object equality, existence, root replacement and move 
   assert.throws(() => applyPatch({ a: {} }, [{ op: "move", from: "/a", path: "/a/b" }]), /descendant/);
   assert.throws(() => applyPatch({}, [{ op: "add", path: "/bad~2", value: 1 }]), /escape/);
 });
+
+// A copy deep-clones its source, so doubling a subtree into itself grows the document
+// exponentially from a request of a few KB. The budget must stop it before memory does.
+test("copy cannot amplify a small patch into a huge document", () => {
+  const doubling = Array.from({ length: 40 }, (_, i) => ({ op: "copy" as const, from: "/a", path: `/a/c${i}` }));
+  assert.throws(() => applyPatch({ a: { x: "y".repeat(1000) } }, doubling), /copy/i);
+  const big = { a: "y".repeat(600_000) };
+  assert.throws(() => applyPatch(big, [{ op: "copy", from: "/a", path: "/b" }, { op: "copy", from: "/a", path: "/c" }]), /copy/i);
+  assert.deepEqual(applyPatch({ a: 1 }, [{ op: "copy", from: "/a", path: "/b" }]), { a: 1, b: 1 });
+});

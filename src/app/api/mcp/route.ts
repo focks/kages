@@ -10,15 +10,18 @@ import { handleMcpMessage } from "@/adapters/mcp.ts";
 import { executeOp } from "@/server/run-op.ts";
 import { MAX_MCP_BATCH, runMcpBatch } from "@/server/mcp-batch.ts";
 import { resolveIdentity } from "@/server/identity.ts";
+import { MAX_REQUEST_BYTES, readJsonCapped } from "@/server/body-limit.ts";
 
 export async function POST(req: Request) {
   const { author, workspace } = await resolveIdentity(req, true); // bearer-only
   const exec = (op: string, params: Record<string, unknown>) => executeOp(workspace, author, op, params, "mcp", new URL(req.url).origin);
 
-  let body: unknown;
-  try { body = await req.json(); } catch {
+  const read = await readJsonCapped(req);
+  if (read.tooLarge)
+    return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32600, message: `request bodies are limited to ${MAX_REQUEST_BYTES / 1024 / 1024} MB` } }, { status: 413 });
+  const body = read.value;
+  if (body === undefined)
     return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "parse error" } }, { status: 400 });
-  }
   // An empty batch is an invalid request per JSON-RPC 2.0, not "all notifications".
   if (Array.isArray(body) && body.length === 0)
     return Response.json({ jsonrpc: "2.0", id: null, error: { code: -32600, message: "invalid request" } }, { status: 400 });
