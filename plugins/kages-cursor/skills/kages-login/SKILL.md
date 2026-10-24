@@ -7,7 +7,7 @@ description: "Sign in to a Kages deployment so you can work in the user's own wo
 
 Without a session, cloud MCP creation is blocked. Offline CLI commands may use local files; intentional local MCP requires `kages mcp --local`. Signing in points the CLI and `kages mcp` at the user's cloud workspace.
 
-Install or update the tested release first: `npm install -g https://app.getkages.com/downloads/ifocksh-kages-0.1.3.tgz`. Reconnect MCP after upgrading so the client refreshes its tool list.
+Install or update the tested release first: `npm install -g https://app.getkages.com/downloads/ifocksh-kages-0.2.0.tgz`. Reconnect MCP after upgrading so the client refreshes its tool list.
 
 ## 1. Check first
 ```
