@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Systems Classroom — explore a living diagram\" · system atelier@1.13.0 · 11 blocks\nstate {\"step\":\"model\",\"selected\":\"source\",\"collapsed\":[],\"layout\":\"auto\",\"answer\":\"\"}\n- root [core/canvas@1.0.0] title=\"Follow an idea from input to interaction.\"\n  children:\n    - steps [core/stepper@1.0.0] label=\"Lesson stages\" value=\"model\"\n        ↳ reads state:step · writes change→state.step\n    - instructions [core/text@1.0.0] text=\"Select a node to read its responsibility. Blue identifie…\n        ↳ reads state:step\n    - controls [core/choice@1.1.0] label=\"Diagram layout\" value=\"auto\" options=auto|tree|swimlane|sequence\n        ↳ reads state:layout · writes change→state.layout\n    - graph [core/diagram@1.4.0] label=\"A simplified Kages system\"\n        ↳ reads state:selected, state:collapsed, state:layout · writes select→state.selected, groupsChange→state.collapsed\n    - detail~/detail%3A%22source%22 [core/section@1.1.0] title=\"Sources\"\n    - quiz [core/section@1.1.0] (hidden) title=\"What does an authoring agent produce?\"\n        ↳ reads state:step\n      children:\n        - answer [core/choice@1.1.0] label=\"Choose an answer\" options=document|script\n            ↳ reads state:answer · writes change→state.answer\n        - feedback [core/text@1.0.0] text=\"Choose an answer to get feedback.\"\n            ↳ reads state:answer\n    - reset [atelier/button@1.0.0] label=\"Restart lesson\"\n        ↳ writes click→state.step, click→state.selected, click→state.collapsed, click→state.layout, click→state.answer\n  footer:\n    - reference [core/link@1.0.0] label=\"Inspect the Kages implementation ↗\"",
+  "description": "Kage \"Systems Classroom — explore a living diagram\" · system atelier@1.14.0 · 11 blocks\nstate {\"step\":\"model\",\"selected\":\"source\",\"collapsed\":[],\"layout\":\"auto\",\"answer\":\"\"}\n- root [core/canvas@1.1.0] title=\"Follow an idea from input to interaction.\"\n  children:\n    - steps [core/stepper@1.0.0] label=\"Lesson stages\" value=\"model\"\n        ↳ reads state:step · writes change→state.step\n    - quiz [core/section@1.1.0] (hidden) title=\"What does an authoring agent produce?\"\n        ↳ reads state:step\n      children:\n        - answer [core/choice@1.1.0] label=\"Choose an answer\" options=document|script\n            ↳ reads state:answer · writes change→state.answer\n        - feedback [core/text@1.0.0] text=\"Choose an answer to get feedback.\"\n            ↳ reads state:answer\n    - instructions [core/text@1.0.0] text=\"Select a node to read its responsibility. Blue identifie…\n        ↳ reads state:step\n    - reset [atelier/button@1.0.0] label=\"Restart lesson\"\n        ↳ writes click→state.step, click→state.selected, click→state.collapsed, click→state.layout, click→state.answer\n  actions:\n    - controls [core/choice@1.1.0] label=\"Diagram layout\" value=\"auto\" options=auto|tree|swimlane|sequence\n        ↳ reads state:layout · writes change→state.layout\n  footer:\n    - reference [core/link@1.0.0] label=\"Inspect the Kages implementation ↗\"\n  lead:\n    - graph [core/diagram@1.5.0] label=\"A simplified Kages system\"\n        ↳ reads state:selected, state:collapsed, state:layout · writes select→state.selected, groupsChange→state.collapsed\n  support:\n    - detail~/detail%3A%22source%22 [core/section@1.1.0] title=\"Sources\"",
   "envelope": {
     "title": "Systems Classroom — explore a living diagram",
     "root": "root",
@@ -19,7 +19,7 @@
         "props": {
           "title": "Follow an idea from input to interaction.",
           "eyebrow": "04 / Systems classroom",
-          "description": "Explore a simplified system, inspect each responsibility, then test your understanding. Your choices stay in this session.",
+          "description": "Select a node to inspect its role, then test your understanding.",
           "personality": "teaching",
           "density": null,
           "appearance": null
@@ -27,16 +27,21 @@
         "slots": {
           "children": [
             "steps",
-            "instructions",
-            "controls",
-            "graph",
-            "detail",
             "quiz",
+            "instructions",
             "reset"
           ],
-          "actions": [],
+          "actions": [
+            "controls"
+          ],
           "footer": [
             "reference"
+          ],
+          "lead": [
+            "graph"
+          ],
+          "support": [
+            "detail"
           ]
         },
         "bind": [],
@@ -198,8 +203,8 @@
           "title": null,
           "eyebrow": null,
           "description": null,
-          "level": 2,
-          "tone": "accent",
+          "level": 3,
+          "tone": "plain",
           "inset": null,
           "gap": null,
           "palette": null,

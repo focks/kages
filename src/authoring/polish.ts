@@ -28,6 +28,20 @@ export function planPolish(doc: KageDoc, options: PolishOptions = {}) {
     patch.push({ op: "add", path, value: { ...root.props, ...props } });
     undo.unshift(root.props ? { op: "replace", path, value: root.props } : { op: "remove", path });
     if (Object.keys(root.bind ?? {}).some(key => key in props)) findings.push({ block: doc.root, message: "Bound presentation properties override these defaults. Review those bindings before applying." });
+    // Reposition whole block references, never rebuild their data or handlers.
+    // Explicit component pins may lack the new slots and must remain untouched.
+    if (!root.type.includes("@") && !root.slots?.lead?.length) {
+      const children = root.slots?.children ?? [];
+      const roleOf = (id: string) => { const block = doc.blocks[id]; return block ? resolve(systemOf(doc), block.type).contract?.name ?? block.type : ""; };
+      const primary = children.find(id => /chart|diagram|small-multiples/.test(roleOf(id)));
+      const controlRoles = new Set(["choice", "slider", "dropdown", "button", "text-input", "number-input", "source-status"]);
+      const support = children.filter(id => id !== primary && (controlRoles.has(roleOf(id)) || roleOf(id) === "stack" && !!doc.blocks[id].slots?.children?.length && doc.blocks[id].slots!.children.every(child => controlRoles.has(roleOf(child)))));
+      if (primary) {
+        const slots = { ...root.slots, lead: [primary], support: [...(root.slots?.support ?? []), ...support], children: children.filter(id => id !== primary && !support.includes(id)) };
+        patch.push({ op: "add", path: `/blocks/${pointer(doc.root)}/slots`, value: slots });
+        undo.unshift(root.slots ? { op: "replace", path: `/blocks/${pointer(doc.root)}/slots`, value: root.slots } : { op: "remove", path: `/blocks/${pointer(doc.root)}/slots` });
+      }
+    }
   } else {
     let id = "presentation";
     while (Object.hasOwn(doc.blocks, id)) id += "_";
@@ -57,5 +71,5 @@ export function planPolish(doc: KageDoc, options: PolishOptions = {}) {
   }
   const candidate = applyPatch(doc, patch) as KageDoc;
   const { resolved: _pin, ...preview } = candidate;
-  return { patch, undo, findings, preview: preview as KageDoc, changes: [rootRole === "canvas" ? "Apply the selected canvas presentation." : "Wrap the existing content in a presentation canvas.", "Preserve data, prose, controls and explicit component references."] };
+  return { patch, undo, findings, preview: preview as KageDoc, changes: [rootRole === "canvas" ? "Apply the selected canvas presentation." : "Wrap the existing content in a presentation canvas.", ...(patch.some(op => op.path.endsWith("/slots")) ? ["Move the primary visual into the lead area and supporting controls into an adaptive pane."] : []), "Preserve data, prose, controls and explicit component references."] };
 }

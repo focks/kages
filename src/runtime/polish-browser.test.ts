@@ -52,7 +52,7 @@ test("analytical report supports selection, scenario/reset, mobile bars and whee
     await cdp.send("Page.reload", {}, sessionId);
     ready = false;
     for (let i = 0; i < 100; i++) {
-      if (child && await evaluate("!!document.querySelector('.kg-analytical-bars__value')")) { ready = true; break; }
+      if (child && await evaluate("document.querySelector('.kg-analytical-bars__value')?.textContent.includes('90K')")) { ready = true; break; }
       await delay(100);
     }
     assert.ok(ready);
@@ -100,7 +100,7 @@ test("plot and graph controls work in the public viewer", { skip: !url || !chrom
     assert.equal(await evaluate("document.querySelectorAll('[data-point-id]').length"),2);
     await evaluate("document.querySelector('.kg-cartesian__legend').click()");await delay(100);
     assert.equal(await evaluate("document.querySelectorAll('[data-point-id]').length"),4);
-    await evaluate("document.querySelector('.kg-cartesian__range input').focus()");
+    await evaluate("document.querySelector('.kg-cartesian__range summary')?.click(); document.querySelector('.kg-cartesian__range input').focus()");
     await cdp.send("Input.dispatchKeyEvent",{type:"keyDown",key:"ArrowRight",code:"ArrowRight",windowsVirtualKeyCode:39},sessionId);
     await cdp.send("Input.dispatchKeyEvent",{type:"keyUp",key:"ArrowRight",code:"ArrowRight",windowsVirtualKeyCode:39},sessionId);await delay(100);
     assert.ok(await evaluate("Number(document.querySelector('.kg-cartesian__range input').value)")>1);

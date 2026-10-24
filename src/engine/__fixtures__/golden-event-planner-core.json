@@ -6,7 +6,7 @@
     "system": "core",
     "portable": true
   },
-  "description": "Kage \"Event planner — a validated form\" · system core@1.17.0 · 10 blocks\nstate {\"submitted\":null}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Plan a gathering\"\n    - form [core/form@1.0.0] label=\"Gathering details\"\n        ↳ writes submit→state.submitted\n      - name [core/text-field@1.1.0] label=\"Gathering name\"\n      - email [core/text-field@1.1.0] label=\"Contact email\"\n      - date [core/date-input@1.1.0] label=\"Date\"\n      - count [core/number-input@1.1.0] label=\"Group size\"\n      - venue [core/choice@1.1.0] label=\"Venue\" options=studio|garden\n      - activities [core/multiselect@1.1.0] label=\"Activities\" value=[] options=talk|workshop|exhibition\n    - receipt [core/code@1.1.0] (hidden)\n        ↳ reads state:submitted",
+  "description": "Kage \"Event planner — a validated form\" · system core@1.18.0 · 10 blocks\nstate {\"submitted\":null}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Plan a gathering\"\n    - form [core/form@1.0.0] label=\"Gathering details\"\n        ↳ writes submit→state.submitted\n      - name [core/text-field@1.1.0] label=\"Gathering name\"\n      - email [core/text-field@1.1.0] label=\"Contact email\"\n      - date [core/date-input@1.1.0] label=\"Date\"\n      - count [core/number-input@1.1.0] label=\"Group size\"\n      - venue [core/choice@1.1.0] label=\"Venue\" options=studio|garden\n      - activities [core/multiselect@1.1.0] label=\"Activities\" value=[] options=talk|workshop|exhibition\n    - receipt [core/code@1.1.0] (hidden)\n        ↳ reads state:submitted",
   "envelope": {
     "title": "Event planner — a validated form",
     "root": "root",

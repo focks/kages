@@ -19,7 +19,7 @@ export function referenceFile(rel) {
  * silently shipping a bundle with missing roles. */
 export function referenceBundle() {
   let source = referenceFile("project/components/bundle.js");
-  const additions = readFileSync("src/design-system/free-flow.js", "utf8") + "\n" + readFileSync("src/design-system/presentation.js", "utf8") + "\n" + readFileSync("src/design-system/expressive.js", "utf8") + "\n" + readFileSync("src/design-system/diagrams.js", "utf8") + "\n" + readFileSync("src/design-system/rich.js", "utf8") + "\n" + readFileSync("src/design-system/apps.js", "utf8") + "\n" + readFileSync("src/design-system/charts.js", "utf8") + "\n" + readFileSync("src/design-system/content.js", "utf8") + "\n" + readFileSync("src/design-system/forms.js", "utf8") + "\n" + readFileSync("src/design-system/guides.js", "utf8") + "\n" + readFileSync("src/design-system/polish.js", "utf8") + "\n" + readFileSync("src/design-system/plot.js", "utf8") + "\n" + readFileSync("src/design-system/graph.js", "utf8") + "\n" + readFileSync("src/design-system/statistical.js", "utf8") + "\n" + readFileSync("src/design-system/data-import.js", "utf8");
+  const additions = readFileSync("src/design-system/free-flow.js", "utf8") + "\n" + readFileSync("src/design-system/presentation.js", "utf8") + "\n" + readFileSync("src/design-system/expressive.js", "utf8") + "\n" + readFileSync("src/design-system/diagrams.js", "utf8") + "\n" + readFileSync("src/design-system/rich.js", "utf8") + "\n" + readFileSync("src/design-system/apps.js", "utf8") + "\n" + readFileSync("src/design-system/charts.js", "utf8") + "\n" + readFileSync("src/design-system/content.js", "utf8") + "\n" + readFileSync("src/design-system/forms.js", "utf8") + "\n" + readFileSync("src/design-system/guides.js", "utf8") + "\n" + readFileSync("src/design-system/polish.js", "utf8") + "\n" + readFileSync("src/design-system/plot.js", "utf8") + "\n" + readFileSync("src/design-system/graph.js", "utf8") + "\n" + readFileSync("src/design-system/statistical.js", "utf8") + "\n" + readFileSync("src/design-system/data-import.js", "utf8") + "\n" + readFileSync("src/design-system/sharp.js", "utf8");
   const capabilities = readFileSync("src/engine/advanced.js", "utf8").replace(/^export /gm, "");
   const operations = readFileSync("src/design-system/advanced-oracle.js", "utf8");
   // Bundle consumers also discover exports through the design-system header.
@@ -57,8 +57,8 @@ export function referenceBundle() {
   }
   // Additive roles change catalog capabilities, so every inheriting system
   // advertises a minor release; the existing component refs stay immutable.
-  source = source.replace('version: "1.4.0", className: "kg-sys-core"', 'version: "1.17.0", className: "kg-sys-core"')
-    .replace('version: "2.1.0", className: "kg-sys-ledger"', 'version: "2.14.0", className: "kg-sys-ledger"')
-    .replace('version: "1.0.0", className: "kg-sys-atelier"', 'version: "1.13.0", className: "kg-sys-atelier"');
+  source = source.replace('version: "1.4.0", className: "kg-sys-core"', 'version: "1.18.0", className: "kg-sys-core"')
+    .replace('version: "2.1.0", className: "kg-sys-ledger"', 'version: "2.15.0", className: "kg-sys-ledger"')
+    .replace('version: "1.0.0", className: "kg-sys-atelier"', 'version: "1.14.0", className: "kg-sys-atelier"');
   return source;
 }

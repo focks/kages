@@ -32,7 +32,8 @@
     }, []);
     var focus = React.useState(""), points = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && plotNumber(it.x) && plotNumber(it.y); }).slice(0, 2000);
     if (!points.length) return emptyChart(p);
-    var left = width < 400 ? 48 : 62, right = width - 20, top = 24, bottom = 250;
+    var plotHeight = p.__sharp ? Math.max(180, Math.min(480, plotNumber(p.height) ? p.height : 260)) : 290;
+    var left = width < 400 ? 48 : 62, right = width - 20, top = 24, bottom = plotHeight - 40;
     var x = plotScale(points.map(function (it) { return it.x; }), p.xMin, p.xMax, left, right, false);
     var ys = []; points.forEach(function (it) { ys.push(it.y); if (plotNumber(it.lower)) ys.push(it.lower); if (plotNumber(it.upper)) ys.push(it.upper); });
     var y = plotScale(ys, p.yMin, p.yMax, bottom, top, p.kind === "area");
@@ -47,11 +48,12 @@
     var hidden = Array.isArray(p.hiddenSeries) ? p.hiddenSeries : [];
     var shapes = [];
     for (var t = 0; t <= 4; t++) {
-      var xv = x.tick(t), yv = y.tick(t), px = x.position(xv), py = y.position(yv);
+      var integerStep = Math.max(1, Math.ceil((x.hi - x.lo) / 4));
+      var xv = p.__sharp && p.xTicks === "integer" ? Math.ceil(x.lo) + t * integerStep : x.tick(t), yv = y.tick(t), px = x.position(xv), py = y.position(yv);
       shapes.push(h("line", { key: "grid" + t, x1: left, x2: right, y1: py, y2: py, stroke: "var(--kg-line)" }));
       shapes.push(h("text", { key: "ytick" + t, x: left - 8, y: py + 4, textAnchor: "end", fill: "var(--kg-ink-muted)", fontSize: 11 }, plotLabel(yv, p.yFormat)));
       // Three ticks on phones avoid colliding long date labels.
-      if (width >= 400 || t % 2 === 0) shapes.push(h("text", { key: "xtick" + t, x: px, y: bottom + 20, textAnchor: t === 0 ? "start" : t === 4 ? "end" : "middle", fill: "var(--kg-ink-muted)", fontSize: 11 }, plotLabel(xv, p.xFormat)));
+      if (xv <= x.hi && (p.__sharp && p.xTicks === "integer" || width >= 400 || t % 2 === 0)) shapes.push(h("text", { key: "xtick" + t, x: px, y: bottom + 20, textAnchor: t === 0 ? "start" : t === 4 ? "end" : "middle", fill: "var(--kg-ink-muted)", fontSize: 11 }, plotLabel(xv, p.xFormat)));
     }
     var axes = shapes; shapes = [];
     if (p.rangeControls) shapes.push(h("rect", { key: "range", x: x.position(range.min), y: top, width: Math.max(0, x.position(range.max) - x.position(range.min)), height: bottom - top, fill: "var(--kg-data-0)", fillOpacity: .06, pointerEvents: "none" }));
@@ -79,7 +81,11 @@
         attrs.role = "button"; attrs.tabIndex = 0; attrs["aria-pressed"] = selected; attrs.onClick = select;
         attrs.onKeyDown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(); } };
       }
-      shapes.push(h("circle", attrs, h("title", null, label)));
+      if (p.__sharp && p.interactive) {
+        // Keep the visible mark small while providing a 28px pointer target.
+        var visible = { cx: attrs.cx, cy: attrs.cy, r: attrs.r, fill: attrs.fill, stroke: attrs.stroke, strokeWidth: attrs.strokeWidth, opacity: attrs.opacity, pointerEvents: "none", "aria-hidden": true };
+        shapes.push(h("g", { key: attrs.key }, h("circle", Object.assign({}, attrs, { r: 14, fill: "transparent", stroke: "none" }), h("title", null, label)), h("circle", visible)));
+      } else shapes.push(h("circle", attrs, h("title", null, label)));
     });
     (Array.isArray(p.annotations) ? p.annotations : []).slice(0, 20).forEach(function (a, i) {
       if (!a || !plotNumber(a.value)) return;
@@ -93,10 +99,11 @@
     function changeRange(min, max) { fire(p.onRangeChange, { min: min, max: max }); }
     return h("div", { ref: element, className: "kg-cartesian" },
       h("div", { className: "kg-cartesian__labels" }, h("span", null, p.yLabel || p.unit || "Value"), h("span", null, p.xLabel || "Position")),
-      h("svg", { viewBox: "0 0 " + width + " 290", style: { width: "100%", height: 290 }, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label), axes,
+      h("svg", { viewBox: "0 0 " + width + " " + plotHeight, style: { width: "100%", height: plotHeight }, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label), axes,
         h("svg", { x: left - 8, y: top - 8, width: right - left + 16, height: bottom - top + 16, viewBox: (left - 8) + " " + (top - 8) + " " + (right - left + 16) + " " + (bottom - top + 16), overflow: "hidden" }, shapes)),
-      h("p", { className: "kg-cartesian__detail", "aria-live": "polite" }, chosen ? (chosen.label || "Point") + " · " + (p.xLabel || "X") + ": " + plotLabel(chosen.x, p.xFormat) + " · " + (p.yLabel || "Y") + ": " + plotLabel(chosen.y, p.yFormat) : p.interactive ? "Select a point to inspect it. Tab and Enter work too." : "Hover a point for its values; the full data is available below."),
-      p.rangeControls && x.lo < x.hi ? h("div", { className: "kg-cartesian__range" },
+      p.__sharp && !chosen ? null : h("p", { className: "kg-cartesian__detail", "aria-live": "polite" }, chosen ? (chosen.label || "Point") + " · " + (p.xLabel || "X") + ": " + plotLabel(chosen.x, p.xFormat) + " · " + (p.yLabel || "Y") + ": " + plotLabel(chosen.y, p.yFormat) : p.interactive ? "Select a point to inspect it. Tab and Enter work too." : "Hover a point for its values; the full data is available below."),
+      p.rangeControls && x.lo < x.hi ? h(p.__sharp ? "details" : "div", { className: "kg-cartesian__range" },
+        p.__sharp ? h("summary", null, "Adjust range") : null,
         h("label", null, "Range start: " + plotLabel(range.min, p.xFormat), h("input", { type: "range", min: x.lo, max: x.hi, step: "any", value: range.min, onChange: function (e) { changeRange(Math.min(Number(e.target.value), range.max), range.max); } })),
         h("label", null, "Range end: " + plotLabel(range.max, p.xFormat), h("input", { type: "range", min: x.lo, max: x.hi, step: "any", value: range.max, onChange: function (e) { changeRange(range.min, Math.max(range.min, Number(e.target.value))); } })),
         h("button", { type: "button", onClick: function () { changeRange(x.lo, x.hi); } }, "Reset range")) : null,

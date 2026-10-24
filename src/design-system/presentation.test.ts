@@ -37,7 +37,7 @@ test("new presentation contracts retain old implementations and portable props i
   assert.notEqual(K.implementation("core/diagram@1.1.0"), K.implementation("core/diagram@1.2.0"));
   for (const system of ["core", "ledger", "atelier"]) {
     assert.equal(resolve(system, "section").ref, "core/section@1.1.0");
-    assert.equal(resolve(system, "diagram").ref, "core/diagram@1.4.0");
+    assert.equal(resolve(system, "diagram").ref, "core/diagram@1.5.0");
     const result = validate(showcaseExamples(system)[0]);
     assert.equal(result.portable, true, system); assert.deepEqual(result.errors, [], system);
   }

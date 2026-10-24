@@ -13,7 +13,7 @@ import type { KageDoc } from "@/engine/types.ts";
 
 const NAME_KEY = "kages.guest-name";
 
-export function ShareFeedback({ uuid, doc }: { uuid: string; doc: KageDoc }) {
+export function ShareFeedback({ uuid, doc, inline = false }: { uuid: string; doc: KageDoc; inline?: boolean }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
@@ -40,7 +40,7 @@ export function ShareFeedback({ uuid, doc }: { uuid: string; doc: KageDoc }) {
   }
 
   if (!open) return (
-    <Button variant="outline" size="sm" className="fixed bottom-4 right-4 z-40 bg-background/90 shadow-pop backdrop-blur" onClick={() => { setOpen(true); setState("idle"); }}>
+    <Button variant="outline" size="sm" className={inline ? "w-full" : "fixed bottom-4 right-4 z-40 bg-background/90 shadow-pop backdrop-blur"} onClick={() => { setOpen(true); setState("idle"); }}>
       <MessageSquarePlus aria-hidden /> Give feedback
     </Button>
   );

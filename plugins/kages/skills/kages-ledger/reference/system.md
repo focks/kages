@@ -1,6 +1,6 @@
 ---
 system: ledger
-version: 2.14.0
+version: 2.15.0
 extends: core@1
 tokens:
   colors:

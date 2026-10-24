@@ -42,7 +42,7 @@
       viewport.current.scrollTo({ left: 0, top: 0 });
     }
     var layout = choice(p.layout, ["auto", "horizontal", "vertical", "grid", "tree", "swimlane", "sequence"], "auto");
-    var content = h(CoreDiagramV2, Object.assign({}, p, { nodes: shown, edges: projectedEdges, selected: projected[p.selected] || p.selected, interactive: p.explore || p.interactive, layout: layout === "tree" ? "vertical" : layout === "swimlane" || layout === "sequence" ? "horizontal" : layout, __layout: layout, __connected: neighbors[0] && connected.length ? connected : null, onSelect: function (e) { select(e.id); } }));
+    var content = h(p.__sharp ? CorePreciseDiagram : CoreDiagramV2, Object.assign({}, p, { nodes: shown, edges: projectedEdges, selected: projected[p.selected] || p.selected, interactive: p.explore || p.interactive, layout: layout === "tree" ? "vertical" : layout === "swimlane" || layout === "sequence" ? "horizontal" : layout, __layout: layout, __connected: neighbors[0] && connected.length ? connected : null, onSelect: function (e) { select(e.id); } }));
     var table = p.__route && edges.length ? dataTable(p.label + " connections", ["From", "To", "Relationship"], edges.map(function (edge) {
       var from = nodes.find(function (n) { return n.id === edge.from; }), to = nodes.find(function (n) { return n.id === edge.to; });
       return [from ? from.label || from.id : edge.from, to ? to.label || to.id : edge.to, edge.label || "Connected"];

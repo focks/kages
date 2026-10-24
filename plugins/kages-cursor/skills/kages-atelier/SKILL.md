@@ -1,6 +1,6 @@
 ---
 name: kages-atelier
-description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.13.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.14.0).
 ---
 
 # Kages — Atelier
@@ -16,6 +16,8 @@ Soft, editorial, serif system for consumer and storytelling artifacts.
 5. Make the artifact respond: controls change a result, chart, recommendation or explanation through state and bindings. Give diagrams meaningful labels, directional edges and role colours; interactive selection should reveal a useful detail. Prefer layout:auto for readable phone diagrams. Use imagery when it explains the subject; provide real sources and alt text.
 
 For a research field guide, use guide as the root and disclosure for expandable evidence with real child blocks. Combine search/category filters, a result count, a useful empty state and clear/reset. Label evidence as documented, reported or recommendation; link its source. The artifact-field-guide example demonstrates this complete pattern.
+
+Place the primary chart or figure in canvas lead, controls in actions, and secondary metrics or provenance in support. These slots form a desktop work area; supporting controls collapse on phones. Never duplicate a block across slots. Put alternative analyses behind tabs. Prefer treatment:plain for integrated charts, inset for quiet surfaces, bordered for standalone panels. Cartesian height is 180–480; use xTicks:integer for numeric periods. Review the first phone viewport for visible data.
 
 For an analytical report, start from allocation-lab: canvas appearance:dark, metric grid and responsive bar charts with shared category colors. Charts accept takeaway, unit, source, updatedAt and status ready|loading|error|stale. Bind freshness and status to real outcomes; never imply an automatic refresh. Bar colorBy:category uses item category or label; compactValues shortens displayed values while the data table preserves exact values.
 

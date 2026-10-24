@@ -167,3 +167,27 @@ test("source status never calls an unstarted or sample refresh live data", () =>
   assert.match(loading, /aria-busy="true"/); assert.match(loading, /disabled=""/);
   assert.match(render("core/source-status@1.0.0", { label: "Source", status: "error" }), /role="alert"/);
 });
+
+test("refined contracts keep legacy chrome and add adaptive lead slots, integer ticks and larger point targets", () => {
+  const chart = { label: "Periods", items: [{ id: "a", x: 1, y: 2 }, { id: "b", x: 4, y: 8 }], interactive: true, xTicks: "integer", rangeControls: true };
+  const refined = render("core/line-chart@1.3.0", chart);
+  assert.match(refined, /kg-chart-frame--plain/);
+  assert.match(refined, /r="14"/);
+  assert.match(refined, /<details[^>]*kg-cartesian__range/);
+  assert.doesNotMatch(refined, />1\.8<|>2\.5<|>3\.3</);
+  assert.doesNotMatch(render("core/line-chart@1.2.0", chart), /kg-chart-frame--plain|r="14"/);
+  for (const treatment of ["plain", "inset", "bordered"]) assert.match(render("core/bar-chart@1.2.0", { label: "Values", items: [{label:"A",value:1}], treatment }), new RegExp("kg-chart-frame--" + treatment));
+  for (const status of ["loading", "error", "stale"]) {
+    const html = render("core/bar-chart@1.2.0", { label: "Availability", items: [{label:"A",value:1}], status });
+    assert.match(html, /kg-chart-frame--plain/);
+    assert.match(html, status === "loading" ? /aria-busy="true"/ : status === "error" ? /role="alert"/ : /out of date/);
+  }
+  assert.match(render("core/bar-chart@1.2.0", { label: "Empty", items: [] }), /No data/);
+  const canvas = render("core/canvas@1.1.0", { title: "A task", lead: [React.createElement("p", {key:"a"}, "PRIMARY")], support: [React.createElement("p", {key:"b"}, "SUPPORT")] });
+  assert.ok(canvas.indexOf("PRIMARY") < canvas.indexOf("SUPPORT"));
+  assert.match(canvas, /aria-expanded="false"/);
+  const graph = render("core/diagram@1.5.0", { label: "Flow", nodes: [{id:"a",label:"Alpha"},{id:"b",label:"Beta"}], edges: [{from:"a",to:"b",label:"A complete relationship"},{from:"b",to:"a",label:"Feedback"}], interactive:true });
+  assert.match(graph, /kg-precise-diagram/);
+  assert.match(graph, /A complete relationship/);
+  assert.doesNotMatch(graph, /NaN|Infinity|undefined/);
+});

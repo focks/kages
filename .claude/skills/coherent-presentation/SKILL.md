@@ -7,8 +7,11 @@ description: Native canvas personalities, consistent data colors and analytical 
 
 Use `canvas` for a designed report or tool. Choose one personality: analytical,
 editorial, exploratory, teaching or showcase. `appearance: inherit` follows the
-reader; light/dark is an intentional artifact choice. Put metric grids and
-chart blocks directly in its children. The `allocation-lab` starter demonstrates
+reader; light/dark is an intentional artifact choice. Put primary charts or figures in `lead`, controls in `actions`, and secondary
+metrics or provenance in `support`. The supporting pane collapses on phones;
+keep essential conclusions in the lead. Put remaining content in `children`.
+Never repeat a block across slots. Stack related primary charts to avoid a tall
+metrics pane leaving empty space beside one short plot. The `allocation-lab` starter demonstrates
 a dark analytical report with synthetic figures, native responsive bars and
 linked selection. It is not a factual source for financial or market claims.
 
@@ -73,3 +76,20 @@ URL fragment; opening it restores a session view without changing the published
 version. Never opt in sensitive inputs. Imported rows, object/array values and
 keys declared in `persist` are excluded. Shareable strings are bounded to 120
 characters, and the encoded selection is capped at 4,000 characters.
+
+Refined chart contracts default to `treatment:plain`; use `inset` for a quiet
+surface and `bordered` only for independently usable panels. Cartesian plots
+accept `height` (180–480) and `xTicks:integer` for numeric periods. Range inputs
+are disclosed on demand. Put alternative analytical views behind tabs instead
+of forcing readers through every chart. Keep import and exact data discoverable.
+
+Refined diagrams use neutral nodes, category accents and exterior feedback
+routes. Full relationship text remains in the connections table. Review both
+phone and desktop routing; explicit node coordinates retain the older layout.
+The canvas uses workspace display fonts and a coordinated density scale.
+
+Structural polish can move a direct primary visual into `lead` and controls into
+`support`, preserving block IDs, events and bindings. Explicit component refs
+are not restructured. Review the exact undo patch and mobile first viewport.
+The published viewer groups utilities in “Use this Kage”; presentation mode
+hides its header without resetting the artifact session.

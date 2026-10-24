@@ -6,7 +6,7 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Signal Field Guide — evidence you can explore\" · system atelier@1.13.0 · 26 blocks · 34 instances\nstate {\"chapter\":\"overview\",\"category\":\"all\",\"query\":\"\",\"checkedMeaning\":false,\"checkedMobile\":false,\"checkedControl\":false}\n- guide [core/guide@1.0.0] title=\"Signal\" value=\"overview\"\n    ↳ reads state:chapter · writes change→state.chapter\n  children:\n    - overview [core/canvas@1.0.0] title=\"Good presentation makes evidence easier to inspect.\"\n        ↳ reads state:chapter\n      children:\n        - opening [core/rich-text@1.1.0]\n        - readingMap [core/diagram@1.4.0] label=\"A short reading path\"\n        - limits [core/alert@1.0.0] title=\"What this guide establishes\" text=\"The linked sources support the three principles. The Kag…\n    - principles [core/canvas@1.0.0] (hidden) title=\"Meaning, behavior, access.\"\n        ↳ reads state:chapter\n      children:\n        - principlesTable [core/table@1.0.0] rows=3\n        - terms [core/glossary@1.0.0] title=\"Working vocabulary\" items=||\n    - evidence [core/canvas@1.0.0] (hidden) title=\"Follow the claim to its source.\"\n        ↳ reads state:chapter\n      children:\n        - filters [core/stack@1.0.0]\n          - query [core/text-input@1.0.0] label=\"Search evidence\"\n              ↳ reads state:query · writes change→state.query\n          - category [core/choice@1.1.0] label=\"Topic\" value=\"all\" options=all|Visual|Interaction|Access\n              ↳ reads state:category · writes change→state.category\n        - count [core/text@1.0.0] text=\"3 matching sources\"\n            ↳ reads data:entries, state:category, state:query\n        - entry~/entry%3A%22color%22 [core/disclosure@1.0.0] title=\"Keep a variable's color consistent\"\n          - documented~/entry%3A%22color%22 [core/rich-text@1.1.0]\n          - recommendation~/entry%3A%22color%22 [core/text@1.0.0] text=\"Our recommendation: In Kages, reuse a colorDomain across…\n          - sourceLink~/entry%3A%22color%22 [core/link@1.0.0] label=\"Read the primary source ↗\"\n        - entry~/entry%3A%22selection%22 [core/disclosure@1.0.0] title=\"Make selections useful across views\"\n          - documented~/entry%3A%22selection%22 [core/rich-text@1.1.0]\n          - recommendation~/entry%3A%22selection%22 [core/text@1.0.0] text=\"Our recommendation: In Kages, bind a chart selection and…\n          - sourceLink~/entry%3A%22selection%22 [core/link@1.0.0] label=\"Read the primary source ↗\"\n        - entry~/entry%3A%22access%22 [core/disclosure@1.0.0] title=\"Give complex visuals a fuller explanation\"\n          - documented~/entry%3A%22access%22 [core/rich-text@1.1.0]\n          - recommendation~/entry%3A%22access%22 [core/text@1.0.0] text=\"Our recommendation: Pair the figure with a takeaway, cle…\n          - sourceLink~/entry%3A%22access%22 [core/link@1.0.0] label=\"Read the primary source ↗\"\n        - empty [core/alert@1.0.0] (hidden) title=\"No matching evidence\" text=\"Clear the filters or try a broader search.\"\n            ↳ reads data:entries, state:category, state:query\n        - clear [atelier/button@1.0.0] label=\"Clear evidence filters\"\n            ↳ writes click→state.query, click→state.category\n        - references [core/references@1.0.0] title=\"Primary references\" items=color|selection|access\n    - review [core/canvas@1.0.0] (hidden) title=\"Review what a reader can actually do.\"\n        ↳ reads state:chapter\n      children:\n        - meaning [core/checkbox@1.0.0] label=\"I checked that category colors keep their meaning.\"\n            ↳ reads state:checkedMeaning · writes change→state.checkedMeaning\n        - mobile [core/checkbox@1.0.0] label=\"I read the page at phone width and inspected its figures.\"\n            ↳ reads state:checkedMobile · writes change→state.checkedMobile\n        - control [core/checkbox@1.0.0] label=\"I exercised the main control, changed result and reset.\"\n            ↳ reads state:checkedControl · writes change→state.checkedControl\n        - progress [core/text@1.0.0] text=\"0 of 3 review checks recorded\"\n            ↳ reads state:checkedMeaning, state:checkedMobile, state:checkedControl\n        - resetReview [atelier/button@1.0.0] label=\"Reset review\"\n            ↳ writes click→state.checkedMeaning, click→state.checkedMobile, click→state.checkedControl",
+  "description": "Kage \"Signal Field Guide — evidence you can explore\" · system atelier@1.14.0 · 26 blocks · 34 instances\nstate {\"chapter\":\"overview\",\"category\":\"all\",\"query\":\"\",\"checkedMeaning\":false,\"checkedMobile\":false,\"checkedControl\":false}\n- guide [core/guide@1.1.0] title=\"Signal\" value=\"overview\"\n    ↳ reads state:chapter · writes change→state.chapter\n  children:\n    - overview [core/canvas@1.1.0] title=\"Good presentation makes evidence easier to inspect.\"\n        ↳ reads state:chapter\n      children:\n        - opening [core/rich-text@1.1.0]\n        - readingMap [core/diagram@1.5.0] label=\"A short reading path\"\n        - limits [core/alert@1.0.0] title=\"What this guide establishes\" text=\"The linked sources support the three principles. The Kag…\n    - principles [core/canvas@1.1.0] (hidden) title=\"Meaning, behavior, access.\"\n        ↳ reads state:chapter\n      children:\n        - principlesTable [core/table@1.0.0] rows=3\n        - terms [core/glossary@1.0.0] title=\"Working vocabulary\" items=||\n    - evidence [core/canvas@1.1.0] (hidden) title=\"Follow the claim to its source.\"\n        ↳ reads state:chapter\n      children:\n        - filters [core/stack@1.0.0]\n          - query [core/text-input@1.0.0] label=\"Search evidence\"\n              ↳ reads state:query · writes change→state.query\n          - category [core/choice@1.1.0] label=\"Topic\" value=\"all\" options=all|Visual|Interaction|Access\n              ↳ reads state:category · writes change→state.category\n        - count [core/text@1.0.0] text=\"3 matching sources\"\n            ↳ reads data:entries, state:category, state:query\n        - entry~/entry%3A%22color%22 [core/disclosure@1.0.0] title=\"Keep a variable's color consistent\"\n          - documented~/entry%3A%22color%22 [core/rich-text@1.1.0]\n          - recommendation~/entry%3A%22color%22 [core/text@1.0.0] text=\"Our recommendation: In Kages, reuse a colorDomain across…\n          - sourceLink~/entry%3A%22color%22 [core/link@1.0.0] label=\"Read the primary source ↗\"\n        - entry~/entry%3A%22selection%22 [core/disclosure@1.0.0] title=\"Make selections useful across views\"\n          - documented~/entry%3A%22selection%22 [core/rich-text@1.1.0]\n          - recommendation~/entry%3A%22selection%22 [core/text@1.0.0] text=\"Our recommendation: In Kages, bind a chart selection and…\n          - sourceLink~/entry%3A%22selection%22 [core/link@1.0.0] label=\"Read the primary source ↗\"\n        - entry~/entry%3A%22access%22 [core/disclosure@1.0.0] title=\"Give complex visuals a fuller explanation\"\n          - documented~/entry%3A%22access%22 [core/rich-text@1.1.0]\n          - recommendation~/entry%3A%22access%22 [core/text@1.0.0] text=\"Our recommendation: Pair the figure with a takeaway, cle…\n          - sourceLink~/entry%3A%22access%22 [core/link@1.0.0] label=\"Read the primary source ↗\"\n        - empty [core/alert@1.0.0] (hidden) title=\"No matching evidence\" text=\"Clear the filters or try a broader search.\"\n            ↳ reads data:entries, state:category, state:query\n        - clear [atelier/button@1.0.0] label=\"Clear evidence filters\"\n            ↳ writes click→state.query, click→state.category\n        - references [core/references@1.0.0] title=\"Primary references\" items=color|selection|access\n    - review [core/canvas@1.1.0] (hidden) title=\"Review what a reader can actually do.\"\n        ↳ reads state:chapter\n      children:\n        - meaning [core/checkbox@1.0.0] label=\"I checked that category colors keep their meaning.\"\n            ↳ reads state:checkedMeaning · writes change→state.checkedMeaning\n        - mobile [core/checkbox@1.0.0] label=\"I read the page at phone width and inspected its figures.\"\n            ↳ reads state:checkedMobile · writes change→state.checkedMobile\n        - control [core/checkbox@1.0.0] label=\"I exercised the main control, changed result and reset.\"\n            ↳ reads state:checkedControl · writes change→state.checkedControl\n        - progress [core/text@1.0.0] text=\"0 of 3 review checks recorded\"\n            ↳ reads state:checkedMeaning, state:checkedMobile, state:checkedControl\n        - resetReview [atelier/button@1.0.0] label=\"Reset review\"\n            ↳ writes click→state.checkedMeaning, click→state.checkedMobile, click→state.checkedControl",
   "envelope": {
     "title": "Signal Field Guide — evidence you can explore",
     "root": "guide",
@@ -88,7 +88,9 @@
             "limits"
           ],
           "actions": [],
-          "footer": []
+          "footer": [],
+          "lead": [],
+          "support": []
         },
         "bind": [],
         "on": [],
@@ -161,7 +163,9 @@
             "terms"
           ],
           "actions": [],
-          "footer": []
+          "footer": [],
+          "lead": [],
+          "support": []
         },
         "bind": [],
         "on": [],
@@ -243,7 +247,9 @@
             "references"
           ],
           "actions": [],
-          "footer": []
+          "footer": [],
+          "lead": [],
+          "support": []
         },
         "bind": [],
         "on": [],
@@ -535,7 +541,9 @@
             "resetReview"
           ],
           "actions": [],
-          "footer": []
+          "footer": [],
+          "lead": [],
+          "support": []
         },
         "bind": [],
         "on": [],

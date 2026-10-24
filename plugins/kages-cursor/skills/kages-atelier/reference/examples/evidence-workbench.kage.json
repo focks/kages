@@ -18,6 +18,7 @@
     ]
   },
   "state": {
+    "view": "compare",
     "range": null,
     "hiddenSeries": [],
     "histogramSelection": "",
@@ -163,7 +164,7 @@
       "props": {
         "title": "Ask better questions of the same data.",
         "eyebrow": "02 / Evidence workbench",
-        "description": "Filter a cohort, change a scenario, inspect a point, then try a CSV. This is a synthetic demonstration, not a report about real organizations.",
+        "description": "Compare cohorts and test an assumption. All built-in data is synthetic.",
         "personality": "exploratory",
         "appearance": "inherit"
       },
@@ -173,19 +174,118 @@
           "factor",
           "reset"
         ],
+        "lead": [
+          "line"
+        ],
+        "support": [
+          "provenance"
+        ],
         "children": [
-          "source",
-          "explain",
-          "line",
           "detail",
+          "views",
+          "comparison",
+          "statistics",
+          "dataset"
+        ]
+      }
+    },
+    "views": {
+      "type": "tabs",
+      "props": {
+        "tabs": [
+          {
+            "id": "compare",
+            "label": "Compare"
+          },
+          {
+            "id": "statistics",
+            "label": "Statistics"
+          },
+          {
+            "id": "data",
+            "label": "Data & import"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "view"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "view",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "comparison": {
+      "type": "stack",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "view"
+          },
+          "compare"
+        ]
+      },
+      "slots": {
+        "children": [
           "bars",
-          "table",
-          "hist",
+          "hist"
+        ]
+      }
+    },
+    "statistics": {
+      "type": "stack",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "view"
+          },
+          "statistics"
+        ]
+      },
+      "slots": {
+        "children": [
           "box",
           "waterfall",
-          "multiples",
+          "multiples"
+        ]
+      }
+    },
+    "dataset": {
+      "type": "stack",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "view"
+          },
+          "data"
+        ]
+      },
+      "slots": {
+        "children": [
+          "table",
           "importHelp",
           "import"
+        ]
+      }
+    },
+    "provenance": {
+      "type": "disclosure",
+      "props": {
+        "title": "Source and assumptions"
+      },
+      "slots": {
+        "children": [
+          "source",
+          "explain"
         ]
       }
     },
@@ -258,6 +358,11 @@
       },
       "on": {
         "click": [
+          {
+            "do": "set",
+            "path": "view",
+            "value": "compare"
+          },
           {
             "do": "set",
             "path": "category",
@@ -418,6 +523,8 @@
         "label": "Scenario trend with a sensitivity band",
         "takeaway": "The cohort and multiplier controls change this chart, the bars, the distribution and the table together.",
         "xLabel": "Period",
+        "xTicks": "integer",
+        "height": 240,
         "yLabel": "Scenario value",
         "interactive": true,
         "rangeControls": true,

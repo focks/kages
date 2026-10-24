@@ -6,11 +6,11 @@
     "system": "atelier",
     "portable": true
   },
-  "description": "Kage \"Evidence Workbench — explore, import and compare\" · system atelier@1.13.0 · 16 blocks\nstate {\"range\":null,\"hiddenSeries\":[],\"histogramSelection\":\"\",\"multipleSelection\":{},\"rows\":[{\"id\":\"n1\",\"label\":\"North · period 1\",\"category\":\"North\",\"x\":1,\"value\":24},{\"id\":\"n2\",\"label\":\"North · period 2\",\"category\":\"North\",\"x\":2,\"value\":38},{\"id\":\"n3\",\"label\":\"North · period 3\",\"category\":\"North\",\"x\":3,\"value\":48},{\"id\":\"n4\",\"label\":\"North · period 4\",\"category\":\"North\",\"x\":4,\"value\":64},{\"id\":\"s1\",\"label\":\"South · period 1\",\"category\":\"South\",\"x\":1,\"value\":30},{\"id\":\"s2\",\"label\":\"South · period 2\",\"category\":\"South\",\"x\":2,\"value\":34},{\"id\":\"s3\",\"label\":\"South · period 3\",\"category\":\"South\",\"x\":3,\"value\":51},{\"id\":\"s4\",\"label\":\"South · period 4\",\"category\":\"South\",\"x\":4,\"value\":58}],\"category\":\"all\",\"factor\":1,\"selected\":\"\",\"loading\":false,\"outcome\":{\"status\":\"sample\",\"message\":\"Bundled synthetic data. No live refresh has occurred.\",\"updatedAt\":\"\"}}\n- root [core/canvas@1.0.0] title=\"Ask better questions of the same data.\"\n  children:\n    - source [core/source-status@1.0.0] label=\"Data provenance\"\n        ↳ reads state:outcome.status, state:outcome.message, state:outcome.updatedAt, state:loading · calls refresh→fetch⇒state.rows\n    - explain [core/text@1.0.0] text=\"North stays blue and South stays cyan across related cha…\n    - line [core/line-chart@1.2.0] label=\"Scenario trend with a sensitivity band\" items=n1|n2|n3|n4|s1|s2|s3|s4\n        ↳ reads state:rows, state:category, state:factor, state:selected, state:range, state:hiddenSeries, state:outcome.status · writes select→state.selected, rangeChange→state.range, legendChange→state.hiddenSeries\n    - detail [core/text@1.0.0] text=\"Select a point for details. Legends toggle series; range…\n        ↳ reads state:selected\n    - bars [core/bar-chart@1.1.0] label=\"The same values, compared directly\" items=n1|n2|n3|n4|s1|s2|s3|s4\n        ↳ reads state:rows, state:category, state:factor, state:outcome.status\n    - table [core/data-grid@1.0.0] label=\"Current scenario rows\" rows=8\n        ↳ reads state:rows, state:category, state:factor\n    - hist [core/histogram-chart@1.0.0] label=\"Distribution of the current scenario\"\n        ↳ reads state:rows, state:category, state:factor, state:outcome.status, state:histogramSelection · writes select→state.histogramSelection\n    - box [core/box-plot@1.0.0] label=\"A separate five-number-summary example\" items=|\n    - waterfall [core/waterfall-chart@1.0.0] label=\"Explain a change from start to finish\" items=|||\n    - multiples [core/small-multiples@1.0.0] label=\"Fixed examples with shared axes\"\n        ↳ reads state:multipleSelection · writes select→state.multipleSelection\n    - importHelp [core/text@1.0.0] text=\"Import columns id, label, category, x and value. Use Nor…\n    - import [core/csv-import@1.0.0] label=\"Bring your own small dataset\" text=\"id,label,category,x,value\\nn1,North one,North,1,25\\nn2,N… rows=0\n        ↳ writes import→state.rows, import→state.category, import→state.selected, import→state.outcome, import→state.range, import→state.hiddenSeries, import→state.histogramSelection\n  actions:\n    - category [core/choice@1.1.0] label=\"Cohort\" value=\"all\" options=all|North|South\n        ↳ reads state:category · writes change→state.category\n    - factor [core/slider@1.0.0] label=\"Scenario multiplier\" value=1\n        ↳ reads state:factor · writes change→state.factor\n    - reset [atelier/button@1.0.0] label=\"Reset workbench\"\n        ↳ writes click→state.category, click→state.factor, click→state.selected, click→state.rows, click→state.outcome, click→state.range, click→state.hiddenSeries, click→state.histogramSelection, click→state.multipleSelection",
+  "description": "Kage \"Evidence Workbench — explore, import and compare\" · system atelier@1.14.0 · 21 blocks\nstate {\"view\":\"compare\",\"range\":null,\"hiddenSeries\":[],\"histogramSelection\":\"\",\"multipleSelection\":{},\"rows\":[{\"id\":\"n1\",\"label\":\"North · period 1\",\"category\":\"North\",\"x\":1,\"value\":24},{\"id\":\"n2\",\"label\":\"North · period 2\",\"category\":\"North\",\"x\":2,\"value\":38},{\"id\":\"n3\",\"label\":\"North · period 3\",\"category\":\"North\",\"x\":3,\"value\":48},{\"id\":\"n4\",\"label\":\"North · period 4\",\"category\":\"North\",\"x\":4,\"value\":64},{\"id\":\"s1\",\"label\":\"South · period 1\",\"category\":\"South\",\"x\":1,\"value\":30},{\"id\":\"s2\",\"label\":\"South · period 2\",\"category\":\"South\",\"x\":2,\"value\":34},{\"id\":\"s3\",\"label\":\"South · period 3\",\"category\":\"South\",\"x\":3,\"value\":51},{\"id\":\"s4\",\"label\":\"South · period 4\",\"category\":\"South\",\"x\":4,\"value\":58}],\"category\":\"all\",\"factor\":1,\"selected\":\"\",\"loading\":false,\"outcome\":{\"status\":\"sample\",\"message\":\"Bundled synthetic data. No live refresh has occurred.\",\"updatedAt\":\"\"}}\n- root [core/canvas@1.1.0] title=\"Ask better questions of the same data.\"\n  children:\n    - detail [core/text@1.0.0] text=\"Select a point for details. Legends toggle series; range…\n        ↳ reads state:selected\n    - views [atelier/tabs@1.0.0] value=\"compare\"\n        ↳ reads state:view · writes change→state.view\n    - comparison [core/stack@1.0.0]\n        ↳ reads state:view\n      - bars [core/bar-chart@1.2.0] label=\"The same values, compared directly\" items=n1|n2|n3|n4|s1|s2|s3|s4\n          ↳ reads state:rows, state:category, state:factor, state:outcome.status\n      - hist [core/histogram-chart@1.1.0] label=\"Distribution of the current scenario\"\n          ↳ reads state:rows, state:category, state:factor, state:outcome.status, state:histogramSelection · writes select→state.histogramSelection\n    - statistics [core/stack@1.0.0] (hidden)\n        ↳ reads state:view\n      - box [core/box-plot@1.1.0] label=\"A separate five-number-summary example\" items=|\n      - waterfall [core/waterfall-chart@1.1.0] label=\"Explain a change from start to finish\" items=|||\n      - multiples [core/small-multiples@1.1.0] label=\"Fixed examples with shared axes\"\n          ↳ reads state:multipleSelection · writes select→state.multipleSelection\n    - dataset [core/stack@1.0.0] (hidden)\n        ↳ reads state:view\n      - table [core/data-grid@1.0.0] label=\"Current scenario rows\" rows=8\n          ↳ reads state:rows, state:category, state:factor\n      - importHelp [core/text@1.0.0] text=\"Import columns id, label, category, x and value. Use Nor…\n      - import [core/csv-import@1.0.0] label=\"Bring your own small dataset\" text=\"id,label,category,x,value\\nn1,North one,North,1,25\\nn2,N… rows=0\n          ↳ writes import→state.rows, import→state.category, import→state.selected, import→state.outcome, import→state.range, import→state.hiddenSeries, import→state.histogramSelection\n  actions:\n    - category [core/choice@1.1.0] label=\"Cohort\" value=\"all\" options=all|North|South\n        ↳ reads state:category · writes change→state.category\n    - factor [core/slider@1.0.0] label=\"Scenario multiplier\" value=1\n        ↳ reads state:factor · writes change→state.factor\n    - reset [atelier/button@1.0.0] label=\"Reset workbench\"\n        ↳ writes click→state.view, click→state.category, click→state.factor, click→state.selected, click→state.rows, click→state.outcome, click→state.range, click→state.hiddenSeries, click→state.histogramSelection, click→state.multipleSelection\n  lead:\n    - line [core/line-chart@1.3.0] label=\"Scenario trend with a sensitivity band\" items=n1|n2|n3|n4|s1|s2|s3|s4\n        ↳ reads state:rows, state:category, state:factor, state:selected, state:range, state:hiddenSeries, state:outcome.status · writes select→state.selected, rangeChange→state.range, legendChange→state.hiddenSeries\n  support:\n    - provenance [core/disclosure@1.0.0] title=\"Source and assumptions\"\n      - source [core/source-status@1.0.0] label=\"Data provenance\"\n          ↳ reads state:outcome.status, state:outcome.message, state:outcome.updatedAt, state:loading · calls refresh→fetch⇒state.rows\n      - explain [core/text@1.0.0] text=\"North stays blue and South stays cyan across related cha…",
   "envelope": {
     "title": "Evidence Workbench — explore, import and compare",
     "root": "root",
-    "state_json": "{\"range\":null,\"hiddenSeries\":[],\"histogramSelection\":\"\",\"multipleSelection\":{},\"rows\":[{\"id\":\"n1\",\"label\":\"North · period 1\",\"category\":\"North\",\"x\":1,\"value\":24},{\"id\":\"n2\",\"label\":\"North · period 2\",\"category\":\"North\",\"x\":2,\"value\":38},{\"id\":\"n3\",\"label\":\"North · period 3\",\"category\":\"North\",\"x\":3,\"value\":48},{\"id\":\"n4\",\"label\":\"North · period 4\",\"category\":\"North\",\"x\":4,\"value\":64},{\"id\":\"s1\",\"label\":\"South · period 1\",\"category\":\"South\",\"x\":1,\"value\":30},{\"id\":\"s2\",\"label\":\"South · period 2\",\"category\":\"South\",\"x\":2,\"value\":34},{\"id\":\"s3\",\"label\":\"South · period 3\",\"category\":\"South\",\"x\":3,\"value\":51},{\"id\":\"s4\",\"label\":\"South · period 4\",\"category\":\"South\",\"x\":4,\"value\":58}],\"category\":\"all\",\"factor\":1,\"selected\":\"\",\"loading\":false,\"outcome\":{\"status\":\"sample\",\"message\":\"Bundled synthetic data. No live refresh has occurred.\",\"updatedAt\":\"\"}}",
+    "state_json": "{\"view\":\"compare\",\"range\":null,\"hiddenSeries\":[],\"histogramSelection\":\"\",\"multipleSelection\":{},\"rows\":[{\"id\":\"n1\",\"label\":\"North · period 1\",\"category\":\"North\",\"x\":1,\"value\":24},{\"id\":\"n2\",\"label\":\"North · period 2\",\"category\":\"North\",\"x\":2,\"value\":38},{\"id\":\"n3\",\"label\":\"North · period 3\",\"category\":\"North\",\"x\":3,\"value\":48},{\"id\":\"n4\",\"label\":\"North · period 4\",\"category\":\"North\",\"x\":4,\"value\":64},{\"id\":\"s1\",\"label\":\"South · period 1\",\"category\":\"South\",\"x\":1,\"value\":30},{\"id\":\"s2\",\"label\":\"South · period 2\",\"category\":\"South\",\"x\":2,\"value\":34},{\"id\":\"s3\",\"label\":\"South · period 3\",\"category\":\"South\",\"x\":3,\"value\":51},{\"id\":\"s4\",\"label\":\"South · period 4\",\"category\":\"South\",\"x\":4,\"value\":58}],\"category\":\"all\",\"factor\":1,\"selected\":\"\",\"loading\":false,\"outcome\":{\"status\":\"sample\",\"message\":\"Bundled synthetic data. No live refresh has occurred.\",\"updatedAt\":\"\"}}",
     "data_json": "{\"sample\":[{\"id\":\"n1\",\"label\":\"North · period 1\",\"category\":\"North\",\"x\":1,\"value\":24},{\"id\":\"n2\",\"label\":\"North · period 2\",\"category\":\"North\",\"x\":2,\"value\":38},{\"id\":\"n3\",\"label\":\"North · period 3\",\"category\":\"North\",\"x\":3,\"value\":48},{\"id\":\"n4\",\"label\":\"North · period 4\",\"category\":\"North\",\"x\":4,\"value\":64},{\"id\":\"s1\",\"label\":\"South · period 1\",\"category\":\"South\",\"x\":1,\"value\":30},{\"id\":\"s2\",\"label\":\"South · period 2\",\"category\":\"South\",\"x\":2,\"value\":34},{\"id\":\"s3\",\"label\":\"South · period 3\",\"category\":\"South\",\"x\":3,\"value\":51},{\"id\":\"s4\",\"label\":\"South · period 4\",\"category\":\"South\",\"x\":4,\"value\":58}]}",
     "blocks": [
       {
@@ -19,32 +19,159 @@
         "props": {
           "title": "Ask better questions of the same data.",
           "eyebrow": "02 / Evidence workbench",
-          "description": "Filter a cohort, change a scenario, inspect a point, then try a CSV. This is a synthetic demonstration, not a report about real organizations.",
+          "description": "Compare cohorts and test an assumption. All built-in data is synthetic.",
           "personality": "exploratory",
           "density": null,
           "appearance": "inherit"
         },
         "slots": {
           "children": [
-            "source",
-            "explain",
-            "line",
             "detail",
-            "bars",
-            "table",
-            "hist",
-            "box",
-            "waterfall",
-            "multiples",
-            "importHelp",
-            "import"
+            "views",
+            "comparison",
+            "statistics",
+            "dataset"
           ],
           "actions": [
             "category",
             "factor",
             "reset"
           ],
-          "footer": []
+          "footer": [],
+          "lead": [
+            "line"
+          ],
+          "support": [
+            "provenance"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "views",
+        "type": "tabs",
+        "props": {
+          "tabs": [
+            {
+              "id": "compare",
+              "label": "Compare",
+              "count": null
+            },
+            {
+              "id": "statistics",
+              "label": "Statistics",
+              "count": null
+            },
+            {
+              "id": "data",
+              "label": "Data & import",
+              "count": null
+            }
+          ],
+          "value": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"view\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"view\",\"value\":{\"$event\":\"id\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "comparison",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": null,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "bars",
+            "hist"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"view\"},\"compare\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "statistics",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": null,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "box",
+            "waterfall",
+            "multiples"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"view\"},\"statistics\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "dataset",
+        "type": "stack",
+        "props": {
+          "direction": null,
+          "gap": null,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": null
+        },
+        "slots": {
+          "children": [
+            "table",
+            "importHelp",
+            "import"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"view\"},\"data\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "provenance",
+        "type": "disclosure",
+        "props": {
+          "title": "Source and assumptions",
+          "eyebrow": null,
+          "badge": null,
+          "palette": null,
+          "open": null
+        },
+        "slots": {
+          "children": [
+            "source",
+            "explain"
+          ]
         },
         "bind": [],
         "on": [],
@@ -133,7 +260,7 @@
         "on": [
           {
             "event": "click",
-            "actions_json": "[{\"do\":\"set\",\"path\":\"category\",\"value\":\"all\"},{\"do\":\"set\",\"path\":\"factor\",\"value\":1},{\"do\":\"set\",\"path\":\"selected\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"rows\",\"value\":{\"$data\":\"sample\"}},{\"do\":\"set\",\"path\":\"outcome\",\"value\":{\"status\":\"sample\",\"message\":\"Bundled synthetic data. No live refresh has occurred.\",\"updatedAt\":\"\"}},{\"do\":\"set\",\"path\":\"range\",\"value\":null},{\"do\":\"set\",\"path\":\"hiddenSeries\",\"value\":[]},{\"do\":\"set\",\"path\":\"histogramSelection\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"multipleSelection\",\"value\":{}}]"
+            "actions_json": "[{\"do\":\"set\",\"path\":\"view\",\"value\":\"compare\"},{\"do\":\"set\",\"path\":\"category\",\"value\":\"all\"},{\"do\":\"set\",\"path\":\"factor\",\"value\":1},{\"do\":\"set\",\"path\":\"selected\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"rows\",\"value\":{\"$data\":\"sample\"}},{\"do\":\"set\",\"path\":\"outcome\",\"value\":{\"status\":\"sample\",\"message\":\"Bundled synthetic data. No live refresh has occurred.\",\"updatedAt\":\"\"}},{\"do\":\"set\",\"path\":\"range\",\"value\":null},{\"do\":\"set\",\"path\":\"hiddenSeries\",\"value\":[]},{\"do\":\"set\",\"path\":\"histogramSelection\",\"value\":\"\"},{\"do\":\"set\",\"path\":\"multipleSelection\",\"value\":{}}]"
           }
         ],
         "visible_json": null,
@@ -229,7 +356,10 @@
               "value": 50,
               "label": "Illustrative reference: 50"
             }
-          ]
+          ],
+          "treatment": null,
+          "xTicks": "integer",
+          "height": 240
         },
         "slots": {},
         "bind": [
@@ -310,7 +440,8 @@
           "source": "Synthetic demonstration data",
           "updatedAt": null,
           "status": null,
-          "statusMessage": null
+          "statusMessage": null,
+          "treatment": null
         },
         "slots": {},
         "bind": [
@@ -382,7 +513,8 @@
           "source": "Synthetic demonstration data",
           "updatedAt": null,
           "status": null,
-          "statusMessage": null
+          "statusMessage": null,
+          "treatment": null
         },
         "slots": {},
         "bind": [
@@ -440,7 +572,8 @@
           "source": "Synthetic demonstration data",
           "updatedAt": null,
           "status": null,
-          "statusMessage": null
+          "statusMessage": null,
+          "treatment": null
         },
         "slots": {},
         "bind": [],
@@ -483,7 +616,8 @@
           "source": "Synthetic demonstration data",
           "updatedAt": null,
           "status": null,
-          "statusMessage": null
+          "statusMessage": null,
+          "treatment": null
         },
         "slots": {},
         "bind": [],
@@ -574,7 +708,8 @@
           "source": "Synthetic demonstration data",
           "updatedAt": null,
           "status": null,
-          "statusMessage": null
+          "statusMessage": null,
+          "treatment": null
         },
         "slots": {},
         "bind": [

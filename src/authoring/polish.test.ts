@@ -52,3 +52,16 @@ test("polish preview is read-only; apply and undo obey version and permission ga
   assert.equal(dispatch(c, "patch_kage", { name, ops: result.data.undo, baseVersion: saved.data.version.v }).ok, true);
   assert.deepEqual(store.head(name)!.doc.blocks.root, before.doc.blocks.root);
 });
+
+test("structural polish elevates a visual, retains controls once and reverses exactly", () => {
+  const doc = polishExamples()[0];
+  doc.blocks.root.slots = { children: ["metrics", "controls", "budget", "companies", "detail"], footer: ["note"] };
+  const plan = planPolish(doc, { personality: "exploratory" });
+  assert.deepEqual(plan.preview.blocks.root.slots?.lead, ["budget"]);
+  assert.deepEqual(plan.preview.blocks.root.slots?.support, ["controls"]);
+  assert.deepEqual(plan.preview.blocks.controls, doc.blocks.controls);
+  assert.deepEqual(validate(plan.preview).errors, []);
+  assert.deepEqual(applyPatch(applyPatch(doc, plan.patch), plan.undo), doc);
+  doc.blocks.root.type = "core/canvas@1.0.0";
+  assert.equal(planPolish(doc).preview.blocks.root.slots?.lead, undefined);
+});

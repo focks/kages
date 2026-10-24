@@ -21,7 +21,7 @@
   };
   function chartContext(p, body) {
     var status = choice(p.status, ["ready", "loading", "error", "stale"], "ready");
-    return h("section", { className: "kg-chart-frame", "aria-label": p.label, "aria-busy": status === "loading" },
+    return h("section", { className: "kg-chart-frame" + (p.__sharp ? " kg-chart-frame--refined kg-chart-frame--" + choice(p.treatment, ["plain", "inset", "bordered"], "plain") : ""), "aria-label": p.label, "aria-busy": status === "loading" },
       h("header", { className: "kg-chart-frame__header" }, h("h3", null, p.label), p.unit ? h("span", { className: "kg-chart-frame__unit" }, p.unit) : null),
       p.takeaway ? h("p", { className: "kg-chart-frame__takeaway" }, p.takeaway) : null,
       status !== "ready" ? h("p", { className: "kg-chart-frame__status", role: status === "error" ? "alert" : "status" }, p.statusMessage || ({ loading: "Loading data…", error: "Data could not be loaded.", stale: "Showing the last available data; it may be out of date." })[status]) : null,

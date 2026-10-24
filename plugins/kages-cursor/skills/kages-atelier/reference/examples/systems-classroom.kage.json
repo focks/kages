@@ -77,16 +77,22 @@
         "title": "Follow an idea from input to interaction.",
         "eyebrow": "04 / Systems classroom",
         "personality": "teaching",
-        "description": "Explore a simplified system, inspect each responsibility, then test your understanding. Your choices stay in this session."
+        "description": "Select a node to inspect its role, then test your understanding."
       },
       "slots": {
+        "lead": [
+          "graph"
+        ],
+        "actions": [
+          "controls"
+        ],
+        "support": [
+          "detail"
+        ],
         "children": [
           "steps",
-          "instructions",
-          "controls",
-          "graph",
-          "detail",
           "quiz",
+          "instructions",
           "reset"
         ],
         "footer": [
@@ -323,8 +329,8 @@
     "detail": {
       "type": "section",
       "props": {
-        "level": 2,
-        "tone": "accent"
+        "level": 3,
+        "tone": "plain"
       },
       "repeat": {
         "each": {

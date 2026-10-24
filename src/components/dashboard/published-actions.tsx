@@ -6,8 +6,11 @@ import type { KageDoc, Json } from "@/engine/types";
 import { Button } from "@/components/ui/button";
 import { publishedEmbedOrigins } from "@/store/embed-policy";
 import { docWithSharedView, shareKeys, viewHash } from "@/runtime/shared-view";
+import { ShareFeedback } from "./share-feedback";
+import { DataSessionNotice } from "./data-session-notice";
+import { KageUsage } from "./kage-usage";
 
-export function PublishedActions({ doc, uuid, readerState }: { doc: KageDoc; uuid: string; readerState?: () => Record<string, Json> | undefined }) {
+export function PublishedActions({ doc, uuid, readerState, onPresent }: { doc: KageDoc; uuid: string; readerState?: () => Record<string, Json> | undefined; onPresent?: () => void }) {
   const [busy, setBusy] = useState(false), [message, setMessage] = useState("");
   const [login, setLogin] = useState(false);
   const origins = publishedEmbedOrigins(doc.meta);
@@ -42,15 +45,20 @@ export function PublishedActions({ doc, uuid, readerState }: { doc: KageDoc; uui
   }
   return <details className="relative shrink-0">
     <summary className="cursor-pointer rounded-md border border-input px-2 py-1 text-xs">Use this Kage</summary>
-    <div className="absolute right-0 top-full z-30 mt-2 w-72 space-y-3 rounded-xl border bg-popover p-4 text-popover-foreground shadow-md">
+    <div className="absolute right-0 top-full z-30 mt-2 max-h-[80svh] w-72 space-y-3 overflow-auto rounded-xl border bg-popover p-4 text-popover-foreground shadow-md">
       <p className="text-xs text-muted-foreground">Explore freely. A copy is an independent draft in your workspace and uses your workspace’s design.</p>
       <div className="flex flex-col items-stretch gap-2">
+        {onPresent && <Button variant="outline" size="sm" onClick={event => { event.currentTarget.closest("details")?.removeAttribute("open"); onPresent(); }}>Presentation mode</Button>}
         <Button variant="outline" size="sm" disabled={busy} onClick={() => void copy()}>Make a copy</Button>
         <Button variant="outline" size="sm" onClick={download}>Download Kage JSON</Button>
         <a className="rounded-md border border-input px-3 py-2 text-center text-sm" href={`/k/${encodeURIComponent(uuid)}?print=1`} target="_blank" rel="noopener noreferrer">Print / save PDF</a>
         <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => void copyView()}>Copy link to this view</button>
         {origins.length > 0 && <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => { const code = `<iframe src="${location.origin}/embed/${encodeURIComponent(uuid)}" title="Kage artifact" width="100%" height="720" loading="lazy" referrerpolicy="no-referrer"></iframe>`; navigator.clipboard.writeText(code).then(() => setMessage("Embed code copied. Allowed websites: " + origins.join(", ")), () => setMessage("Clipboard access is unavailable.")); }}>Copy embed code</button>}
       </div>
+      <ShareFeedback uuid={uuid} doc={doc} inline />
+      <DataSessionNotice doc={doc} />
+      <KageUsage name={doc.id} uuid={uuid} />
+      <a href="/" className="block text-xs text-muted-foreground">Made with Kages</a>
       {message && <p role="status" className="text-xs">{message}</p>}
       {login && <a className="text-sm text-wire underline" href={`/login?next=${encodeURIComponent(`/k/${uuid}`)}`}>Sign in</a>}
     </div>

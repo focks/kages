@@ -78,7 +78,7 @@
     "root": {
       "type": "canvas",
       "props": {
-        "title": "Small teams. Focused tools. Different allocation choices.",
+        "title": "Where the budget goes.",
         "eyebrow": "Allocation lab / interactive analytical report",
         "description": "A synthetic worked example of service budgets and product investment. Every figure below is illustrative.",
         "appearance": "dark",
@@ -86,11 +86,17 @@
         "density": "compact"
       },
       "slots": {
-        "children": [
-          "metrics",
-          "controls",
+        "lead": [
           "budget",
-          "companies",
+          "companies"
+        ],
+        "actions": [
+          "controls"
+        ],
+        "support": [
+          "metrics"
+        ],
+        "children": [
           "detail"
         ],
         "footer": [
@@ -101,7 +107,7 @@
     "metrics": {
       "type": "grid",
       "props": {
-        "columns": 4,
+        "columns": 2,
         "minSize": "small",
         "gap": 3
       },

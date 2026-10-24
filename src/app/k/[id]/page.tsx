@@ -10,19 +10,17 @@
 import { use, useEffect, useState, useRef } from "react";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { useGuestComments } from "@/components/dashboard/comments/use-guest-comments";
-import { ShareFeedback } from "@/components/dashboard/share-feedback";
-import { KageUsage } from "@/components/dashboard/kage-usage";
-import { MadeWithKages } from "@/components/dashboard/made-with-kages";
 import type { KageDoc, Json } from "@/engine/types";
 import { PublishedActions } from "@/components/dashboard/published-actions";
 import { KageRenderer } from "@/runtime/SandboxedKage";
-import { DataSessionNotice } from "@/components/dashboard/data-session-notice";
 
 export default function SharedKagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [doc, setDoc] = useState<KageDoc | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const guest = useGuestComments(id);
+  const [present, setPresent] = useState(false);
+  useEffect(() => { const exit = (event: KeyboardEvent) => { if (event.key === "Escape") setPresent(false); }; window.addEventListener("keydown", exit); return () => window.removeEventListener("keydown", exit); }, []);
   const readerState = useRef<Record<string, Json> | undefined>(undefined);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const [printView, setPrintView] = useState(false), [printReady, setPrintReady] = useState(false);
@@ -65,20 +63,16 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
     <div className="relative flex h-dvh flex-col overflow-hidden bg-background">
       <link rel="alternate" type="text/markdown" href={`/k/${id}.md`} />
       {/* One bar: the title on the left, the comment toggle on the right. The design system and version are machine detail, so they live in the tooltip, not the chrome. */}
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b px-4">
+      <header hidden={present} className={present ? "hidden" : "flex h-12 shrink-0 items-center gap-3 border-b px-4"}>
         <span title={doc.system} className="min-w-0 flex-1 truncate font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
-        <PublishedActions doc={doc} uuid={id} readerState={() => readerState.current} />
+        <PublishedActions doc={doc} uuid={id} readerState={() => readerState.current} onPresent={() => setPresent(true)} />
         <div ref={setSlot} className="flex shrink-0 items-center gap-1" />
       </header>
       {/* Comment mode for visitors: click anything and a comment window opens there. They can only add notes. */}
       <div className="flex min-h-0 flex-1 flex-col">
         <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill navigation onState={state => { readerState.current = state; }} />
       </div>
-      <div className="shrink-0"><DataSessionNotice doc={doc} /><KageUsage name={doc.id} uuid={id} /></div>
-      <ShareFeedback uuid={id} doc={doc} />
-      <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
-        <div className="pointer-events-auto"><MadeWithKages /></div>
-      </div>
+      {present && <button className="fixed right-3 top-3 z-40 rounded-md border border-input bg-background px-3 py-2 text-xs" onClick={() => setPresent(false)}>Exit presentation</button>}
     </div>
   );
 }
