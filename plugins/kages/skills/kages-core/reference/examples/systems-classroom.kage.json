@@ -1,0 +1,477 @@
+{
+  "kages": "1.0",
+  "id": "systems-classroom",
+  "title": "Systems Classroom — explore a living diagram",
+  "system": "core",
+  "root": "root",
+  "brief": {
+    "mode": "experience",
+    "audience": "Readers learning how interactive Kages fit together",
+    "job": "Explore a diagram, inspect a node and answer a self-check",
+    "notes": "This is a simplified explanatory model of Kages, not a complete implementation diagram."
+  },
+  "state": {
+    "step": "model",
+    "selected": "source",
+    "collapsed": [],
+    "layout": "auto",
+    "answer": ""
+  },
+  "data": {
+    "lessons": [
+      {
+        "id": "source",
+        "label": "Sources",
+        "group": "Inputs",
+        "palette": "ocean",
+        "detail": "Keep inputs explicit. A source definition identifies data; a host decides whether it may be fetched."
+      },
+      {
+        "id": "schema",
+        "label": "Typed preview",
+        "group": "Inputs",
+        "palette": "ocean",
+        "detail": "Inspect column types before importing. Leading-zero identifiers should stay text."
+      },
+      {
+        "id": "compute",
+        "label": "Safe computation",
+        "group": "Processing",
+        "palette": "mint",
+        "detail": "Expressions transform data and state without executing arbitrary artifact JavaScript."
+      },
+      {
+        "id": "validate",
+        "label": "Contract validation",
+        "group": "Processing",
+        "palette": "mint",
+        "detail": "Published contracts constrain component props, events and public outputs."
+      },
+      {
+        "id": "render",
+        "label": "Sandboxed rendering",
+        "group": "Readers",
+        "palette": "violet",
+        "detail": "The renderer uses integrity-pinned assets in an opaque frame. Host services remain explicitly gated."
+      },
+      {
+        "id": "reader",
+        "label": "Reader feedback",
+        "group": "Readers",
+        "palette": "violet",
+        "detail": "A useful interaction changes an explanation or result. Feedback can guide the next revision."
+      }
+    ]
+  },
+  "blocks": {
+    "root": {
+      "type": "canvas",
+      "props": {
+        "title": "Follow an idea from input to interaction.",
+        "eyebrow": "04 / Systems classroom",
+        "personality": "teaching",
+        "description": "Explore a simplified system, inspect each responsibility, then test your understanding. Your choices stay in this session."
+      },
+      "slots": {
+        "children": [
+          "steps",
+          "instructions",
+          "controls",
+          "graph",
+          "detail",
+          "quiz",
+          "reset"
+        ],
+        "footer": [
+          "reference"
+        ]
+      }
+    },
+    "steps": {
+      "type": "stepper",
+      "props": {
+        "label": "Lesson stages",
+        "interactive": true,
+        "steps": [
+          {
+            "id": "model",
+            "label": "Understand",
+            "description": "Read the model"
+          },
+          {
+            "id": "explore",
+            "label": "Explore",
+            "description": "Inspect relationships"
+          },
+          {
+            "id": "check",
+            "label": "Check",
+            "description": "Test the idea"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "step"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "instructions": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$state": "step"
+                },
+                "model"
+              ]
+            },
+            "Select a node to read its responsibility. Blue identifies inputs, mint processing, and violet reader-facing work.",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "step"
+                    },
+                    "explore"
+                  ]
+                },
+                "Try search, neighbor highlighting, group collapse and the layout selector. Normal mouse-wheel input still scrolls; zoom has explicit buttons.",
+                "Answer the question below, then inspect the diagram again if you want to review."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "controls": {
+      "type": "choice",
+      "props": {
+        "label": "Diagram layout",
+        "options": [
+          {
+            "value": "auto",
+            "label": "Automatic"
+          },
+          {
+            "value": "tree",
+            "label": "Vertical"
+          },
+          {
+            "value": "swimlane",
+            "label": "By group"
+          },
+          {
+            "value": "sequence",
+            "label": "Sequence"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "layout"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "layout",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "graph": {
+      "type": "diagram",
+      "props": {
+        "label": "A simplified Kages system",
+        "caption": "Inputs become validated interactive documents; reader feedback informs the next revision. The connection table preserves every relationship label.",
+        "explore": true,
+        "nodes": [
+          {
+            "id": "source",
+            "label": "Sources",
+            "group": "Inputs",
+            "palette": "ocean"
+          },
+          {
+            "id": "schema",
+            "label": "Typed preview",
+            "group": "Inputs",
+            "palette": "ocean"
+          },
+          {
+            "id": "compute",
+            "label": "Safe computation",
+            "group": "Processing",
+            "palette": "mint"
+          },
+          {
+            "id": "validate",
+            "label": "Contract validation",
+            "group": "Processing",
+            "palette": "mint"
+          },
+          {
+            "id": "render",
+            "label": "Sandboxed rendering",
+            "group": "Readers",
+            "palette": "violet"
+          },
+          {
+            "id": "reader",
+            "label": "Reader feedback",
+            "group": "Readers",
+            "palette": "violet"
+          }
+        ],
+        "edges": [
+          {
+            "from": "source",
+            "to": "schema",
+            "label": "inspect"
+          },
+          {
+            "from": "schema",
+            "to": "compute",
+            "label": "transform"
+          },
+          {
+            "from": "compute",
+            "to": "validate",
+            "label": "check"
+          },
+          {
+            "from": "validate",
+            "to": "render",
+            "label": "render"
+          },
+          {
+            "from": "render",
+            "to": "reader",
+            "label": "interact"
+          },
+          {
+            "from": "source",
+            "to": "validate",
+            "label": "trace provenance"
+          },
+          {
+            "from": "reader",
+            "to": "source",
+            "label": "inform revision"
+          }
+        ]
+      },
+      "bind": {
+        "selected": {
+          "$state": "selected"
+        },
+        "collapsedGroups": {
+          "$state": "collapsed"
+        },
+        "layout": {
+          "$state": "layout"
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "selected",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ],
+        "groupsChange": [
+          {
+            "do": "set",
+            "path": "collapsed",
+            "value": {
+              "$event": "groups"
+            }
+          }
+        ]
+      }
+    },
+    "detail": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "tone": "accent"
+      },
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$data": "lessons"
+            },
+            "field": "id",
+            "equals": {
+              "$state": "selected"
+            }
+          }
+        },
+        "key": "id"
+      },
+      "bind": {
+        "title": {
+          "$item": "label"
+        },
+        "description": {
+          "$item": "detail"
+        },
+        "palette": {
+          "$item": "palette"
+        }
+      }
+    },
+    "quiz": {
+      "type": "section",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "step"
+          },
+          "check"
+        ]
+      },
+      "props": {
+        "title": "What does an authoring agent produce?",
+        "level": 2
+      },
+      "slots": {
+        "children": [
+          "answer",
+          "feedback"
+        ]
+      }
+    },
+    "answer": {
+      "type": "choice",
+      "props": {
+        "label": "Choose an answer",
+        "options": [
+          {
+            "value": "document",
+            "label": "A document assembled from validated blocks"
+          },
+          {
+            "value": "script",
+            "label": "Arbitrary executable page code"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "answer"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "answer",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "feedback": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$state": "answer"
+                },
+                ""
+              ]
+            },
+            "Choose an answer to get feedback.",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "answer"
+                    },
+                    "document"
+                  ]
+                },
+                "Correct. The document is data; the trusted runtime supplies behavior through contracts.",
+                "Try again. Kages artifacts are data, not arbitrary executable HTML or JavaScript."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "reset": {
+      "type": "button",
+      "props": {
+        "label": "Restart lesson",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "step",
+            "value": "model"
+          },
+          {
+            "do": "set",
+            "path": "selected",
+            "value": "source"
+          },
+          {
+            "do": "set",
+            "path": "collapsed",
+            "value": []
+          },
+          {
+            "do": "set",
+            "path": "layout",
+            "value": "auto"
+          },
+          {
+            "do": "set",
+            "path": "answer",
+            "value": ""
+          }
+        ]
+      }
+    },
+    "reference": {
+      "type": "link",
+      "props": {
+        "label": "Inspect the Kages implementation ↗",
+        "href": "https://github.com/focks/kages"
+      }
+    }
+  }
+}

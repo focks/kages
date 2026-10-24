@@ -1,0 +1,746 @@
+{
+  "kages": "1.0",
+  "id": "signal-field-guide",
+  "title": "Signal Field Guide — evidence you can explore",
+  "system": "atelier",
+  "root": "guide",
+  "brief": {
+    "mode": "read",
+    "audience": "Readers evaluating interactive documents",
+    "job": "Navigate a sourced guide, filter evidence and complete a review",
+    "evidence": [
+      "https://www.datawrapper.de/academy/what-to-consider-when-choosing-colors-for-data-visualization",
+      "https://vega.github.io/vega-lite/docs/bind.html",
+      "https://www.w3.org/WAI/tutorials/images/complex/"
+    ],
+    "notes": "Documented guidance is separated from this guide's recommendations; this is not a competitor benchmark."
+  },
+  "state": {
+    "chapter": "overview",
+    "category": "all",
+    "query": "",
+    "checkedMeaning": false,
+    "checkedMobile": false,
+    "checkedControl": false
+  },
+  "data": {
+    "entries": [
+      {
+        "id": "color",
+        "number": "1",
+        "title": "Keep a variable's color consistent",
+        "category": "Visual",
+        "detail": "Datawrapper recommends using the same color for the same variables and explaining what colors encode.",
+        "recommendation": "In Kages, reuse a colorDomain across related charts.",
+        "href": "https://www.datawrapper.de/academy/what-to-consider-when-choosing-colors-for-data-visualization"
+      },
+      {
+        "id": "selection",
+        "number": "2",
+        "title": "Make selections useful across views",
+        "category": "Interaction",
+        "detail": "Vega-Lite documents parameters bound to inputs, legends and scales.",
+        "recommendation": "In Kages, bind a chart selection and a related table to shared state, and provide reset.",
+        "href": "https://vega.github.io/vega-lite/docs/bind.html"
+      },
+      {
+        "id": "access",
+        "number": "3",
+        "title": "Give complex visuals a fuller explanation",
+        "category": "Access",
+        "detail": "W3C guidance treats charts and diagrams as complex images that may need both short identification and fuller descriptions.",
+        "recommendation": "Pair the figure with a takeaway, clear units and an accessible data table.",
+        "href": "https://www.w3.org/WAI/tutorials/images/complex/"
+      }
+    ]
+  },
+  "blocks": {
+    "guide": {
+      "type": "guide",
+      "props": {
+        "title": "Signal",
+        "mark": "s.",
+        "eyebrow": "03 / Field guide",
+        "description": "Design that explains",
+        "chapters": [
+          {
+            "id": "overview",
+            "label": "Start here"
+          },
+          {
+            "id": "principles",
+            "label": "Visual principles"
+          },
+          {
+            "id": "evidence",
+            "label": "Evidence browser"
+          },
+          {
+            "id": "review",
+            "label": "Reader checklist"
+          }
+        ],
+        "palette": "inherit",
+        "note": "Sources, recommendations and a working review checklist."
+      },
+      "bind": {
+        "value": {
+          "$state": "chapter"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "chapter",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      },
+      "slots": {
+        "children": [
+          "overview",
+          "principles",
+          "evidence",
+          "review"
+        ]
+      }
+    },
+    "overview": {
+      "type": "canvas",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "overview"
+        ]
+      },
+      "props": {
+        "title": "Good presentation makes evidence easier to inspect.",
+        "eyebrow": "A practical editorial field guide",
+        "personality": "editorial",
+        "description": "Explore three documented principles, inspect their sources, then review an artifact yourself."
+      },
+      "slots": {
+        "children": [
+          "opening",
+          "readingMap",
+          "limits"
+        ]
+      }
+    },
+    "opening": {
+      "type": "rich-text",
+      "props": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Polish begins with the reader's question. ",
+                "bold": true
+              },
+              {
+                "text": "A useful page makes its main point clear, lets the reader inspect support, and gives each interaction a purpose."
+              }
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "This guide is a worked example of editorial structure, chapter navigation, sourced evidence, filtering, expandable detail and a self-check."
+          }
+        ]
+      }
+    },
+    "readingMap": {
+      "type": "diagram",
+      "props": {
+        "label": "A short reading path",
+        "caption": "Orientation → principles → evidence → review. Each chapter has a different job.",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "Orient the reader",
+            "palette": "ocean"
+          },
+          {
+            "id": "evidence",
+            "label": "Inspect the evidence",
+            "palette": "mint"
+          },
+          {
+            "id": "review",
+            "label": "Apply the checklist",
+            "palette": "violet"
+          }
+        ],
+        "edges": [
+          {
+            "from": "start",
+            "to": "evidence",
+            "label": "ask why"
+          },
+          {
+            "from": "evidence",
+            "to": "review",
+            "label": "test it"
+          }
+        ]
+      }
+    },
+    "limits": {
+      "type": "alert",
+      "props": {
+        "tone": "info",
+        "title": "What this guide establishes",
+        "text": "The linked sources support the three principles. The Kages recommendations are editorial advice, not measured performance claims or proof of parity with another product."
+      }
+    },
+    "principles": {
+      "type": "canvas",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "principles"
+        ]
+      },
+      "props": {
+        "title": "Meaning, behavior, access.",
+        "personality": "editorial",
+        "description": "Three principles connect presentation quality to a reader's ability to understand and act."
+      },
+      "slots": {
+        "children": [
+          "principlesTable",
+          "terms"
+        ]
+      }
+    },
+    "principlesTable": {
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "principle",
+            "label": "Principle"
+          },
+          {
+            "key": "practice",
+            "label": "Practice"
+          }
+        ],
+        "rows": [
+          {
+            "principle": "Consistent meaning",
+            "practice": "Keep category colors stable across sorting, filtering and related views."
+          },
+          {
+            "principle": "Useful behavior",
+            "practice": "A choice should change a relevant result and offer a way back."
+          },
+          {
+            "principle": "Equivalent information",
+            "practice": "Explain a chart in words and expose the underlying values."
+          }
+        ]
+      }
+    },
+    "terms": {
+      "type": "glossary",
+      "props": {
+        "title": "Working vocabulary",
+        "items": [
+          {
+            "term": "Color domain",
+            "definition": "An ordered set of category identities used consistently across related charts."
+          },
+          {
+            "term": "Linked selection",
+            "definition": "A reader's choice in one view becomes input to another view."
+          },
+          {
+            "term": "Takeaway",
+            "definition": "A short explanation of what a figure helps the reader understand."
+          }
+        ]
+      }
+    },
+    "evidence": {
+      "type": "canvas",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "evidence"
+        ]
+      },
+      "props": {
+        "title": "Follow the claim to its source.",
+        "personality": "editorial",
+        "description": "Search or filter the evidence. Each entry separates a documented principle from a Kages recommendation."
+      },
+      "slots": {
+        "children": [
+          "filters",
+          "count",
+          "entry",
+          "empty",
+          "clear",
+          "references"
+        ]
+      }
+    },
+    "filters": {
+      "type": "stack",
+      "props": {
+        "direction": "row",
+        "wrap": true,
+        "gap": 3
+      },
+      "slots": {
+        "children": [
+          "query",
+          "category"
+        ]
+      }
+    },
+    "query": {
+      "type": "text-input",
+      "props": {
+        "label": "Search evidence",
+        "placeholder": "Try color or selections"
+      },
+      "bind": {
+        "value": {
+          "$state": "query"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "category": {
+      "type": "choice",
+      "props": {
+        "label": "Topic",
+        "options": [
+          {
+            "value": "all",
+            "label": "All"
+          },
+          {
+            "value": "Visual",
+            "label": "Visual"
+          },
+          {
+            "value": "Interaction",
+            "label": "Interaction"
+          },
+          {
+            "value": "Access",
+            "label": "Access"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "category"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "category",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "count": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$count": {
+                "$filter": {
+                  "list": {
+                    "$filter": {
+                      "list": {
+                        "$data": "entries"
+                      },
+                      "field": "category",
+                      "equals": {
+                        "$state": "category"
+                      },
+                      "skipIf": "all"
+                    }
+                  },
+                  "field": "title",
+                  "contains": {
+                    "$state": "query"
+                  }
+                }
+              }
+            },
+            " matching sources"
+          ]
+        }
+      }
+    },
+    "entry": {
+      "type": "disclosure",
+      "repeat": {
+        "each": {
+          "$filter": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$data": "entries"
+                },
+                "field": "category",
+                "equals": {
+                  "$state": "category"
+                },
+                "skipIf": "all"
+              }
+            },
+            "field": "title",
+            "contains": {
+              "$state": "query"
+            }
+          }
+        },
+        "key": "id"
+      },
+      "bind": {
+        "title": {
+          "$item": "title"
+        },
+        "eyebrow": {
+          "$item": "category"
+        }
+      },
+      "slots": {
+        "children": [
+          "documented",
+          "recommendation",
+          "sourceLink"
+        ]
+      }
+    },
+    "documented": {
+      "type": "rich-text",
+      "bind": {
+        "nodes": [
+          {
+            "kind": "paragraph",
+            "runs": [
+              {
+                "text": "Documented: ",
+                "bold": true
+              },
+              {
+                "text": {
+                  "$item": "detail"
+                }
+              },
+              {
+                "text": " "
+              },
+              {
+                "text": {
+                  "$item": "number"
+                },
+                "cite": {
+                  "$item": "id"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "recommendation": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$concat": [
+            "Our recommendation: ",
+            {
+              "$item": "recommendation"
+            }
+          ]
+        }
+      }
+    },
+    "sourceLink": {
+      "type": "link",
+      "props": {
+        "label": "Read the primary source ↗"
+      },
+      "bind": {
+        "href": {
+          "$item": "href"
+        }
+      }
+    },
+    "empty": {
+      "type": "alert",
+      "visible": {
+        "$eq": [
+          {
+            "$count": {
+              "$filter": {
+                "list": {
+                  "$filter": {
+                    "list": {
+                      "$data": "entries"
+                    },
+                    "field": "category",
+                    "equals": {
+                      "$state": "category"
+                    },
+                    "skipIf": "all"
+                  }
+                },
+                "field": "title",
+                "contains": {
+                  "$state": "query"
+                }
+              }
+            }
+          },
+          0
+        ]
+      },
+      "props": {
+        "title": "No matching evidence",
+        "text": "Clear the filters or try a broader search.",
+        "tone": "info"
+      }
+    },
+    "clear": {
+      "type": "button",
+      "props": {
+        "label": "Clear evidence filters",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "query",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "category",
+            "value": "all"
+          }
+        ]
+      }
+    },
+    "references": {
+      "type": "references",
+      "props": {
+        "title": "Primary references",
+        "items": [
+          {
+            "id": "color",
+            "label": "Keep a variable's color consistent",
+            "href": "https://www.datawrapper.de/academy/what-to-consider-when-choosing-colors-for-data-visualization",
+            "detail": "Official documentation or guidance"
+          },
+          {
+            "id": "selection",
+            "label": "Make selections useful across views",
+            "href": "https://vega.github.io/vega-lite/docs/bind.html",
+            "detail": "Official documentation or guidance"
+          },
+          {
+            "id": "access",
+            "label": "Give complex visuals a fuller explanation",
+            "href": "https://www.w3.org/WAI/tutorials/images/complex/",
+            "detail": "Official documentation or guidance"
+          }
+        ]
+      }
+    },
+    "review": {
+      "type": "canvas",
+      "visible": {
+        "$eq": [
+          {
+            "$state": "chapter"
+          },
+          "review"
+        ]
+      },
+      "props": {
+        "title": "Review what a reader can actually do.",
+        "personality": "editorial",
+        "description": "These checks are recommendations. Ticking them records your review in this session; it does not automatically verify an artifact."
+      },
+      "slots": {
+        "children": [
+          "meaning",
+          "mobile",
+          "control",
+          "progress",
+          "resetReview"
+        ]
+      }
+    },
+    "meaning": {
+      "type": "checkbox",
+      "props": {
+        "label": "I checked that category colors keep their meaning."
+      },
+      "bind": {
+        "checked": {
+          "$state": "checkedMeaning"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "checkedMeaning",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "mobile": {
+      "type": "checkbox",
+      "props": {
+        "label": "I read the page at phone width and inspected its figures."
+      },
+      "bind": {
+        "checked": {
+          "$state": "checkedMobile"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "checkedMobile",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "control": {
+      "type": "checkbox",
+      "props": {
+        "label": "I exercised the main control, changed result and reset."
+      },
+      "bind": {
+        "checked": {
+          "$state": "checkedControl"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "checkedControl",
+            "value": {
+              "$event": "checked"
+            }
+          }
+        ]
+      }
+    },
+    "progress": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$concat": [
+            {
+              "$add": [
+                {
+                  "$if": [
+                    {
+                      "$state": "checkedMeaning"
+                    },
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "$if": [
+                    {
+                      "$state": "checkedMobile"
+                    },
+                    1,
+                    0
+                  ]
+                },
+                {
+                  "$if": [
+                    {
+                      "$state": "checkedControl"
+                    },
+                    1,
+                    0
+                  ]
+                }
+              ]
+            },
+            " of 3 review checks recorded"
+          ]
+        }
+      }
+    },
+    "resetReview": {
+      "type": "button",
+      "props": {
+        "label": "Reset review",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "checkedMeaning",
+            "value": false
+          },
+          {
+            "do": "set",
+            "path": "checkedMobile",
+            "value": false
+          },
+          {
+            "do": "set",
+            "path": "checkedControl",
+            "value": false
+          }
+        ]
+      }
+    }
+  }
+}

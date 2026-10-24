@@ -74,3 +74,41 @@ are separate gates; creating the four cloud demonstrations is still outstanding.
 
 Production build passed. Statistical charts and the expanded CSV preview also
 passed rendered review in explicit dark appearance at 390px.
+
+
+Release checkpoint: commit `3c2248b` pushed to main. Vercel deployment
+`G9gVHnF6YDfXkBsk9vnn8EGZz1Cs` reports success. Authenticated cloud list_systems
+returns core 1.16.0, ledger 2.13.0 and atelier 1.12.0; get_contract returns
+core/canvas@1.0.0. The public app.getkages.com pinned bundle.js, bundle.css and
+tokens.css all match the committed manifest's SHA-384 integrity values. The
+manifest JSON itself requires authentication, so it was not used as public proof.
+The full objective remains open: remaining checklist items and four final cloud
+demonstrations have not been claimed as complete.
+
+Second release verification: all 839 tests completed (816 passed, 23 opt-in
+skips, zero failures); TypeScript and the production build passed. Six opt-in
+browser checks passed for analytical scrolling/selection, plot and graph
+controls, Library preview/apply/undo, copying, multi-page PDF and exact-origin
+embedding. After the mobile diagram refinement, the three affected browser
+checks and 19 focused tests passed again. Normal-scale routed diagrams now
+expand with the page; only deliberate zoom uses a bounded scroll viewport.
+
+Four complete starter documents validate and remain lint-clean/portable in all
+three systems. Phone/desktop screenshots of all four have no diagnostics; the
+workbench, lesson and guide overview/evidence chapter have been visually
+reviewed. Their state tests cover linked scenario values, CSV import provenance,
+reset, evidence filters, checklist state, node explanations and quiz feedback.
+The classifier test follows the existing explicit-mode convention for these
+reading/teaching experiences: input counts cannot infer their purpose.
+
+Controlled embedding requires an exact-origin policy saved as a new draft and
+then published. Real browser tests prove allowed/denied parents, policy
+revocation, rendering in the opaque frame and denial of host services. Refresh
+outcomes distinguish actual success, sample fallback, retained stale data and
+errors; only success advances the timestamp. The public viewer explains its
+session-only state. No configured persistent host service is claimed.
+
+Still outstanding before completing the objective: richer selection links and
+the final publishing/design-experience audit, deployment verification of this
+batch, and creation/publication/review of four new cloud demonstrations. The
+local demo documents are not evidence that cloud publication has occurred.

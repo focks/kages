@@ -5,13 +5,16 @@ const nextConfig: NextConfig = {
   distDir: process.env.KAGES_NEXT_DIST_DIR ?? ".next",
   async headers() {
     const assets = ["/ds/:path*", "/runtime/:path*"].map(source => ({ source, headers: [{ key: "Access-Control-Allow-Origin", value: "*" }] }));
-    // Baseline hardening for every response. Artifacts run in srcdoc frames (never by URL), so refusing to
-    // be framed by other sites costs nothing and stops click-jacking of the comment and sign-in surfaces.
+    // Every app surface refuses foreign ancestors. Only the dedicated read-only
+    // embed response overrides this with the owner's published exact-origin policy.
     const baseline = { source: "/:path*", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
-      { key: "X-Frame-Options", value: "SAMEORIGIN" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+    ] };
+    const protectedPages = { source: "/:path((?!embed/).*)", headers: [
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
     ] };
     // Hashed files never change under their name (a new build gets a new folder or file), so browsers may keep
     // them for a year without asking again: a repeat view of any artifact skips the network for ~600 KB of
@@ -21,7 +24,7 @@ const nextConfig: NextConfig = {
     // Tell clients that fetch a share page that a text version exists (RFC 8288 alternate link).
     const share = { source: "/k/:id([A-Za-z0-9-]+)", headers: [{ key: "Link", value: "</k/:id.md>; rel=\"alternate\"; type=\"text/markdown\"" }, { key: "Vary", value: "Accept" }] };
     const project = { source: "/r/:id([A-Za-z0-9-]+)", headers: [{ key: "Link", value: "</r/:id.md>; rel=\"alternate\"; type=\"text/markdown\"" }, { key: "Vary", value: "Accept" }] };
-    return [baseline, ...assets, ...hashed, share, project];
+    return [baseline, protectedPages, ...assets, ...hashed, share, project];
   },
   // A share link answers agents in markdown: /k/<uuid>.md, or /k/<uuid> when the client asks for text/markdown.
   async rewrites() {

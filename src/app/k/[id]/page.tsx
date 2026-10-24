@@ -16,6 +16,7 @@ import { MadeWithKages } from "@/components/dashboard/made-with-kages";
 import type { KageDoc } from "@/engine/types";
 import { PublishedActions } from "@/components/dashboard/published-actions";
 import { KageRenderer } from "@/runtime/SandboxedKage";
+import { DataSessionNotice } from "@/components/dashboard/data-session-notice";
 
 export default function SharedKagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -71,7 +72,7 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
       <div className="flex min-h-0 flex-1 flex-col">
         <CommentStage doc={doc} api={guest} toolbarSlot={slot} className="min-h-0 flex-1" fill navigation />
       </div>
-      <div className="shrink-0"><KageUsage name={doc.id} uuid={id} /></div>
+      <div className="shrink-0"><DataSessionNotice doc={doc} /><KageUsage name={doc.id} uuid={id} /></div>
       <ShareFeedback uuid={id} doc={doc} />
       <div className="pointer-events-none fixed inset-x-0 bottom-4 flex justify-center">
         <div className="pointer-events-auto"><MadeWithKages /></div>

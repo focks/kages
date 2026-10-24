@@ -44,3 +44,24 @@ as `baseVersion` to save. The returned `undo` patch can be applied through
 `patch_kage` against that new version. Both changes create versions. A stale
 version must be re-reviewed rather than force-applied. The Library exposes the
 same operation with original/proposed and phone-width previews.
+
+Use the complete examples as task recipes: `evidence-workbench` links a cohort
+filter and scenario multiplier to plots, bars, a table and a histogram;
+`signal-field-guide` combines chapters, sources, filtering and a review checklist;
+`systems-classroom` connects graph selection to explanations and a quiz. Reset
+must clear related ranges, hidden series and selections as well as filters.
+
+`csv-import` previews typed columns before an explicit import event. Imported
+rows belong to session state unless a configured host saves them. Change source
+labels after import; do not keep describing reader data as the bundled sample.
+For refresh, a fetch action's `statusInto` names an outcome object and
+`pendingInto` names a loading flag. Bind `source-status` to those values.
+Successful responses advance `updatedAt`; fallback mock data reports `sample`;
+`retainOnError:true` preserves an existing snapshot and reports `stale` on failure.
+Never label a failed refresh as current. The public viewer does not provide
+personal/shared storage or unrestricted fetch; disclose the actual session scope.
+
+Controlled embeds require `set_embed_policy` with exact allowed origins and the
+current `baseVersion`, followed by publishing the resulting draft. The dedicated
+`/embed/<uuid>` route checks published visibility and origin policy; it does not
+enable host services. A copied artifact does not inherit that origin policy.

@@ -43,7 +43,11 @@
     }
     var layout = choice(p.layout, ["auto", "horizontal", "vertical", "grid", "tree", "swimlane", "sequence"], "auto");
     var content = h(CoreDiagramV2, Object.assign({}, p, { nodes: shown, edges: projectedEdges, selected: projected[p.selected] || p.selected, interactive: p.explore || p.interactive, layout: layout === "tree" ? "vertical" : layout === "swimlane" || layout === "sequence" ? "horizontal" : layout, __layout: layout, __connected: neighbors[0] && connected.length ? connected : null, onSelect: function (e) { select(e.id); } }));
-    if (!p.explore) return content;
+    var table = p.__route && edges.length ? dataTable(p.label + " connections", ["From", "To", "Relationship"], edges.map(function (edge) {
+      var from = nodes.find(function (n) { return n.id === edge.from; }), to = nodes.find(function (n) { return n.id === edge.to; });
+      return [from ? from.label || from.id : edge.from, to ? to.label || to.id : edge.to, edge.label || "Connected"];
+    }), { summary: "View connections" }) : null;
+    if (!p.explore) return table ? h("section", { className: "kg-graph-explorer" }, content, table) : content;
     return h("section", { className: "kg-graph-explorer", "aria-label": p.label },
       h("div", { className: "kg-graph-explorer__tools" },
         h("label", null, "Find a node", h("input", { type: "search", value: query[0], placeholder: "Search labels", onChange: function (e) { query[1](e.target.value.slice(0, 200)); } })),
@@ -54,8 +58,10 @@
         h("label", { className: "kg-graph-explorer__check" }, h("input", { type: "checkbox", checked: neighbors[0], onChange: function (e) { neighbors[1](e.target.checked); } }), "Highlight neighbors")),
       query[0].trim() ? h("div", { className: "kg-graph-explorer__matches" }, h("p", { role: "status" }, matches.length + " matching nodes"), matches.slice(0, 20).map(function (n) { return h("button", { key: n.id, type: "button", onClick: function () { select(n.id); } }, n.label || n.id); })) : null,
       groups.length ? h("div", { className: "kg-graph-explorer__groups" }, h("span", null, "Groups"), groups.map(function (group) { var open = collapsed.indexOf(group) < 0; return h("button", { key: group, type: "button", "aria-expanded": open, onClick: function () { setGroups(open ? collapsed.concat([group]) : collapsed.filter(function (g) { return g !== group; })); } }, (open ? "Collapse " : "Expand ") + group); })) : null,
-      h("div", { ref: viewport, className: "kg-graph-explorer__viewport", tabIndex: 0, "aria-label": "Graph viewport; scroll to explore" }, h("div", { style: { zoom: zoom[0] } }, content)),
-      h("p", { className: "kg-graph-explorer__hint" }, "Use the zoom buttons to inspect the graph. Mouse wheel continues to scroll."));
+      // At normal scale, mobile diagrams belong to the page's scroll flow.
+      // Constrain only deliberate zoom so small screens do not hide lower nodes.
+      h("div", { ref: viewport, className: "kg-graph-explorer__viewport", style: p.__route && zoom[0] <= 1 ? { maxHeight: "none" } : undefined, tabIndex: 0, "aria-label": "Graph viewport; scroll to explore" }, h("div", { style: { zoom: zoom[0] } }, content)),
+      h("p", { className: "kg-graph-explorer__hint" }, "Use the zoom buttons to inspect the graph. Mouse wheel continues to scroll."), table);
   }
   HANDLER.groupsChange = "onGroupsChange";
   var graphPrevious = contracts[core.diagram], graphInterface = graphPrevious.implements[0];
@@ -64,3 +70,8 @@
   DEFAULTS.diagram = Object.assign({}, graphPrevious.defaults, { groupsChange: [{ do: "setLocal", key: "collapsedGroups", value: { $event: "groups" } }] });
   core.diagram = contract("core", "diagram", "1.3.0", graphInterface, CoreGraphExplorer, { props: Object.assign({}, graphPrevious.props, graphProps), tokens: graphPrevious.tokens, agent: { use: graphPrevious.agent.use + " explore:true adds search, fit, zoom, neighbor highlighting and collapsible groups without intercepting wheel input. collapsedGroups is public state; groupsChange emits {groups}. layout:tree is vertical; swimlane groups rows, sequence keeps input order. Group summaries preserve external connections and expand on selection." } });
   Object.assign(freeFlowExports, { CoreGraphExplorer: CoreGraphExplorer });
+
+  function CoreGraphExplorerV2(p) { return h(CoreGraphExplorer, Object.assign({}, p, { __route: true })); }
+  var routedGraph = contracts[core.diagram];
+  core.diagram = contract("core", "diagram", "1.4.0", graphInterface, CoreGraphExplorerV2, { props: routedGraph.props, tokens: routedGraph.tokens, agent: { use: routedGraph.agent.use + " Connections route through layout gutters. Labels avoid node boxes and other labels; the connection table preserves full text when there is insufficient room." } });
+  Object.assign(freeFlowExports, { CoreGraphExplorerV2: CoreGraphExplorerV2 });

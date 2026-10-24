@@ -1,0 +1,350 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Systems Classroom — explore a living diagram\" · system core@1.17.0 · 11 blocks\nstate {\"step\":\"model\",\"selected\":\"source\",\"collapsed\":[],\"layout\":\"auto\",\"answer\":\"\"}\n- root [core/canvas@1.0.0] title=\"Follow an idea from input to interaction.\"\n  children:\n    - steps [core/stepper@1.0.0] label=\"Lesson stages\" value=\"model\"\n        ↳ reads state:step · writes change→state.step\n    - instructions [core/text@1.0.0] text=\"Select a node to read its responsibility. Blue identifie…\n        ↳ reads state:step\n    - controls [core/choice@1.1.0] label=\"Diagram layout\" value=\"auto\" options=auto|tree|swimlane|sequence\n        ↳ reads state:layout · writes change→state.layout\n    - graph [core/diagram@1.4.0] label=\"A simplified Kages system\"\n        ↳ reads state:selected, state:collapsed, state:layout · writes select→state.selected, groupsChange→state.collapsed\n    - detail~/detail%3A%22source%22 [core/section@1.1.0] title=\"Sources\"\n    - quiz [core/section@1.1.0] (hidden) title=\"What does an authoring agent produce?\"\n        ↳ reads state:step\n      children:\n        - answer [core/choice@1.1.0] label=\"Choose an answer\" options=document|script\n            ↳ reads state:answer · writes change→state.answer\n        - feedback [core/text@1.0.0] text=\"Choose an answer to get feedback.\"\n            ↳ reads state:answer\n    - reset [core/button@1.1.0] label=\"Restart lesson\"\n        ↳ writes click→state.step, click→state.selected, click→state.collapsed, click→state.layout, click→state.answer\n  footer:\n    - reference [core/link@1.0.0] label=\"Inspect the Kages implementation ↗\"",
+  "envelope": {
+    "title": "Systems Classroom — explore a living diagram",
+    "root": "root",
+    "state_json": "{\"step\":\"model\",\"selected\":\"source\",\"collapsed\":[],\"layout\":\"auto\",\"answer\":\"\"}",
+    "data_json": "{\"lessons\":[{\"id\":\"source\",\"label\":\"Sources\",\"group\":\"Inputs\",\"palette\":\"ocean\",\"detail\":\"Keep inputs explicit. A source definition identifies data; a host decides whether it may be fetched.\"},{\"id\":\"schema\",\"label\":\"Typed preview\",\"group\":\"Inputs\",\"palette\":\"ocean\",\"detail\":\"Inspect column types before importing. Leading-zero identifiers should stay text.\"},{\"id\":\"compute\",\"label\":\"Safe computation\",\"group\":\"Processing\",\"palette\":\"mint\",\"detail\":\"Expressions transform data and state without executing arbitrary artifact JavaScript.\"},{\"id\":\"validate\",\"label\":\"Contract validation\",\"group\":\"Processing\",\"palette\":\"mint\",\"detail\":\"Published contracts constrain component props, events and public outputs.\"},{\"id\":\"render\",\"label\":\"Sandboxed rendering\",\"group\":\"Readers\",\"palette\":\"violet\",\"detail\":\"The renderer uses integrity-pinned assets in an opaque frame. Host services remain explicitly gated.\"},{\"id\":\"reader\",\"label\":\"Reader feedback\",\"group\":\"Readers\",\"palette\":\"violet\",\"detail\":\"A useful interaction changes an explanation or result. Feedback can guide the next revision.\"}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "canvas",
+        "props": {
+          "title": "Follow an idea from input to interaction.",
+          "eyebrow": "04 / Systems classroom",
+          "description": "Explore a simplified system, inspect each responsibility, then test your understanding. Your choices stay in this session.",
+          "personality": "teaching",
+          "density": null,
+          "appearance": null
+        },
+        "slots": {
+          "children": [
+            "steps",
+            "instructions",
+            "controls",
+            "graph",
+            "detail",
+            "quiz",
+            "reset"
+          ],
+          "actions": [],
+          "footer": [
+            "reference"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "steps",
+        "type": "stepper",
+        "props": {
+          "label": "Lesson stages",
+          "steps": [
+            {
+              "id": "model",
+              "label": "Understand",
+              "description": "Read the model"
+            },
+            {
+              "id": "explore",
+              "label": "Explore",
+              "description": "Inspect relationships"
+            },
+            {
+              "id": "check",
+              "label": "Check",
+              "description": "Test the idea"
+            }
+          ],
+          "value": null,
+          "interactive": true
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"step\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"step\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "instructions",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$if\":[{\"$eq\":[{\"$state\":\"step\"},\"model\"]},\"Select a node to read its responsibility. Blue identifies inputs, mint processing, and violet reader-facing work.\",{\"$if\":[{\"$eq\":[{\"$state\":\"step\"},\"explore\"]},\"Try search, neighbor highlighting, group collapse and the layout selector. Normal mouse-wheel input still scrolls; zoom has explicit buttons.\",\"Answer the question below, then inspect the diagram again if you want to review.\"]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "controls",
+        "type": "choice",
+        "props": {
+          "label": "Diagram layout",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "value": "tree",
+              "label": "Vertical"
+            },
+            {
+              "value": "swimlane",
+              "label": "By group"
+            },
+            {
+              "value": "sequence",
+              "label": "Sequence"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"layout\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"layout\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "graph",
+        "type": "diagram",
+        "props": {
+          "label": "A simplified Kages system",
+          "nodes_json": "[{\"id\":\"source\",\"label\":\"Sources\",\"group\":\"Inputs\",\"palette\":\"ocean\"},{\"id\":\"schema\",\"label\":\"Typed preview\",\"group\":\"Inputs\",\"palette\":\"ocean\"},{\"id\":\"compute\",\"label\":\"Safe computation\",\"group\":\"Processing\",\"palette\":\"mint\"},{\"id\":\"validate\",\"label\":\"Contract validation\",\"group\":\"Processing\",\"palette\":\"mint\"},{\"id\":\"render\",\"label\":\"Sandboxed rendering\",\"group\":\"Readers\",\"palette\":\"violet\"},{\"id\":\"reader\",\"label\":\"Reader feedback\",\"group\":\"Readers\",\"palette\":\"violet\"}]",
+          "edges_json": "[{\"from\":\"source\",\"to\":\"schema\",\"label\":\"inspect\"},{\"from\":\"schema\",\"to\":\"compute\",\"label\":\"transform\"},{\"from\":\"compute\",\"to\":\"validate\",\"label\":\"check\"},{\"from\":\"validate\",\"to\":\"render\",\"label\":\"render\"},{\"from\":\"render\",\"to\":\"reader\",\"label\":\"interact\"},{\"from\":\"source\",\"to\":\"validate\",\"label\":\"trace provenance\"},{\"from\":\"reader\",\"to\":\"source\",\"label\":\"inform revision\"}]",
+          "interactive": null,
+          "caption": "Inputs become validated interactive documents; reader feedback informs the next revision. The connection table preserves every relationship label.",
+          "layout": null,
+          "selected": null,
+          "empty": null,
+          "explore": true,
+          "collapsedGroups": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "selected",
+            "expr_json": "{\"$state\":\"selected\"}"
+          },
+          {
+            "prop": "collapsedGroups",
+            "expr_json": "{\"$state\":\"collapsed\"}"
+          },
+          {
+            "prop": "layout",
+            "expr_json": "{\"$state\":\"layout\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"selected\",\"value\":{\"$event\":\"id\"}}]"
+          },
+          {
+            "event": "groupsChange",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"collapsed\",\"value\":{\"$event\":\"groups\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "detail",
+        "type": "section",
+        "props": {
+          "title": null,
+          "eyebrow": null,
+          "description": null,
+          "level": 2,
+          "tone": "accent",
+          "inset": null,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [
+          {
+            "prop": "title",
+            "expr_json": "{\"$item\":\"label\"}"
+          },
+          {
+            "prop": "description",
+            "expr_json": "{\"$item\":\"detail\"}"
+          },
+          {
+            "prop": "palette",
+            "expr_json": "{\"$item\":\"palette\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$filter\":{\"list\":{\"$data\":\"lessons\"},\"field\":\"id\",\"equals\":{\"$state\":\"selected\"}}},\"key\":\"id\"}"
+      },
+      {
+        "id": "quiz",
+        "type": "section",
+        "props": {
+          "title": "What does an authoring agent produce?",
+          "eyebrow": null,
+          "description": null,
+          "level": 2,
+          "tone": null,
+          "inset": null,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "answer",
+            "feedback"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": "{\"$eq\":[{\"$state\":\"step\"},\"check\"]}",
+        "repeat_json": null
+      },
+      {
+        "id": "answer",
+        "type": "choice",
+        "props": {
+          "label": "Choose an answer",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "document",
+              "label": "A document assembled from validated blocks"
+            },
+            {
+              "value": "script",
+              "label": "Arbitrary executable page code"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"answer\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"answer\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "feedback",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$if\":[{\"$eq\":[{\"$state\":\"answer\"},\"\"]},\"Choose an answer to get feedback.\",{\"$if\":[{\"$eq\":[{\"$state\":\"answer\"},\"document\"]},\"Correct. The document is data; the trusted runtime supplies behavior through contracts.\",\"Try again. Kages artifacts are data, not arbitrary executable HTML or JavaScript.\"]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "reset",
+        "type": "button",
+        "props": {
+          "label": "Restart lesson",
+          "variant": "secondary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"step\",\"value\":\"model\"},{\"do\":\"set\",\"path\":\"selected\",\"value\":\"source\"},{\"do\":\"set\",\"path\":\"collapsed\",\"value\":[]},{\"do\":\"set\",\"path\":\"layout\",\"value\":\"auto\"},{\"do\":\"set\",\"path\":\"answer\",\"value\":\"\"}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "reference",
+        "type": "link",
+        "props": {
+          "label": "Inspect the Kages implementation ↗",
+          "href": "https://github.com/focks/kages",
+          "newTab": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

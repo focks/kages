@@ -133,3 +133,37 @@ test("CSV preview preserves identifiers and quoted text, validates types and rej
   s.dispatch("csv", "import", { rows: parsed.rows, columns: parsed.columns, types: parsed.types });
   assert.deepEqual(s.read("csv")?.rows, parsed.rows);
 });
+
+
+test("routed graph connections avoid intervening node boxes and preserve full edge text", () => {
+  for (const vertical of [false, true]) {
+    const nodes = [0, 1, 2].map(i => ({ x: vertical ? 20 : 20 + i * 328, y: vertical ? 20 + i * 184 : 20 }));
+    for (const [from, to] of [[0, 2], [2, 0], [0, 1]]) {
+      const route = K.diagramRoute(nodes[from], nodes[to], vertical, 1);
+      assert.doesNotMatch(route.path, /NaN|Infinity/);
+      for (let i = 1; i < route.points.length; i++) {
+        const a = route.points[i - 1], b = route.points[i];
+        for (const node of nodes) {
+          const crosses = a[0] === b[0]
+            ? a[0] > node.x && a[0] < node.x + 208 && Math.max(a[1], b[1]) > node.y && Math.min(a[1], b[1]) < node.y + 96
+            : a[1] > node.y && a[1] < node.y + 96 && Math.max(a[0], b[0]) > node.x && Math.min(a[0], b[0]) < node.x + 208;
+          assert.equal(crosses, false, `${vertical}/${from}/${to}: ${route.path}`);
+        }
+      }
+    }
+  }
+  const props = { label: "Flow", nodes: [{ id: "a", label: "Collect" }, { id: "b", label: "Explain" }], edges: [{ from: "a", to: "b", label: "A complete relationship label that is longer than a chip" }] };
+  const html = render("core/diagram@1.4.0", props);
+  assert.match(html, /View connections/); assert.match(html, /<td>A complete relationship label that is longer than a chip<\/td>/);
+  assert.doesNotMatch(render("core/diagram@1.3.0", props), /View connections/);
+});
+
+test("source status never calls an unstarted or sample refresh live data", () => {
+  const idle = render("core/source-status@1.0.0", { label: "Source" });
+  assert.match(idle, /Not refreshed/); assert.doesNotMatch(idle, /Live data|completed successfully/);
+  const sample = render("core/source-status@1.0.0", { label: "Source", status: "sample", refreshable: true });
+  assert.match(sample, /Sample data/); assert.match(sample, /not a successful live refresh/); assert.match(sample, /Refresh data/);
+  const loading = render("core/source-status@1.0.0", { label: "Source", loading: true, refreshable: true });
+  assert.match(loading, /aria-busy="true"/); assert.match(loading, /disabled=""/);
+  assert.match(render("core/source-status@1.0.0", { label: "Source", status: "error" }), /role="alert"/);
+});

@@ -28,6 +28,40 @@
     return visited === nodes.length ? rank : null;
   }
 
+  // The layout uses a regular lattice. Route long/backward connections through
+  // its gutters, never through intervening boxes. Offsets stay within each gap;
+  // increasing edge count must not make the canvas grow without bound.
+  function diagramRoute(a, b, vertical, index) {
+    var forward = vertical ? b.y > a.y : b.x > a.x, same = vertical ? b.y === a.y : b.x === a.x;
+    var lane = index % 3, points, sx, sy, ex, ey, rail;
+    if (vertical) {
+      sx = a.x + 104; ex = b.x + 104;
+      sy = a.y + (forward || same ? 98 : -2); ey = b.y + (forward && !same ? -8 : 104);
+      if (!same && a.x === b.x && Math.abs(b.y - a.y) === 184) points = [[sx, sy], [ex, ey]];
+      else if (same) points = [[sx, sy], [sx, a.y + 128 + lane * 12], [ex, a.y + 128 + lane * 12], [ex, ey]];
+      else {
+        var startY = a.y + (forward ? 128 + lane * 12 : -28 - lane * 8), endY = b.y + (forward ? -28 - lane * 8 : 128 + lane * 12);
+        rail = Math.max(a.x, b.x) + 224 + lane * 4;
+        points = [[sx, sy], [sx, startY], [rail, startY], [rail, endY], [ex, endY], [ex, ey]];
+      }
+    } else {
+      sy = a.y + 48; ey = b.y + 48;
+      sx = a.x + (forward || same ? 210 : -2); ex = b.x + (forward && !same ? -8 : 216);
+      if (!same && a.y === b.y && Math.abs(b.x - a.x) === 328) points = [[sx, sy], [ex, ey]];
+      else if (same) points = [[sx, sy], [a.x + 248 + lane * 8, sy], [a.x + 248 + lane * 8, ey], [ex, ey]];
+      else {
+        var startX = a.x + (forward ? 248 + lane * 8 : -40 - lane * 8), endX = b.x + (forward ? -40 - lane * 8 : 248 + lane * 8);
+        rail = Math.max(a.y, b.y) + 128 + lane * 12;
+        points = [[sx, sy], [startX, sy], [startX, rail], [endX, rail], [endX, ey], [ex, ey]];
+      }
+    }
+    var middle = Math.floor((points.length - 1) / 2), before = points[points.length - 2];
+    var dx = Math.sign(ex - before[0]), dy = Math.sign(ey - before[1]);
+    return { points: points, path: points.map(function (pt, i) { return (i ? "L" : "M") + pt[0] + " " + pt[1]; }).join(" "),
+      mx: (points[middle][0] + points[middle + 1][0]) / 2, my: (points[middle][1] + points[middle + 1][1]) / 2,
+      arrow: (ex + dx * 6) + "," + (ey + dy * 6) + " " + (ex - dx * 3 - dy * 5) + "," + (ey - dy * 3 + dx * 5) + " " + (ex - dx * 3 + dy * 5) + "," + (ey - dy * 3 - dx * 5) };
+  }
+
   function CoreDiagramV2(p) {
     var seen = Object.create(null);
     var nodes = (Array.isArray(p.nodes) ? p.nodes : []).filter(function (n) {
@@ -57,7 +91,7 @@
         pos[n.id] = { x: 20 + col * (vertical ? 248 : 328), y: 20 + row * 184 };
         width = Math.max(width, pos[n.id].x + 228); height = Math.max(height, pos[n.id].y + 116);
       });
-      var labels = [];
+      var labels = [], occupiedLabels = [];
       var connections = edges.map(function (edge, i) {
         var a = pos[edge.from], b = pos[edge.to], forward = vertical ? b.y >= a.y : b.x >= a.x;
         var sx = vertical ? a.x + 104 : a.x + (forward ? 210 : -2), sy = vertical ? a.y + (forward ? 98 : -2) : a.y + 48;
@@ -67,9 +101,28 @@
           : "M" + sx + " " + sy + " C" + mx + " " + sy + " " + mx + " " + ey + " " + ex + " " + ey;
         var arrow = vertical ? ex + "," + (ey + (forward ? 6 : -6)) + " " + (ex - 5) + "," + (ey + (forward ? -3 : 3)) + " " + (ex + 5) + "," + (ey + (forward ? -3 : 3))
           : (ex + (forward ? 6 : -6)) + "," + ey + " " + (ex + (forward ? -3 : 3)) + "," + (ey - 5) + " " + (ex + (forward ? -3 : 3)) + "," + (ey + 5);
+        if (p.__route) {
+          var routed = diagramRoute(a, b, vertical, i);
+          path = routed.path; arrow = routed.arrow; mx = routed.mx; my = routed.my;
+          routed.points.forEach(function (pt) { width = Math.max(width, pt[0] + 20); height = Math.max(height, pt[1] + 20); });
+        }
         if (edge.label) {
-          var text = diagramLines(edge.label, 16, 1)[0], lw = Math.max(30, text.length * 7 + 12);
-          labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
+          var text = diagramLines(edge.label, p.__route ? 14 : 16, 1)[0], lw = Math.max(30, text.length * 7 + 12), place = true;
+          if (p.__route) {
+            var options = [[0, 0], [0, 26], [0, -26], [lw + 8, 0], [-lw - 8, 0], [0, 52], [0, -52]];
+            var found = options.find(function (offset) {
+              var box = { x: mx + offset[0] - lw / 2, y: my + offset[1] - 10, w: lw, h: 20 };
+              if (box.x < 2 || box.y < 2) return false;
+              function touches(other) { return box.x < other.x + other.w + 4 && box.x + box.w + 4 > other.x && box.y < other.y + other.h + 4 && box.y + box.h + 4 > other.y; }
+              if (nodes.some(function (node) { return touches({ x: pos[node.id].x, y: pos[node.id].y, w: 208, h: 96 }); }) || occupiedLabels.some(touches)) return false;
+              occupiedLabels.push(box); return true;
+            });
+            place = !!found;
+            if (found) { mx += found[0]; my += found[1]; width = Math.max(width, mx + lw / 2 + 12); height = Math.max(height, my + 22); }
+          }
+          // Every relationship remains in the connection table when no safe
+          // visual label position exists; hiding a collision must not lose data.
+          if (place) labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
         }
         return h("g", { key: i, opacity: Array.isArray(p.__connected) && (p.__connected.indexOf(edge.from) < 0 || p.__connected.indexOf(edge.to) < 0) ? .2 : undefined, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
       });
@@ -108,3 +161,4 @@
   interfaces["kages/diagram@1"].outputs = ["selected"];
   contracts[core.diagram].a11y = { keyboard: "Tab to a node; Enter or Space selects. Selection is exposed with aria-pressed. Narrow diagrams reflow vertically; large branched graphs scroll without shrinking labels." };
   Object.assign(freeFlowExports, { CoreDiagramV2: CoreDiagramV2 });
+  freeFlowExports.diagramRoute = diagramRoute;

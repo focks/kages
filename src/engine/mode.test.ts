@@ -10,6 +10,7 @@ import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connec
 import { GUIDE_MODES } from "../packs/guide-examples.ts";
 import { SHOWCASE_MODES } from "../packs/showcase-examples.ts";
 import { USE_CASE_MODES } from "../packs/use-case-examples.ts";
+import { POLISH_MODES } from "../packs/polish-examples.ts";
 import type { KageDoc } from "./types.ts";
 
 const ops = JSON.parse(readFileSync(new URL("../../public/ds/ops-console.kage.json", import.meta.url), "utf8")) as KageDoc;
@@ -20,7 +21,7 @@ test("every shipped example declares a mode, and inference agrees with it", () =
     assert.ok(d.brief?.mode, `${d.id} has no declared mode`);
     // The use-case examples are interactive pages that serve other goals (a pricing page has inputs but is there to persuade),
     // which the block-type heuristic cannot see: for them the declaration is the truth, so only the declared value is checked.
-    const declared = USE_CASE_MODES[d.id] ?? SHOWCASE_MODES[d.id] ?? GUIDE_MODES[d.id];
+    const declared = USE_CASE_MODES[d.id] ?? SHOWCASE_MODES[d.id] ?? GUIDE_MODES[d.id] ?? POLISH_MODES[d.id];
     if (declared) { assert.equal(d.brief!.mode, declared, d.id); continue; }
     assert.equal(inferMode(d).mode, d.brief!.mode, `${d.id}: declared ${d.brief!.mode}, inferred ${inferMode(d).mode} (${inferMode(d).reasons})`);
   }

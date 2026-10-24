@@ -1,0 +1,1107 @@
+{
+  "kages": "1.0",
+  "id": "evidence-workbench",
+  "title": "Evidence Workbench — explore, import and compare",
+  "system": "atelier",
+  "root": "root",
+  "brief": {
+    "mode": "operate",
+    "audience": "Readers exploring chart and data capabilities",
+    "job": "Filter a cohort, adjust an assumption, inspect a point and import a CSV",
+    "notes": "All built-in data is synthetic. The ±10% band is a sensitivity illustration, not a confidence interval."
+  },
+  "state": {
+    "range": null,
+    "hiddenSeries": [],
+    "histogramSelection": "",
+    "multipleSelection": {},
+    "rows": [
+      {
+        "id": "n1",
+        "label": "North · period 1",
+        "category": "North",
+        "x": 1,
+        "value": 24
+      },
+      {
+        "id": "n2",
+        "label": "North · period 2",
+        "category": "North",
+        "x": 2,
+        "value": 38
+      },
+      {
+        "id": "n3",
+        "label": "North · period 3",
+        "category": "North",
+        "x": 3,
+        "value": 48
+      },
+      {
+        "id": "n4",
+        "label": "North · period 4",
+        "category": "North",
+        "x": 4,
+        "value": 64
+      },
+      {
+        "id": "s1",
+        "label": "South · period 1",
+        "category": "South",
+        "x": 1,
+        "value": 30
+      },
+      {
+        "id": "s2",
+        "label": "South · period 2",
+        "category": "South",
+        "x": 2,
+        "value": 34
+      },
+      {
+        "id": "s3",
+        "label": "South · period 3",
+        "category": "South",
+        "x": 3,
+        "value": 51
+      },
+      {
+        "id": "s4",
+        "label": "South · period 4",
+        "category": "South",
+        "x": 4,
+        "value": 58
+      }
+    ],
+    "category": "all",
+    "factor": 1,
+    "selected": "",
+    "loading": false,
+    "outcome": {
+      "status": "sample",
+      "message": "Bundled synthetic data. No live refresh has occurred.",
+      "updatedAt": ""
+    }
+  },
+  "data": {
+    "sample": [
+      {
+        "id": "n1",
+        "label": "North · period 1",
+        "category": "North",
+        "x": 1,
+        "value": 24
+      },
+      {
+        "id": "n2",
+        "label": "North · period 2",
+        "category": "North",
+        "x": 2,
+        "value": 38
+      },
+      {
+        "id": "n3",
+        "label": "North · period 3",
+        "category": "North",
+        "x": 3,
+        "value": 48
+      },
+      {
+        "id": "n4",
+        "label": "North · period 4",
+        "category": "North",
+        "x": 4,
+        "value": 64
+      },
+      {
+        "id": "s1",
+        "label": "South · period 1",
+        "category": "South",
+        "x": 1,
+        "value": 30
+      },
+      {
+        "id": "s2",
+        "label": "South · period 2",
+        "category": "South",
+        "x": 2,
+        "value": 34
+      },
+      {
+        "id": "s3",
+        "label": "South · period 3",
+        "category": "South",
+        "x": 3,
+        "value": 51
+      },
+      {
+        "id": "s4",
+        "label": "South · period 4",
+        "category": "South",
+        "x": 4,
+        "value": 58
+      }
+    ]
+  },
+  "sources": {
+    "sample": {
+      "from": "url",
+      "url": "https://example.com/kages-demo.json",
+      "maxItems": 100
+    }
+  },
+  "blocks": {
+    "root": {
+      "type": "canvas",
+      "props": {
+        "title": "Ask better questions of the same data.",
+        "eyebrow": "02 / Evidence workbench",
+        "description": "Filter a cohort, change a scenario, inspect a point, then try a CSV. This is a synthetic demonstration, not a report about real organizations.",
+        "personality": "exploratory",
+        "appearance": "inherit"
+      },
+      "slots": {
+        "actions": [
+          "category",
+          "factor",
+          "reset"
+        ],
+        "children": [
+          "source",
+          "explain",
+          "line",
+          "detail",
+          "bars",
+          "table",
+          "hist",
+          "box",
+          "waterfall",
+          "multiples",
+          "importHelp",
+          "import"
+        ]
+      }
+    },
+    "category": {
+      "type": "choice",
+      "props": {
+        "label": "Cohort",
+        "options": [
+          {
+            "value": "all",
+            "label": "Both cohorts"
+          },
+          {
+            "value": "North",
+            "label": "North"
+          },
+          {
+            "value": "South",
+            "label": "South"
+          }
+        ]
+      },
+      "bind": {
+        "value": {
+          "$state": "category"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "category",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "factor": {
+      "type": "slider",
+      "props": {
+        "label": "Scenario multiplier",
+        "min": 0.5,
+        "max": 2,
+        "step": 0.1
+      },
+      "bind": {
+        "value": {
+          "$state": "factor"
+        }
+      },
+      "on": {
+        "change": [
+          {
+            "do": "set",
+            "path": "factor",
+            "value": {
+              "$event": "value"
+            }
+          }
+        ]
+      }
+    },
+    "reset": {
+      "type": "button",
+      "props": {
+        "label": "Reset workbench",
+        "variant": "secondary"
+      },
+      "on": {
+        "click": [
+          {
+            "do": "set",
+            "path": "category",
+            "value": "all"
+          },
+          {
+            "do": "set",
+            "path": "factor",
+            "value": 1
+          },
+          {
+            "do": "set",
+            "path": "selected",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "rows",
+            "value": {
+              "$data": "sample"
+            }
+          },
+          {
+            "do": "set",
+            "path": "outcome",
+            "value": {
+              "status": "sample",
+              "message": "Bundled synthetic data. No live refresh has occurred.",
+              "updatedAt": ""
+            }
+          },
+          {
+            "do": "set",
+            "path": "range",
+            "value": null
+          },
+          {
+            "do": "set",
+            "path": "hiddenSeries",
+            "value": []
+          },
+          {
+            "do": "set",
+            "path": "histogramSelection",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "multipleSelection",
+            "value": {}
+          }
+        ]
+      }
+    },
+    "source": {
+      "type": "source-status",
+      "props": {
+        "label": "Data provenance",
+        "source": "Bundled sample, local CSV, or a host-approved source",
+        "refreshable": true,
+        "scope": "session"
+      },
+      "bind": {
+        "status": {
+          "$state": "outcome.status"
+        },
+        "message": {
+          "$state": "outcome.message"
+        },
+        "updatedAt": {
+          "$state": "outcome.updatedAt"
+        },
+        "loading": {
+          "$state": "loading"
+        }
+      },
+      "on": {
+        "refresh": [
+          {
+            "do": "fetch",
+            "source": "sample",
+            "into": "rows",
+            "pendingInto": "loading",
+            "statusInto": "outcome",
+            "mock": [
+              {
+                "id": "n1",
+                "label": "North · period 1",
+                "category": "North",
+                "x": 1,
+                "value": 24
+              },
+              {
+                "id": "n2",
+                "label": "North · period 2",
+                "category": "North",
+                "x": 2,
+                "value": 38
+              },
+              {
+                "id": "n3",
+                "label": "North · period 3",
+                "category": "North",
+                "x": 3,
+                "value": 48
+              },
+              {
+                "id": "n4",
+                "label": "North · period 4",
+                "category": "North",
+                "x": 4,
+                "value": 64
+              },
+              {
+                "id": "s1",
+                "label": "South · period 1",
+                "category": "South",
+                "x": 1,
+                "value": 30
+              },
+              {
+                "id": "s2",
+                "label": "South · period 2",
+                "category": "South",
+                "x": 2,
+                "value": 34
+              },
+              {
+                "id": "s3",
+                "label": "South · period 3",
+                "category": "South",
+                "x": 3,
+                "value": 51
+              },
+              {
+                "id": "s4",
+                "label": "South · period 4",
+                "category": "South",
+                "x": 4,
+                "value": 58
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "explain": {
+      "type": "text",
+      "props": {
+        "text": "North stays blue and South stays cyan across related charts. The public viewer uses the bundled sample when live fetching is not enabled. Refresh reports that outcome explicitly. The ±10% band below illustrates sensitivity to an assumption; it is not a statistical confidence interval."
+      }
+    },
+    "line": {
+      "type": "line-chart",
+      "props": {
+        "source": "Synthetic demonstration data",
+        "unit": "Illustrative units",
+        "label": "Scenario trend with a sensitivity band",
+        "takeaway": "The cohort and multiplier controls change this chart, the bars, the distribution and the table together.",
+        "xLabel": "Period",
+        "yLabel": "Scenario value",
+        "interactive": true,
+        "rangeControls": true,
+        "colorDomain": [
+          "North",
+          "South"
+        ],
+        "annotations": [
+          {
+            "axis": "y",
+            "value": 50,
+            "label": "Illustrative reference: 50"
+          }
+        ]
+      },
+      "bind": {
+        "items": {
+          "$map": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$state": "rows"
+                },
+                "field": "category",
+                "equals": {
+                  "$state": "category"
+                },
+                "skipIf": "all"
+              }
+            },
+            "to": {
+              "id": {
+                "$item": "id"
+              },
+              "label": {
+                "$item": "label"
+              },
+              "category": {
+                "$item": "category"
+              },
+              "series": {
+                "$item": "category"
+              },
+              "x": {
+                "$item": "x"
+              },
+              "y": {
+                "$mul": [
+                  {
+                    "$item": "value"
+                  },
+                  {
+                    "$state": "factor"
+                  }
+                ]
+              },
+              "value": {
+                "$mul": [
+                  {
+                    "$item": "value"
+                  },
+                  {
+                    "$state": "factor"
+                  }
+                ]
+              },
+              "lower": {
+                "$mul": [
+                  {
+                    "$mul": [
+                      {
+                        "$item": "value"
+                      },
+                      {
+                        "$state": "factor"
+                      }
+                    ]
+                  },
+                  0.9
+                ]
+              },
+              "upper": {
+                "$mul": [
+                  {
+                    "$mul": [
+                      {
+                        "$item": "value"
+                      },
+                      {
+                        "$state": "factor"
+                      }
+                    ]
+                  },
+                  1.1
+                ]
+              }
+            }
+          }
+        },
+        "selected": {
+          "$state": "selected"
+        },
+        "range": {
+          "$state": "range"
+        },
+        "hiddenSeries": {
+          "$state": "hiddenSeries"
+        },
+        "source": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$state": "outcome.status"
+                },
+                "imported"
+              ]
+            },
+            "CSV imported by reader",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "outcome.status"
+                    },
+                    "ready"
+                  ]
+                },
+                "Configured live source",
+                "Bundled synthetic data"
+              ]
+            }
+          ]
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "selected",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ],
+        "rangeChange": [
+          {
+            "do": "set",
+            "path": "range",
+            "value": {
+              "$event": ""
+            }
+          }
+        ],
+        "legendChange": [
+          {
+            "do": "set",
+            "path": "hiddenSeries",
+            "value": {
+              "$event": "hidden"
+            }
+          }
+        ]
+      }
+    },
+    "detail": {
+      "type": "text",
+      "bind": {
+        "text": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$state": "selected"
+                },
+                ""
+              ]
+            },
+            "Select a point for details. Legends toggle series; range controls highlight a period interval.",
+            {
+              "$concat": [
+                "Selected point: ",
+                {
+                  "$state": "selected"
+                },
+                ". Selection is available to every block through shared state."
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "bars": {
+      "type": "bar-chart",
+      "props": {
+        "source": "Synthetic demonstration data",
+        "unit": "Illustrative units",
+        "label": "The same values, compared directly",
+        "takeaway": "A common zero baseline and stable cohort colors make magnitude comparisons straightforward.",
+        "colorBy": "category",
+        "colorDomain": [
+          "North",
+          "South"
+        ]
+      },
+      "bind": {
+        "items": {
+          "$map": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$state": "rows"
+                },
+                "field": "category",
+                "equals": {
+                  "$state": "category"
+                },
+                "skipIf": "all"
+              }
+            },
+            "to": {
+              "id": {
+                "$item": "id"
+              },
+              "label": {
+                "$item": "label"
+              },
+              "category": {
+                "$item": "category"
+              },
+              "series": {
+                "$item": "category"
+              },
+              "x": {
+                "$item": "x"
+              },
+              "y": {
+                "$mul": [
+                  {
+                    "$item": "value"
+                  },
+                  {
+                    "$state": "factor"
+                  }
+                ]
+              },
+              "value": {
+                "$mul": [
+                  {
+                    "$item": "value"
+                  },
+                  {
+                    "$state": "factor"
+                  }
+                ]
+              },
+              "lower": {
+                "$mul": [
+                  {
+                    "$mul": [
+                      {
+                        "$item": "value"
+                      },
+                      {
+                        "$state": "factor"
+                      }
+                    ]
+                  },
+                  0.9
+                ]
+              },
+              "upper": {
+                "$mul": [
+                  {
+                    "$mul": [
+                      {
+                        "$item": "value"
+                      },
+                      {
+                        "$state": "factor"
+                      }
+                    ]
+                  },
+                  1.1
+                ]
+              }
+            }
+          }
+        },
+        "source": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$state": "outcome.status"
+                },
+                "imported"
+              ]
+            },
+            "CSV imported by reader",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "outcome.status"
+                    },
+                    "ready"
+                  ]
+                },
+                "Configured live source",
+                "Bundled synthetic data"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "table": {
+      "type": "data-grid",
+      "props": {
+        "label": "Current scenario rows",
+        "sortable": true,
+        "pageSize": 8,
+        "columns": [
+          {
+            "key": "label",
+            "label": "Observation"
+          },
+          {
+            "key": "category",
+            "label": "Cohort"
+          },
+          {
+            "key": "x",
+            "label": "Period"
+          },
+          {
+            "key": "value",
+            "label": "Scenario value"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$map": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$state": "rows"
+                },
+                "field": "category",
+                "equals": {
+                  "$state": "category"
+                },
+                "skipIf": "all"
+              }
+            },
+            "to": {
+              "id": {
+                "$item": "id"
+              },
+              "label": {
+                "$item": "label"
+              },
+              "category": {
+                "$item": "category"
+              },
+              "series": {
+                "$item": "category"
+              },
+              "x": {
+                "$item": "x"
+              },
+              "y": {
+                "$mul": [
+                  {
+                    "$item": "value"
+                  },
+                  {
+                    "$state": "factor"
+                  }
+                ]
+              },
+              "value": {
+                "$mul": [
+                  {
+                    "$item": "value"
+                  },
+                  {
+                    "$state": "factor"
+                  }
+                ]
+              },
+              "lower": {
+                "$mul": [
+                  {
+                    "$mul": [
+                      {
+                        "$item": "value"
+                      },
+                      {
+                        "$state": "factor"
+                      }
+                    ]
+                  },
+                  0.9
+                ]
+              },
+              "upper": {
+                "$mul": [
+                  {
+                    "$mul": [
+                      {
+                        "$item": "value"
+                      },
+                      {
+                        "$state": "factor"
+                      }
+                    ]
+                  },
+                  1.1
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "hist": {
+      "type": "histogram-chart",
+      "props": {
+        "source": "Synthetic demonstration data",
+        "unit": "Illustrative units",
+        "label": "Distribution of the current scenario",
+        "takeaway": "Select a bin to see its range and count. Filtering or changing the multiplier recomputes the bins.",
+        "bins": 5
+      },
+      "bind": {
+        "values": {
+          "$map": {
+            "list": {
+              "$filter": {
+                "list": {
+                  "$state": "rows"
+                },
+                "field": "category",
+                "equals": {
+                  "$state": "category"
+                },
+                "skipIf": "all"
+              }
+            },
+            "to": {
+              "$mul": [
+                {
+                  "$item": "value"
+                },
+                {
+                  "$state": "factor"
+                }
+              ]
+            }
+          }
+        },
+        "source": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$state": "outcome.status"
+                },
+                "imported"
+              ]
+            },
+            "CSV imported by reader",
+            {
+              "$if": [
+                {
+                  "$eq": [
+                    {
+                      "$state": "outcome.status"
+                    },
+                    "ready"
+                  ]
+                },
+                "Configured live source",
+                "Bundled synthetic data"
+              ]
+            }
+          ]
+        },
+        "selected": {
+          "$state": "histogramSelection"
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "histogramSelection",
+            "value": {
+              "$event": "id"
+            }
+          }
+        ]
+      }
+    },
+    "box": {
+      "type": "box-plot",
+      "props": {
+        "source": "Synthetic demonstration data",
+        "unit": "Illustrative units",
+        "label": "A separate five-number-summary example",
+        "takeaway": "These fixed, supplied summaries illustrate the box-plot contract. They are not calculated from the imported rows.",
+        "items": [
+          {
+            "label": "Sample A",
+            "min": 10,
+            "q1": 22,
+            "median": 36,
+            "q3": 48,
+            "max": 60
+          },
+          {
+            "label": "Sample B",
+            "min": 15,
+            "q1": 30,
+            "median": 42,
+            "q3": 55,
+            "max": 72
+          }
+        ]
+      }
+    },
+    "waterfall": {
+      "type": "waterfall-chart",
+      "props": {
+        "source": "Synthetic demonstration data",
+        "unit": "Illustrative units",
+        "label": "Explain a change from start to finish",
+        "takeaway": "A separate fixed example: 100 + 40 − 20 = 120. Violet marks totals, blue increases and cyan decreases.",
+        "items": [
+          {
+            "label": "Start",
+            "value": 100,
+            "total": true
+          },
+          {
+            "label": "Added",
+            "value": 40
+          },
+          {
+            "label": "Removed",
+            "value": -20
+          },
+          {
+            "label": "Finish",
+            "value": 120,
+            "total": true
+          }
+        ]
+      }
+    },
+    "multiples": {
+      "type": "small-multiples",
+      "props": {
+        "source": "Synthetic demonstration data",
+        "unit": "Illustrative units",
+        "label": "Fixed examples with shared axes",
+        "takeaway": "Both panels use the same domains, so their shapes can be compared without independent autoscaling.",
+        "xLabel": "Period",
+        "yLabel": "Value",
+        "interactive": true,
+        "panels": [
+          {
+            "label": "Sample A",
+            "items": [
+              {
+                "x": 1,
+                "y": 20
+              },
+              {
+                "x": 2,
+                "y": 50
+              },
+              {
+                "x": 3,
+                "y": 40
+              }
+            ]
+          },
+          {
+            "label": "Sample B",
+            "items": [
+              {
+                "x": 1,
+                "y": 30
+              },
+              {
+                "x": 2,
+                "y": 40
+              },
+              {
+                "x": 3,
+                "y": 80
+              }
+            ]
+          }
+        ]
+      },
+      "bind": {
+        "selected": {
+          "$state": "multipleSelection"
+        }
+      },
+      "on": {
+        "select": [
+          {
+            "do": "set",
+            "path": "multipleSelection",
+            "value": {
+              "panel": {
+                "$event": "panel"
+              },
+              "id": {
+                "$event": "id"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "importHelp": {
+      "type": "text",
+      "props": {
+        "text": "Import columns id, label, category, x and value. Use North or South for category and numeric x/value columns. Preview the inferred types before importing. Import replaces this session's rows; Reset restores the built-in sample. The fixed summary examples above remain unchanged."
+      }
+    },
+    "import": {
+      "type": "csv-import",
+      "props": {
+        "label": "Bring your own small dataset",
+        "text": "id,label,category,x,value\nn1,North one,North,1,25\nn2,North two,North,2,45\ns1,South one,South,1,35\ns2,South two,South,2,55"
+      },
+      "on": {
+        "import": [
+          {
+            "do": "set",
+            "path": "rows",
+            "value": {
+              "$event": "rows"
+            }
+          },
+          {
+            "do": "set",
+            "path": "category",
+            "value": "all"
+          },
+          {
+            "do": "set",
+            "path": "selected",
+            "value": ""
+          },
+          {
+            "do": "set",
+            "path": "outcome",
+            "value": {
+              "status": "imported",
+              "message": "Local CSV imported into this session. This is not a live source refresh.",
+              "updatedAt": ""
+            }
+          },
+          {
+            "do": "set",
+            "path": "range",
+            "value": null
+          },
+          {
+            "do": "set",
+            "path": "hiddenSeries",
+            "value": []
+          },
+          {
+            "do": "set",
+            "path": "histogramSelection",
+            "value": ""
+          }
+        ]
+      }
+    }
+  }
+}

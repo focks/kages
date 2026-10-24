@@ -4,10 +4,12 @@
 import { useState } from "react";
 import type { KageDoc } from "@/engine/types";
 import { Button } from "@/components/ui/button";
+import { publishedEmbedOrigins } from "@/store/embed-policy";
 
 export function PublishedActions({ doc, uuid }: { doc: KageDoc; uuid: string }) {
   const [busy, setBusy] = useState(false), [message, setMessage] = useState("");
   const [login, setLogin] = useState(false);
+  const origins = publishedEmbedOrigins(doc.meta);
   function download() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
     const a = document.createElement("a"); a.href = url; a.download = "kage-" + uuid + ".json"; a.click();
@@ -18,6 +20,10 @@ export function PublishedActions({ doc, uuid }: { doc: KageDoc; uuid: string }) 
     // Source workspace design IDs are not portable permissions. The copy uses
     // the destination's default design; the download retains the original pin.
     const { resolved: _resolved, design: _design, ...content } = doc;
+    if (content.meta && typeof content.meta === "object" && !Array.isArray(content.meta)) {
+      const { embedOrigins: _policy, ...otherMetadata } = content.meta;
+      content.meta = otherMetadata;
+    }
     const id = "copy-" + crypto.randomUUID();
     try {
       const response = await fetch("/api/create_kage", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ doc: { ...content, id, title: (doc.title || "Kage") + " copy" } }) });
@@ -36,6 +42,7 @@ export function PublishedActions({ doc, uuid }: { doc: KageDoc; uuid: string }) 
         <Button variant="outline" size="sm" onClick={download}>Download Kage JSON</Button>
         <a className="rounded-md border border-input px-3 py-2 text-center text-sm" href={`/k/${encodeURIComponent(uuid)}?print=1`} target="_blank" rel="noopener noreferrer">Print / save PDF</a>
         <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => { navigator.clipboard.writeText(location.href).then(() => setMessage("Link copied, including the selected chapter."), () => setMessage("Copy the address from your browser to share this view.")); }}>Copy link to this view</button>
+        {origins.length > 0 && <button className="rounded-md border border-input px-3 py-2 text-sm" onClick={() => { const code = `<iframe src="${location.origin}/embed/${encodeURIComponent(uuid)}" title="Kage artifact" width="100%" height="720" loading="lazy" referrerpolicy="no-referrer"></iframe>`; navigator.clipboard.writeText(code).then(() => setMessage("Embed code copied. Allowed websites: " + origins.join(", ")), () => setMessage("Clipboard access is unavailable.")); }}>Copy embed code</button>}
       </div>
       {message && <p role="status" className="text-xs">{message}</p>}
       {login && <a className="text-sm text-wire underline" href={`/login?next=${encodeURIComponent(`/k/${uuid}`)}`}>Sign in</a>}

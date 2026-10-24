@@ -7,6 +7,7 @@
 
 import { operationSchema, inputErrors } from "./input-schema.ts";
 import { planPolish } from "../authoring/polish.ts";
+import { embedOrigins } from "../store/embed-policy.ts";
 import { systems, contracts } from "../engine/data.ts";
 import { validate } from "../engine/validate.ts";
 import { advise, review, lintDetailed, type Advice } from "../engine/advice.ts";
@@ -136,6 +137,16 @@ export function describeCard(doc: { description?: string; root?: string; blocks:
 }
 
 export const OPERATIONS: OpSpec[] = [
+  { name: "set_embed_policy", summary: "Set exact HTTPS origins allowed to embed a shared Kage. Creates a draft version; publish it to activate. An empty list disables embedding.", params: ["name", "origins", "baseVersion?"], write: true, run: (c, p) => {
+    const read = c.store.authorizeRead(String(p.name), c.author);
+    if (!read.ok) return fail(read.code, read.msg);
+    if (p.baseVersion !== undefined && p.baseVersion !== read.record.v) return fail("conflict", "The Kage changed. Review its current embed policy before saving.");
+    let origins: string[];
+    try { origins = embedOrigins(p.origins); } catch (e) { return fail("invalid_params", (e as Error).message); }
+    const old = read.record.doc.meta;
+    const meta = old && typeof old === "object" && !Array.isArray(old) ? old : {};
+    return toResult(c.store.patch(String(p.name), [{ op: "add", path: "/meta", value: { ...meta, embedOrigins: origins } }], c.author, { baseVersion: p.baseVersion ?? read.record.v, summary: "Update allowed embed origins" }));
+  } },
   { name: "polish_kage", summary: "Preview a reversible presentation change and advisory visual checks. apply:true saves a new version; baseVersion is required when applying.", params: ["name", "personality?", "density?", "appearance?", "apply?", "baseVersion?"], write: p => p.apply === true, run: (c, p) => {
     const read = c.store.authorizeRead(String(p.name), c.author);
     if (!read.ok) return fail(read.code, read.msg);
@@ -143,6 +154,7 @@ export const OPERATIONS: OpSpec[] = [
     const base = { ...plan, from: read.record.v, validation: validate(plan.preview), applied: false };
     if (p.apply !== true) return ok(base);
     if (p.baseVersion === undefined) return fail("invalid_params", "Preview first and pass its from version as baseVersion.");
+    if (p.baseVersion !== read.record.v) return fail("conflict", "The Kage changed. Preview polish again before applying.");
     const written = c.store.patch(String(p.name), plan.patch, c.author, { baseVersion: Number(p.baseVersion), summary: "Apply presentation polish" });
     return written.ok ? ok({ ...base, applied: true, version: written.version }) : fail(written.error!.code, written.error!.msg);
   } },

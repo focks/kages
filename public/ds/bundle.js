@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"},{"name":"CoreGuide"},{"name":"CoreDisclosure"},{"name":"CoreCanvas"},{"name":"CoreCartesianPlot"},{"name":"CoreGraphExplorer"},{"name":"CoreHistogram"},{"name":"CoreBoxPlot"},{"name":"CoreWaterfall"},{"name":"CoreSmallMultiples"},{"name":"CoreCsvImport"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"},{"name":"CoreGuide"},{"name":"CoreDisclosure"},{"name":"CoreCanvas"},{"name":"CoreCartesianPlot"},{"name":"CoreGraphExplorer"},{"name":"CoreGraphExplorerV2"},{"name":"CoreHistogram"},{"name":"CoreBoxPlot"},{"name":"CoreWaterfall"},{"name":"CoreSmallMultiples"},{"name":"CoreCsvImport"},{"name":"CoreSourceStatus"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -838,6 +838,40 @@
     return visited === nodes.length ? rank : null;
   }
 
+  // The layout uses a regular lattice. Route long/backward connections through
+  // its gutters, never through intervening boxes. Offsets stay within each gap;
+  // increasing edge count must not make the canvas grow without bound.
+  function diagramRoute(a, b, vertical, index) {
+    var forward = vertical ? b.y > a.y : b.x > a.x, same = vertical ? b.y === a.y : b.x === a.x;
+    var lane = index % 3, points, sx, sy, ex, ey, rail;
+    if (vertical) {
+      sx = a.x + 104; ex = b.x + 104;
+      sy = a.y + (forward || same ? 98 : -2); ey = b.y + (forward && !same ? -8 : 104);
+      if (!same && a.x === b.x && Math.abs(b.y - a.y) === 184) points = [[sx, sy], [ex, ey]];
+      else if (same) points = [[sx, sy], [sx, a.y + 128 + lane * 12], [ex, a.y + 128 + lane * 12], [ex, ey]];
+      else {
+        var startY = a.y + (forward ? 128 + lane * 12 : -28 - lane * 8), endY = b.y + (forward ? -28 - lane * 8 : 128 + lane * 12);
+        rail = Math.max(a.x, b.x) + 224 + lane * 4;
+        points = [[sx, sy], [sx, startY], [rail, startY], [rail, endY], [ex, endY], [ex, ey]];
+      }
+    } else {
+      sy = a.y + 48; ey = b.y + 48;
+      sx = a.x + (forward || same ? 210 : -2); ex = b.x + (forward && !same ? -8 : 216);
+      if (!same && a.y === b.y && Math.abs(b.x - a.x) === 328) points = [[sx, sy], [ex, ey]];
+      else if (same) points = [[sx, sy], [a.x + 248 + lane * 8, sy], [a.x + 248 + lane * 8, ey], [ex, ey]];
+      else {
+        var startX = a.x + (forward ? 248 + lane * 8 : -40 - lane * 8), endX = b.x + (forward ? -40 - lane * 8 : 248 + lane * 8);
+        rail = Math.max(a.y, b.y) + 128 + lane * 12;
+        points = [[sx, sy], [startX, sy], [startX, rail], [endX, rail], [endX, ey], [ex, ey]];
+      }
+    }
+    var middle = Math.floor((points.length - 1) / 2), before = points[points.length - 2];
+    var dx = Math.sign(ex - before[0]), dy = Math.sign(ey - before[1]);
+    return { points: points, path: points.map(function (pt, i) { return (i ? "L" : "M") + pt[0] + " " + pt[1]; }).join(" "),
+      mx: (points[middle][0] + points[middle + 1][0]) / 2, my: (points[middle][1] + points[middle + 1][1]) / 2,
+      arrow: (ex + dx * 6) + "," + (ey + dy * 6) + " " + (ex - dx * 3 - dy * 5) + "," + (ey - dy * 3 + dx * 5) + " " + (ex - dx * 3 + dy * 5) + "," + (ey - dy * 3 - dx * 5) };
+  }
+
   function CoreDiagramV2(p) {
     var seen = Object.create(null);
     var nodes = (Array.isArray(p.nodes) ? p.nodes : []).filter(function (n) {
@@ -867,7 +901,7 @@
         pos[n.id] = { x: 20 + col * (vertical ? 248 : 328), y: 20 + row * 184 };
         width = Math.max(width, pos[n.id].x + 228); height = Math.max(height, pos[n.id].y + 116);
       });
-      var labels = [];
+      var labels = [], occupiedLabels = [];
       var connections = edges.map(function (edge, i) {
         var a = pos[edge.from], b = pos[edge.to], forward = vertical ? b.y >= a.y : b.x >= a.x;
         var sx = vertical ? a.x + 104 : a.x + (forward ? 210 : -2), sy = vertical ? a.y + (forward ? 98 : -2) : a.y + 48;
@@ -877,9 +911,28 @@
           : "M" + sx + " " + sy + " C" + mx + " " + sy + " " + mx + " " + ey + " " + ex + " " + ey;
         var arrow = vertical ? ex + "," + (ey + (forward ? 6 : -6)) + " " + (ex - 5) + "," + (ey + (forward ? -3 : 3)) + " " + (ex + 5) + "," + (ey + (forward ? -3 : 3))
           : (ex + (forward ? 6 : -6)) + "," + ey + " " + (ex + (forward ? -3 : 3)) + "," + (ey - 5) + " " + (ex + (forward ? -3 : 3)) + "," + (ey + 5);
+        if (p.__route) {
+          var routed = diagramRoute(a, b, vertical, i);
+          path = routed.path; arrow = routed.arrow; mx = routed.mx; my = routed.my;
+          routed.points.forEach(function (pt) { width = Math.max(width, pt[0] + 20); height = Math.max(height, pt[1] + 20); });
+        }
         if (edge.label) {
-          var text = diagramLines(edge.label, 16, 1)[0], lw = Math.max(30, text.length * 7 + 12);
-          labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
+          var text = diagramLines(edge.label, p.__route ? 14 : 16, 1)[0], lw = Math.max(30, text.length * 7 + 12), place = true;
+          if (p.__route) {
+            var options = [[0, 0], [0, 26], [0, -26], [lw + 8, 0], [-lw - 8, 0], [0, 52], [0, -52]];
+            var found = options.find(function (offset) {
+              var box = { x: mx + offset[0] - lw / 2, y: my + offset[1] - 10, w: lw, h: 20 };
+              if (box.x < 2 || box.y < 2) return false;
+              function touches(other) { return box.x < other.x + other.w + 4 && box.x + box.w + 4 > other.x && box.y < other.y + other.h + 4 && box.y + box.h + 4 > other.y; }
+              if (nodes.some(function (node) { return touches({ x: pos[node.id].x, y: pos[node.id].y, w: 208, h: 96 }); }) || occupiedLabels.some(touches)) return false;
+              occupiedLabels.push(box); return true;
+            });
+            place = !!found;
+            if (found) { mx += found[0]; my += found[1]; width = Math.max(width, mx + lw / 2 + 12); height = Math.max(height, my + 22); }
+          }
+          // Every relationship remains in the connection table when no safe
+          // visual label position exists; hiding a collision must not lose data.
+          if (place) labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
         }
         return h("g", { key: i, opacity: Array.isArray(p.__connected) && (p.__connected.indexOf(edge.from) < 0 || p.__connected.indexOf(edge.to) < 0) ? .2 : undefined, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
       });
@@ -918,6 +971,7 @@
   interfaces["kages/diagram@1"].outputs = ["selected"];
   contracts[core.diagram].a11y = { keyboard: "Tab to a node; Enter or Space selects. Selection is exposed with aria-pressed. Narrow diagrams reflow vertically; large branched graphs scroll without shrinking labels." };
   Object.assign(freeFlowExports, { CoreDiagramV2: CoreDiagramV2 });
+  freeFlowExports.diagramRoute = diagramRoute;
 
 /* Batch 1 of the rich-artifact roles: data visualisation and disclosure.
  * Runs inside the reference closure after the expressive roles. Charts compute
@@ -2163,6 +2217,7 @@
       });
       DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { $if: [{ $eq: [{ $self: "selected" }, { $event: "label" }] }, "", { $event: "label" }] } }] };
     }
+    interfaces[iface] = Object.assign({}, interfaces[iface], { props: Object.assign({}, interfaces[iface].props, CHART_CONTEXT) });
     var next = contract("core", name, version, iface, framedChart(name === "bar-chart" ? CoreAnalyticalBars : impls[previous.ref]), {
       props: Object.assign({}, previous.props, CHART_CONTEXT), tokens: previous.tokens,
       agent: { use: previous.agent.use + " Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit." }
@@ -2368,7 +2423,11 @@
     }
     var layout = choice(p.layout, ["auto", "horizontal", "vertical", "grid", "tree", "swimlane", "sequence"], "auto");
     var content = h(CoreDiagramV2, Object.assign({}, p, { nodes: shown, edges: projectedEdges, selected: projected[p.selected] || p.selected, interactive: p.explore || p.interactive, layout: layout === "tree" ? "vertical" : layout === "swimlane" || layout === "sequence" ? "horizontal" : layout, __layout: layout, __connected: neighbors[0] && connected.length ? connected : null, onSelect: function (e) { select(e.id); } }));
-    if (!p.explore) return content;
+    var table = p.__route && edges.length ? dataTable(p.label + " connections", ["From", "To", "Relationship"], edges.map(function (edge) {
+      var from = nodes.find(function (n) { return n.id === edge.from; }), to = nodes.find(function (n) { return n.id === edge.to; });
+      return [from ? from.label || from.id : edge.from, to ? to.label || to.id : edge.to, edge.label || "Connected"];
+    }), { summary: "View connections" }) : null;
+    if (!p.explore) return table ? h("section", { className: "kg-graph-explorer" }, content, table) : content;
     return h("section", { className: "kg-graph-explorer", "aria-label": p.label },
       h("div", { className: "kg-graph-explorer__tools" },
         h("label", null, "Find a node", h("input", { type: "search", value: query[0], placeholder: "Search labels", onChange: function (e) { query[1](e.target.value.slice(0, 200)); } })),
@@ -2379,8 +2438,10 @@
         h("label", { className: "kg-graph-explorer__check" }, h("input", { type: "checkbox", checked: neighbors[0], onChange: function (e) { neighbors[1](e.target.checked); } }), "Highlight neighbors")),
       query[0].trim() ? h("div", { className: "kg-graph-explorer__matches" }, h("p", { role: "status" }, matches.length + " matching nodes"), matches.slice(0, 20).map(function (n) { return h("button", { key: n.id, type: "button", onClick: function () { select(n.id); } }, n.label || n.id); })) : null,
       groups.length ? h("div", { className: "kg-graph-explorer__groups" }, h("span", null, "Groups"), groups.map(function (group) { var open = collapsed.indexOf(group) < 0; return h("button", { key: group, type: "button", "aria-expanded": open, onClick: function () { setGroups(open ? collapsed.concat([group]) : collapsed.filter(function (g) { return g !== group; })); } }, (open ? "Collapse " : "Expand ") + group); })) : null,
-      h("div", { ref: viewport, className: "kg-graph-explorer__viewport", tabIndex: 0, "aria-label": "Graph viewport; scroll to explore" }, h("div", { style: { zoom: zoom[0] } }, content)),
-      h("p", { className: "kg-graph-explorer__hint" }, "Use the zoom buttons to inspect the graph. Mouse wheel continues to scroll."));
+      // At normal scale, mobile diagrams belong to the page's scroll flow.
+      // Constrain only deliberate zoom so small screens do not hide lower nodes.
+      h("div", { ref: viewport, className: "kg-graph-explorer__viewport", style: p.__route && zoom[0] <= 1 ? { maxHeight: "none" } : undefined, tabIndex: 0, "aria-label": "Graph viewport; scroll to explore" }, h("div", { style: { zoom: zoom[0] } }, content)),
+      h("p", { className: "kg-graph-explorer__hint" }, "Use the zoom buttons to inspect the graph. Mouse wheel continues to scroll."), table);
   }
   HANDLER.groupsChange = "onGroupsChange";
   var graphPrevious = contracts[core.diagram], graphInterface = graphPrevious.implements[0];
@@ -2389,6 +2450,11 @@
   DEFAULTS.diagram = Object.assign({}, graphPrevious.defaults, { groupsChange: [{ do: "setLocal", key: "collapsedGroups", value: { $event: "groups" } }] });
   core.diagram = contract("core", "diagram", "1.3.0", graphInterface, CoreGraphExplorer, { props: Object.assign({}, graphPrevious.props, graphProps), tokens: graphPrevious.tokens, agent: { use: graphPrevious.agent.use + " explore:true adds search, fit, zoom, neighbor highlighting and collapsible groups without intercepting wheel input. collapsedGroups is public state; groupsChange emits {groups}. layout:tree is vertical; swimlane groups rows, sequence keeps input order. Group summaries preserve external connections and expand on selection." } });
   Object.assign(freeFlowExports, { CoreGraphExplorer: CoreGraphExplorer });
+
+  function CoreGraphExplorerV2(p) { return h(CoreGraphExplorer, Object.assign({}, p, { __route: true })); }
+  var routedGraph = contracts[core.diagram];
+  core.diagram = contract("core", "diagram", "1.4.0", graphInterface, CoreGraphExplorerV2, { props: routedGraph.props, tokens: routedGraph.tokens, agent: { use: routedGraph.agent.use + " Connections route through layout gutters. Labels avoid node boxes and other labels; the connection table preserves full text when there is insufficient room." } });
+  Object.assign(freeFlowExports, { CoreGraphExplorerV2: CoreGraphExplorerV2 });
 
 /* Distribution and change views accept bounded data and keep exact values in
  * tables. Box plots render supplied summaries: the renderer never invents a
@@ -2563,6 +2629,27 @@
   Object.assign(freeFlowExports, { CoreCsvImport: CoreCsvImport });
   freeFlowExports.parseCsvPreview = parseCsvPreview;
 
+  // Status comes from the runtime's actual fetch outcome. This block performs
+  // no network request itself; the refresh event goes through declared actions.
+  function CoreSourceStatus(p) {
+    var status = p.loading ? "loading" : choice(p.status, ["idle", "ready", "sample", "imported", "stale", "error"], "idle");
+    var labels = { idle: "Not refreshed", ready: "Live data", sample: "Sample data", imported: "Imported data", stale: "Previous snapshot", error: "Refresh failed", loading: "Refreshing" };
+    var scope = choice(p.scope, ["session", "personal", "shared"], "session");
+    return h("section", { className: "kg-source-status", "aria-label": p.label, "aria-busy": status === "loading" },
+      h("header", null, h("h3", null, p.label), h("span", { className: "kg-source-status__badge", "data-status": status }, labels[status])),
+      h("p", { role: status === "error" ? "alert" : "status" }, p.loading ? "Waiting for the configured data source." : p.message || (status === "sample" ? "Illustrative data; this is not a successful live refresh." : status === "stale" ? "Showing the last available snapshot." : status === "error" ? "The source could not be loaded." : status === "imported" ? "Data was imported into this session." : status === "idle" ? "Refresh has not run in this session." : "The source completed successfully.")),
+      p.source ? h("p", null, "Source: " + p.source) : null,
+      p.updatedAt ? h("p", null, "Last successful update: " + p.updatedAt) : null,
+      h("p", { className: "kg-chart-frame__unit" }, scope === "session" ? "State belongs to this session. Saving requires an explicit export or a configured host." : scope === "personal" ? "Personal storage requested. Saving depends on the host's storage configuration." : "Shared storage requested. When enabled, saved values are visible to other readers with access."),
+      p.refreshable ? h("button", { type: "button", disabled: !!p.loading, onClick: function () { fire(p.onRefresh, {}); } }, p.loading ? "Refreshing…" : "Refresh data") : null);
+  }
+  HANDLER.refresh = "onRefresh";
+  interfaces["kages/source-status@1"] = { role: "source-status", summary: "Show actual data provenance, refresh outcomes and requested persistence scope.", props: {
+    label: S("string", { required: true }), source: S("string"), status: S("string", { enum: ["idle", "ready", "sample", "imported", "stale", "error"], default: "idle" }), loading: S("boolean"), message: S("string"), updatedAt: S("string"), refreshable: S("boolean"), scope: S("string", { enum: ["session", "personal", "shared"], default: "session" })
+  }, slots: {}, events: { refresh: { payload: {} } }, outputs: [] };
+  core["source-status"] = contract("core", "source-status", "1.0.0", "kages/source-status@1", CoreSourceStatus, { agent: { use: "Bind status/message/updatedAt to the object written by a fetch action's statusInto. Bind loading to pendingInto. Wire refresh to fetch; refreshable is false unless configured. statusInto distinguishes ready, sample, stale and error. retainOnError:true keeps an existing snapshot when refresh fails. Only a real successful load advances updatedAt. scope describes requested storage, not proof that a host saved anything; the default published viewer is session-only." } });
+  Object.assign(freeFlowExports, { CoreSourceStatus: CoreSourceStatus });
+
   var ledger = {
     sidebar: contract("ledger", "sidebar", "2.0.0", "kages/nav@1", LedgerSidebar, { tokens: ["ledger-sunken", "ledger-line", "ledger-accent"], agent: { use: "Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers.", avoid: "Long labels; Ledger truncates at one line." } }),
     dropdown: contract("ledger", "dropdown", "2.0.0", "kages/select@1", LedgerDropdown, { limits: { maxOptions: 6 }, tokens: ["ledger-line-control", "ledger-accent", "ledger-accent-ink"], agent: { use: "Segmented control: every option visible, one tap. Up to 6 short options.", avoid: "Long or dynamic option lists — pin `core/dropdown@1` for those." } }),
@@ -2581,9 +2668,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.16.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.13.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.12.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.17.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.14.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.13.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:

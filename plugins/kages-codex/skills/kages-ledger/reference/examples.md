@@ -31,3 +31,6 @@ Choose by the visitor's task and adapt the composition. These demonstrate patter
 - [Reader accounts — share the data, understand the trade-off](examples/reader-account-explorer.kage.json) — operate
 - [Artifact craft — an operating field guide](examples/artifact-field-guide.kage.json) — read
 - [Allocation Lab — an analytical report](examples/allocation-lab.kage.json) — operate
+- [Evidence Workbench — explore, import and compare](examples/evidence-workbench.kage.json) — operate
+- [Signal Field Guide — evidence you can explore](examples/signal-field-guide.kage.json) — read
+- [Systems Classroom — explore a living diagram](examples/systems-classroom.kage.json) — experience

@@ -118,7 +118,7 @@ export function systemCard(id: string, colorTokens: Tok[] = T.color.tokens): Sys
   if (dont.length) { md.push("", "## Do and don't", "", "Do: follow the named rules above.", "", "Don't:"); for (const d of [...new Set(dont)]) md.push(`- ${d}`); }
 
   md.push("", "## Known issues", "");
-  if (issues.length) for (const i of issues) md.push(`- ${i.message}`); else md.push("None: every declared contrast pair passes in every theme and every colour token has usage text.");
+  if (issues.length) for (const i of issues) md.push(`- ${i.message}`); else md.push("None: contrast pairs pass; colour tokens document usage.");
   const waived = pairs.filter((p) => p.waived && !p.pass);
   for (const w of waived) md.push(`- waived: ${w.theme} ${w.text} on ${w.on} (${w.ratio}:1): ${w.waived}`);
 

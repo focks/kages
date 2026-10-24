@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Live feed — a declared data source\" · system ledger@2.13.0 · 4 blocks\nstate {\"items\":[],\"loading\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Headlines\"\n    - load [ledger/button@2.1.0] label=\"Load headlines\"\n        ↳ reads state:loading · calls click→fetch⇒state.items\n    - list [core/timeline@1.0.0] label=\"Headlines\" items=\n        ↳ reads state:items",
+  "description": "Kage \"Live feed — a declared data source\" · system ledger@2.14.0 · 4 blocks\nstate {\"items\":[],\"loading\":false}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Headlines\"\n    - load [ledger/button@2.1.0] label=\"Load headlines\"\n        ↳ reads state:loading · calls click→fetch⇒state.items\n    - list [core/timeline@1.0.0] label=\"Headlines\" items=\n        ↳ reads state:items",
   "envelope": {
     "title": "Live feed — a declared data source",
     "root": "root",

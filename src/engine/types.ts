@@ -80,6 +80,9 @@ export interface Action {
   prompt?: Expr;
   into?: string;
   pendingInto?: string;
+  /** Optional fetch outcome (status/source/message/updatedAt); populated by the async runtime. */
+  statusInto?: string;
+  retainOnError?: boolean;
   onError?: Action[];
   source?: string;
   name?: string;

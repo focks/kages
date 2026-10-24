@@ -78,3 +78,24 @@
   core["csv-import"] = contract("core", "csv-import", "1.0.0", "kages/csv-import@1", CoreCsvImport, { agent: { use: "Local CSV intake with quoted fields, type preview and explicit Import data. Bounds: 1 MB, 50 columns, 5,000 rows. Leading-zero identifiers remain strings. Public rows/columns/types update only after import; wire import to state for charts and tables. Does not upload, persist or share data by itself; make configured storage scope visible before saving." } });
   Object.assign(freeFlowExports, { CoreCsvImport: CoreCsvImport });
   freeFlowExports.parseCsvPreview = parseCsvPreview;
+
+  // Status comes from the runtime's actual fetch outcome. This block performs
+  // no network request itself; the refresh event goes through declared actions.
+  function CoreSourceStatus(p) {
+    var status = p.loading ? "loading" : choice(p.status, ["idle", "ready", "sample", "imported", "stale", "error"], "idle");
+    var labels = { idle: "Not refreshed", ready: "Live data", sample: "Sample data", imported: "Imported data", stale: "Previous snapshot", error: "Refresh failed", loading: "Refreshing" };
+    var scope = choice(p.scope, ["session", "personal", "shared"], "session");
+    return h("section", { className: "kg-source-status", "aria-label": p.label, "aria-busy": status === "loading" },
+      h("header", null, h("h3", null, p.label), h("span", { className: "kg-source-status__badge", "data-status": status }, labels[status])),
+      h("p", { role: status === "error" ? "alert" : "status" }, p.loading ? "Waiting for the configured data source." : p.message || (status === "sample" ? "Illustrative data; this is not a successful live refresh." : status === "stale" ? "Showing the last available snapshot." : status === "error" ? "The source could not be loaded." : status === "imported" ? "Data was imported into this session." : status === "idle" ? "Refresh has not run in this session." : "The source completed successfully.")),
+      p.source ? h("p", null, "Source: " + p.source) : null,
+      p.updatedAt ? h("p", null, "Last successful update: " + p.updatedAt) : null,
+      h("p", { className: "kg-chart-frame__unit" }, scope === "session" ? "State belongs to this session. Saving requires an explicit export or a configured host." : scope === "personal" ? "Personal storage requested. Saving depends on the host's storage configuration." : "Shared storage requested. When enabled, saved values are visible to other readers with access."),
+      p.refreshable ? h("button", { type: "button", disabled: !!p.loading, onClick: function () { fire(p.onRefresh, {}); } }, p.loading ? "Refreshing…" : "Refresh data") : null);
+  }
+  HANDLER.refresh = "onRefresh";
+  interfaces["kages/source-status@1"] = { role: "source-status", summary: "Show actual data provenance, refresh outcomes and requested persistence scope.", props: {
+    label: S("string", { required: true }), source: S("string"), status: S("string", { enum: ["idle", "ready", "sample", "imported", "stale", "error"], default: "idle" }), loading: S("boolean"), message: S("string"), updatedAt: S("string"), refreshable: S("boolean"), scope: S("string", { enum: ["session", "personal", "shared"], default: "session" })
+  }, slots: {}, events: { refresh: { payload: {} } }, outputs: [] };
+  core["source-status"] = contract("core", "source-status", "1.0.0", "kages/source-status@1", CoreSourceStatus, { agent: { use: "Bind status/message/updatedAt to the object written by a fetch action's statusInto. Bind loading to pendingInto. Wire refresh to fetch; refreshable is false unless configured. statusInto distinguishes ready, sample, stale and error. retainOnError:true keeps an existing snapshot when refresh fails. Only a real successful load advances updatedAt. scope describes requested storage, not proof that a host saved anything; the default published viewer is session-only." } });
+  Object.assign(freeFlowExports, { CoreSourceStatus: CoreSourceStatus });

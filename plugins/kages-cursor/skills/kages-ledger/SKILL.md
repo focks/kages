@@ -1,6 +1,6 @@
 ---
 name: kages-ledger
-description: Build free-flowing pages, reports and interactive tools as Kages in Ledger (ledger@2.13.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Ledger (ledger@2.14.0).
 ---
 
 # Kages — Ledger

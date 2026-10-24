@@ -131,3 +131,14 @@ button.kg-analytical-bars__row:focus-visible { outline: 2px solid var(--kg-focus
   .kg-box-plot__row svg { grid-row: 2; grid-column: 1 / -1; }
   .kg-histogram__index, .kg-histogram__column > span { display: none; }
 }
+
+.kg-source-status { border: 1px solid var(--kg-line); padding: 18px; border-radius: 10px; background: var(--kg-surface); font-size: 14px; }
+.kg-source-status header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.kg-source-status h3 { margin: 0; font-size: 16px; }
+.kg-source-status p { line-height: 1.6; overflow-wrap: anywhere; }
+.kg-source-status__badge { background: var(--kg-sunken); color: var(--kg-ink); border: 1px solid var(--kg-line-control); border-radius: 4px; padding: 4px 8px; font-size: 12px; }
+.kg-source-status__badge[data-status="error"] { background: var(--kg-danger-soft); color: var(--kg-danger); }
+.kg-source-status button { border: 1px solid var(--kg-line-control); border-radius: 5px; padding: 8px 14px; background: var(--kg-paper); color: var(--kg-ink); cursor: pointer; }
+.kg-source-status button:disabled { opacity: .6; cursor: wait; }
+.kg-analytical-bars__bar { transition: width var(--motion-duration-base) var(--motion-ease-out), left var(--motion-duration-base) var(--motion-ease-out); }
+.kg-cartesian circle { transition: opacity var(--motion-duration-fast) var(--motion-ease-out); }

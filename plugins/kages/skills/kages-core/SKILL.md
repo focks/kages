@@ -1,6 +1,6 @@
 ---
 name: kages-core
-description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.16.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Kages Core (core@1.17.0).
 ---
 
 # Kages — Kages Core

@@ -977,6 +977,37 @@
           "category"
         ],
         "default": "uniform"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "role": "bar-chart",
@@ -1562,6 +1593,37 @@
       "empty": {
         "type": "string"
       },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      },
       "interactive": {
         "type": "boolean"
       },
@@ -1727,6 +1789,37 @@
         "type": "string"
       },
       "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
         "type": "string"
       },
       "interactive": {
@@ -1896,6 +1989,37 @@
       "empty": {
         "type": "string"
       },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      },
       "interactive": {
         "type": "boolean"
       },
@@ -2051,6 +2175,37 @@
       },
       "selected": {
         "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "local": {
@@ -2105,6 +2260,34 @@
           "wire"
         ],
         "default": "accent"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "role": "gauge",
@@ -2135,6 +2318,37 @@
           "wire"
         ],
         "default": "accent"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "role": "sparkline",
@@ -2181,6 +2395,37 @@
       },
       "selected": {
         "type": "object"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "local": {
@@ -2842,6 +3087,37 @@
       },
       "empty": {
         "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "role": "combo-chart",
@@ -2881,6 +3157,37 @@
         "type": "string"
       },
       "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
         "type": "string"
       }
     },
@@ -2922,6 +3229,37 @@
         }
       },
       "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
         "type": "string"
       }
     },
@@ -2979,6 +3317,37 @@
         }
       },
       "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
         "type": "string"
       }
     },
@@ -3053,6 +3422,37 @@
       },
       "empty": {
         "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
       }
     },
     "role": "sankey",
@@ -3085,6 +3485,37 @@
         }
       },
       "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
         "type": "string"
       }
     },
@@ -4234,5 +4665,58 @@
         }
       }
     }
+  },
+  "kages/source-status@1": {
+    "role": "source-status",
+    "summary": "Show actual data provenance, refresh outcomes and requested persistence scope.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "source": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "idle",
+          "ready",
+          "sample",
+          "imported",
+          "stale",
+          "error"
+        ],
+        "default": "idle"
+      },
+      "loading": {
+        "type": "boolean"
+      },
+      "message": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "refreshable": {
+        "type": "boolean"
+      },
+      "scope": {
+        "type": "string",
+        "enum": [
+          "session",
+          "personal",
+          "shared"
+        ],
+        "default": "session"
+      }
+    },
+    "slots": {},
+    "events": {
+      "refresh": {
+        "payload": {}
+      }
+    },
+    "outputs": []
   }
 }

@@ -1,6 +1,13 @@
 // A complete analytical report is the regression target for the supplied
 // visual reference. Its invented figures never masquerade as market research.
-import type { KageDoc } from "../engine/types.ts";
+import type { KageDoc, Mode } from "../engine/types.ts";
+import { polishExperiences } from "./polish-experiences.ts";
+
+// Inputs support reading and teaching here; block counts cannot infer those jobs.
+export const POLISH_MODES: Record<string, Mode> = {
+  "allocation-lab": "operate", "evidence-workbench": "operate",
+  "signal-field-guide": "read", "systems-classroom": "experience",
+};
 
 /** Fresh examples can be edited without mutating a second caller's starter. */
 export function polishExamples(system = "core"): KageDoc[] {
@@ -29,5 +36,5 @@ export function polishExamples(system = "core"): KageDoc[] {
       detail: { type: "text", bind: { text: { $if: [{ $eq: [{ $state: "selected" }, ""] }, "Select a bar to inspect a row. Use Tab and Enter if you prefer the keyboard.", { $concat: ["Selected: ", { $state: "selected" }, ". The category color stays consistent across scenarios; reset clears your selection."] }] } } },
       note: { type: "text", props: { variant: "caption", text: "This report demonstrates Kages capabilities. It does not describe actual accelerator cohorts, companies, funding or returns." } }
     }
-  }];
+  }, ...polishExperiences(system)];
 }

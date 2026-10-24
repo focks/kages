@@ -25,6 +25,7 @@ import { discussionStats } from "@/components/dashboard/comments/comment-model";
 import type { CommentsApi } from "@/components/dashboard/comments/use-comments";
 import type { KageDoc } from "@/engine/types";
 import { PolishPanel } from "./polish-panel";
+import { EmbedSettings } from "./embed-settings";
 
 export interface VersionMeta {
   ref: string; v: number; state: string; createdAt: string; digest: string;
@@ -143,6 +144,7 @@ export function DetailSheet({ card, doc, versions, describe, comments, workspace
               </div>
               <DesignPicker name={card.name} current={doc?.design ?? ""} pinned={doc?.resolved?.design?.name} onChanged={onChanged} />
               {doc && <PolishPanel name={card.name} doc={doc} onChanged={onChanged} />}
+              {doc && <EmbedSettings name={card.name} version={card.version} doc={doc} onChanged={onChanged} />}
               <ProjectPicker name={card.name} repo={card.repo} projects={card.projects?.length ? card.projects : [card.repo]} onChanged={onChanged} />
             </SheetHeader>
 

@@ -5,12 +5,14 @@
 import * as React from "react";
 import { resolve } from "@/engine/resolve.ts";
 import { contracts } from "@/engine/data.ts";
-import { evaluate, clone, merge, setPath } from "@/engine/expr.ts";
+import { evaluate, clone, merge, setPath, getPath } from "@/engine/expr.ts";
 import { initLocals, makeCtx, materialize, runActions, systemOf, type Draft, type LogEntry, type HostTask } from "@/engine/runtime-core.ts";
 import { HostBridge, type BridgeConfig } from "@/host/bridge.ts";
 import type { KageDoc, Json, Contract, Block } from "@/engine/types.ts";
 import { useDsBundle } from "./useDsBundle.ts";
 import { designCss, readSnapshot, type DesignSnapshot } from "../engine/design.ts";
+import { fetchState, fetchTracker } from "./fetch-state.ts";
+import type { CapResult } from "../host/bridge.ts";
 
 type Impl = React.ComponentType<Record<string, unknown>>;
 type Bundle = { implementation?: (ref: string) => Impl | undefined; resolve: (system: string, ref: string) => { impl?: Impl } };
@@ -73,6 +75,7 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
 
   const [state, setState] = React.useState<Record<string, Json>>(() => clone(doc.state || {}));
   const [locals, setLocals] = React.useState(() => initLocals(doc, sysId));
+  const fetches = React.useRef(fetchTracker());
 
   // The single gateway to the outside world. ask/agent/fetch/emit go through it,
   // so their capability gates (billing, registered agents, allowlist, rate limit)
@@ -129,6 +132,9 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
   async function runHost(task: HostTask) {
     const a = task.action;
     let result: Json = null;
+    let fetchResponse: CapResult | undefined;
+    const tracked = a.do === "fetch" && typeof a.statusInto === "string" ? a.statusInto : "";
+    const revision = tracked ? fetches.current.begin(tracked) : 0;
     try {
       if (a.do === "ask") {
         const res = await bridge.ask(String(task.prompt ?? ""), { model: a.model, schema: a.schema as Json });
@@ -140,14 +146,22 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
         // A live result wins; a denied or failed load falls back to the Kage's
         // own `mock` so previews and offline hosts still show something.
         const res = await bridge.load(a.source ?? "");
+        fetchResponse = res;
         result = res.ok ? (res.value ?? null) : ((a.mock as Json) ?? null);
       } else if (a.do === "emit") {
         bridge.emit(a.name ?? "", task.args ?? null);
         return; // emit writes nothing back into state
       }
-    } catch { result = null; }
+    } catch { result = null; fetchResponse = { ok: false, error: { code: "load_failed", msg: "The source could not be loaded." } }; }
+    const completedAt = fetchResponse?.ok ? new Date().toISOString() : "";
     setState((prev) => {
+      if (tracked && !fetches.current.current(tracked, revision)) return prev;
       const next = clone(prev);
+      if (tracked && fetchResponse) {
+        const settled = fetchState(a, fetchResponse, a.into ? getPath(prev, a.into) : null, getPath(prev, tracked), completedAt);
+        result = settled.value;
+        setPath(next, tracked, settled.outcome);
+      }
       if (a.into) setPath(next, a.into, result);
       if (a.pendingInto) setPath(next, a.pendingInto, false);
       return next;

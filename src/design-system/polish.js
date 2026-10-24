@@ -83,6 +83,7 @@
       });
       DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { $if: [{ $eq: [{ $self: "selected" }, { $event: "label" }] }, "", { $event: "label" }] } }] };
     }
+    interfaces[iface] = Object.assign({}, interfaces[iface], { props: Object.assign({}, interfaces[iface].props, CHART_CONTEXT) });
     var next = contract("core", name, version, iface, framedChart(name === "bar-chart" ? CoreAnalyticalBars : impls[previous.ref]), {
       props: Object.assign({}, previous.props, CHART_CONTEXT), tokens: previous.tokens,
       agent: { use: previous.agent.use + " Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit." }
