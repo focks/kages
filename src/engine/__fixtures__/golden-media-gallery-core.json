@@ -6,7 +6,7 @@
     "system": "core",
     "portable": true
   },
-  "description": "Kage \"Media gallery — video, audio and photos\" · system core@1.15.0 · 5 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Show and tell\"\n    - clip [core/video@1.0.0] label=\"A flower blooming\"\n    - sound [core/audio@1.0.0] label=\"A dinosaur roar\"\n    - photos [core/gallery@1.0.0] label=\"Colour studies\" items=|||",
+  "description": "Kage \"Media gallery — video, audio and photos\" · system core@1.16.0 · 5 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"Show and tell\"\n    - clip [core/video@1.0.0] label=\"A flower blooming\"\n    - sound [core/audio@1.0.0] label=\"A dinosaur roar\"\n    - photos [core/gallery@1.0.0] label=\"Colour studies\" items=|||",
   "envelope": {
     "title": "Media gallery — video, audio and photos",
     "root": "root",

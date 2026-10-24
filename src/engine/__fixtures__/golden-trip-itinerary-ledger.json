@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Trip itinerary — three days in Lisbon\" · system ledger@2.12.0 · 16 blocks\nstate {\"p1\":false,\"p2\":false,\"p3\":false,\"p4\":false,\"p5\":false,\"tab\":\"d1\"}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.1.0] title=\"Three days in Lisbon\"\n    - days [core/tab-panel@1.0.0] label=\"Day\" value=\"d1\"\n        ↳ reads state:tab · writes change→state.tab\n      panel1:\n        - t1 [core/timeline@1.0.0] label=\"Day 1\" items=||\n      panel2:\n        - t2 [core/timeline@1.0.0] label=\"Day 2\" items=||\n      panel3:\n        - t3 [core/timeline@1.0.0] label=\"Day 3\" items=||\n    - split [core/split@1.0.0]\n      start:\n        - budget [core/bar-chart@1.0.0] label=\"Budget by category (euros)\" items=|||\n            ↳ reads data:budget\n      end:\n        - packing [core/stack@1.0.0]\n          - packing-title [core/text@1.0.0] text=\"Packing list\"\n          - p1 [core/checkbox@1.0.0] label=\"Passport or ID card\"\n              ↳ reads state:p1 · writes change→state.p1\n          - p2 [core/checkbox@1.0.0] label=\"Phone charger and adapter\"\n              ↳ reads state:p2 · writes change→state.p2\n          - p3 [core/checkbox@1.0.0] label=\"Comfortable walking shoes\"\n              ↳ reads state:p3 · writes change→state.p3\n          - p4 [core/checkbox@1.0.0] label=\"Light rain jacket\"\n              ↳ reads state:p4 · writes change→state.p4\n          - p5 [core/checkbox@1.0.0] label=\"Printed booking confirmations\"\n              ↳ reads state:p5 · writes change→state.p5\n          - progress [core/gauge@1.0.0] label=\"Packed\" value=0\n              ↳ reads state:p1, state:p2, state:p3, state:p4, state:p5",
+  "description": "Kage \"Trip itinerary — three days in Lisbon\" · system ledger@2.13.0 · 16 blocks\nstate {\"p1\":false,\"p2\":false,\"p3\":false,\"p4\":false,\"p5\":false,\"tab\":\"d1\"}\n- root [core/page@1.0.0]\n  children:\n    - hero [core/section@1.1.0] title=\"Three days in Lisbon\"\n    - days [core/tab-panel@1.0.0] label=\"Day\" value=\"d1\"\n        ↳ reads state:tab · writes change→state.tab\n      panel1:\n        - t1 [core/timeline@1.0.0] label=\"Day 1\" items=||\n      panel2:\n        - t2 [core/timeline@1.0.0] label=\"Day 2\" items=||\n      panel3:\n        - t3 [core/timeline@1.0.0] label=\"Day 3\" items=||\n    - split [core/split@1.0.0]\n      start:\n        - budget [core/bar-chart@1.1.0] label=\"Budget by category (euros)\" items=|||\n            ↳ reads data:budget\n      end:\n        - packing [core/stack@1.0.0]\n          - packing-title [core/text@1.0.0] text=\"Packing list\"\n          - p1 [core/checkbox@1.0.0] label=\"Passport or ID card\"\n              ↳ reads state:p1 · writes change→state.p1\n          - p2 [core/checkbox@1.0.0] label=\"Phone charger and adapter\"\n              ↳ reads state:p2 · writes change→state.p2\n          - p3 [core/checkbox@1.0.0] label=\"Comfortable walking shoes\"\n              ↳ reads state:p3 · writes change→state.p3\n          - p4 [core/checkbox@1.0.0] label=\"Light rain jacket\"\n              ↳ reads state:p4 · writes change→state.p4\n          - p5 [core/checkbox@1.0.0] label=\"Printed booking confirmations\"\n              ↳ reads state:p5 · writes change→state.p5\n          - progress [core/gauge@1.1.0] label=\"Packed\" value=0\n              ↳ reads state:p1, state:p2, state:p3, state:p4, state:p5",
   "envelope": {
     "title": "Trip itinerary — three days in Lisbon",
     "root": "root",
@@ -232,7 +232,18 @@
           "label": "Budget by category (euros)",
           "items": null,
           "format": "currency",
-          "empty": null
+          "empty": null,
+          "interactive": null,
+          "selected": null,
+          "compactValues": null,
+          "colorBy": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [
@@ -414,7 +425,13 @@
           "min": 0,
           "max": 5,
           "unit": " of 5",
-          "tone": null
+          "tone": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [

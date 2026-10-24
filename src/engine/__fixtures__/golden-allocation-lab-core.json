@@ -1,0 +1,349 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": false
+  },
+  "description": "Kage \"Allocation Lab — an analytical report\" · system core@1.16.0 · 13 blocks\nstate {\"scenario\":\"baseline\",\"selected\":\"\"}\n- root [core/canvas@1.0.0] title=\"Small teams. Focused tools. Different allocation choices.\"\n  children:\n    - metrics [core/grid@1.0.0]\n      - share [core/stat@1.0.0] label=\"Illustrative cohort share\" value=0.72\n          ↳ reads data:metrics.share\n      - teams [core/stat@1.0.0] label=\"Example teams\" value=48\n          ↳ reads data:metrics.teams\n      - retention [core/stat@1.0.0] label=\"Modeled retention\" value=0.85\n          ↳ reads data:metrics.retention\n      - growth [core/stat@1.0.0] label=\"Scenario growth\" value=0.63\n          ↳ reads data:metrics.growth\n    - controls [core/stack@1.0.0]\n      - scenario [core/choice@1.1.0] label=\"Budget scenario\" value=\"baseline\" options=baseline|alternate\n          ↳ reads state:scenario · writes change→state.scenario\n      - reset [core/button@1.1.0] label=\"Reset exploration\"\n          ↳ writes click→state.scenario, click→state.selected\n    - budget [core/bar-chart@1.1.0] label=\"Two budgets, one common scale\" items=|\n        ↳ reads state:scenario, data:baseline, data:alternate, state:selected · writes select→state.selected\n    - companies [core/bar-chart@1.1.0] label=\"Illustrative product investment\" items=|||\n        ↳ reads data:companies, state:selected · writes select→state.selected\n    - detail [core/text@1.0.0] text=\"Select a bar to inspect a row. Use Tab and Enter if you …\n        ↳ reads state:selected\n  footer:\n    - note [core/text@1.0.0] text=\"This report demonstrates Kages capabilities. It does not…",
+  "envelope": {
+    "title": "Allocation Lab — an analytical report",
+    "root": "root",
+    "state_json": "{\"scenario\":\"baseline\",\"selected\":\"\"}",
+    "data_json": "{\"metrics\":{\"share\":0.72,\"teams\":48,\"retention\":0.85,\"growth\":0.63},\"baseline\":[{\"label\":\"Services workflow\",\"category\":\"Applications\",\"value\":120000},{\"label\":\"Software license\",\"category\":\"Infrastructure\",\"value\":10000}],\"alternate\":[{\"label\":\"Services workflow\",\"category\":\"Applications\",\"value\":90000},{\"label\":\"Software license\",\"category\":\"Infrastructure\",\"value\":24000}],\"companies\":[{\"label\":\"Northstar · recruiting\",\"category\":\"Applications\",\"value\":44000000},{\"label\":\"Harbor · private markets\",\"category\":\"Applications\",\"value\":30000000},{\"label\":\"Foundry · industrial tools\",\"category\":\"Infrastructure\",\"value\":12000000},{\"label\":\"Relay · developer systems\",\"category\":\"Infrastructure\",\"value\":7000000}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "canvas",
+        "props": {
+          "title": "Small teams. Focused tools. Different allocation choices.",
+          "eyebrow": "Allocation lab / interactive analytical report",
+          "description": "A synthetic worked example of service budgets and product investment. Every figure below is illustrative.",
+          "personality": "analytical",
+          "density": "compact",
+          "appearance": "dark"
+        },
+        "slots": {
+          "children": [
+            "metrics",
+            "controls",
+            "budget",
+            "companies",
+            "detail"
+          ],
+          "actions": [],
+          "footer": [
+            "note"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "metrics",
+        "type": "grid",
+        "props": {
+          "columns": 4,
+          "minSize": "small",
+          "gap": 3
+        },
+        "slots": {
+          "children": [
+            "share",
+            "teams",
+            "retention",
+            "growth"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "share",
+        "type": "stat",
+        "props": {
+          "label": "Illustrative cohort share",
+          "value": null,
+          "format": "percent",
+          "delta": null,
+          "caption": "Synthetic sample, not a market estimate"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$data\":\"metrics.share\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "teams",
+        "type": "stat",
+        "props": {
+          "label": "Example teams",
+          "value": null,
+          "format": "number",
+          "delta": null,
+          "caption": "Invented cohort for exploration"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$data\":\"metrics.teams\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "retention",
+        "type": "stat",
+        "props": {
+          "label": "Modeled retention",
+          "value": null,
+          "format": "percent",
+          "delta": null,
+          "caption": "An input assumption, not evidence"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$data\":\"metrics.retention\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "growth",
+        "type": "stat",
+        "props": {
+          "label": "Scenario growth",
+          "value": null,
+          "format": "percent",
+          "delta": null,
+          "caption": "Illustrative change over one period"
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$data\":\"metrics.growth\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "controls",
+        "type": "stack",
+        "props": {
+          "direction": "row",
+          "gap": 3,
+          "columns": null,
+          "align": null,
+          "justify": null,
+          "wrap": true
+        },
+        "slots": {
+          "children": [
+            "scenario",
+            "reset"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "scenario",
+        "type": "choice",
+        "props": {
+          "label": "Budget scenario",
+          "name": null,
+          "required": null,
+          "disabled": null,
+          "error": null,
+          "value": null,
+          "options": [
+            {
+              "value": "baseline",
+              "label": "Baseline"
+            },
+            {
+              "value": "alternate",
+              "label": "Alternate allocation"
+            }
+          ]
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "value",
+            "expr_json": "{\"$state\":\"scenario\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "change",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"scenario\",\"value\":{\"$event\":\"value\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "reset",
+        "type": "button",
+        "props": {
+          "label": "Reset exploration",
+          "variant": "secondary",
+          "size": null,
+          "disabled": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [
+          {
+            "event": "click",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"scenario\",\"value\":\"baseline\"},{\"do\":\"set\",\"path\":\"selected\",\"value\":\"\"}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "budget",
+        "type": "bar-chart",
+        "props": {
+          "label": "Two budgets, one common scale",
+          "items": null,
+          "format": "currency",
+          "empty": null,
+          "interactive": true,
+          "selected": null,
+          "compactValues": true,
+          "colorBy": "category",
+          "colorDomain": [
+            "Applications",
+            "Infrastructure"
+          ],
+          "takeaway": "Change the scenario to compare how allocation changes. Bar lengths share a zero baseline.",
+          "unit": "Annual expense · USD",
+          "source": "Synthetic demonstration data",
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "{\"$if\":[{\"$eq\":[{\"$state\":\"scenario\"},\"baseline\"]},{\"$data\":\"baseline\"},{\"$data\":\"alternate\"}]}"
+          },
+          {
+            "prop": "selected",
+            "expr_json": "{\"$state\":\"selected\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"selected\",\"value\":{\"$event\":\"label\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "companies",
+        "type": "bar-chart",
+        "props": {
+          "label": "Illustrative product investment",
+          "items": null,
+          "format": "currency",
+          "empty": null,
+          "interactive": true,
+          "selected": null,
+          "compactValues": true,
+          "colorBy": "category",
+          "colorDomain": [
+            "Applications",
+            "Infrastructure"
+          ],
+          "takeaway": "Application companies use blue; infrastructure companies use cyan in both charts. Select a row to inspect it.",
+          "unit": "USD · synthetic companies",
+          "source": "Invented names and values",
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "items",
+            "expr_json": "{\"$data\":\"companies\"}"
+          },
+          {
+            "prop": "selected",
+            "expr_json": "{\"$state\":\"selected\"}"
+          }
+        ],
+        "on": [
+          {
+            "event": "select",
+            "actions_json": "[{\"do\":\"set\",\"path\":\"selected\",\"value\":{\"$event\":\"label\"}}]"
+          }
+        ],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "detail",
+        "type": "text",
+        "props": {
+          "text": null,
+          "variant": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "text",
+            "expr_json": "{\"$if\":[{\"$eq\":[{\"$state\":\"selected\"},\"\"]},\"Select a bar to inspect a row. Use Tab and Enter if you prefer the keyboard.\",{\"$concat\":[\"Selected: \",{\"$state\":\"selected\"},\". The category color stays consistent across scenarios; reset clears your selection.\"]}]}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "note",
+        "type": "text",
+        "props": {
+          "text": "This report demonstrates Kages capabilities. It does not describe actual accelerator cohorts, companies, funding or returns.",
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

@@ -6063,6 +6063,3227 @@
     },
     "limits": {}
   },
+  "core/bar-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/bar-chart",
+    "version": "1.1.0",
+    "ref": "core/bar-chart@1.1.0",
+    "system": "core",
+    "name": "bar-chart",
+    "implements": [
+      "kages/bar-chart@1"
+    ],
+    "role": "bar-chart",
+    "summary": "Responsive horizontal bars with accessible labels and numeric values.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            },
+            "category": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "text",
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "compactValues": {
+        "type": "boolean"
+      },
+      "colorBy": {
+        "type": "string",
+        "enum": [
+          "uniform",
+          "category"
+        ],
+        "default": "uniform"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use for comparisons; bind items to data or $map. Values stay visible to assistive technology, including negative values. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/line-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/line-chart",
+    "version": "1.1.0",
+    "ref": "core/line-chart@1.1.0",
+    "system": "core",
+    "name": "line-chart",
+    "implements": [
+      "kages/line-chart@1"
+    ],
+    "role": "line-chart",
+    "summary": "Responsive numeric X/Y line chart with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/scatter-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/scatter-chart",
+    "version": "1.1.0",
+    "ref": "core/scatter-chart@1.1.0",
+    "system": "core",
+    "name": "scatter-chart",
+    "implements": [
+      "kages/scatter-chart@1"
+    ],
+    "role": "scatter-chart",
+    "summary": "Responsive numeric X/Y scatter plot with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/area-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/area-chart",
+    "version": "1.1.0",
+    "ref": "core/area-chart@1.1.0",
+    "system": "core",
+    "name": "area-chart",
+    "implements": [
+      "kages/area-chart@1"
+    ],
+    "role": "area-chart",
+    "summary": "Responsive filled area chart of numeric X/Y data with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{x,y,label?}] with sorted x. Use for volume over time; prefer line-chart when several readings overlap. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/donut-chart@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/donut-chart",
+    "version": "1.2.0",
+    "ref": "core/donut-chart@1.2.0",
+    "system": "core",
+    "name": "donut-chart",
+    "implements": [
+      "kages/donut-chart@1"
+    ],
+    "role": "donut-chart",
+    "summary": "Part-to-whole ring chart with a legend, percentages and an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "hole": {
+        "type": "boolean",
+        "default": true
+      },
+      "empty": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{label,value}] with positive values, at most 12 slices. Use for part-to-whole with few categories; use bar-chart to compare many. Set interactive to make slices selectable: select emits {label,value,index} and the public output `selected` is the label (empty = none); filter other blocks with $filter on it. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/combo-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/combo-chart",
+    "version": "1.1.0",
+    "ref": "core/combo-chart@1.1.0",
+    "system": "core",
+    "name": "combo-chart",
+    "implements": [
+      "kages/combo-chart@1"
+    ],
+    "role": "combo-chart",
+    "summary": "Grouped bars and lines on one shared axis for categories, with a legend and data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "categories": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "series": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "name",
+            "values"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "categories: string[]; series: [{name,kind:'bar'|'line',values:number[]}] aligned to categories (null gaps allowed). Use to compare a volume (bars) with a rate or target (line). One axis only. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/stacked-bar-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/stacked-bar-chart",
+    "version": "1.1.0",
+    "ref": "core/stacked-bar-chart@1.1.0",
+    "system": "core",
+    "name": "stacked-bar-chart",
+    "implements": [
+      "kages/stacked-bar-chart@1"
+    ],
+    "role": "stacked-bar-chart",
+    "summary": "Stacked columns of series per category, absolute or normalised to 100%.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "percent": {
+        "type": "boolean"
+      },
+      "categories": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "series": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "name",
+            "values"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "categories + series [{name,values}]. percent:true normalises each column to 100%. Negative values are ignored; use combo-chart for signed data. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/funnel-chart@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/funnel-chart",
+    "version": "1.1.0",
+    "ref": "core/funnel-chart@1.1.0",
+    "system": "core",
+    "name": "funnel-chart",
+    "implements": [
+      "kages/funnel-chart@1"
+    ],
+    "role": "funnel-chart",
+    "summary": "Ordered stages narrowing by value, with the share of the first stage; stages can be selected.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "stages": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "stages: [{label,value}] in order, values non-increasing for a true funnel. interactive: select emits {label,value,index}; output `selected` is the label (selecting again clears). Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/treemap@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/treemap",
+    "version": "1.1.0",
+    "ref": "core/treemap@1.1.0",
+    "system": "core",
+    "name": "treemap",
+    "implements": [
+      "kages/treemap@1"
+    ],
+    "role": "treemap",
+    "summary": "Rectangles sized by value, packed to near-square, with optional selection.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "label"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "label"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items: [{label,value}] with positive values (up to 80). Use for part-to-whole with many parts; interactive select emits {label,value,index}; output `selected` is the label. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/sankey@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/sankey",
+    "version": "1.1.0",
+    "ref": "core/sankey@1.1.0",
+    "system": "core",
+    "name": "sankey",
+    "implements": [
+      "kages/sankey@1"
+    ],
+    "role": "sankey",
+    "summary": "Flows between nodes in left-to-right layers, with widths proportional to value.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "id"
+          ]
+        }
+      },
+      "links": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "from",
+            "to",
+            "value"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes [{id,label?}], links [{from,to,value>0}]. Layers are computed left to right; links must point forward (cycles are dropped). Use for flows such as budget or conversion paths. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/map@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/map",
+    "version": "1.1.0",
+    "ref": "core/map@1.1.0",
+    "system": "core",
+    "name": "map",
+    "implements": [
+      "kages/map@1"
+    ],
+    "role": "map",
+    "summary": "Choropleth of GeoJSON Polygon/MultiPolygon regions shaded by value, with optional selection.",
+    "props": {
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "features": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "geometry"
+          ]
+        }
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string",
+          "name": "string",
+          "value": "number|null"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$if": [
+              {
+                "$eq": [
+                  {
+                    "$self": "selected"
+                  },
+                  {
+                    "$event": "id"
+                  }
+                ]
+              },
+              "",
+              {
+                "$event": "id"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "features: [{id,name?,value?,geometry}] where geometry is GeoJSON Polygon or MultiPolygon in [lon,lat]. Shades by value; interactive select emits {id,name,value}; output `selected` is the id. Bring simplified boundaries: 20,000 points total. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/heatmap@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/heatmap",
+    "version": "1.2.0",
+    "ref": "core/heatmap@1.2.0",
+    "system": "core",
+    "name": "heatmap",
+    "implements": [
+      "kages/heatmap@1"
+    ],
+    "role": "heatmap",
+    "summary": "Row by column matrix whose cell shading shows magnitude, with every value readable as text.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "rows": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "columns": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "string"
+        }
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "empty": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "object"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "object|null",
+        "default": null
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "row": "string",
+          "column": "string",
+          "value": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "row": {
+              "$event": "row"
+            },
+            "column": {
+              "$event": "column"
+            }
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "rows and columns are labels; values[row][column] numbers. Use for intensity across two categories. Missing cells show a dash. interactive makes cells buttons: select emits {row,column,value}; output `selected` is {row,column} or null. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/gauge@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/gauge",
+    "version": "1.1.0",
+    "ref": "core/gauge@1.1.0",
+    "system": "core",
+    "name": "gauge",
+    "implements": [
+      "kages/gauge@1"
+    ],
+    "role": "gauge",
+    "summary": "Single value on a half-ring scale between a minimum and maximum.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "value": {
+        "type": "number",
+        "required": true
+      },
+      "min": {
+        "type": "number",
+        "default": 0
+      },
+      "max": {
+        "type": "number",
+        "default": 100
+      },
+      "unit": {
+        "type": "string"
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "accent"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "value within min..max (clamped). tone is a token colour. Use for one KPI against a known scale, not for trends. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/sparkline@1.1.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/sparkline",
+    "version": "1.1.0",
+    "ref": "core/sparkline@1.1.0",
+    "system": "core",
+    "name": "sparkline",
+    "implements": [
+      "kages/sparkline@1"
+    ],
+    "role": "sparkline",
+    "summary": "Tiny inline trend line for a series of numbers; sits next to a stat or in a table cell.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "number"
+        }
+      },
+      "tone": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "danger",
+          "wire"
+        ],
+        "default": "accent"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "values: number[]; no axes. Put beside a stat for trend. Provide a label that states what the series is. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/canvas@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/canvas",
+    "version": "1.0.0",
+    "ref": "core/canvas@1.0.0",
+    "system": "core",
+    "name": "canvas",
+    "implements": [
+      "kages/canvas@1"
+    ],
+    "role": "canvas",
+    "summary": "A complete artifact with a coherent presentation personality and optional explicit theme.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "personality": {
+        "type": "string",
+        "enum": [
+          "editorial",
+          "analytical",
+          "exploratory",
+          "teaching",
+          "showcase"
+        ],
+        "default": "analytical"
+      },
+      "density": {
+        "type": "string",
+        "enum": [
+          "comfortable",
+          "compact"
+        ],
+        "default": "comfortable"
+      },
+      "appearance": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "light",
+          "dark"
+        ],
+        "default": "inherit"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {},
+      "footer": {}
+    },
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [],
+    "agent": {
+      "use": "Root for polished reports and tools. Choose analytical for compact metrics/charts, editorial for reading, exploratory for controls, teaching for progressive lessons, showcase for spacious stories. appearance:dark recreates a restrained dark analytical report; inherit follows the reader. Put metric grids and charts directly in children. Use one personality per artifact and inherit section palettes. Always label illustrative data."
+    },
+    "limits": {}
+  },
+  "core/line-chart@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/line-chart",
+    "version": "1.2.0",
+    "ref": "core/line-chart@1.2.0",
+    "system": "core",
+    "name": "line-chart",
+    "implements": [
+      "kages/line-chart@1"
+    ],
+    "role": "line-chart",
+    "summary": "Responsive numeric X/Y line chart with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "series": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "rangeControls": {
+        "type": "boolean"
+      },
+      "range": {
+        "type": "object"
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "xMin": {
+        "type": "number"
+      },
+      "xMax": {
+        "type": "number"
+      },
+      "yMin": {
+        "type": "number"
+      },
+      "yMax": {
+        "type": "number"
+      },
+      "xFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "date"
+        ],
+        "default": "number"
+      },
+      "yFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "annotations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "axis",
+            "value"
+          ]
+        }
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "range": {
+        "type": "object",
+        "default": {}
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      },
+      "rangeChange": {
+        "handler": "onRangeChange",
+        "payload": {
+          "min": "number",
+          "max": "number"
+        }
+      },
+      "legendChange": {
+        "handler": "onLegendChange",
+        "payload": {
+          "hidden": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "rangeChange": [
+        {
+          "do": "setLocal",
+          "key": "range",
+          "value": {
+            "min": {
+              "$event": "min"
+            },
+            "max": {
+              "$event": "max"
+            }
+          }
+        }
+      ],
+      "legendChange": [
+        {
+          "do": "setLocal",
+          "key": "hiddenSeries",
+          "value": {
+            "$event": "hidden"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected",
+      "range",
+      "hiddenSeries"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "items [{id?,x,y,label?,series?,lower?,upper?}]. Uses responsive axes, optional supplied uncertainty bounds and reference annotations [{axis:x|y,value,label?}]. xFormat:date interprets numeric milliseconds in UTC. Set xMin/xMax/yMin/yMax for comparable scales. interactive:true selects points and exposes selected; select emits {id,label,x,y,index}. rangeControls:true exposes range {min,max} and rangeChange {min,max} for linked filters. Supply unique IDs for stable identity. colorDomain maps series names to stable colors. Bounds are supplied evidence, never inferred confidence. items: [{x,y,label?}]. Supply sorted x values for ordered paths. Data is available in a keyboard-accessible table. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/scatter-chart@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/scatter-chart",
+    "version": "1.2.0",
+    "ref": "core/scatter-chart@1.2.0",
+    "system": "core",
+    "name": "scatter-chart",
+    "implements": [
+      "kages/scatter-chart@1"
+    ],
+    "role": "scatter-chart",
+    "summary": "Responsive numeric X/Y scatter plot with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "series": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "rangeControls": {
+        "type": "boolean"
+      },
+      "range": {
+        "type": "object"
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "xMin": {
+        "type": "number"
+      },
+      "xMax": {
+        "type": "number"
+      },
+      "yMin": {
+        "type": "number"
+      },
+      "yMax": {
+        "type": "number"
+      },
+      "xFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "date"
+        ],
+        "default": "number"
+      },
+      "yFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "annotations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "axis",
+            "value"
+          ]
+        }
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "range": {
+        "type": "object",
+        "default": {}
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      },
+      "rangeChange": {
+        "handler": "onRangeChange",
+        "payload": {
+          "min": "number",
+          "max": "number"
+        }
+      },
+      "legendChange": {
+        "handler": "onLegendChange",
+        "payload": {
+          "hidden": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "rangeChange": [
+        {
+          "do": "setLocal",
+          "key": "range",
+          "value": {
+            "min": {
+              "$event": "min"
+            },
+            "max": {
+              "$event": "max"
+            }
+          }
+        }
+      ],
+      "legendChange": [
+        {
+          "do": "setLocal",
+          "key": "hiddenSeries",
+          "value": {
+            "$event": "hidden"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected",
+      "range",
+      "hiddenSeries"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "items [{id?,x,y,label?,series?,lower?,upper?}]. Uses responsive axes, optional supplied uncertainty bounds and reference annotations [{axis:x|y,value,label?}]. xFormat:date interprets numeric milliseconds in UTC. Set xMin/xMax/yMin/yMax for comparable scales. interactive:true selects points and exposes selected; select emits {id,label,x,y,index}. rangeControls:true exposes range {min,max} and rangeChange {min,max} for linked filters. Supply unique IDs for stable identity. colorDomain maps series names to stable colors. Bounds are supplied evidence, never inferred confidence. items: [{x,y,label?}]. Both axes are numeric; use for correlation and simulations. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/area-chart@1.2.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/area-chart",
+    "version": "1.2.0",
+    "ref": "core/area-chart@1.2.0",
+    "system": "core",
+    "name": "area-chart",
+    "implements": [
+      "kages/area-chart@1"
+    ],
+    "role": "area-chart",
+    "summary": "Responsive filled area chart of numeric X/Y data with an accessible data table.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "series": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "x",
+            "y"
+          ]
+        }
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "rangeControls": {
+        "type": "boolean"
+      },
+      "range": {
+        "type": "object"
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "xMin": {
+        "type": "number"
+      },
+      "xMax": {
+        "type": "number"
+      },
+      "yMin": {
+        "type": "number"
+      },
+      "yMax": {
+        "type": "number"
+      },
+      "xFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "date"
+        ],
+        "default": "number"
+      },
+      "yFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "annotations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "axis",
+            "value"
+          ]
+        }
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "range": {
+        "type": "object",
+        "default": {}
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      },
+      "rangeChange": {
+        "handler": "onRangeChange",
+        "payload": {
+          "min": "number",
+          "max": "number"
+        }
+      },
+      "legendChange": {
+        "handler": "onLegendChange",
+        "payload": {
+          "hidden": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "rangeChange": [
+        {
+          "do": "setLocal",
+          "key": "range",
+          "value": {
+            "min": {
+              "$event": "min"
+            },
+            "max": {
+              "$event": "max"
+            }
+          }
+        }
+      ],
+      "legendChange": [
+        {
+          "do": "setLocal",
+          "key": "hiddenSeries",
+          "value": {
+            "$event": "hidden"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected",
+      "range",
+      "hiddenSeries"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "wire",
+      "success",
+      "danger",
+      "focus"
+    ],
+    "agent": {
+      "use": "items [{id?,x,y,label?,series?,lower?,upper?}]. Uses responsive axes, optional supplied uncertainty bounds and reference annotations [{axis:x|y,value,label?}]. xFormat:date interprets numeric milliseconds in UTC. Set xMin/xMax/yMin/yMax for comparable scales. interactive:true selects points and exposes selected; select emits {id,label,x,y,index}. rangeControls:true exposes range {min,max} and rangeChange {min,max} for linked filters. Supply unique IDs for stable identity. colorDomain maps series names to stable colors. Bounds are supplied evidence, never inferred confidence. items: [{x,y,label?}] with sorted x. Use for volume over time; prefer line-chart when several readings overlap. Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit."
+    },
+    "limits": {}
+  },
+  "core/diagram@1.3.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/diagram",
+    "version": "1.3.0",
+    "ref": "core/diagram@1.3.0",
+    "system": "core",
+    "name": "diagram",
+    "implements": [
+      "kages/diagram@1"
+    ],
+    "role": "diagram",
+    "summary": "Node and edge diagram with automatic placement or explicit coordinates.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "nodes": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "label"
+          ]
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "from",
+            "to"
+          ]
+        }
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "caption": {
+        "type": "string"
+      },
+      "layout": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "horizontal",
+          "vertical",
+          "grid",
+          "tree",
+          "swimlane",
+          "sequence"
+        ],
+        "default": "auto"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "explore": {
+        "type": "boolean"
+      },
+      "collapsedGroups": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "collapsedGroups": {
+        "type": "array",
+        "default": []
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string"
+        }
+      },
+      "groupsChange": {
+        "handler": "onGroupsChange",
+        "payload": {
+          "groups": "array"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ],
+      "groupsChange": [
+        {
+          "do": "setLocal",
+          "key": "collapsedGroups",
+          "value": {
+            "$event": "groups"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected",
+      "collapsedGroups"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "accent",
+      "focus"
+    ],
+    "agent": {
+      "use": "nodes [{id,label,group?,palette?}], edges [{from,to,label?,palette?}]. Palettes: inherit,ocean,mint,violet,amber,rose; assign by role and reuse across the page. Directed graphs are layered by edges; cycles use a grid. layout:auto becomes vertical in narrow containers; horizontal,vertical,grid are explicit. Full nodes support click/Enter/Space when interactive:true; select emits {id} and selected is public. Bind selected and a detail panel to the same state. group is a short category label. Explicit x/y uses the legacy geometry path (no palettes or selected highlight); use scene for arbitrary geometry. Caption states the takeaway, not just the title. explore:true adds search, fit, zoom, neighbor highlighting and collapsible groups without intercepting wheel input. collapsedGroups is public state; groupsChange emits {groups}. layout:tree is vertical; swimlane groups rows, sequence keeps input order. Group summaries preserve external connections and expand on selection."
+    },
+    "limits": {}
+  },
+  "core/histogram-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/histogram-chart",
+    "version": "1.0.0",
+    "ref": "core/histogram-chart@1.0.0",
+    "system": "core",
+    "name": "histogram-chart",
+    "implements": [
+      "kages/histogram-chart@1"
+    ],
+    "role": "histogram-chart",
+    "summary": "Frequency distribution with equal-width bins, selectable ranges and exact counts.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "number"
+        }
+      },
+      "bins": {
+        "type": "number"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "id": "string",
+          "min": "number",
+          "max": "number",
+          "count": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "$event": "id"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [],
+    "agent": {
+      "use": "Frequency distribution with equal-width bins, selectable ranges and exact counts. Supply a takeaway, unit and source; label sample data illustrative. Histogram: values and bins (2–30); select emits bin id/min/max/count. Box: ordered min/q1/median/q3/max, never inferred confidence. Waterfall: items {label,value,total?}; total sets the running value. Small multiples: panels [{label,items:[{x,y,id?,label?}]}], shared domains and optional point selection."
+    },
+    "limits": {}
+  },
+  "core/box-plot@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/box-plot",
+    "version": "1.0.0",
+    "ref": "core/box-plot@1.0.0",
+    "system": "core",
+    "name": "box-plot",
+    "implements": [
+      "kages/box-plot@1"
+    ],
+    "role": "box-plot",
+    "summary": "Compare supplied five-number summaries on a shared horizontal scale.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "q1": {
+              "type": "number"
+            },
+            "median": {
+              "type": "number"
+            },
+            "q3": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "min",
+            "q1",
+            "median",
+            "q3",
+            "max"
+          ]
+        }
+      },
+      "min": {
+        "type": "number"
+      },
+      "max": {
+        "type": "number"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [],
+    "agent": {
+      "use": "Compare supplied five-number summaries on a shared horizontal scale. Supply a takeaway, unit and source; label sample data illustrative. Histogram: values and bins (2–30); select emits bin id/min/max/count. Box: ordered min/q1/median/q3/max, never inferred confidence. Waterfall: items {label,value,total?}; total sets the running value. Small multiples: panels [{label,items:[{x,y,id?,label?}]}], shared domains and optional point selection."
+    },
+    "limits": {}
+  },
+  "core/waterfall-chart@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/waterfall-chart",
+    "version": "1.0.0",
+    "ref": "core/waterfall-chart@1.0.0",
+    "system": "core",
+    "name": "waterfall-chart",
+    "implements": [
+      "kages/waterfall-chart@1"
+    ],
+    "role": "waterfall-chart",
+    "summary": "Explain positive/negative contributions and explicit totals in sequence.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            },
+            "total": {
+              "type": "boolean"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ]
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [],
+    "agent": {
+      "use": "Explain positive/negative contributions and explicit totals in sequence. Supply a takeaway, unit and source; label sample data illustrative. Histogram: values and bins (2–30); select emits bin id/min/max/count. Box: ordered min/q1/median/q3/max, never inferred confidence. Waterfall: items {label,value,total?}; total sets the running value. Small multiples: panels [{label,items:[{x,y,id?,label?}]}], shared domains and optional point selection."
+    },
+    "limits": {}
+  },
+  "core/small-multiples@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/small-multiples",
+    "version": "1.0.0",
+    "ref": "core/small-multiples@1.0.0",
+    "system": "core",
+    "name": "small-multiples",
+    "implements": [
+      "kages/small-multiples@1"
+    ],
+    "role": "small-multiples",
+    "summary": "Compare up to twelve line or scatter panels using the same X/Y domains.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "panels": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "items": {
+              "type": "array",
+              "required": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "series": {
+                    "type": "string"
+                  },
+                  "lower": {
+                    "type": "number"
+                  },
+                  "upper": {
+                    "type": "number"
+                  }
+                },
+                "requiredKeys": [
+                  "x",
+                  "y"
+                ]
+              }
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "items"
+          ]
+        }
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "line",
+          "scatter"
+        ],
+        "default": "line"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "object"
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "selected": {
+        "type": "object",
+        "default": {}
+      }
+    },
+    "events": {
+      "select": {
+        "handler": "onSelect",
+        "payload": {
+          "panel": "string",
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "select": [
+        {
+          "do": "setLocal",
+          "key": "selected",
+          "value": {
+            "panel": {
+              "$event": "panel"
+            },
+            "id": {
+              "$event": "id"
+            }
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "selected"
+    ],
+    "tokens": [],
+    "agent": {
+      "use": "Compare up to twelve line or scatter panels using the same X/Y domains. Supply a takeaway, unit and source; label sample data illustrative. Histogram: values and bins (2–30); select emits bin id/min/max/count. Box: ordered min/q1/median/q3/max, never inferred confidence. Waterfall: items {label,value,total?}; total sets the running value. Small multiples: panels [{label,items:[{x,y,id?,label?}]}], shared domains and optional point selection."
+    },
+    "limits": {}
+  },
+  "core/csv-import@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/csv-import",
+    "version": "1.0.0",
+    "ref": "core/csv-import@1.0.0",
+    "system": "core",
+    "name": "csv-import",
+    "implements": [
+      "kages/csv-import@1"
+    ],
+    "role": "csv-import",
+    "summary": "Preview local CSV, choose safe column types, then explicitly import rows into artifact state.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "text": {
+        "type": "string"
+      },
+      "rows": {
+        "type": "array"
+      },
+      "columns": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "types": {
+        "type": "object"
+      }
+    },
+    "slots": {},
+    "local": {
+      "rows": {
+        "type": "array",
+        "default": []
+      },
+      "columns": {
+        "type": "array",
+        "default": []
+      },
+      "types": {
+        "type": "object",
+        "default": {}
+      }
+    },
+    "events": {
+      "import": {
+        "handler": "onImport",
+        "payload": {
+          "rows": "array",
+          "columns": "array",
+          "types": "object"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "import": [
+        {
+          "do": "setLocal",
+          "key": "rows",
+          "value": {
+            "$event": "rows"
+          }
+        },
+        {
+          "do": "setLocal",
+          "key": "columns",
+          "value": {
+            "$event": "columns"
+          }
+        },
+        {
+          "do": "setLocal",
+          "key": "types",
+          "value": {
+            "$event": "types"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "rows",
+      "columns",
+      "types"
+    ],
+    "tokens": [],
+    "agent": {
+      "use": "Local CSV intake with quoted fields, type preview and explicit Import data. Bounds: 1 MB, 50 columns, 5,000 rows. Leading-zero identifiers remain strings. Public rows/columns/types update only after import; wire import to state for charts and tables. Does not upload, persist or share data by itself; make configured storage scope visible before saving."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

@@ -1,0 +1,33 @@
+// A complete analytical report is the regression target for the supplied
+// visual reference. Its invented figures never masquerade as market research.
+import type { KageDoc } from "../engine/types.ts";
+
+/** Fresh examples can be edited without mutating a second caller's starter. */
+export function polishExamples(system = "core"): KageDoc[] {
+  return [{
+    kages: "1.0", id: "allocation-lab", title: "Allocation Lab — an analytical report", system,
+    root: "root", brief: { mode: "operate", audience: "Readers exploring a worked allocation example", job: "Compare scenarios and inspect a category", notes: "All figures and company names are illustrative." },
+    state: { scenario: "baseline", selected: "" },
+    data: {
+      metrics: { share: .72, teams: 48, retention: .85, growth: .63 },
+      baseline: [{ label: "Services workflow", category: "Applications", value: 120000 }, { label: "Software license", category: "Infrastructure", value: 10000 }],
+      alternate: [{ label: "Services workflow", category: "Applications", value: 90000 }, { label: "Software license", category: "Infrastructure", value: 24000 }],
+      companies: [{ label: "Northstar · recruiting", category: "Applications", value: 44000000 }, { label: "Harbor · private markets", category: "Applications", value: 30000000 }, { label: "Foundry · industrial tools", category: "Infrastructure", value: 12000000 }, { label: "Relay · developer systems", category: "Infrastructure", value: 7000000 }]
+    },
+    blocks: {
+      root: { type: "canvas", props: { title: "Small teams. Focused tools. Different allocation choices.", eyebrow: "Allocation lab / interactive analytical report", description: "A synthetic worked example of service budgets and product investment. Every figure below is illustrative.", appearance: "dark", personality: "analytical", density: "compact" }, slots: { children: ["metrics", "controls", "budget", "companies", "detail"], footer: ["note"] } },
+      metrics: { type: "grid", props: { columns: 4, minSize: "small", gap: 3 }, slots: { children: ["share", "teams", "retention", "growth"] } },
+      share: { type: "stat", props: { label: "Illustrative cohort share", format: "percent", caption: "Synthetic sample, not a market estimate" }, bind: { value: { $data: "metrics.share" } } },
+      teams: { type: "stat", props: { label: "Example teams", format: "number", caption: "Invented cohort for exploration" }, bind: { value: { $data: "metrics.teams" } } },
+      retention: { type: "stat", props: { label: "Modeled retention", format: "percent", caption: "An input assumption, not evidence" }, bind: { value: { $data: "metrics.retention" } } },
+      growth: { type: "stat", props: { label: "Scenario growth", format: "percent", caption: "Illustrative change over one period" }, bind: { value: { $data: "metrics.growth" } } },
+      controls: { type: "stack", props: { direction: "row", wrap: true, gap: 3 }, slots: { children: ["scenario", "reset"] } },
+      scenario: { type: "choice", props: { label: "Budget scenario", options: [{ value: "baseline", label: "Baseline" }, { value: "alternate", label: "Alternate allocation" }] }, bind: { value: { $state: "scenario" } }, on: { change: [{ do: "set", path: "scenario", value: { $event: "value" } }] } },
+      reset: { type: "button", props: { label: "Reset exploration", variant: "secondary" }, on: { click: [{ do: "set", path: "scenario", value: "baseline" }, { do: "set", path: "selected", value: "" }] } },
+      budget: { type: "bar-chart", props: { label: "Two budgets, one common scale", unit: "Annual expense · USD", takeaway: "Change the scenario to compare how allocation changes. Bar lengths share a zero baseline.", source: "Synthetic demonstration data", format: "currency", compactValues: true, colorBy: "category", colorDomain: ["Applications", "Infrastructure"], interactive: true }, bind: { items: { $if: [{ $eq: [{ $state: "scenario" }, "baseline"] }, { $data: "baseline" }, { $data: "alternate" }] }, selected: { $state: "selected" } }, on: { select: [{ do: "set", path: "selected", value: { $event: "label" } }] } },
+      companies: { type: "bar-chart", props: { label: "Illustrative product investment", unit: "USD · synthetic companies", takeaway: "Application companies use blue; infrastructure companies use cyan in both charts. Select a row to inspect it.", source: "Invented names and values", format: "currency", compactValues: true, colorBy: "category", colorDomain: ["Applications", "Infrastructure"], interactive: true }, bind: { items: { $data: "companies" }, selected: { $state: "selected" } }, on: { select: [{ do: "set", path: "selected", value: { $event: "label" } }] } },
+      detail: { type: "text", bind: { text: { $if: [{ $eq: [{ $state: "selected" }, ""] }, "Select a bar to inspect a row. Use Tab and Enter if you prefer the keyboard.", { $concat: ["Selected: ", { $state: "selected" }, ". The category color stays consistent across scenarios; reset clears your selection."] }] } } },
+      note: { type: "text", props: { variant: "caption", text: "This report demonstrates Kages capabilities. It does not describe actual accelerator cohorts, companies, funding or returns." } }
+    }
+  }];
+}

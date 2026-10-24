@@ -17,7 +17,7 @@ test("rich examples render in every system without errors or bad numbers", () =>
   for (const system of ["core", "ledger", "atelier"]) for (const doc of richExamples(system)) {
     const html = renderToStaticMarkup(React.createElement(K.KageRenderer, { doc }));
     assert.doesNotMatch(html, /kg-missing|NaN|Infinity|undefined/, doc.id + " " + system);
-    if (doc.id === "metrics-board") for (const cls of ["kg-area", "kg-donut", "kg-gauge", "kg-sparkline", "kg-heatmap", "kg-alert"]) assert.match(html, new RegExp(cls));
+    if (doc.id === "metrics-board") for (const cls of ["kg-cartesian", "kg-donut", "kg-gauge", "kg-sparkline", "kg-heatmap", "kg-alert"]) assert.match(html, new RegExp(cls));
     if (doc.id === "launch-flow") for (const cls of ["kg-stepper", "kg-accordion", "kg-timeline"]) assert.match(html, new RegExp(cls));
   }
 });

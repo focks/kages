@@ -48,6 +48,12 @@
           var rank = ranks[n.id], lane = lanes[rank] || 0; lanes[rank] = lane + 1;
           col = vertical ? lane : rank; row = vertical ? rank : lane;
         } else { col = vertical ? 0 : i % 3; row = vertical ? i : Math.floor(i / 3); }
+        if (p.__layout === "sequence") { col = i; row = 0; }
+        if (p.__layout === "swimlane") {
+          var groups = []; nodes.forEach(function (node) { var group = node.group || "Other"; if (groups.indexOf(group) < 0) groups.push(group); });
+          row = groups.indexOf(n.group || "Other");
+          col = nodes.slice(0, i).filter(function (node) { return (node.group || "Other") === (n.group || "Other"); }).length;
+        }
         pos[n.id] = { x: 20 + col * (vertical ? 248 : 328), y: 20 + row * 184 };
         width = Math.max(width, pos[n.id].x + 228); height = Math.max(height, pos[n.id].y + 116);
       });
@@ -65,12 +71,13 @@
           var text = diagramLines(edge.label, 16, 1)[0], lw = Math.max(30, text.length * 7 + 12);
           labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
         }
-        return h("g", { key: i, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
+        return h("g", { key: i, opacity: Array.isArray(p.__connected) && (p.__connected.indexOf(edge.from) < 0 || p.__connected.indexOf(edge.to) < 0) ? .2 : undefined, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
       });
       return h("svg", { viewBox: "0 0 " + width + " " + height, style: { minWidth: Math.round(width * .85) }, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label), connections,
         nodes.map(function (n) {
           var at = pos[n.id], selected = p.selected === n.id;
           var attrs = { key: n.id, transform: "translate(" + at.x + " " + at.y + ")", className: "kg-diagram__node kg-palette-" + regionPalette(n.palette), "aria-label": String(n.label || n.id) + (n.group ? ": " + String(n.group) : "") };
+          if (Array.isArray(p.__connected) && p.__connected.indexOf(n.id) < 0) attrs.opacity = .25;
           if (p.interactive) {
             attrs.role = "button"; attrs.tabIndex = 0; attrs["aria-pressed"] = selected;
             attrs.onClick = function () { fire(p.onSelect, { id: n.id }); };

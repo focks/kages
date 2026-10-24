@@ -22,6 +22,7 @@ find a new reusable pattern, add it as a skill.
 | `field-guides` | Chaptered handbooks, guide navigation, expandable evidence and field-guide starters. |
 | `research-briefs` | Writing a long, sourced page: contents, citations, attributed quotes, captioned figures, a self-check, glossary and references. |
 | `artifact-art-direction` | Expressive palettes, interactive diagrams, visual starters, and concise authoring packs. |
+| `coherent-presentation` | Canvas personalities, shared chart framing, stable data colors and analytical reports. |
 | `visual-review` | Rendering a Kage to a PNG with checks (`kages screenshot`, MCP `render_kage`); the /render page. |
 | `discussion-comments` | Threaded comments, votes, pinned point comments and comment mode; `src/collab/comments.ts` and `src/components/dashboard/comments`. |
 | `persistence-backends` | Changing how workspaces persist: Postgres/Supabase/in-memory, CAS writes, `db:setup`. |

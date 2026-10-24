@@ -10,8 +10,13 @@
   function r2(n) { return Math.round(n * 100) / 100; }
   var SERIES = ["accent", "wire", "success", "danger", "ink-muted"];
   function seriesPaint(i) { return "var(--kg-" + SERIES[i % SERIES.length] + ")"; }
-  function dataTable(label, head, rows) {
-    return h("details", { className: "kg-chart-data" }, h("summary", null, "View chart data"),
+  // Only the newer contract wrapper supplies this trusted function. Legacy
+  // contracts keep positional paint; document JSON can never supply a function.
+  function dataPaint(p, index, key) {
+    return p && typeof p.__dataPaint === "function" ? p.__dataPaint(key) : seriesPaint(index);
+  }
+  function dataTable(label, head, rows, options) {
+    return h("details", { className: "kg-chart-data", open: options && options.open }, h("summary", null, options && options.summary || "View chart data"),
       h("table", null, h("caption", null, label), h("thead", null, h("tr", null, head.map(function (t, i) { return h("th", { key: i }, t); }))),
         h("tbody", null, rows.map(function (row, i) { return h("tr", { key: i }, row.map(function (cell, j) { return h("td", { key: j }, cell); })); }))));
   }
@@ -49,7 +54,7 @@
     if (!items.length || !isFinite(total) || total <= 0) return emptyChart(p);
     var angle = -Math.PI / 2, hole = p.hole === false ? 0 : 62, slices = items.map(function (it, i) {
       var a1 = angle + it.value / total * Math.PI * 2, d = ringSlice(110, 110, 100, hole, angle, a1); angle = a1;
-      var chosen = p.selected === it.label, attrs = { key: i, d: d, fill: seriesPaint(i), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 4 : 2, opacity: p.selected && !chosen ? .45 : 1 };
+      var chosen = p.selected === it.label, attrs = { key: i, d: d, fill: dataPaint(p, i, it.label), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 4 : 2, opacity: p.selected && !chosen ? .45 : 1 };
       // Selection is data-out only: the slice reports its label, value and
       // position and the document decides what that filters.
       if (p.interactive) {
@@ -62,7 +67,7 @@
     return h("figure", { className: "kg-scene kg-donut" }, h("figcaption", null, p.label),
       h("div", { className: "kg-donut__body" }, h("svg", { viewBox: "0 0 220 220", role: "img", "aria-label": p.label }, h("title", null, p.label), slices,
         hole ? h("text", { x: 110, y: 118, textAnchor: "middle", fill: "var(--kg-ink)", fontSize: 28 }, String(r2(total))) : null),
-        h("ul", { className: "kg-legend" }, items.map(function (it, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: seriesPaint(i) } }), it.label, h("span", { className: "kg-legend__value" }, Math.round(it.value / total * 100) + "%")); }))),
+        h("ul", { className: "kg-legend" }, items.map(function (it, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: dataPaint(p, i, it.label) } }), it.label, h("span", { className: "kg-legend__value" }, Math.round(it.value / total * 100) + "%")); }))),
       dataTable(p.label, ["Label", "Value"], items.map(function (it) { return [it.label, it.value]; })));
   }
 

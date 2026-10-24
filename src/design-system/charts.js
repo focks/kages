@@ -17,8 +17,8 @@
   }
   function shortLabel(s, n) { s = String(s == null ? "" : s); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
   function toggleLabel(p, label, extra) { fire(p.onSelect, Object.assign({ label: String(label) }, extra)); }
-  function legend(names) {
-    return h("ul", { className: "kg-legend kg-legend--row" }, names.map(function (n, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: seriesPaint(i), opacity: seriesOpacity(i) } }), String(n)); }));
+  function legend(names, p) {
+    return h("ul", { className: "kg-legend kg-legend--row" }, names.map(function (n, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: dataPaint(p, i, n), opacity: seriesOpacity(i) } }), String(n)); }));
   }
   /** Shared Cartesian frame: gridlines with value labels, category labels, and a
    *  mapper from data value to y. Bounds are fixed (640x320 viewBox) so the SVG
@@ -53,7 +53,7 @@
     var lo = Math.min(0, all.length ? Math.min.apply(null, all) : 0), hi = niceCeil(Math.max(0, all.length ? Math.max.apply(null, all) : 1)), f = frame(lo < 0 ? -niceCeil(-lo) : 0, hi, d.categories, 4);
     var bars = d.series.filter(function (s) { return s.kind === "bar"; }), shapes = f.parts.slice();
     d.series.forEach(function (s, si) {
-      var paint = seriesPaint(si), op = seriesOpacity(si);
+      var paint = dataPaint(p, si, s.name), op = seriesOpacity(si);
       if (s.kind === "bar") {
         var bi = bars.indexOf(s), w = Math.max(2, f.band * .7 / bars.length);
         s.values.forEach(function (v, i) { if (v == null) return; var x = f.left + f.band * i + f.band * .15 + w * bi, y = f.y(v); shapes.push(h("rect", { key: "b" + si + "-" + i, x: r2(x), y: r2(Math.min(y, f.zero)), width: r2(w - 1), height: r2(Math.abs(f.zero - y)), fill: paint, opacity: op }, h("title", null, s.name + " · " + d.categories[i] + ": " + v))); });
@@ -68,7 +68,7 @@
       }
     });
     shapes.push(h("line", { key: "zero", x1: f.left, y1: f.zero, x2: 628, y2: f.zero, stroke: "var(--kg-ink-muted)" }));
-    return h("figure", { className: "kg-scene kg-scene--wide kg-combo" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
+    return h("figure", { className: "kg-scene kg-scene--wide kg-combo" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; }), p), seriesTable(p, d));
   }
 
   function CoreStackedBarChart(p) {
@@ -82,10 +82,10 @@
       d.series.forEach(function (s, si) {
         var raw = Math.max(0, s.values[i] || 0), v = pct ? (totals[i] ? raw / totals[i] * 100 : 0) : raw; if (!v) return;
         var y1 = f.y(acc), y2 = f.y(acc + v); acc += v;
-        shapes.push(h("rect", { key: i + "-" + si, x: r2(f.left + f.band * i + f.band * .15), y: r2(y2), width: r2(w), height: r2(Math.max(0, y1 - y2)), fill: seriesPaint(si), opacity: seriesOpacity(si), stroke: "var(--kg-paper)", strokeWidth: 1 }, h("title", null, s.name + " · " + c + ": " + raw)));
+        shapes.push(h("rect", { key: i + "-" + si, x: r2(f.left + f.band * i + f.band * .15), y: r2(y2), width: r2(w), height: r2(Math.max(0, y1 - y2)), fill: dataPaint(p, si, s.name), opacity: seriesOpacity(si), stroke: "var(--kg-paper)", strokeWidth: 1 }, h("title", null, s.name + " · " + c + ": " + raw)));
       });
     });
-    return h("figure", { className: "kg-scene kg-scene--wide kg-stacked" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
+    return h("figure", { className: "kg-scene kg-scene--wide kg-stacked" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; }), p), seriesTable(p, d));
   }
 
   /** Selectable shape props shared by funnel, treemap and map: a button that
@@ -107,7 +107,7 @@
       var w1 = Math.min(1, s.value / first) * 560, nxt = stages[i + 1] ? Math.min(1, stages[i + 1].value / first) * 560 : w1 * .8, y = i * rowH + 4, cx = W / 2;
       var d = "M" + r2(cx - w1 / 2) + " " + y + "L" + r2(cx + w1 / 2) + " " + y + "L" + r2(cx + nxt / 2) + " " + (y + rowH - 6) + "L" + r2(cx - nxt / 2) + " " + (y + rowH - 6) + "Z";
       var chosen = p.selected === s.label, a = pickable(p, i, s.label + ": " + s.value, { label: String(s.label), value: s.value, index: i }, chosen);
-      a.d = d; a.fill = seriesPaint(0); a.fillOpacity = Math.max(.25, 1 - i * .12) * (a.opacity); a.stroke = chosen ? "var(--kg-ink)" : "var(--kg-paper)"; a.strokeWidth = chosen ? 3 : 1; delete a.opacity;
+      a.d = d; a.fill = dataPaint(p, 0, ""); a.fillOpacity = Math.max(.25, 1 - i * .12) * (a.opacity); a.stroke = chosen ? "var(--kg-ink)" : "var(--kg-paper)"; a.strokeWidth = chosen ? 3 : 1; delete a.opacity;
       var share = Math.round(s.value / first * 100);
       return h("g", { key: i }, h("path", a, h("title", null, s.label + ": " + s.value + " (" + share + "%)")), h("text", { x: cx, y: y + (rowH - 6) / 2 + 5, textAnchor: "middle", fill: "var(--kg-ink)", fontSize: 14, pointerEvents: "none" }, shortLabel(s.label, 28) + " · " + s.value + " (" + share + "%)"));
     });
@@ -140,7 +140,7 @@
     var shapes = rects.map(function (r, i) {
       var it = r.it, chosen = p.selected === it.label, a = pickable(p, i, it.label + ": " + it.value, { label: String(it.label), value: it.value, index: i }, chosen);
       var big = r.w > 70 && r.h > 34;
-      return h("g", { key: i }, h("rect", Object.assign(a, { x: r2(r.x + 1), y: r2(r.y + 1), width: r2(Math.max(0, r.w - 2)), height: r2(Math.max(0, r.h - 2)), rx: 4, fill: seriesPaint(i), fillOpacity: .55 * (a.opacity), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 3 : 1, opacity: undefined }), h("title", null, it.label + ": " + it.value + " (" + Math.round(it.value / total * 100) + "%)")),
+      return h("g", { key: i }, h("rect", Object.assign(a, { x: r2(r.x + 1), y: r2(r.y + 1), width: r2(Math.max(0, r.w - 2)), height: r2(Math.max(0, r.h - 2)), rx: 4, fill: dataPaint(p, i, it.label), fillOpacity: .55 * (a.opacity), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 3 : 1, opacity: undefined }), h("title", null, it.label + ": " + it.value + " (" + Math.round(it.value / total * 100) + "%)")),
         big ? h("text", { x: r2(r.x + 8), y: r2(r.y + 20), fill: "var(--kg-ink)", fontSize: 13, pointerEvents: "none" }, shortLabel(it.label, Math.floor(r.w / 7.5))) : null,
         big ? h("text", { x: r2(r.x + 8), y: r2(r.y + 36), fill: "var(--kg-ink-muted)", fontSize: 12, pointerEvents: "none" }, String(it.value)) : null);
     });
@@ -176,9 +176,9 @@
     var paths = sorted.map(function (l, i) {
       var a = byId[l.from], b = byId[l.to], w = Math.max(1, l.value * scale), y1 = a.y + a.oy + w / 2, y2 = b.y + b.iy + w / 2; a.oy += w; b.iy += w;
       var x1 = a.x + colW, x2 = b.x, mx = (x1 + x2) / 2;
-      return h("path", { key: i, d: "M" + r2(x1) + " " + r2(y1) + "C" + r2(mx) + " " + r2(y1) + " " + r2(mx) + " " + r2(y2) + " " + r2(x2) + " " + r2(y2), fill: "none", stroke: seriesPaint(used.indexOf(a)), strokeOpacity: .35, strokeWidth: r2(w) }, h("title", null, a.label + " → " + b.label + ": " + l.value));
+      return h("path", { key: i, d: "M" + r2(x1) + " " + r2(y1) + "C" + r2(mx) + " " + r2(y1) + " " + r2(mx) + " " + r2(y2) + " " + r2(x2) + " " + r2(y2), fill: "none", stroke: dataPaint(p, used.indexOf(a), a.id), strokeOpacity: .35, strokeWidth: r2(w) }, h("title", null, a.label + " → " + b.label + ": " + l.value));
     });
-    var boxes = used.map(function (n, i) { var left = n.layer === 0; return h("g", { key: "n" + i }, h("rect", { x: n.x, y: r2(n.y), width: colW, height: r2(n.h), fill: seriesPaint(i), rx: 2 }, h("title", null, n.label + ": " + Math.max(n.in, n.out))), h("text", { x: left ? r2(n.x + colW + 6) : r2(n.x - 6), y: r2(n.y + n.h / 2 + 4), textAnchor: left ? "start" : "end", fill: "var(--kg-ink)", fontSize: 12 }, shortLabel(n.label, 18))); });
+    var boxes = used.map(function (n, i) { var left = n.layer === 0; return h("g", { key: "n" + i }, h("rect", { x: n.x, y: r2(n.y), width: colW, height: r2(n.h), fill: dataPaint(p, i, n.id), rx: 2 }, h("title", null, n.label + ": " + Math.max(n.in, n.out))), h("text", { x: left ? r2(n.x + colW + 6) : r2(n.x - 6), y: r2(n.y + n.h / 2 + 4), textAnchor: left ? "start" : "end", fill: "var(--kg-ink)", fontSize: 12 }, shortLabel(n.label, 18))); });
     return h("figure", { className: "kg-scene kg-scene--wide kg-sankey" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 360", role: "img", "aria-label": p.label }, h("title", null, p.label), paths, boxes),
       dataTable(p.label, ["From", "To", "Value"], links.map(function (l) { return [byId[l.from].label, byId[l.to].label, l.value]; })));
   }

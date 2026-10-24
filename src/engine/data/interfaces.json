@@ -960,12 +960,45 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "compactValues": {
+        "type": "boolean"
+      },
+      "colorBy": {
+        "type": "string",
+        "enum": [
+          "uniform",
+          "category"
+        ],
+        "default": "uniform"
       }
     },
     "role": "bar-chart",
     "slots": {},
-    "events": {},
-    "outputs": []
+    "events": {
+      "select": {
+        "payload": {
+          "label": "string",
+          "value": "number",
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    }
   },
   "kages/composition@1": {
     "summary": "Reusable document-local composition with typed inputs and a public value output.",
@@ -1427,7 +1460,10 @@
           "auto",
           "horizontal",
           "vertical",
-          "grid"
+          "grid",
+          "tree",
+          "swimlane",
+          "sequence"
         ],
         "default": "auto"
       },
@@ -1436,6 +1472,15 @@
       },
       "empty": {
         "type": "string"
+      },
+      "explore": {
+        "type": "boolean"
+      },
+      "collapsedGroups": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       }
     },
     "events": {
@@ -1443,13 +1488,29 @@
         "payload": {
           "id": "string"
         }
+      },
+      "groupsChange": {
+        "payload": {
+          "groups": "array"
+        }
       }
     },
     "role": "diagram",
     "slots": {},
     "outputs": [
-      "selected"
-    ]
+      "selected",
+      "collapsedGroups"
+    ],
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "collapsedGroups": {
+        "type": "array",
+        "default": []
+      }
+    }
   },
   "kages/line-chart@1": {
     "summary": "Responsive numeric X/Y line chart with an accessible data table.",
@@ -1472,6 +1533,18 @@
             },
             "label": {
               "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "series": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
             }
           },
           "requiredKeys": [
@@ -1488,12 +1561,123 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "rangeControls": {
+        "type": "boolean"
+      },
+      "range": {
+        "type": "object"
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "xMin": {
+        "type": "number"
+      },
+      "xMax": {
+        "type": "number"
+      },
+      "yMin": {
+        "type": "number"
+      },
+      "yMax": {
+        "type": "number"
+      },
+      "xFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "date"
+        ],
+        "default": "number"
+      },
+      "yFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "annotations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "axis",
+            "value"
+          ]
+        }
       }
     },
     "role": "line-chart",
     "slots": {},
-    "events": {},
-    "outputs": []
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      },
+      "rangeChange": {
+        "payload": {
+          "min": "number",
+          "max": "number"
+        }
+      },
+      "legendChange": {
+        "payload": {
+          "hidden": "array"
+        }
+      }
+    },
+    "outputs": [
+      "selected",
+      "range",
+      "hiddenSeries"
+    ],
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "range": {
+        "type": "object",
+        "default": {}
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "default": []
+      }
+    }
   },
   "kages/scatter-chart@1": {
     "summary": "Responsive numeric X/Y scatter plot with an accessible data table.",
@@ -1516,6 +1700,18 @@
             },
             "label": {
               "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "series": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
             }
           },
           "requiredKeys": [
@@ -1532,12 +1728,123 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "rangeControls": {
+        "type": "boolean"
+      },
+      "range": {
+        "type": "object"
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "xMin": {
+        "type": "number"
+      },
+      "xMax": {
+        "type": "number"
+      },
+      "yMin": {
+        "type": "number"
+      },
+      "yMax": {
+        "type": "number"
+      },
+      "xFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "date"
+        ],
+        "default": "number"
+      },
+      "yFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "annotations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "axis",
+            "value"
+          ]
+        }
       }
     },
     "role": "scatter-chart",
     "slots": {},
-    "events": {},
-    "outputs": []
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      },
+      "rangeChange": {
+        "payload": {
+          "min": "number",
+          "max": "number"
+        }
+      },
+      "legendChange": {
+        "payload": {
+          "hidden": "array"
+        }
+      }
+    },
+    "outputs": [
+      "selected",
+      "range",
+      "hiddenSeries"
+    ],
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "range": {
+        "type": "object",
+        "default": {}
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "default": []
+      }
+    }
   },
   "kages/area-chart@1": {
     "summary": "Responsive filled area chart of numeric X/Y data with an accessible data table.",
@@ -1560,6 +1867,18 @@
             },
             "label": {
               "type": "string"
+            },
+            "id": {
+              "type": "string"
+            },
+            "series": {
+              "type": "string"
+            },
+            "lower": {
+              "type": "number"
+            },
+            "upper": {
+              "type": "number"
             }
           },
           "requiredKeys": [
@@ -1576,12 +1895,123 @@
       },
       "empty": {
         "type": "string"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "rangeControls": {
+        "type": "boolean"
+      },
+      "range": {
+        "type": "object"
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "xMin": {
+        "type": "number"
+      },
+      "xMax": {
+        "type": "number"
+      },
+      "yMin": {
+        "type": "number"
+      },
+      "yMax": {
+        "type": "number"
+      },
+      "xFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "date"
+        ],
+        "default": "number"
+      },
+      "yFormat": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ],
+        "default": "number"
+      },
+      "annotations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y"
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "requiredKeys": [
+            "axis",
+            "value"
+          ]
+        }
       }
     },
     "role": "area-chart",
     "slots": {},
-    "events": {},
-    "outputs": []
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      },
+      "rangeChange": {
+        "payload": {
+          "min": "number",
+          "max": "number"
+        }
+      },
+      "legendChange": {
+        "payload": {
+          "hidden": "array"
+        }
+      }
+    },
+    "outputs": [
+      "selected",
+      "range",
+      "hiddenSeries"
+    ],
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      },
+      "range": {
+        "type": "object",
+        "default": {}
+      },
+      "hiddenSeries": {
+        "type": "array",
+        "default": []
+      }
+    }
   },
   "kages/donut-chart@1": {
     "summary": "Part-to-whole ring chart with a legend, percentages and an accessible data table.",
@@ -3322,5 +3752,487 @@
       "open"
     ],
     "role": "disclosure"
+  },
+  "kages/canvas@1": {
+    "role": "canvas",
+    "summary": "A complete artifact with a coherent presentation personality and optional explicit theme.",
+    "props": {
+      "title": {
+        "type": "string"
+      },
+      "eyebrow": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "personality": {
+        "type": "string",
+        "enum": [
+          "editorial",
+          "analytical",
+          "exploratory",
+          "teaching",
+          "showcase"
+        ],
+        "default": "analytical"
+      },
+      "density": {
+        "type": "string",
+        "enum": [
+          "comfortable",
+          "compact"
+        ],
+        "default": "comfortable"
+      },
+      "appearance": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "light",
+          "dark"
+        ],
+        "default": "inherit"
+      }
+    },
+    "slots": {
+      "children": {},
+      "actions": {},
+      "footer": {}
+    },
+    "events": {},
+    "outputs": []
+  },
+  "kages/histogram-chart@1": {
+    "summary": "Frequency distribution with equal-width bins, selectable ranges and exact counts.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "values": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "number"
+        }
+      },
+      "bins": {
+        "type": "number"
+      },
+      "selected": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "selected": {
+        "type": "string",
+        "default": ""
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "events": {
+      "select": {
+        "payload": {
+          "id": "string",
+          "min": "number",
+          "max": "number",
+          "count": "number"
+        }
+      }
+    },
+    "role": "histogram-chart",
+    "slots": {}
+  },
+  "kages/box-plot@1": {
+    "summary": "Compare supplied five-number summaries on a shared horizontal scale.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "q1": {
+              "type": "number"
+            },
+            "median": {
+              "type": "number"
+            },
+            "q3": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "min",
+            "q1",
+            "median",
+            "q3",
+            "max"
+          ]
+        }
+      },
+      "min": {
+        "type": "number"
+      },
+      "max": {
+        "type": "number"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "role": "box-plot",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/waterfall-chart@1": {
+    "summary": "Explain positive/negative contributions and explicit totals in sequence.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "items": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "value": {
+              "type": "number"
+            },
+            "total": {
+              "type": "boolean"
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "value"
+          ]
+        }
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "number",
+          "currency",
+          "percent"
+        ]
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "role": "waterfall-chart",
+    "slots": {},
+    "events": {},
+    "outputs": []
+  },
+  "kages/small-multiples@1": {
+    "summary": "Compare up to twelve line or scatter panels using the same X/Y domains.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "panels": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "items": {
+              "type": "array",
+              "required": true,
+              "items": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "series": {
+                    "type": "string"
+                  },
+                  "lower": {
+                    "type": "number"
+                  },
+                  "upper": {
+                    "type": "number"
+                  }
+                },
+                "requiredKeys": [
+                  "x",
+                  "y"
+                ]
+              }
+            }
+          },
+          "requiredKeys": [
+            "label",
+            "items"
+          ]
+        }
+      },
+      "kind": {
+        "type": "string",
+        "enum": [
+          "line",
+          "scatter"
+        ],
+        "default": "line"
+      },
+      "interactive": {
+        "type": "boolean"
+      },
+      "selected": {
+        "type": "object"
+      },
+      "xLabel": {
+        "type": "string"
+      },
+      "yLabel": {
+        "type": "string"
+      },
+      "empty": {
+        "type": "string"
+      },
+      "colorDomain": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "takeaway": {
+        "type": "string"
+      },
+      "unit": {
+        "type": "string"
+      },
+      "source": {
+        "type": "string"
+      },
+      "updatedAt": {
+        "type": "string"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "ready",
+          "loading",
+          "error",
+          "stale"
+        ],
+        "default": "ready"
+      },
+      "statusMessage": {
+        "type": "string"
+      }
+    },
+    "local": {
+      "selected": {
+        "type": "object",
+        "default": {}
+      }
+    },
+    "outputs": [
+      "selected"
+    ],
+    "events": {
+      "select": {
+        "payload": {
+          "panel": "string",
+          "id": "string",
+          "label": "string",
+          "x": "number",
+          "y": "number",
+          "index": "number"
+        }
+      }
+    },
+    "role": "small-multiples",
+    "slots": {}
+  },
+  "kages/csv-import@1": {
+    "role": "csv-import",
+    "summary": "Preview local CSV, choose safe column types, then explicitly import rows into artifact state.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "text": {
+        "type": "string"
+      },
+      "rows": {
+        "type": "array"
+      },
+      "columns": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "types": {
+        "type": "object"
+      }
+    },
+    "slots": {},
+    "local": {
+      "rows": {
+        "type": "array",
+        "default": []
+      },
+      "columns": {
+        "type": "array",
+        "default": []
+      },
+      "types": {
+        "type": "object",
+        "default": {}
+      }
+    },
+    "outputs": [
+      "rows",
+      "columns",
+      "types"
+    ],
+    "events": {
+      "import": {
+        "payload": {
+          "rows": "array",
+          "columns": "array",
+          "types": "object"
+        }
+      }
+    }
   }
 }

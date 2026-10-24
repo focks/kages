@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"},{"name":"CoreGuide"},{"name":"CoreDisclosure"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"},{"name":"CoreGuide"},{"name":"CoreDisclosure"},{"name":"CoreCanvas"},{"name":"CoreCartesianPlot"},{"name":"CoreGraphExplorer"},{"name":"CoreHistogram"},{"name":"CoreBoxPlot"},{"name":"CoreWaterfall"},{"name":"CoreSmallMultiples"},{"name":"CoreCsvImport"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -858,6 +858,12 @@
           var rank = ranks[n.id], lane = lanes[rank] || 0; lanes[rank] = lane + 1;
           col = vertical ? lane : rank; row = vertical ? rank : lane;
         } else { col = vertical ? 0 : i % 3; row = vertical ? i : Math.floor(i / 3); }
+        if (p.__layout === "sequence") { col = i; row = 0; }
+        if (p.__layout === "swimlane") {
+          var groups = []; nodes.forEach(function (node) { var group = node.group || "Other"; if (groups.indexOf(group) < 0) groups.push(group); });
+          row = groups.indexOf(n.group || "Other");
+          col = nodes.slice(0, i).filter(function (node) { return (node.group || "Other") === (n.group || "Other"); }).length;
+        }
         pos[n.id] = { x: 20 + col * (vertical ? 248 : 328), y: 20 + row * 184 };
         width = Math.max(width, pos[n.id].x + 228); height = Math.max(height, pos[n.id].y + 116);
       });
@@ -875,12 +881,13 @@
           var text = diagramLines(edge.label, 16, 1)[0], lw = Math.max(30, text.length * 7 + 12);
           labels.push(h("g", { key: i }, h("title", null, String(edge.label)), h("rect", { className: "kg-diagram__edge-chip", x: mx - lw / 2, y: my - 10, width: lw, height: 20, rx: 5 }), h("text", { className: "kg-diagram__edge-label", x: mx, y: my + 4, textAnchor: "middle" }, text)));
         }
-        return h("g", { key: i, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
+        return h("g", { key: i, opacity: Array.isArray(p.__connected) && (p.__connected.indexOf(edge.from) < 0 || p.__connected.indexOf(edge.to) < 0) ? .2 : undefined, className: "kg-palette-" + regionPalette(edge.palette) }, h("title", null, edge.from + " → " + edge.to + (edge.label ? ": " + String(edge.label) : "")), h("path", { className: "kg-diagram__edge", d: path }), h("polygon", { className: "kg-diagram__arrow", points: arrow }));
       });
       return h("svg", { viewBox: "0 0 " + width + " " + height, style: { minWidth: Math.round(width * .85) }, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label), connections,
         nodes.map(function (n) {
           var at = pos[n.id], selected = p.selected === n.id;
           var attrs = { key: n.id, transform: "translate(" + at.x + " " + at.y + ")", className: "kg-diagram__node kg-palette-" + regionPalette(n.palette), "aria-label": String(n.label || n.id) + (n.group ? ": " + String(n.group) : "") };
+          if (Array.isArray(p.__connected) && p.__connected.indexOf(n.id) < 0) attrs.opacity = .25;
           if (p.interactive) {
             attrs.role = "button"; attrs.tabIndex = 0; attrs["aria-pressed"] = selected;
             attrs.onClick = function () { fire(p.onSelect, { id: n.id }); };
@@ -924,8 +931,13 @@
   function r2(n) { return Math.round(n * 100) / 100; }
   var SERIES = ["accent", "wire", "success", "danger", "ink-muted"];
   function seriesPaint(i) { return "var(--kg-" + SERIES[i % SERIES.length] + ")"; }
-  function dataTable(label, head, rows) {
-    return h("details", { className: "kg-chart-data" }, h("summary", null, "View chart data"),
+  // Only the newer contract wrapper supplies this trusted function. Legacy
+  // contracts keep positional paint; document JSON can never supply a function.
+  function dataPaint(p, index, key) {
+    return p && typeof p.__dataPaint === "function" ? p.__dataPaint(key) : seriesPaint(index);
+  }
+  function dataTable(label, head, rows, options) {
+    return h("details", { className: "kg-chart-data", open: options && options.open }, h("summary", null, options && options.summary || "View chart data"),
       h("table", null, h("caption", null, label), h("thead", null, h("tr", null, head.map(function (t, i) { return h("th", { key: i }, t); }))),
         h("tbody", null, rows.map(function (row, i) { return h("tr", { key: i }, row.map(function (cell, j) { return h("td", { key: j }, cell); })); }))));
   }
@@ -963,7 +975,7 @@
     if (!items.length || !isFinite(total) || total <= 0) return emptyChart(p);
     var angle = -Math.PI / 2, hole = p.hole === false ? 0 : 62, slices = items.map(function (it, i) {
       var a1 = angle + it.value / total * Math.PI * 2, d = ringSlice(110, 110, 100, hole, angle, a1); angle = a1;
-      var chosen = p.selected === it.label, attrs = { key: i, d: d, fill: seriesPaint(i), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 4 : 2, opacity: p.selected && !chosen ? .45 : 1 };
+      var chosen = p.selected === it.label, attrs = { key: i, d: d, fill: dataPaint(p, i, it.label), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 4 : 2, opacity: p.selected && !chosen ? .45 : 1 };
       // Selection is data-out only: the slice reports its label, value and
       // position and the document decides what that filters.
       if (p.interactive) {
@@ -976,7 +988,7 @@
     return h("figure", { className: "kg-scene kg-donut" }, h("figcaption", null, p.label),
       h("div", { className: "kg-donut__body" }, h("svg", { viewBox: "0 0 220 220", role: "img", "aria-label": p.label }, h("title", null, p.label), slices,
         hole ? h("text", { x: 110, y: 118, textAnchor: "middle", fill: "var(--kg-ink)", fontSize: 28 }, String(r2(total))) : null),
-        h("ul", { className: "kg-legend" }, items.map(function (it, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: seriesPaint(i) } }), it.label, h("span", { className: "kg-legend__value" }, Math.round(it.value / total * 100) + "%")); }))),
+        h("ul", { className: "kg-legend" }, items.map(function (it, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: dataPaint(p, i, it.label) } }), it.label, h("span", { className: "kg-legend__value" }, Math.round(it.value / total * 100) + "%")); }))),
       dataTable(p.label, ["Label", "Value"], items.map(function (it) { return [it.label, it.value]; })));
   }
 
@@ -1519,8 +1531,8 @@
   }
   function shortLabel(s, n) { s = String(s == null ? "" : s); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
   function toggleLabel(p, label, extra) { fire(p.onSelect, Object.assign({ label: String(label) }, extra)); }
-  function legend(names) {
-    return h("ul", { className: "kg-legend kg-legend--row" }, names.map(function (n, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: seriesPaint(i), opacity: seriesOpacity(i) } }), String(n)); }));
+  function legend(names, p) {
+    return h("ul", { className: "kg-legend kg-legend--row" }, names.map(function (n, i) { return h("li", { key: i }, h("span", { className: "kg-legend__swatch", style: { background: dataPaint(p, i, n), opacity: seriesOpacity(i) } }), String(n)); }));
   }
   /** Shared Cartesian frame: gridlines with value labels, category labels, and a
    *  mapper from data value to y. Bounds are fixed (640x320 viewBox) so the SVG
@@ -1555,7 +1567,7 @@
     var lo = Math.min(0, all.length ? Math.min.apply(null, all) : 0), hi = niceCeil(Math.max(0, all.length ? Math.max.apply(null, all) : 1)), f = frame(lo < 0 ? -niceCeil(-lo) : 0, hi, d.categories, 4);
     var bars = d.series.filter(function (s) { return s.kind === "bar"; }), shapes = f.parts.slice();
     d.series.forEach(function (s, si) {
-      var paint = seriesPaint(si), op = seriesOpacity(si);
+      var paint = dataPaint(p, si, s.name), op = seriesOpacity(si);
       if (s.kind === "bar") {
         var bi = bars.indexOf(s), w = Math.max(2, f.band * .7 / bars.length);
         s.values.forEach(function (v, i) { if (v == null) return; var x = f.left + f.band * i + f.band * .15 + w * bi, y = f.y(v); shapes.push(h("rect", { key: "b" + si + "-" + i, x: r2(x), y: r2(Math.min(y, f.zero)), width: r2(w - 1), height: r2(Math.abs(f.zero - y)), fill: paint, opacity: op }, h("title", null, s.name + " · " + d.categories[i] + ": " + v))); });
@@ -1570,7 +1582,7 @@
       }
     });
     shapes.push(h("line", { key: "zero", x1: f.left, y1: f.zero, x2: 628, y2: f.zero, stroke: "var(--kg-ink-muted)" }));
-    return h("figure", { className: "kg-scene kg-scene--wide kg-combo" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
+    return h("figure", { className: "kg-scene kg-scene--wide kg-combo" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; }), p), seriesTable(p, d));
   }
 
   function CoreStackedBarChart(p) {
@@ -1584,10 +1596,10 @@
       d.series.forEach(function (s, si) {
         var raw = Math.max(0, s.values[i] || 0), v = pct ? (totals[i] ? raw / totals[i] * 100 : 0) : raw; if (!v) return;
         var y1 = f.y(acc), y2 = f.y(acc + v); acc += v;
-        shapes.push(h("rect", { key: i + "-" + si, x: r2(f.left + f.band * i + f.band * .15), y: r2(y2), width: r2(w), height: r2(Math.max(0, y1 - y2)), fill: seriesPaint(si), opacity: seriesOpacity(si), stroke: "var(--kg-paper)", strokeWidth: 1 }, h("title", null, s.name + " · " + c + ": " + raw)));
+        shapes.push(h("rect", { key: i + "-" + si, x: r2(f.left + f.band * i + f.band * .15), y: r2(y2), width: r2(w), height: r2(Math.max(0, y1 - y2)), fill: dataPaint(p, si, s.name), opacity: seriesOpacity(si), stroke: "var(--kg-paper)", strokeWidth: 1 }, h("title", null, s.name + " · " + c + ": " + raw)));
       });
     });
-    return h("figure", { className: "kg-scene kg-scene--wide kg-stacked" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; })), seriesTable(p, d));
+    return h("figure", { className: "kg-scene kg-scene--wide kg-stacked" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 300", role: "img", "aria-label": p.label }, h("title", null, p.label), shapes), legend(d.series.map(function (s) { return s.name; }), p), seriesTable(p, d));
   }
 
   /** Selectable shape props shared by funnel, treemap and map: a button that
@@ -1609,7 +1621,7 @@
       var w1 = Math.min(1, s.value / first) * 560, nxt = stages[i + 1] ? Math.min(1, stages[i + 1].value / first) * 560 : w1 * .8, y = i * rowH + 4, cx = W / 2;
       var d = "M" + r2(cx - w1 / 2) + " " + y + "L" + r2(cx + w1 / 2) + " " + y + "L" + r2(cx + nxt / 2) + " " + (y + rowH - 6) + "L" + r2(cx - nxt / 2) + " " + (y + rowH - 6) + "Z";
       var chosen = p.selected === s.label, a = pickable(p, i, s.label + ": " + s.value, { label: String(s.label), value: s.value, index: i }, chosen);
-      a.d = d; a.fill = seriesPaint(0); a.fillOpacity = Math.max(.25, 1 - i * .12) * (a.opacity); a.stroke = chosen ? "var(--kg-ink)" : "var(--kg-paper)"; a.strokeWidth = chosen ? 3 : 1; delete a.opacity;
+      a.d = d; a.fill = dataPaint(p, 0, ""); a.fillOpacity = Math.max(.25, 1 - i * .12) * (a.opacity); a.stroke = chosen ? "var(--kg-ink)" : "var(--kg-paper)"; a.strokeWidth = chosen ? 3 : 1; delete a.opacity;
       var share = Math.round(s.value / first * 100);
       return h("g", { key: i }, h("path", a, h("title", null, s.label + ": " + s.value + " (" + share + "%)")), h("text", { x: cx, y: y + (rowH - 6) / 2 + 5, textAnchor: "middle", fill: "var(--kg-ink)", fontSize: 14, pointerEvents: "none" }, shortLabel(s.label, 28) + " · " + s.value + " (" + share + "%)"));
     });
@@ -1642,7 +1654,7 @@
     var shapes = rects.map(function (r, i) {
       var it = r.it, chosen = p.selected === it.label, a = pickable(p, i, it.label + ": " + it.value, { label: String(it.label), value: it.value, index: i }, chosen);
       var big = r.w > 70 && r.h > 34;
-      return h("g", { key: i }, h("rect", Object.assign(a, { x: r2(r.x + 1), y: r2(r.y + 1), width: r2(Math.max(0, r.w - 2)), height: r2(Math.max(0, r.h - 2)), rx: 4, fill: seriesPaint(i), fillOpacity: .55 * (a.opacity), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 3 : 1, opacity: undefined }), h("title", null, it.label + ": " + it.value + " (" + Math.round(it.value / total * 100) + "%)")),
+      return h("g", { key: i }, h("rect", Object.assign(a, { x: r2(r.x + 1), y: r2(r.y + 1), width: r2(Math.max(0, r.w - 2)), height: r2(Math.max(0, r.h - 2)), rx: 4, fill: dataPaint(p, i, it.label), fillOpacity: .55 * (a.opacity), stroke: chosen ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: chosen ? 3 : 1, opacity: undefined }), h("title", null, it.label + ": " + it.value + " (" + Math.round(it.value / total * 100) + "%)")),
         big ? h("text", { x: r2(r.x + 8), y: r2(r.y + 20), fill: "var(--kg-ink)", fontSize: 13, pointerEvents: "none" }, shortLabel(it.label, Math.floor(r.w / 7.5))) : null,
         big ? h("text", { x: r2(r.x + 8), y: r2(r.y + 36), fill: "var(--kg-ink-muted)", fontSize: 12, pointerEvents: "none" }, String(it.value)) : null);
     });
@@ -1678,9 +1690,9 @@
     var paths = sorted.map(function (l, i) {
       var a = byId[l.from], b = byId[l.to], w = Math.max(1, l.value * scale), y1 = a.y + a.oy + w / 2, y2 = b.y + b.iy + w / 2; a.oy += w; b.iy += w;
       var x1 = a.x + colW, x2 = b.x, mx = (x1 + x2) / 2;
-      return h("path", { key: i, d: "M" + r2(x1) + " " + r2(y1) + "C" + r2(mx) + " " + r2(y1) + " " + r2(mx) + " " + r2(y2) + " " + r2(x2) + " " + r2(y2), fill: "none", stroke: seriesPaint(used.indexOf(a)), strokeOpacity: .35, strokeWidth: r2(w) }, h("title", null, a.label + " → " + b.label + ": " + l.value));
+      return h("path", { key: i, d: "M" + r2(x1) + " " + r2(y1) + "C" + r2(mx) + " " + r2(y1) + " " + r2(mx) + " " + r2(y2) + " " + r2(x2) + " " + r2(y2), fill: "none", stroke: dataPaint(p, used.indexOf(a), a.id), strokeOpacity: .35, strokeWidth: r2(w) }, h("title", null, a.label + " → " + b.label + ": " + l.value));
     });
-    var boxes = used.map(function (n, i) { var left = n.layer === 0; return h("g", { key: "n" + i }, h("rect", { x: n.x, y: r2(n.y), width: colW, height: r2(n.h), fill: seriesPaint(i), rx: 2 }, h("title", null, n.label + ": " + Math.max(n.in, n.out))), h("text", { x: left ? r2(n.x + colW + 6) : r2(n.x - 6), y: r2(n.y + n.h / 2 + 4), textAnchor: left ? "start" : "end", fill: "var(--kg-ink)", fontSize: 12 }, shortLabel(n.label, 18))); });
+    var boxes = used.map(function (n, i) { var left = n.layer === 0; return h("g", { key: "n" + i }, h("rect", { x: n.x, y: r2(n.y), width: colW, height: r2(n.h), fill: dataPaint(p, i, n.id), rx: 2 }, h("title", null, n.label + ": " + Math.max(n.in, n.out))), h("text", { x: left ? r2(n.x + colW + 6) : r2(n.x - 6), y: r2(n.y + n.h / 2 + 4), textAnchor: left ? "start" : "end", fill: "var(--kg-ink)", fontSize: 12 }, shortLabel(n.label, 18))); });
     return h("figure", { className: "kg-scene kg-scene--wide kg-sankey" }, h("figcaption", null, p.label), h("svg", { style: wideStyle(640), viewBox: "0 0 640 360", role: "img", "aria-label": p.label }, h("title", null, p.label), paths, boxes),
       dataTable(p.label, ["From", "To", "Value"], links.map(function (l) { return [byId[l.from].label, byId[l.to].label, l.value]; })));
   }
@@ -2066,6 +2078,491 @@
     });
   });
 
+/* Presentation and data colors have separate lifetimes: moving a chart into a
+ * colored chapter must not change what its categories mean. New contract refs
+ * opt into this frame while old refs keep their original rendering. See
+ * oracle/product-polish.feature. */
+  var DATA_COLOR_COUNT = 8;
+  function categoryPaint(domain, key) {
+    var text = String(key == null ? "" : key), index = domain.indexOf(text);
+    // Unknown categories remain stable across filtering and independently
+    // rendered views. Authors declare a domain to avoid hash collisions.
+    if (index < 0) {
+      index = 0;
+      for (var i = 0; i < Math.min(text.length, 512); i++) index = (index * 31 + text.charCodeAt(i)) >>> 0;
+    }
+    return "var(--kg-data-" + (index % DATA_COLOR_COUNT) + ")";
+  }
+  var CHART_CONTEXT = {
+    colorDomain: S("array", { items: S("string") }),
+    takeaway: S("string"), unit: S("string"), source: S("string"), updatedAt: S("string"),
+    status: S("string", { enum: ["ready", "loading", "error", "stale"], default: "ready" }),
+    statusMessage: S("string")
+  };
+  function chartContext(p, body) {
+    var status = choice(p.status, ["ready", "loading", "error", "stale"], "ready");
+    return h("section", { className: "kg-chart-frame", "aria-label": p.label, "aria-busy": status === "loading" },
+      h("header", { className: "kg-chart-frame__header" }, h("h3", null, p.label), p.unit ? h("span", { className: "kg-chart-frame__unit" }, p.unit) : null),
+      p.takeaway ? h("p", { className: "kg-chart-frame__takeaway" }, p.takeaway) : null,
+      status !== "ready" ? h("p", { className: "kg-chart-frame__status", role: status === "error" ? "alert" : "status" }, p.statusMessage || ({ loading: "Loading data…", error: "Data could not be loaded.", stale: "Showing the last available data; it may be out of date." })[status]) : null,
+      status === "loading" || status === "error" ? null : h("div", { className: "kg-chart-frame__body" }, body),
+      p.source || p.updatedAt ? h("footer", null, p.source ? h("span", null, "Source: " + p.source) : null, p.updatedAt ? h("span", null, "Updated: " + p.updatedAt) : null) : null);
+  }
+  function framedChart(impl) {
+    return function (p) {
+      var domain = (Array.isArray(p.colorDomain) ? p.colorDomain : []).slice(0, 256).filter(function (v) { return typeof v === "string"; });
+      var props = Object.assign({}, p, { __dataPaint: function (key) { return categoryPaint(domain, key); } });
+      return chartContext(p, h(impl, props));
+    };
+  }
+  function CoreAnalyticalBars(p) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && typeof it.value === "number" && isFinite(it.value); }).slice(0, 200);
+    if (!items.length) return emptyChart(p);
+    // Normalize before subtraction: opposite finite extremes otherwise create
+    // an infinite span. The data table keeps the unmodified original values.
+    var magnitude = Math.max.apply(null, [1].concat(items.map(function (it) { return Math.abs(it.value); })));
+    var lo = Math.min.apply(null, [0].concat(items.map(function (it) { return it.value / magnitude; })));
+    var hi = Math.max.apply(null, [0].concat(items.map(function (it) { return it.value / magnitude; })));
+    if (lo === hi) hi = 1;
+    var span = hi - lo, zero = -lo / span * 100;
+    var ticks = Array.from({ length: 5 }, function (_, i) { return (lo + span * i / 4) * magnitude; });
+    function number(value, compact) {
+      if (!compact) return fmt(value, p.format === "text" ? "number" : p.format || "number");
+      return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1, style: p.format === "currency" ? "currency" : p.format === "percent" ? "percent" : "decimal", currency: "USD" }).format(value);
+    }
+    return h("figure", { className: "kg-analytical-bars", "aria-label": p.label },
+      h("figcaption", null, p.label),
+      h("div", { className: "kg-analytical-bars__rows" }, items.map(function (it, i) {
+        var end = (it.value / magnitude - lo) / span * 100, key = it.category || it.label;
+        var paint = p.colorBy === "category" ? dataPaint(p, i, key) : "var(--kg-data-0)";
+        var attrs = { key: i, className: "kg-analytical-bars__row", "data-category": String(key) };
+        if (p.interactive) {
+          attrs.type = "button"; attrs["aria-pressed"] = p.selected === it.label;
+          attrs.onClick = function () { fire(p.onSelect, { label: String(it.label), value: it.value, index: i }); };
+        }
+        return h(p.interactive ? "button" : "div", attrs,
+          h("span", { className: "kg-analytical-bars__label" }, it.label),
+          h("span", { className: "kg-analytical-bars__track", "aria-hidden": "true" },
+            h("span", { className: "kg-analytical-bars__zero", style: { left: zero + "%" } }),
+            h("span", { className: "kg-analytical-bars__bar", style: { left: Math.min(zero, end) + "%", width: Math.abs(end - zero) + "%", background: paint } })),
+          h("span", { className: "kg-analytical-bars__value", title: number(it.value) }, number(it.value, p.compactValues)));
+      })),
+      h("div", { className: "kg-analytical-bars__axis", "aria-hidden": "true" }, h("span"), h("div", null, ticks.map(function (v, i) { return h("span", { key: i }, number(v, true)); })), h("span")),
+      dataTable(p.label, ["Category", p.unit || "Value"], items.map(function (it) { return [it.label, number(it.value)]; })));
+  }
+  ["bar-chart", "line-chart", "scatter-chart", "area-chart", "donut-chart", "combo-chart", "stacked-bar-chart", "funnel-chart", "treemap", "sankey", "map", "heatmap", "gauge", "sparkline"].forEach(function (name) {
+    var previous = contracts[core[name]], parts = previous.version.split("."), version = parts[0] + "." + (Number(parts[1]) + 1) + ".0";
+    var iface = previous.implements[0];
+    if (name === "bar-chart") {
+      // New optional events are installed before contract() maps their named
+      // handlers; legacy refs retain their earlier event-free contract.
+      interfaces[iface] = Object.assign({}, interfaces[iface], {
+        props: Object.assign({}, interfaces[iface].props, { interactive: S("boolean"), selected: S("string"), compactValues: S("boolean"), colorBy: S("string", { enum: ["uniform", "category"], default: "uniform" }) }),
+        local: { selected: { type: "string", default: "" } }, outputs: ["selected"],
+        events: { select: { payload: { label: "string", value: "number", index: "number" } } }
+      });
+      DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { $if: [{ $eq: [{ $self: "selected" }, { $event: "label" }] }, "", { $event: "label" }] } }] };
+    }
+    var next = contract("core", name, version, iface, framedChart(name === "bar-chart" ? CoreAnalyticalBars : impls[previous.ref]), {
+      props: Object.assign({}, previous.props, CHART_CONTEXT), tokens: previous.tokens,
+      agent: { use: previous.agent.use + " Use colorDomain:[category labels or series names] in the same order across related charts; category colors remain stable when data order/rank changes. Section palettes do not recolor data. Add takeaway, unit, source and updatedAt for context. status ready|loading|error|stale makes data availability explicit." }
+    });
+    if (name === "bar-chart") {
+      var itemSpec = previous.props.items.items;
+      contracts[next].props.items = Object.assign({}, previous.props.items, { items: Object.assign({}, itemSpec, { properties: Object.assign({}, itemSpec.properties, { category: S("string") }) }) });
+    }
+    core[name] = next;
+  });
+
+  function CoreCanvas(p) {
+    return h("div", { className: "kg-canvas kg-canvas--" + choice(p.personality, ["editorial", "analytical", "exploratory", "teaching", "showcase"], "analytical") + " kg-canvas--" + choice(p.density, ["comfortable", "compact"], "comfortable"), "data-appearance": choice(p.appearance, ["inherit", "light", "dark"], "inherit") },
+      h("div", { className: "kg-canvas__inner" },
+        p.title || p.eyebrow || p.description ? h("header", { className: "kg-canvas__header" },
+          p.eyebrow ? h("p", { className: "kg-canvas__eyebrow" }, p.eyebrow) : null,
+          p.title ? h("h1", null, p.title) : null,
+          p.description ? h("p", { className: "kg-canvas__description" }, p.description) : null) : null,
+        p.actions && p.actions.length ? h("div", { className: "kg-canvas__actions" }, p.actions) : null,
+        h("main", { className: "kg-canvas__content" }, p.children),
+        p.footer && p.footer.length ? h("footer", { className: "kg-canvas__footer" }, p.footer) : null));
+  }
+  interfaces["kages/canvas@1"] = { role: "canvas", summary: "A complete artifact with a coherent presentation personality and optional explicit theme.", props: {
+    title: S("string"), eyebrow: S("string"), description: S("string"),
+    personality: S("string", { enum: ["editorial", "analytical", "exploratory", "teaching", "showcase"], default: "analytical" }),
+    density: S("string", { enum: ["comfortable", "compact"], default: "comfortable" }),
+    appearance: S("string", { enum: ["inherit", "light", "dark"], default: "inherit" })
+  }, slots: { children: {}, actions: {}, footer: {} }, events: {}, outputs: [] };
+  core.canvas = contract("core", "canvas", "1.0.0", "kages/canvas@1", CoreCanvas, { agent: { use: "Root for polished reports and tools. Choose analytical for compact metrics/charts, editorial for reading, exploratory for controls, teaching for progressive lessons, showcase for spacious stories. appearance:dark recreates a restrained dark analytical report; inherit follows the reader. Put metric grids and charts directly in children. Use one personality per artifact and inherit section palettes. Always label illustrative data." } });
+  Object.assign(freeFlowExports, { CoreCanvas: CoreCanvas });
+
+/* Cartesian charts share one bounded coordinate model. Responsive geometry
+ * uses the container width, not a scaled desktop SVG, so phone labels remain
+ * readable. Selection and range changes are data events, never callbacks from
+ * an artifact. Existing refs retain the earlier plot implementations. */
+  function plotNumber(v) { return typeof v === "number" && isFinite(v); }
+  function plotScale(values, min, max, start, end, zero) {
+    var lo = plotNumber(min) ? min : Math.min.apply(null, values), hi = plotNumber(max) ? max : Math.max.apply(null, values);
+    if (zero) { if (!plotNumber(min)) lo = Math.min(0, lo); if (!plotNumber(max)) hi = Math.max(0, hi); }
+    if (lo > hi) { var swap = lo; lo = hi; hi = swap; }
+    if (lo === hi) { if (lo > 0) lo = 0; else if (hi < 0) hi = 0; else hi = 1; }
+    var magnitude = Math.max(Math.abs(lo), Math.abs(hi), 1), a = lo / magnitude, b = hi / magnitude;
+    return { lo: lo, hi: hi,
+      // A bounded offscreen coordinate can be clipped; Infinity cannot. This
+      // also protects explicitly narrow domains against extreme input values.
+      position: function (v) { return start + Math.max(-1, Math.min(2, a === b ? .5 : (v / magnitude - a) / (b - a))) * (end - start); },
+      tick: function (i) { return (a + (b - a) * i / 4) * magnitude; }
+    };
+  }
+  function plotLabel(value, format) {
+    if (format === "date") {
+      var date = new Date(value);
+      return isFinite(date.getTime()) ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(date) : "Invalid date";
+    }
+    return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1, style: format === "currency" ? "currency" : format === "percent" ? "percent" : "decimal", currency: "USD" }).format(value);
+  }
+  function CoreCartesianPlot(p) {
+    var React = R(), element = React.useRef(null), size = React.useState(640), width = size[0];
+    React.useEffect(function () {
+      if (!element.current || typeof W.ResizeObserver !== "function") return;
+      var observer = new W.ResizeObserver(function (entries) { size[1](Math.max(240, Math.min(1600, entries[0].contentRect.width))); });
+      observer.observe(element.current); return function () { observer.disconnect(); };
+    }, []);
+    var focus = React.useState(""), points = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && plotNumber(it.x) && plotNumber(it.y); }).slice(0, 2000);
+    if (!points.length) return emptyChart(p);
+    var left = width < 400 ? 48 : 62, right = width - 20, top = 24, bottom = 250;
+    var x = plotScale(points.map(function (it) { return it.x; }), p.xMin, p.xMax, left, right, false);
+    var ys = []; points.forEach(function (it) { ys.push(it.y); if (plotNumber(it.lower)) ys.push(it.lower); if (plotNumber(it.upper)) ys.push(it.upper); });
+    var y = plotScale(ys, p.yMin, p.yMax, bottom, top, p.kind === "area");
+    var rangeInput = p.range && plotNumber(p.range.min) && plotNumber(p.range.max) ? p.range : { min: x.lo, max: x.hi };
+    var range = { min: Math.max(x.lo, Math.min(x.hi, Math.min(rangeInput.min, rangeInput.max))), max: Math.max(x.lo, Math.min(x.hi, Math.max(rangeInput.min, rangeInput.max))) };
+    var domain = Array.isArray(p.colorDomain) ? p.colorDomain.slice(0, 256) : [];
+    function id(it, i) { return String(it.id == null ? it.label == null ? i : it.label : it.id); }
+    function inRange(it) { return it.x >= range.min && it.x <= range.max; }
+    function coords(it) { return r2(x.position(it.x)) + " " + r2(y.position(it.y)); }
+    var groups = Object.create(null);
+    points.forEach(function (it) { var key = String(it.series || "Series"); (groups[key] || (groups[key] = [])).push(it); });
+    var hidden = Array.isArray(p.hiddenSeries) ? p.hiddenSeries : [];
+    var shapes = [];
+    for (var t = 0; t <= 4; t++) {
+      var xv = x.tick(t), yv = y.tick(t), px = x.position(xv), py = y.position(yv);
+      shapes.push(h("line", { key: "grid" + t, x1: left, x2: right, y1: py, y2: py, stroke: "var(--kg-line)" }));
+      shapes.push(h("text", { key: "ytick" + t, x: left - 8, y: py + 4, textAnchor: "end", fill: "var(--kg-ink-muted)", fontSize: 11 }, plotLabel(yv, p.yFormat)));
+      // Three ticks on phones avoid colliding long date labels.
+      if (width >= 400 || t % 2 === 0) shapes.push(h("text", { key: "xtick" + t, x: px, y: bottom + 20, textAnchor: t === 0 ? "start" : t === 4 ? "end" : "middle", fill: "var(--kg-ink-muted)", fontSize: 11 }, plotLabel(xv, p.xFormat)));
+    }
+    var axes = shapes; shapes = [];
+    if (p.rangeControls) shapes.push(h("rect", { key: "range", x: x.position(range.min), y: top, width: Math.max(0, x.position(range.max) - x.position(range.min)), height: bottom - top, fill: "var(--kg-data-0)", fillOpacity: .06, pointerEvents: "none" }));
+    Object.keys(groups).forEach(function (key) {
+      if (hidden.indexOf(key) >= 0) return;
+      var series = groups[key].slice().sort(function (a, b) { return a.x - b.x; }), paint = Object.keys(groups).length === 1 && !series[0].series ? "var(--kg-data-0)" : categoryPaint(domain, key);
+      var path = series.map(function (it, i) { return (i ? "L" : "M") + coords(it); }).join(" ");
+      var bands = series.filter(function (it) { return plotNumber(it.lower) && plotNumber(it.upper) && it.lower <= it.upper; });
+      if (bands.length === series.length && bands.length > 1) {
+        var band = bands.map(function (it, i) { return (i ? "L" : "M") + r2(x.position(it.x)) + " " + r2(y.position(it.upper)); }).concat(bands.slice().reverse().map(function (it) { return "L" + r2(x.position(it.x)) + " " + r2(y.position(it.lower)); })).join(" ") + " Z";
+        shapes.push(h("path", { key: key + "band", d: band, fill: paint, fillOpacity: .16 }, h("title", null, key + " supplied lower/upper bounds")));
+      }
+      if (p.kind === "area") shapes.push(h("path", { key: key + "area", d: path + " L" + r2(x.position(series[series.length - 1].x)) + " " + y.position(0) + " L" + r2(x.position(series[0].x)) + " " + y.position(0) + " Z", fill: paint, fillOpacity: .15 }));
+      if (p.kind !== "scatter") shapes.push(h("path", { key: key + "line", d: path, fill: "none", stroke: paint, strokeWidth: 2.5 }));
+    });
+    points.forEach(function (it, i) {
+      if (hidden.indexOf(String(it.series || "Series")) >= 0) return;
+      var key = id(it, i), selected = p.selected === key, active = focus[0] === key, outside = !inRange(it);
+      var label = (it.label || key) + ": " + (p.xLabel || "X") + " " + plotLabel(it.x, p.xFormat) + ", " + (p.yLabel || "Y") + " " + plotLabel(it.y, p.yFormat);
+      var attrs = { key: "point" + i, "data-point-id": key, cx: r2(x.position(it.x)), cy: r2(y.position(it.y)), r: selected || active ? 7 : 4, fill: it.series ? categoryPaint(domain, String(it.series)) : "var(--kg-data-0)", opacity: outside ? .25 : 1, stroke: selected || active ? "var(--kg-ink)" : "var(--kg-paper)", strokeWidth: selected || active ? 2 : 1, "aria-label": label };
+      attrs.onMouseEnter = function () { focus[1](key); }; attrs.onMouseLeave = function () { focus[1](""); };
+      attrs.onFocus = function () { focus[1](key); }; attrs.onBlur = function () { focus[1](""); };
+      if (p.interactive) {
+        var select = function () { fire(p.onSelect, { id: key, label: String(it.label || key), x: it.x, y: it.y, index: i }); };
+        attrs.role = "button"; attrs.tabIndex = 0; attrs["aria-pressed"] = selected; attrs.onClick = select;
+        attrs.onKeyDown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(); } };
+      }
+      shapes.push(h("circle", attrs, h("title", null, label)));
+    });
+    (Array.isArray(p.annotations) ? p.annotations : []).slice(0, 20).forEach(function (a, i) {
+      if (!a || !plotNumber(a.value)) return;
+      var vertical = a.axis === "x", pos = vertical ? x.position(a.value) : y.position(a.value);
+      if (vertical ? pos < left || pos > right : pos < top || pos > bottom) return;
+      shapes.push(h("line", { key: "rule" + i, x1: vertical ? pos : left, x2: vertical ? pos : right, y1: vertical ? top : pos, y2: vertical ? bottom : pos, stroke: "var(--kg-ink-muted)", strokeDasharray: "4 4" }));
+      shapes.push(h("text", { key: "rulelabel" + i, x: vertical ? pos + 4 : right, y: vertical ? top + 12 : pos - 5, textAnchor: vertical ? "start" : "end", fontSize: 11, fill: "var(--kg-ink)" }, shortLabel(a.label || String(a.value), 28)));
+    });
+    var chosen = points.find(function (it, i) { return hidden.indexOf(String(it.series || "Series")) < 0 && id(it, i) === (focus[0] || p.selected); });
+    if (chosen) shapes.push(h("path", { key: "crosshair", d: "M" + left + " " + y.position(chosen.y) + " H" + right + " M" + x.position(chosen.x) + " " + top + " V" + bottom, fill: "none", stroke: "var(--kg-ink-muted)", strokeDasharray: "2 4", pointerEvents: "none" }));
+    function changeRange(min, max) { fire(p.onRangeChange, { min: min, max: max }); }
+    return h("div", { ref: element, className: "kg-cartesian" },
+      h("div", { className: "kg-cartesian__labels" }, h("span", null, p.yLabel || p.unit || "Value"), h("span", null, p.xLabel || "Position")),
+      h("svg", { viewBox: "0 0 " + width + " 290", style: { width: "100%", height: 290 }, role: p.interactive ? "group" : "img", "aria-label": p.label }, h("title", null, p.label), axes,
+        h("svg", { x: left - 8, y: top - 8, width: right - left + 16, height: bottom - top + 16, viewBox: (left - 8) + " " + (top - 8) + " " + (right - left + 16) + " " + (bottom - top + 16), overflow: "hidden" }, shapes)),
+      h("p", { className: "kg-cartesian__detail", "aria-live": "polite" }, chosen ? (chosen.label || "Point") + " · " + (p.xLabel || "X") + ": " + plotLabel(chosen.x, p.xFormat) + " · " + (p.yLabel || "Y") + ": " + plotLabel(chosen.y, p.yFormat) : p.interactive ? "Select a point to inspect it. Tab and Enter work too." : "Hover a point for its values; the full data is available below."),
+      p.rangeControls && x.lo < x.hi ? h("div", { className: "kg-cartesian__range" },
+        h("label", null, "Range start: " + plotLabel(range.min, p.xFormat), h("input", { type: "range", min: x.lo, max: x.hi, step: "any", value: range.min, onChange: function (e) { changeRange(Math.min(Number(e.target.value), range.max), range.max); } })),
+        h("label", null, "Range end: " + plotLabel(range.max, p.xFormat), h("input", { type: "range", min: x.lo, max: x.hi, step: "any", value: range.max, onChange: function (e) { changeRange(range.min, Math.max(range.min, Number(e.target.value))); } })),
+        h("button", { type: "button", onClick: function () { changeRange(x.lo, x.hi); } }, "Reset range")) : null,
+      Object.keys(groups).length > 1 ? h("ul", { className: "kg-legend kg-legend--row" }, Object.keys(groups).map(function (key) {
+        var toggle = typeof p.onLegendChange === "function";
+        return h("li", { key: key }, h(toggle ? "button" : "span", toggle ? { type: "button", className: "kg-cartesian__legend", "aria-pressed": hidden.indexOf(key) < 0, onClick: function () { fire(p.onLegendChange, { hidden: hidden.indexOf(key) >= 0 ? hidden.filter(function (name) { return name !== key; }) : hidden.concat([key]) }); } } : {}, h("span", { className: "kg-legend__swatch", style: { background: categoryPaint(domain, key) } }), key));
+      })) : null,
+      dataTable(p.label, ["Label", p.xLabel || "X", p.yLabel || "Y", "Series", "Lower", "Upper"], points.map(function (it, i) { return [it.label || id(it, i), it.x, it.y, it.series || "–", plotNumber(it.lower) ? it.lower : "–", plotNumber(it.upper) ? it.upper : "–"]; })));
+  }
+  HANDLER.rangeChange = "onRangeChange";
+  HANDLER.legendChange = "onLegendChange";
+  ["line-chart", "scatter-chart", "area-chart"].forEach(function (name) {
+    var previous = contracts[core[name]], iface = previous.implements[0];
+    var extras = {
+      interactive: S("boolean"), selected: S("string"), rangeControls: S("boolean"), range: S("object"), hiddenSeries: S("array", { items: S("string") }),
+      xMin: S("number"), xMax: S("number"), yMin: S("number"), yMax: S("number"),
+      xFormat: S("string", { enum: ["number", "date"], default: "number" }), yFormat: S("string", { enum: ["number", "currency", "percent"], default: "number" }),
+      annotations: S("array", { items: S("object", { properties: { axis: S("string", { enum: ["x", "y"] }), value: S("number"), label: S("string") }, requiredKeys: ["axis", "value"] }) })
+    };
+    var itemSpec = previous.props.items.items;
+    extras.items = Object.assign({}, previous.props.items, { items: Object.assign({}, itemSpec, { properties: Object.assign({}, itemSpec.properties, { id: S("string"), series: S("string"), lower: S("number"), upper: S("number") }) }) });
+    interfaces[iface] = Object.assign({}, interfaces[iface], { props: Object.assign({}, interfaces[iface].props, extras), local: { selected: { type: "string", default: "" }, range: { type: "object", default: {} }, hiddenSeries: { type: "array", default: [] } }, outputs: ["selected", "range", "hiddenSeries"], events: { select: { payload: { id: "string", label: "string", x: "number", y: "number", index: "number" } }, rangeChange: { payload: { min: "number", max: "number" } }, legendChange: { payload: { hidden: "array" } } } });
+    DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { $event: "id" } }], rangeChange: [{ do: "setLocal", key: "range", value: { min: { $event: "min" }, max: { $event: "max" } } }], legendChange: [{ do: "setLocal", key: "hiddenSeries", value: { $event: "hidden" } }] };
+    core[name] = contract("core", name, "1.2.0", iface, framedChart(function (p) { return h(CoreCartesianPlot, Object.assign({}, p, { kind: name.split("-")[0] })); }), {
+      props: Object.assign({}, previous.props, extras), tokens: previous.tokens,
+      agent: { use: "items [{id?,x,y,label?,series?,lower?,upper?}]. Uses responsive axes, optional supplied uncertainty bounds and reference annotations [{axis:x|y,value,label?}]. xFormat:date interprets numeric milliseconds in UTC. Set xMin/xMax/yMin/yMax for comparable scales. interactive:true selects points and exposes selected; select emits {id,label,x,y,index}. rangeControls:true exposes range {min,max} and rangeChange {min,max} for linked filters. Supply unique IDs for stable identity. colorDomain maps series names to stable colors. Bounds are supplied evidence, never inferred confidence. " + previous.agent.use }
+    });
+  });
+  Object.assign(freeFlowExports, { CoreCartesianPlot: CoreCartesianPlot });
+
+/* Graph exploration is an optional reader surface over bounded diagram data.
+ * It never intercepts wheel events: ordinary scrolling must remain usable in
+ * embedded previews and published pages. Collapsing groups preserves edges by
+ * projecting them onto explicit summary nodes rather than dropping relations. */
+  function CoreGraphExplorer(p) {
+    var React = R(), query = React.useState(""), zoom = React.useState(1), neighbors = React.useState(false), viewport = React.useRef(null);
+    var nodes = (Array.isArray(p.nodes) ? p.nodes : []).filter(function (n) { return n && typeof n.id === "string"; }).slice(0, 200);
+    var edges = (Array.isArray(p.edges) ? p.edges : []).filter(function (e) { return e && typeof e.from === "string" && typeof e.to === "string"; }).slice(0, 400);
+    var groups = []; nodes.forEach(function (n) { if (n.group && groups.indexOf(n.group) < 0) groups.push(n.group); });
+    var collapsed = Array.isArray(p.collapsedGroups) ? p.collapsedGroups : [], projected = Object.create(null), summary = Object.create(null), shown = [];
+    groups.forEach(function (group) {
+      if (collapsed.indexOf(group) < 0) return;
+      var key = "group:" + group;
+      while (nodes.some(function (n) { return n.id === key; }) || summary[key]) key = "_" + key;
+      summary[key] = group;
+      var members = nodes.filter(function (n) { return n.group === group; });
+      shown.push({ id: key, label: group + " · " + members.length + " nodes", group: "Select to expand", palette: members[0].palette });
+      members.forEach(function (n) { projected[n.id] = key; });
+    });
+    nodes.forEach(function (n) { if (!projected[n.id]) { projected[n.id] = n.id; shown.push(n); } });
+    var projectedEdges = [], used = Object.create(null);
+    edges.forEach(function (e) {
+      var from = projected[e.from], to = projected[e.to]; if (!from || !to || from === to) return;
+      var key = JSON.stringify([from, to]);
+      if (used[key]) { used[key].count++; used[key].label = used[key].count + " connections"; }
+      else { var copy = Object.assign({}, e, { from: from, to: to, count: 1 }); used[key] = copy; projectedEdges.push(copy); }
+    });
+    var connected = p.selected ? [projected[p.selected] || p.selected] : [];
+    projectedEdges.forEach(function (e) { if (e.from === connected[0]) connected.push(e.to); if (e.to === connected[0]) connected.push(e.from); });
+    var matches = query[0].trim() ? nodes.filter(function (n) { return String(n.label || n.id).toLowerCase().indexOf(query[0].trim().toLowerCase()) >= 0; }) : [];
+    function setGroups(value) { fire(p.onGroupsChange, { groups: value }); }
+    function select(id) {
+      if (summary[id]) { setGroups(collapsed.filter(function (g) { return g !== summary[id]; })); return; }
+      var node = nodes.find(function (n) { return n.id === id; });
+      if (node && collapsed.indexOf(node.group) >= 0) setGroups(collapsed.filter(function (g) { return g !== node.group; }));
+      fire(p.onSelect, { id: id });
+    }
+    function fit() {
+      if (!viewport.current) return;
+      var svg = Array.from(viewport.current.querySelectorAll("svg")).find(function (el) { return el.getClientRects().length && getComputedStyle(el).display !== "none"; });
+      if (svg && svg.viewBox.baseVal.width) zoom[1](Math.max(.25, Math.min(1, viewport.current.clientWidth / svg.viewBox.baseVal.width)));
+      viewport.current.scrollTo({ left: 0, top: 0 });
+    }
+    var layout = choice(p.layout, ["auto", "horizontal", "vertical", "grid", "tree", "swimlane", "sequence"], "auto");
+    var content = h(CoreDiagramV2, Object.assign({}, p, { nodes: shown, edges: projectedEdges, selected: projected[p.selected] || p.selected, interactive: p.explore || p.interactive, layout: layout === "tree" ? "vertical" : layout === "swimlane" || layout === "sequence" ? "horizontal" : layout, __layout: layout, __connected: neighbors[0] && connected.length ? connected : null, onSelect: function (e) { select(e.id); } }));
+    if (!p.explore) return content;
+    return h("section", { className: "kg-graph-explorer", "aria-label": p.label },
+      h("div", { className: "kg-graph-explorer__tools" },
+        h("label", null, "Find a node", h("input", { type: "search", value: query[0], placeholder: "Search labels", onChange: function (e) { query[1](e.target.value.slice(0, 200)); } })),
+        h("button", { type: "button", onClick: fit }, "Fit graph"),
+        h("button", { type: "button", disabled: zoom[0] <= .25, "aria-label": "Zoom out", onClick: function () { zoom[1](Math.max(.25, zoom[0] - .25)); } }, "−"),
+        h("output", { "aria-label": "Graph zoom" }, Math.round(zoom[0] * 100) + "%"),
+        h("button", { type: "button", disabled: zoom[0] >= 2, "aria-label": "Zoom in", onClick: function () { zoom[1](Math.min(2, zoom[0] + .25)); } }, "+"),
+        h("label", { className: "kg-graph-explorer__check" }, h("input", { type: "checkbox", checked: neighbors[0], onChange: function (e) { neighbors[1](e.target.checked); } }), "Highlight neighbors")),
+      query[0].trim() ? h("div", { className: "kg-graph-explorer__matches" }, h("p", { role: "status" }, matches.length + " matching nodes"), matches.slice(0, 20).map(function (n) { return h("button", { key: n.id, type: "button", onClick: function () { select(n.id); } }, n.label || n.id); })) : null,
+      groups.length ? h("div", { className: "kg-graph-explorer__groups" }, h("span", null, "Groups"), groups.map(function (group) { var open = collapsed.indexOf(group) < 0; return h("button", { key: group, type: "button", "aria-expanded": open, onClick: function () { setGroups(open ? collapsed.concat([group]) : collapsed.filter(function (g) { return g !== group; })); } }, (open ? "Collapse " : "Expand ") + group); })) : null,
+      h("div", { ref: viewport, className: "kg-graph-explorer__viewport", tabIndex: 0, "aria-label": "Graph viewport; scroll to explore" }, h("div", { style: { zoom: zoom[0] } }, content)),
+      h("p", { className: "kg-graph-explorer__hint" }, "Use the zoom buttons to inspect the graph. Mouse wheel continues to scroll."));
+  }
+  HANDLER.groupsChange = "onGroupsChange";
+  var graphPrevious = contracts[core.diagram], graphInterface = graphPrevious.implements[0];
+  var graphProps = { explore: S("boolean"), collapsedGroups: S("array", { items: S("string") }), layout: S("string", { enum: ["auto", "horizontal", "vertical", "grid", "tree", "swimlane", "sequence"], default: "auto" }) };
+  interfaces[graphInterface] = Object.assign({}, interfaces[graphInterface], { props: Object.assign({}, interfaces[graphInterface].props, graphProps), events: Object.assign({}, interfaces[graphInterface].events, { groupsChange: { payload: { groups: "array" } } }), local: Object.assign({}, graphPrevious.local, { collapsedGroups: { type: "array", default: [] } }), outputs: ["selected", "collapsedGroups"] });
+  DEFAULTS.diagram = Object.assign({}, graphPrevious.defaults, { groupsChange: [{ do: "setLocal", key: "collapsedGroups", value: { $event: "groups" } }] });
+  core.diagram = contract("core", "diagram", "1.3.0", graphInterface, CoreGraphExplorer, { props: Object.assign({}, graphPrevious.props, graphProps), tokens: graphPrevious.tokens, agent: { use: graphPrevious.agent.use + " explore:true adds search, fit, zoom, neighbor highlighting and collapsible groups without intercepting wheel input. collapsedGroups is public state; groupsChange emits {groups}. layout:tree is vertical; swimlane groups rows, sequence keeps input order. Group summaries preserve external connections and expand on selection." } });
+  Object.assign(freeFlowExports, { CoreGraphExplorer: CoreGraphExplorer });
+
+/* Distribution and change views accept bounded data and keep exact values in
+ * tables. Box plots render supplied summaries: the renderer never invents a
+ * statistical test or confidence interval. Small multiples share domains so
+ * independently autoscaled panels cannot exaggerate a comparison. */
+  function CoreHistogram(p) {
+    var values = (Array.isArray(p.values) ? p.values : []).filter(plotNumber).slice(0, 10000);
+    if (!values.length) return emptyChart(p);
+    var lo = Math.min.apply(null, values), hi = Math.max.apply(null, values), magnitude = Math.max(1, Math.abs(lo), Math.abs(hi));
+    var a = lo / magnitude, b = hi / magnitude, count = lo === hi ? 1 : Math.max(2, Math.min(30, Math.floor(richNum(p.bins, 10))));
+    var buckets = Array.from({ length: count }, function (_, i) { return { lo: (a + (b - a) * i / count) * magnitude, hi: (a + (b - a) * (i + 1) / count) * magnitude, value: 0 }; });
+    values.forEach(function (v) { var at = lo === hi ? 0 : Math.min(count - 1, Math.floor((v / magnitude - a) / (b - a) * count)); buckets[Math.max(0, at)].value++; });
+    var max = Math.max.apply(null, buckets.map(function (bucket) { return bucket.value; }));
+    return h("figure", { className: "kg-histogram", "aria-label": p.label }, h("figcaption", null, p.label),
+      h("p", { className: "kg-chart-frame__unit" }, values.length + " observations · " + count + " equal-width bins"),
+      h("div", { className: "kg-histogram__bars" }, buckets.map(function (bucket, i) {
+        var label = plotLabel(bucket.lo) + " to " + plotLabel(bucket.hi), chosen = p.selected === String(i);
+        return h("button", { key: i, type: "button", className: "kg-histogram__bin", "aria-label": label + ": " + bucket.value + " observations", "aria-pressed": chosen, onClick: function () { fire(p.onSelect, { id: String(i), min: bucket.lo, max: bucket.hi, count: bucket.value }); } },
+          h("span", { className: "kg-histogram__column", style: { height: (bucket.value / max * 100) + "%" } }, h("span", null, bucket.value)), count <= 8 ? h("span", { className: "kg-histogram__index" }, label) : null);
+      })),
+      h("div", { className: "kg-histogram__extent" }, h("span", null, plotLabel(lo)), h("span", null, plotLabel(hi))),
+      p.selected !== "" && buckets[Number(p.selected)] ? h("p", { role: "status" }, "Selected bin " + (Number(p.selected) + 1) + ": " + buckets[Number(p.selected)].value + " observations, " + plotLabel(buckets[Number(p.selected)].lo) + " to " + plotLabel(buckets[Number(p.selected)].hi)) : null,
+      h("p", { className: "kg-chart-frame__unit" }, "Bins include the lower edge and exclude the upper edge, except the last bin includes both."),
+      dataTable(p.label, ["Bin", "From", "To", "Count"], buckets.map(function (bucket, i) { return [i + 1, bucket.lo, bucket.hi, bucket.value]; })));
+  }
+  function CoreBoxPlot(p) {
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && [it.min, it.q1, it.median, it.q3, it.max].every(plotNumber) && it.min <= it.q1 && it.q1 <= it.median && it.median <= it.q3 && it.q3 <= it.max; }).slice(0, 50);
+    if (!items.length) return emptyChart(p);
+    var all = []; items.forEach(function (it) { all.push(it.min, it.max); });
+    var scale = plotScale(all, p.min, p.max, 8, 92, false), domain = Array.isArray(p.colorDomain) ? p.colorDomain : [];
+    return h("figure", { className: "kg-box-plot", "aria-label": p.label }, h("figcaption", null, p.label),
+      items.map(function (it, i) { var paint = domain.length ? categoryPaint(domain, it.label) : "var(--kg-data-0)"; return h("div", { className: "kg-box-plot__row", key: i }, h("strong", null, it.label),
+        h("svg", { viewBox: "0 0 100 16", role: "img", "aria-label": it.label + ": median " + it.median + ", range " + it.min + " to " + it.max, preserveAspectRatio: "none" },
+          h("line", { x1: scale.position(it.min), x2: scale.position(it.max), y1: 8, y2: 8, stroke: "var(--kg-ink-muted)", strokeWidth: .4 }),
+          [it.min, it.max].map(function (v, j) { return h("line", { key: j, x1: scale.position(v), x2: scale.position(v), y1: 5, y2: 11, stroke: "var(--kg-ink-muted)", strokeWidth: .4 }); }),
+          h("rect", { x: scale.position(it.q1), y: 3, width: Math.max(.2, scale.position(it.q3) - scale.position(it.q1)), height: 10, fill: paint, fillOpacity: .3, stroke: paint, strokeWidth: .4 }),
+          h("line", { x1: scale.position(it.median), x2: scale.position(it.median), y1: 3, y2: 13, stroke: "var(--kg-ink)", strokeWidth: .6 })),
+        h("span", null, "Median " + plotLabel(it.median)));
+      }),
+      h("div", { className: "kg-histogram__extent" }, h("span", null, plotLabel(scale.lo)), h("span", null, plotLabel(scale.hi))),
+      h("p", { className: "kg-chart-frame__unit" }, "Box: supplied first to third quartile. Line: median. Whiskers: supplied minimum and maximum."),
+      dataTable(p.label, ["Group", "Minimum", "Q1", "Median", "Q3", "Maximum"], items.map(function (it) { return [it.label, it.min, it.q1, it.median, it.q3, it.max]; })));
+  }
+  function CoreWaterfall(p) {
+    var running = 0, invalid = false;
+    var items = (Array.isArray(p.items) ? p.items : []).filter(function (it) { return it && plotNumber(it.value); }).slice(0, 50).map(function (it) {
+      var start = it.total ? 0 : running, end = it.total ? it.value : running + it.value;
+      if (!isFinite(end)) invalid = true;
+      running = end; return { label: it.label, value: it.value, total: !!it.total, start: start, end: end };
+    });
+    if (invalid) return h("p", { role: "alert" }, "The cumulative values exceed the supported numeric range. Rescale the units.");
+    if (!items.length) return emptyChart(p);
+    var values = [0]; items.forEach(function (it) { values.push(it.start, it.end); });
+    var scale = plotScale(values, undefined, undefined, 100, 0, true);
+    return h("figure", { className: "kg-waterfall", "aria-label": p.label }, h("figcaption", null, p.label),
+      h("div", { className: "kg-waterfall__columns" }, items.map(function (it, i) {
+        var top = Math.min(scale.position(it.start), scale.position(it.end)), height = Math.abs(scale.position(it.end) - scale.position(it.start));
+        return h("div", { key: i, className: "kg-waterfall__column" },
+          h("div", { className: "kg-waterfall__plot", "aria-label": it.label + ": " + it.value + ", running total " + it.end },
+            h("span", { className: "kg-waterfall__zero", style: { top: scale.position(0) + "%" } }),
+            h("span", { className: "kg-waterfall__bar", style: { top: top + "%", height: Math.max(.5, height) + "%", background: it.total ? "var(--kg-data-2)" : it.value >= 0 ? "var(--kg-data-0)" : "var(--kg-data-1)" } })),
+          h("strong", null, plotLabel(it.value, p.format)), h("span", null, it.label));
+      })),
+      h("p", { className: "kg-chart-frame__unit" }, "Blue adds; cyan subtracts; violet is an explicit total. Final value: " + plotLabel(running, p.format)),
+      dataTable(p.label, ["Step", "Value", "Running total", "Explicit total"], items.map(function (it) { return [it.label, it.value, it.end, it.total ? "Yes" : "No"]; })));
+  }
+  function CoreSmallMultiples(p) {
+    var panels = (Array.isArray(p.panels) ? p.panels : []).filter(function (panel) { return panel && Array.isArray(panel.items); }).slice(0, 12);
+    var xs = [], ys = [];
+    panels.forEach(function (panel) { panel.items.slice(0, 1000).forEach(function (it) { if (it && plotNumber(it.x) && plotNumber(it.y)) { xs.push(it.x); ys.push(it.y); if (plotNumber(it.lower)) ys.push(it.lower); if (plotNumber(it.upper)) ys.push(it.upper); } }); });
+    if (!xs.length) return emptyChart(p);
+    var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs), ymin = Math.min.apply(null, ys), ymax = Math.max.apply(null, ys);
+    return h("div", { className: "kg-small-multiples" }, panels.map(function (panel, i) {
+      var props = Object.assign({}, p, { label: String(panel.label || "Panel " + (i + 1)), items: panel.items.slice(0, 1000), kind: p.kind === "scatter" ? "scatter" : "line", xMin: xmin, xMax: xmax, yMin: ymin, yMax: ymax, rangeControls: false, selected: p.selected && p.selected.panel === String(i) ? p.selected.id : "", onSelect: function (e) { fire(p.onSelect, Object.assign({}, e, { panel: String(i) })); } });
+      return h("section", { key: i, className: "kg-small-multiples__panel" }, h("h4", null, props.label), h(CoreCartesianPlot, props));
+    }));
+  }
+  var STATISTICAL = {
+    "histogram-chart": { summary: "Frequency distribution with equal-width bins, selectable ranges and exact counts.", props: { label: S("string", { required: true }), values: S("array", { required: true, items: S("number") }), bins: S("number"), selected: S("string"), empty: S("string") }, local: { selected: { type: "string", default: "" } }, outputs: ["selected"], events: { select: { payload: { id: "string", min: "number", max: "number", count: "number" } } } },
+    "box-plot": { summary: "Compare supplied five-number summaries on a shared horizontal scale.", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), min: S("number"), q1: S("number"), median: S("number"), q3: S("number"), max: S("number") }, requiredKeys: ["label", "min", "q1", "median", "q3", "max"] }) }), min: S("number"), max: S("number"), empty: S("string") } },
+    "waterfall-chart": { summary: "Explain positive/negative contributions and explicit totals in sequence.", props: { label: S("string", { required: true }), items: S("array", { required: true, items: S("object", { properties: { label: S("string"), value: S("number"), total: S("boolean") }, requiredKeys: ["label", "value"] }) }), format: S("string", { enum: ["number", "currency", "percent"] }), empty: S("string") } },
+    "small-multiples": { summary: "Compare up to twelve line or scatter panels using the same X/Y domains.", props: { label: S("string", { required: true }), panels: S("array", { required: true, items: S("object", { properties: { label: S("string"), items: contracts[core["line-chart"]].props.items }, requiredKeys: ["label", "items"] }) }), kind: S("string", { enum: ["line", "scatter"], default: "line" }), interactive: S("boolean"), selected: S("object"), xLabel: S("string"), yLabel: S("string"), empty: S("string") }, local: { selected: { type: "object", default: {} } }, outputs: ["selected"], events: { select: { payload: { panel: "string", id: "string", label: "string", x: "number", y: "number", index: "number" } } } }
+  };
+  var statisticalImpls = { "histogram-chart": CoreHistogram, "box-plot": CoreBoxPlot, "waterfall-chart": CoreWaterfall, "small-multiples": CoreSmallMultiples };
+  Object.keys(STATISTICAL).forEach(function (name) {
+    var I = STATISTICAL[name]; I.role = name; I.props = Object.assign({}, I.props, CHART_CONTEXT); I.slots = {}; I.events = I.events || {}; I.outputs = I.outputs || [];
+    interfaces["kages/" + name + "@1"] = I;
+    if (name === "histogram-chart") DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { $event: "id" } }] };
+    if (name === "small-multiples") DEFAULTS[name] = { select: [{ do: "setLocal", key: "selected", value: { panel: { $event: "panel" }, id: { $event: "id" } } }] };
+    core[name] = contract("core", name, "1.0.0", "kages/" + name + "@1", framedChart(statisticalImpls[name]), { agent: { use: I.summary + " Supply a takeaway, unit and source; label sample data illustrative. Histogram: values and bins (2–30); select emits bin id/min/max/count. Box: ordered min/q1/median/q3/max, never inferred confidence. Waterfall: items {label,value,total?}; total sets the running value. Small multiples: panels [{label,items:[{x,y,id?,label?}]}], shared domains and optional point selection." } });
+  });
+  Object.assign(freeFlowExports, { CoreHistogram: CoreHistogram, CoreBoxPlot: CoreBoxPlot, CoreWaterfall: CoreWaterfall, CoreSmallMultiples: CoreSmallMultiples });
+
+/* Local CSV intake has an explicit preview/commit boundary. Parsing treats
+ * cells as data (including formula-looking strings), bounds work and rejects
+ * prototype-shaped headers before rows can enter expression state. */
+  function parseCsvPreview(input, overrides) {
+    var text = typeof input === "string" ? input.replace(/^\uFEFF/, "") : "", errors = [];
+    if (text.length > 1000000) return { columns: [], rows: [], types: {}, errors: ["CSV exceeds 1,000,000 characters."] };
+    if (!text.trim()) return { columns: [], rows: [], types: {}, errors: [] };
+    var matrix = [], row = [], cell = "", quoted = false, closed = false;
+    function pushCell() { row.push(cell); cell = ""; closed = false; }
+    function pushRow() { pushCell(); if (row.some(function (value) { return value !== ""; })) matrix.push(row); row = []; }
+    for (var i = 0; i < text.length; i++) {
+      var char = text[i];
+      if (quoted) {
+        if (char === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else { quoted = false; closed = true; } }
+        else cell += char;
+      } else if (char === ',' || char === '\n' || char === '\r') {
+        if (char === ',') pushCell();
+        else { if (char === '\r' && text[i + 1] === '\n') i++; pushRow(); }
+      } else if (char === '"' && !cell && !closed) quoted = true;
+      else if (closed || char === '"') { errors.push("Unexpected text or quote after a CSV field at character " + (i + 1) + "."); break; }
+      else cell += char;
+      if (row.length > 50 || matrix.length > 5001) { errors.push("CSV supports at most 50 columns and 5,000 data rows."); break; }
+    }
+    if (quoted) errors.push("A quoted field was not closed.");
+    if (cell || row.length || closed) pushRow();
+    var columns = (matrix.shift() || []).map(function (name) { return name.trim(); }), seen = Object.create(null);
+    columns.forEach(function (name) { if (!name || seen[name] || ["__proto__", "prototype", "constructor"].indexOf(name) >= 0) errors.push("Headers must be nonempty, unique and safe: " + name); seen[name] = true; });
+    if (columns.length > 50 || matrix.length > 5000) errors.push("CSV supports at most 50 columns and 5,000 data rows.");
+    matrix.forEach(function (r, index) { if (r.length !== columns.length) errors.push("Row " + (index + 2) + " has " + r.length + " fields; expected " + columns.length + "."); });
+    if (errors.length) return { columns: columns.slice(0, 50), rows: [], types: {}, errors: errors.slice(0, 8) };
+    var types = Object.create(null);
+    function numeric(value) { return /^[-+]?(?:0|[1-9]\d*)(?:\.\d+)?(?:e[-+]?\d+)?$/i.test(value) && isFinite(Number(value)); }
+    columns.forEach(function (name, index) {
+      var nonempty = matrix.map(function (r) { return r[index].trim(); }).filter(Boolean);
+      var inferred = nonempty.length && nonempty.every(numeric) ? "number" : nonempty.length && nonempty.every(function (v) { return /^(true|false)$/i.test(v); }) ? "boolean" : "string";
+      types[name] = overrides && Object.prototype.hasOwnProperty.call(overrides, name) ? choice(overrides[name], ["string", "number", "boolean"], inferred) : inferred;
+    });
+    var rows = matrix.map(function (cells, index) {
+      var result = Object.create(null);
+      columns.forEach(function (name, j) {
+        var value = cells[j], trimmed = value.trim(), type = types[name];
+        if (type === "number") {
+          if (trimmed && !numeric(trimmed)) errors.push("Row " + (index + 2) + ", " + name + ": expected a finite number.");
+          result[name] = trimmed && numeric(trimmed) ? Number(trimmed) : null;
+        } else if (type === "boolean") {
+          if (trimmed && !/^(true|false)$/i.test(trimmed)) errors.push("Row " + (index + 2) + ", " + name + ": expected true or false.");
+          result[name] = trimmed ? trimmed.toLowerCase() === "true" : null;
+        } else result[name] = value;
+      });
+      return result;
+    });
+    return { columns: columns, rows: errors.length ? [] : rows, types: types, errors: errors.slice(0, 8) };
+  }
+  function CoreCsvImport(p) {
+    var React = R(), uid = React.useId(), draft = React.useState(p.text || ""), overrides = React.useState({}), notice = React.useState(""), revision = React.useRef(0);
+    React.useEffect(function () { revision.current++; draft[1](p.text || ""); overrides[1]({}); notice[1](""); }, [p.text]);
+    var parsed = React.useMemo(function () { return parseCsvPreview(draft[0], overrides[0]); }, [draft[0], overrides[0]]);
+    function change(text) { revision.current++; draft[1](text); overrides[1]({}); notice[1](""); }
+    function pick(e) {
+      var file = e.target.files && e.target.files[0], token = ++revision.current;
+      if (!file) return;
+      if (file.size > 1000000) { notice[1]("File exceeds 1 MB; choose a smaller CSV."); return; }
+      file.text().then(function (text) { if (token === revision.current) change(text); }, function () { if (token === revision.current) notice[1]("Could not read the selected file."); });
+    }
+    return h("section", { className: "kg-csv-import", "aria-label": p.label },
+      h("h3", null, p.label), h("p", { className: "kg-chart-frame__unit" }, "Preview and choose column types before importing. Preview is local. Import applies this Kage's configured data actions."),
+      h("label", { htmlFor: uid + "-file" }, "Choose CSV"), h("input", { id: uid + "-file", type: "file", accept: ".csv,text/csv", onChange: pick }),
+      h("label", { htmlFor: uid + "-text" }, "Or paste CSV"), h("textarea", { id: uid + "-text", rows: 5, value: draft[0], maxLength: 1000000, onChange: function (e) { change(e.target.value); } }),
+      parsed.columns.length ? h("div", { className: "kg-csv-import__types" }, parsed.columns.map(function (name) { return h("label", { key: name }, name, h("select", { value: parsed.types[name] || "string", onChange: function (e) { var next = Object.assign(Object.create(null), overrides[0]); next[name] = e.target.value; overrides[1](next); notice[1](""); } }, ["string", "number", "boolean"].map(function (type) { return h("option", { key: type, value: type }, type); }))); })) : null,
+      parsed.errors.length ? h("ul", { role: "alert" }, parsed.errors.map(function (error, i) { return h("li", { key: i }, error); })) : null,
+      parsed.rows.length ? h("div", { className: "kg-csv-import__preview" }, h("p", null, parsed.rows.length + " rows · preview of the first five"), dataTable("Import preview", parsed.columns, parsed.rows.slice(0, 5).map(function (row) { return parsed.columns.map(function (key) { return row[key] == null ? "–" : String(row[key]); }); }), { open: true, summary: "Preview rows" })) : null,
+      h("button", { type: "button", disabled: !parsed.rows.length || !!parsed.errors.length, onClick: function () { fire(p.onImport, { rows: parsed.rows, columns: parsed.columns, types: parsed.types }); notice[1]("Imported " + parsed.rows.length + " rows into this session. Saving or sharing depends on the Kage's configured actions."); } }, "Import data"),
+      notice[0] ? h("p", { role: "status" }, notice[0]) : null);
+  }
+  HANDLER.import = "onImport";
+  interfaces["kages/csv-import@1"] = { role: "csv-import", summary: "Preview local CSV, choose safe column types, then explicitly import rows into artifact state.", props: { label: S("string", { required: true }), text: S("string"), rows: S("array"), columns: S("array", { items: S("string") }), types: S("object") }, slots: {}, local: { rows: { type: "array", default: [] }, columns: { type: "array", default: [] }, types: { type: "object", default: {} } }, outputs: ["rows", "columns", "types"], events: { import: { payload: { rows: "array", columns: "array", types: "object" } } } };
+  DEFAULTS["csv-import"] = { import: [{ do: "setLocal", key: "rows", value: { $event: "rows" } }, { do: "setLocal", key: "columns", value: { $event: "columns" } }, { do: "setLocal", key: "types", value: { $event: "types" } }] };
+  core["csv-import"] = contract("core", "csv-import", "1.0.0", "kages/csv-import@1", CoreCsvImport, { agent: { use: "Local CSV intake with quoted fields, type preview and explicit Import data. Bounds: 1 MB, 50 columns, 5,000 rows. Leading-zero identifiers remain strings. Public rows/columns/types update only after import; wire import to state for charts and tables. Does not upload, persist or share data by itself; make configured storage scope visible before saving." } });
+  Object.assign(freeFlowExports, { CoreCsvImport: CoreCsvImport });
+  freeFlowExports.parseCsvPreview = parseCsvPreview;
+
   var ledger = {
     sidebar: contract("ledger", "sidebar", "2.0.0", "kages/nav@1", LedgerSidebar, { tokens: ["ledger-sunken", "ledger-line", "ledger-accent"], agent: { use: "Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers.", avoid: "Long labels; Ledger truncates at one line." } }),
     dropdown: contract("ledger", "dropdown", "2.0.0", "kages/select@1", LedgerDropdown, { limits: { maxOptions: 6 }, tokens: ["ledger-line-control", "ledger-accent", "ledger-accent-ink"], agent: { use: "Segmented control: every option visible, one tap. Up to 6 short options.", avoid: "Long or dynamic option lists — pin `core/dropdown@1` for those." } }),
@@ -2084,9 +2581,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.15.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.12.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.11.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.16.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.13.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.12.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:

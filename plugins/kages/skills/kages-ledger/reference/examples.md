@@ -30,3 +30,4 @@ Choose by the visitor's task and adapt the composition. These demonstrate patter
 - [Project portfolio — selected work and a contact form](examples/project-portfolio.kage.json) — persuade
 - [Reader accounts — share the data, understand the trade-off](examples/reader-account-explorer.kage.json) — operate
 - [Artifact craft — an operating field guide](examples/artifact-field-guide.kage.json) — read
+- [Allocation Lab — an analytical report](examples/allocation-lab.kage.json) — operate

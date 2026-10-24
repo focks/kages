@@ -6,6 +6,7 @@
 // oracle/agent-access.feature.
 
 import { operationSchema, inputErrors } from "./input-schema.ts";
+import { planPolish } from "../authoring/polish.ts";
 import { systems, contracts } from "../engine/data.ts";
 import { validate } from "../engine/validate.ts";
 import { advise, review, lintDetailed, type Advice } from "../engine/advice.ts";
@@ -135,6 +136,16 @@ export function describeCard(doc: { description?: string; root?: string; blocks:
 }
 
 export const OPERATIONS: OpSpec[] = [
+  { name: "polish_kage", summary: "Preview a reversible presentation change and advisory visual checks. apply:true saves a new version; baseVersion is required when applying.", params: ["name", "personality?", "density?", "appearance?", "apply?", "baseVersion?"], write: p => p.apply === true, run: (c, p) => {
+    const read = c.store.authorizeRead(String(p.name), c.author);
+    if (!read.ok) return fail(read.code, read.msg);
+    const plan = planPolish(read.record.doc, p);
+    const base = { ...plan, from: read.record.v, validation: validate(plan.preview), applied: false };
+    if (p.apply !== true) return ok(base);
+    if (p.baseVersion === undefined) return fail("invalid_params", "Preview first and pass its from version as baseVersion.");
+    const written = c.store.patch(String(p.name), plan.patch, c.author, { baseVersion: Number(p.baseVersion), summary: "Apply presentation polish" });
+    return written.ok ? ok({ ...base, applied: true, version: written.version }) : fail(written.error!.code, written.error!.msg);
+  } },
   // --- learn a design system ---
   { name: "list_systems", summary: "List available design systems", params: [], run: () =>
     ok(Object.values(systems).map((s) => ({ id: s.id, name: s.name, version: s.version, extends: s.extends, summary: s.summary }))) },

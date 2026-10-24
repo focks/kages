@@ -6,7 +6,7 @@
     "system": "ledger",
     "portable": true
   },
-  "description": "Kage \"Quarterly report — six ways to see the data\" · system ledger@2.12.0 · 10 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"How the quarter went\"\n    - trend [core/combo-chart@1.0.0] label=\"Revenue vs target\"\n    - stack [core/stacked-bar-chart@1.0.0] label=\"Revenue by product line\"\n    - pipeline [core/funnel-chart@1.0.0] label=\"Sales funnel\"\n    - split [core/split@1.0.0]\n      start:\n        - costs [core/treemap@1.0.0] label=\"Where the budget goes\" items=||||\n      end:\n        - picked [core/text@1.0.0] text=\"Selected — budget area:  · funnel stage:  · region: \"\n    - flows [core/sankey@1.0.0] label=\"From budget to outcomes\"\n    - regions [core/map@1.0.0] label=\"Customers by region\"",
+  "description": "Kage \"Quarterly report — six ways to see the data\" · system ledger@2.13.0 · 10 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"How the quarter went\"\n    - trend [core/combo-chart@1.1.0] label=\"Revenue vs target\"\n    - stack [core/stacked-bar-chart@1.1.0] label=\"Revenue by product line\"\n    - pipeline [core/funnel-chart@1.1.0] label=\"Sales funnel\"\n    - split [core/split@1.0.0]\n      start:\n        - costs [core/treemap@1.1.0] label=\"Where the budget goes\" items=||||\n      end:\n        - picked [core/text@1.0.0] text=\"Selected — budget area:  · funnel stage:  · region: \"\n    - flows [core/sankey@1.1.0] label=\"From budget to outcomes\"\n    - regions [core/map@1.1.0] label=\"Customers by region\"",
   "envelope": {
     "title": "Quarterly report — six ways to see the data",
     "root": "root",
@@ -78,7 +78,14 @@
           ],
           "series_json": "[{\"name\":\"Revenue\",\"kind\":\"bar\",\"values\":[120,135,150,142,170,190]},{\"name\":\"Target\",\"kind\":\"line\",\"values\":[125,130,140,150,160,175]}]",
           "xLabel": "Month",
-          "empty": null
+          "empty": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [],
@@ -100,7 +107,14 @@
           ],
           "series_json": "[{\"name\":\"Platform\",\"values\":[60,70,85,95]},{\"name\":\"Services\",\"values\":[30,32,35,38]},{\"name\":\"Support\",\"values\":[20,22,21,25]}]",
           "xLabel": null,
-          "empty": null
+          "empty": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [],
@@ -133,7 +147,14 @@
               "value": 380
             }
           ],
-          "empty": null
+          "empty": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [],
@@ -190,7 +211,14 @@
               "value": 5
             }
           ],
-          "empty": null
+          "empty": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [],
@@ -274,7 +302,14 @@
               "value": 40
             }
           ],
-          "empty": null
+          "empty": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [],
@@ -290,7 +325,14 @@
           "selected": null,
           "label": "Customers by region",
           "features_json": "[{\"id\":\"north\",\"name\":\"North\",\"value\":120,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[0,5],[10,5],[10,10],[0,10],[0,5]]]}},{\"id\":\"west\",\"name\":\"West\",\"value\":45,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-6,0],[0,0],[0,5],[-6,5],[-6,0]]]}},{\"id\":\"east\",\"name\":\"East\",\"value\":80,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[0,0],[6,0],[6,5],[0,5],[0,0]]]}},{\"id\":\"south\",\"name\":\"South\",\"value\":20,\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[-2,-5],[6,-5],[6,0],[-2,0],[-2,-5]]]}}]",
-          "empty": null
+          "empty": null,
+          "colorDomain": null,
+          "takeaway": null,
+          "unit": null,
+          "source": null,
+          "updatedAt": null,
+          "status": null,
+          "statusMessage": null
         },
         "slots": {},
         "bind": [],
