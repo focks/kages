@@ -1,6 +1,6 @@
 # Kages plugin
 
-Everything you need to author, review and refine Kages from Claude Code, installed in one step (version 0.1.1):
+Everything you need to author, review and refine Kages from Claude Code, installed in one step (version 0.1.2):
 
 - **MCP tools**: the full Kages operation set, served over the remote endpoint at `https://app.getkages.com/api/mcp`.
 - **Skills**: one authoring guide per design system (`kages-core`, `kages-ledger`, `kages-atelier`) with its system card, plus `kages-decision-guide` for turning a technical question into an interactive guide and `kages-login` for signing in to your workspace.

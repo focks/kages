@@ -9,13 +9,13 @@
 
 ## Use Kages from an agent
 - Start at `/onboarding`: browser login, agent login, workspace verification, then first creation.
-- Run `npx -y --package=https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz kages auth login --url <this-host>`, then `npx -y --package=https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz kages remote get_setup`. Cloud workspace provisioning is automatic.
+- Run `npx -y --package=https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz kages auth login --url <this-host>`, then `npx -y --package=https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz kages remote get_setup`. Cloud workspace provisioning is automatic.
 - Call `get_setup` from the agent to verify its actual connection, then `get_context` for the authoring skill. `get_authoring_guide` retrieves references as a normal tool.
 - MCP prompts need not be supported. Browser login and CLI login do not authenticate an HTTP MCP connection. Use authenticated stdio or configure its Bearer credential.
 - `kages mcp --local` is intentional offline work; it cannot produce a hosted share URL.
-- Install the CLI without installing anything: `npx -y --package=https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz kages --version` (Node 18+).
-- Add the authoring skills to your coding tools: `npx -y --package=https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz kages install` (shows what it will write and asks first).
-- MCP over stdio: `claude mcp add kages -- npx -y --package=https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz kages mcp` (Codex: `codex mcp add kages -- npx -y --package=https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz kages mcp`).
+- Install the CLI without installing anything: `npx -y --package=https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz kages --version` (Node 18+).
+- Add the authoring skills to your coding tools: `npx -y --package=https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz kages install` (shows what it will write and asks first).
+- MCP over stdio: `claude mcp add kages -- npx -y --package=https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz kages mcp` (Codex: `codex mcp add kages -- npx -y --package=https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz kages mcp`).
 - MCP over HTTP: `claude mcp add --transport http kages <this-host>/api/mcp` (anonymous callers are read-only; send `Authorization: Bearer $KAGES_TOKEN` to write).
 - REST: every operation is `POST /api/<op>` with a JSON body; the OpenAPI document is at `/api/openapi.json`, the agent card at `/.well-known/agent-card.json`.
 - Start every session with the `get_context` operation.

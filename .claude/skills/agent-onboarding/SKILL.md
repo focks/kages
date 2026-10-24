@@ -29,9 +29,12 @@ Codex skills live in `.agents/skills/<name>/SKILL.md` at project or user scope,
 with relative references. Do not install into legacy `.codex/prompts`. Use the
 same generated skill content in installers, plugins, MCP and get_context.
 
-`src/distribution.ts` pins onboarding to the tested release tarball. Publish that
-asset before deploying instructions that depend on it. The npm registry may lag;
-never claim `npm install @ifocksh/kages` contains unreleased fixes.
+`src/distribution.ts` pins onboarding to the site's public versioned tarball.
+GitHub release URLs require authentication when the repository is private. Run
+`npm run build:distribution` after final CLI changes and before committing; the
+asset and instructions deploy together. Never overwrite an already deployed
+version. Verify the anonymous download, checksum and actual npx invocation. The
+npm registry may lag; do not assume its package contains undeployed fixes.
 
 Verify with an empty config home: initialize, read guidance, refuse unauthenticated
 creation, add a test login while the process runs, create against a fake cloud,

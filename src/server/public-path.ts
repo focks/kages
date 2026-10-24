@@ -4,5 +4,6 @@ const PUBLIC = ["/onboarding", "/login", "/auth", "/k", "/r", "/embed", "/api", 
 
 /** Match path segments, never prefixes: /r/<uuid> is public, /reports is not. */
 export function isPublicPath(path: string): boolean {
+  if (/^\/downloads\/ifocksh-kages-\d+\.\d+\.\d+\.tgz$/.test(path)) return true;
   return PUBLIC.some(prefix => path === prefix || path.startsWith(prefix + "/"));
 }

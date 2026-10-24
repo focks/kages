@@ -30,12 +30,16 @@ The published viewer again exposes “Are you an agent?” directly in its heade
 including on phones. It opens the updated instructions and links to onboarding;
 it is no longer nested inside “Use this Kage”.
 
-Version 0.1.1 is distributed as a tested GitHub release tarball. Onboarding pins
-that asset because npm publishing credentials are not configured. Release CI
-publishes to npm only when those credentials exist; it does not replace existing
-release assets. Existing installations must upgrade/reconnect to refresh their
-MCP tool list. CLI login alone cannot authenticate an existing hosted HTTP MCP
-connection; use its Bearer credential mechanism or signed-in stdio.
+Version 0.1.2 ships its tested CLI tarball at
+https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz. The versioned asset and
+onboarding instructions deploy together. GitHub release assets are not suitable
+for anonymous onboarding while the repository is private; the failed anonymous
+download check caught this before the instructions went live. The npm registry
+may lag. Existing installations must upgrade/reconnect to refresh their MCP tool
+list. CLI login alone cannot authenticate hosted HTTP MCP; configure its Bearer
+credential or use signed-in stdio. Run build:distribution after the final CLI
+changes and before committing a release; never overwrite an already deployed
+version's bytes.
 
 Validation includes a real stdio client with an empty config home, blocked
 creation, login while running, first cloud creation against a fake authenticated

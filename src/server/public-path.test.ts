@@ -11,3 +11,9 @@ test("sharing prefixes do not make workspace pages public", () => {
   for (const path of ["/", "/artifacts", "/preview/private-id", "/settings", "/reports", "/rendering", "/knowledge", "/api-keys", "/authentication", "/embedding"]) assert.equal(isPublicPath(path), false, path);
   for (const path of ["/login", "/auth/callback", "/docs", "/docs/authoring", "/render", "/landing"]) assert.equal(isPublicPath(path), true, path);
 });
+
+
+test("versioned CLI downloads are anonymous without exposing arbitrary download paths", () => {
+  assert.equal(isPublicPath("/downloads/ifocksh-kages-0.1.2.tgz"), true);
+  for (const path of ["/downloads", "/downloads/private.json", "/downloads/ifocksh-kages-0.1.2.tgz/extra"]) assert.equal(isPublicPath(path), false);
+});

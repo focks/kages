@@ -18,7 +18,7 @@ provenance — rendered live in the browser and shareable by link.
 Install the CLI and wire it to your agent (the command is `kages`):
 
 ```bash
-npm install -g https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz
+npm install -g https://app.getkages.com/downloads/ifocksh-kages-0.1.2.tgz
 kages --version
 claude mcp add kages -- kages mcp    # or: codex mcp add kages -- kages mcp
 ```
