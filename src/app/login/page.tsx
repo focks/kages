@@ -16,7 +16,7 @@ export default function LoginPage() {
     setBusy(true);
     try {
       const { createClient } = await import("@/lib/supabase/client");
-      const next = new URLSearchParams(window.location.search).get("next") || "/";
+      const next = new URLSearchParams(window.location.search).get("next") || "/onboarding";
       await createClient().auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },

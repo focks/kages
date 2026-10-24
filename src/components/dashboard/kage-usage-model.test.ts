@@ -15,7 +15,7 @@ test("every Kage gets install, CLI, MCP and REST groups", () => {
 
 test("without a share link the commands use the name, not a download", () => {
   const cmds = all(usageGroups({ origin: "http://localhost:3000", name: "ops-console" }));
-  assert.ok(cmds.some((c) => c.startsWith("npx kages get ops-console")));
+  assert.ok(cmds.some((c) => c.includes(" kages get ops-console")));
   assert.ok(!cmds.some((c) => c.includes("/api/shared/")));
 });
 
@@ -25,7 +25,7 @@ test("hostile input cannot inject shell: origin must be http(s), uuid and names 
   const cmds = all(usageGroups({ origin: "https://a.example", name: "x'; rm -rf / #\"", uuid: "a b;rm" }));
   const rest = cmds.find((c) => c.startsWith("curl -s") && c.includes(" -d "))!;
   assert.equal((rest.match(/'/g) || []).length, 2, "the quoted body cannot be closed early: " + rest);
-  assert.ok(!cmds.some((c) => c.startsWith("npx kages") && /[;'"]/.test(c.replace(/ && /g, " "))), "file names are slugs");
+  assert.ok(!cmds.some((c) => c.startsWith("npx ") && /[;'"]/.test(c.replace(/ && /g, " "))), "file names are slugs");
   assert.ok(!cmds.some((c) => /api\/shared\/a b/.test(c)));
   assert.equal(fileStem("../../etc/passwd"), "etc-passwd");
 });

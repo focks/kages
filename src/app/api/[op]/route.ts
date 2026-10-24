@@ -26,7 +26,7 @@ async function handle(req: Request, ctx: { params: Promise<{ op: string }> }) {
   if (method !== "POST" && isWriteOp(op, params))
     return Response.json({ error: { code: "method_not_allowed", msg: `${op} is a write; use POST` } }, { status: 405, headers: { Allow: "POST" } });
 
-  const r = await executeOp(workspace, author, op, params);
+  const r = await executeOp(workspace, author, op, params, "rest", new URL(req.url).origin);
   if (r.ok) return Response.json(r.data, { status: 200 });
   return Response.json({ error: r.error }, { status: httpStatus(r.error.code) });
 }

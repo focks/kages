@@ -18,7 +18,7 @@ provenance — rendered live in the browser and shareable by link.
 Install the CLI and wire it to your agent (the command is `kages`):
 
 ```bash
-npm install -g @ifocksh/kages        # npm blocks the bare name; CLI command is still `kages`
+npm install -g https://github.com/focks/kages/releases/download/v0.1.1/ifocksh-kages-0.1.1.tgz
 kages --version
 claude mcp add kages -- kages mcp    # or: codex mcp add kages -- kages mcp
 ```
@@ -148,8 +148,8 @@ Kages ships an MCP server so any MCP client (Claude Code, Codex, …) can author
 Kages. It mirrors the one operation table onto MCP:
 
 - **tools** — every operation (`create_kage`, `patch_kage`, `list_kages`, …);
-- **prompts** — the per-system authoring **skills** (`kages-core`, `kages-ledger`,
-  `kages-atelier`) — MCP has no skill primitive, so a prompt is its analog;
+- **prompts** — optional authoring guides and source-conversion workflows; tools
+  also expose every guide so discovery does not depend on prompt support;
 - **resources** — each system's component catalog and the agent card.
 
 ```bash
@@ -158,10 +158,31 @@ kages setup skills --harness claude --harness codex
 ```
 
 `setup skills` installs the same skill packs where each harness loads them
-(`~/.claude/skills/kages-<system>/SKILL.md`, `~/.codex/prompts/kages-<system>.md`)
+(`~/.claude/skills/kages-<system>/SKILL.md`, `~/.agents/skills/kages-<system>/SKILL.md`)
 and prints the one-liner to register the server (`claude mcp add kages -- kages mcp`).
-Signed in (`kages auth login`) the server acts on your cloud workspace; otherwise
-the local `./.kages`.
+Start with `/onboarding`: sign in, then run `kages auth login --url https://app.getkages.com` and `kages remote get_setup`. Workspace provisioning is automatic. From the connected agent call `get_setup`, then `get_context`; the latter includes the authoring skill and `get_authoring_guide` retrieves references without relying on prompts.
+
+Signed in (`kages auth login`) the server acts on your cloud workspace; without login cloud creation is blocked. For intentional offline work use `kages mcp --local`. Local publishing has no hosted URL.
+
+Source-conversion skills are installed with the authoring guides:
+
+| Source | Skill |
+| --- | --- |
+| Markdown / README | `kages-markdown-to-kage` |
+| CSV / TSV / JSON / spreadsheet | `kages-data-to-kage` |
+| PDF / DOCX / plain-text document | `kages-document-to-kage` |
+| Webpage / HTML export | `kages-web-to-kage` |
+
+Retrieve a recipe with `get_authoring_guide` and its `name`. Binary formats need
+an available extraction tool; these workflows preserve source meaning and require
+content reconciliation and visual review before delivery.
+
+Public viewers offer **Use this Kage → Copy as Markdown**, above Download and
+Print. The copy contains readable content from the current app state, chart data
+as tables, diagram nodes/relationships, source notes and code. All table rows and
+expandable content are included; block visibility is respected. Presentation,
+local pagination/zoom and interactive behavior stay in Kages. Clipboard denial
+shows selectable text. “Are you an agent?” remains a separate header entry.
 
 ## Deploying
 

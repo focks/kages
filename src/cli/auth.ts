@@ -11,7 +11,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
 import { readConfig, writeConfig, clearSession, type CliConfig, type Session } from "./config.ts";
 
-const DEFAULT_API = process.env.KAGES_API ?? "https://kages-focks-projects.vercel.app";
+const DEFAULT_API = process.env.KAGES_API ?? "https://app.getkages.com";
 const CALLBACK_PORT = 52525;
 const CALLBACK = `http://localhost:${CALLBACK_PORT}`;
 
@@ -20,7 +20,7 @@ const b64url = (b: Buffer) => b.toString("base64").replace(/\+/g, "-").replace(/
 function openBrowser(url: string): void {
   const cmd = process.platform === "darwin" ? "open" : process.platform === "win32" ? "cmd" : "xdg-open";
   const args = process.platform === "win32" ? ["/c", "start", "", url] : [url];
-  try { spawn(cmd, args, { stdio: "ignore", detached: true }).unref(); } catch { /* user can paste the URL */ }
+  try { const child = spawn(cmd, args, { stdio: "ignore", detached: true }); child.on("error", () => {}); child.unref(); } catch { /* user can paste the URL */ }
 }
 
 interface PublicConfig { authEnabled: boolean; supabaseUrl: string | null; anonKey: string | null }
@@ -36,19 +36,20 @@ export async function login(apiUrl = DEFAULT_API): Promise<string> {
     `&code_challenge=${challenge}&code_challenge_method=s256`;
 
   const code = await new Promise<string>((resolve, reject) => {
+    let timeout: ReturnType<typeof setTimeout>;
     const server = http.createServer((req, res) => {
       const u = new URL(req.url ?? "/", CALLBACK);
       const c = u.searchParams.get("code");
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       res.end(`<!doctype html><meta charset="utf-8"><body style="font:16px system-ui;text-align:center;padding:4rem">${c ? "✓ Signed in to Kages — you can close this tab." : "No code received."}</body>`);
-      if (c) { server.close(); resolve(c); }
+      if (c) { clearTimeout(timeout); server.close(); resolve(c); }
     });
     server.listen(CALLBACK_PORT, () => {
       process.stderr.write(`Opening the browser to sign in… (if it doesn't open, visit:\n${authUrl}\n)\n`);
       openBrowser(authUrl);
     });
-    server.on("error", reject);
-    setTimeout(() => { server.close(); reject(new Error("timed out waiting for sign-in")); }, 180_000);
+    server.on("error", error => { clearTimeout(timeout); reject(error); });
+    timeout = setTimeout(() => { server.close(); reject(new Error("timed out waiting for sign-in")); }, 180_000);
   });
 
   const tok = await fetch(`${cfg.supabaseUrl}/auth/v1/token?grant_type=pkce`, {
@@ -64,7 +65,7 @@ export async function login(apiUrl = DEFAULT_API): Promise<string> {
     expires_at: tok.expires_at ?? Math.floor(Date.now() / 1000) + (tok.expires_in ?? 3600),
     email: tok.user?.email ?? "",
   };
-  writeConfig({ apiUrl, supabaseUrl: cfg.supabaseUrl, anonKey: cfg.anonKey, session });
+  writeConfig({ ...readConfig(), apiUrl, supabaseUrl: cfg.supabaseUrl, anonKey: cfg.anonKey, session });
   return session.email;
 }
 

@@ -7,7 +7,7 @@ import type { KageDoc } from "../engine/types.ts";
 import type { LocalTools } from "../adapters/mcp.ts";
 import { screenshotDoc, parseWidths, DEFAULTS } from "./screenshot.ts";
 
-export function renderTool(resolve: (nameOrFile: string) => KageDoc): LocalTools {
+export function renderTool(resolve: (nameOrFile: string) => KageDoc | Promise<KageDoc>): LocalTools {
   return {
     tools: [{
       name: "render_kage",
@@ -26,7 +26,7 @@ export function renderTool(resolve: (nameOrFile: string) => KageDoc): LocalTools
     async call(name, args) {
       if (name !== "render_kage") return undefined;
       try {
-        const doc = (args.doc as KageDoc | undefined) ?? (typeof args.name === "string" ? resolve(args.name) : undefined);
+        const doc = (args.doc as KageDoc | undefined) ?? (typeof args.name === "string" ? await resolve(args.name) : undefined);
         if (!doc) return { isError: true, content: [{ type: "text", text: "give either `name` or `doc`" }] };
         const [shot] = await screenshotDoc(doc, { ...DEFAULTS, widths: parseWidths(args.width ?? DEFAULTS.widths[0]), dark: args.dark === true, system: typeof args.system === "string" ? args.system : undefined, noSandbox: process.env.KAGES_CHROME_NO_SANDBOX === "1" });
         const text = `${shot.width}×${shot.height}px · ${shot.metrics.blocks} blocks · ${shot.issues.length ? shot.issues.length + " finding(s):\n- " + shot.issues.join("\n- ") : "no problems found"}`;

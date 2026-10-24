@@ -1,9 +1,9 @@
-# Release workflow. Publishing to npm needs "private": false in
-# package.json and an NPM_TOKEN secret; both are the owner's decision.
+# The tested tarball is available even when npm credentials are not configured.
+# Onboarding pins this asset; never replace bytes on an existing release.
 name: release
 on:
   push: { tags: ["v*"] }
-permissions: { contents: read, id-token: write }
+permissions: { contents: write, id-token: write }
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -13,5 +13,23 @@ jobs:
         with: { node-version: 22.18, registry-url: "https://registry.npmjs.org", cache: npm }
       - run: npm ci
       - run: npm test
-      - run: npm publish --provenance --access public
-        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
+      - name: Pack the tested CLI
+        run: |
+          mkdir -p /tmp/kages-release
+          npm pack --pack-destination /tmp/kages-release
+      - name: Publish GitHub installation asset
+        env:
+          GH_TOKEN: "${{ github.token }}"
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" /tmp/kages-release/*.tgz --verify-tag --generate-notes
+          fi
+      - name: Publish to npm when configured
+        env:
+          NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}"
+        run: |
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            npm publish --provenance --access public
+          else
+            printf '%s\n' 'npm publishing is not configured; install the tested GitHub release asset.'
+          fi

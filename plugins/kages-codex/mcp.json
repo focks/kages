@@ -3,7 +3,7 @@
   "mcpServers": {
     "kages": {
       "type": "streamable-http",
-      "url": "https://kages-focks-projects.vercel.app/api/mcp"
+      "url": "https://app.getkages.com/api/mcp"
     }
   }
 }

@@ -24,10 +24,10 @@ const evidence: InputSchema = { type: "array", items: { type: "object", required
 const brief: InputSchema = { type: "object", properties: { mode: choice("read", "operate", "persuade", "experience"), users: str, purpose: str, audience: str, job: str, primaryAction: str, evidence, schema: { type: "integer", enum: [1] }, positioning: str, operatingContext: str, voice: str, brandCommitments: str, constraints: strings, absent: strings, principles: strings, openDecisions: strings, inferred: strings, useScene: str, notes: str } };
 const shared: Record<string, InputSchema> = {
   personality: choice("analytical", "editorial", "exploratory", "teaching", "showcase"),
-  origins: strings,
+  origins: strings, toc: choice("auto", "always", "never"),
   density: choice("comfortable", "compact"), appearance: choice("inherit", "light", "dark"),
-  ...Object.fromEntries(["system", "design", "brand", "ref", "text", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
-  ...Object.fromEntries(["apply", "all", "full", "merge", "toc", "resolved", "default", "keepSystem", "publish_all"].map(k => [k, bool])),
+  ...Object.fromEntries(["path", "system", "design", "brand", "ref", "text", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
+  ...Object.fromEntries(["apply", "all", "full", "merge", "resolved", "default", "keepSystem", "publish_all"].map(k => [k, bool])),
   ...Object.fromEntries(["version", "baseVersion", "baseRevision", "index", "limit", "since"].map(k => [k, integer])),
   doc: obj, definition: obj, intake: obj, spec: obj, envelope: obj, brief, ops: patch, suggestedPatch: patch,
   direction: choice("bolder", "quieter"), amount: { type: "number", minimum: 0 }, scope: { type: ["string", "array"], items: str },

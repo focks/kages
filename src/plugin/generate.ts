@@ -1,3 +1,4 @@
+import { conversionSkills } from "../packs/conversion-skills.ts";
 // Every plugin artifact, generated from one source. A target is a harness's plugin
 // format; `generatePlugins` returns EVERY file of EVERY target as path → content, so the
 // build script just writes it and a test just compares it with what is committed: drift
@@ -12,16 +13,17 @@ import { decisionSkillMd, DECISION_SKILL_NAME } from "../packs/decision-skill.ts
 import { loginSkillMd, LOGIN_SKILL_NAME } from "../packs/login-skill.ts";
 import { VERSION } from "../version.ts";
 
-export const DEFAULT_MCP_URL = "https://kages-focks-projects.vercel.app/api/mcp";
+export const DEFAULT_MCP_URL = "https://app.getkages.com/api/mcp";
 export interface PluginOptions { version?: string; mcpUrl?: string }
 export type Files = Record<string, string>;
 export interface Target { id: string; /** root directory of the target, relative to the repo */ dir: string; files: Files }
 
 const json = (v: unknown) => JSON.stringify(v, null, 2) + "\n";
 
-/** Skills: one authoring guide per design system, plus the decision-guide and login skills. */
+/** Skills: one authoring guide per design system, plus login, decision-guide and source conversion recipes. */
 function skillFiles(o: { shellEscape: boolean } = { shellEscape: true }): Files {
   const f: Files = {};
+  for (const skill of conversionSkills()) f[`skills/${skill.name}/SKILL.md`] = skill.markdown;
   for (const id of Object.keys(systems)) for (const [path, content] of Object.entries(authoringFiles(id))) f[`skills/kages-${id}/${path}`] = content;
   f[`skills/${DECISION_SKILL_NAME}/SKILL.md`] = decisionSkillMd();
   f[`skills/${LOGIN_SKILL_NAME}/SKILL.md`] = loginSkillMd(o);
@@ -53,7 +55,11 @@ Everything you need to author, review and refine Kages from Claude Code, install
 - **Skills**: one authoring guide per design system (\`kages-core\`, \`kages-ledger\`, \`kages-atelier\`) with its system card, plus \`kages-decision-guide\` for turning a technical question into an interactive guide and \`kages-login\` for signing in to your workspace.
 - **Hook**: checks \`*.kage.json\` files as they are edited and reports problems once (needs the \`kages\` CLI on your PATH; silent without it).
 
+Conversion skills: kages-markdown-to-kage, kages-data-to-kage (CSV/TSV/JSON/spreadsheets), kages-document-to-kage (PDF/DOCX/text) and kages-web-to-kage. Retrieve any recipe through get_authoring_guide with its name.
+
 ## Install
+
+Complete https://app.getkages.com/onboarding. Browser/CLI login does not authenticate this HTTP MCP endpoint; configure its Bearer credential or use signed-in stdio. Verify get_setup from the agent, then get_context and get_authoring_guide.
 
 \`\`\`
 /plugin marketplace add focks/kages
@@ -62,12 +68,16 @@ Everything you need to author, review and refine Kages from Claude Code, install
 
 The first time, Claude Code asks you to approve the hook; review it with \`/hooks\`.
 
+## First-time setup
+
+Open https://app.getkages.com/onboarding. Browser login, CLI login and an HTTP MCP credential are separate. The plugin’s HTTP connection is anonymous until its Bearer credential is configured. For managed token refresh use signed-in stdio instead. From the agent call \`get_setup\` to verify its actual workspace, then \`get_context\` for the authoring skill. \`get_authoring_guide\` retrieves references as a tool; MCP prompts need not be supported.
+
 ## Access level
 
 Out of the box the endpoint is **anonymous**: you can read public Kages and try the tools against the demo workspace. To act on **your own** workspace:
 
 - **Authenticated remote**: add an \`Authorization: Bearer <token>\` header to the \`kages\` server (token from \`kages auth login\` → \`~/.kages/config.json\`).
-- **Local CLI (stdio)**: \`kages auth login\`, then \`claude mcp add kages -- kages mcp\`. It routes to your cloud workspace when signed in, else the local \`./.kages\`.
+- **Local CLI (stdio)**: \`kages auth login\`, then \`claude mcp add kages -- kages mcp\`. It routes to your cloud workspace when signed in, otherwise creation requires login. For intentional offline work use \`--local\`.
 
 ## Your own server
 
@@ -88,6 +98,8 @@ function cursorTarget(o: Required<PluginOptions>): Target {
     stop: [{ command: "./bin/kages-hook --harness cursor --event stop", timeout: 20 }],
   } });
   files["README.md"] = `# Kages for Cursor
+
+Open https://app.getkages.com/onboarding first: sign in, verify your workspace and authenticate the MCP connection. CLI login does not authenticate the plugin’s HTTP connection. Call get_setup, then get_context and get_authoring_guide.
 
 Version ${o.version}. Skills (one per design system), the Kages MCP server (\`${o.mcpUrl}\`) and the edit hook (needs the \`kages\` CLI on your PATH; silent without it).
 
@@ -121,13 +133,21 @@ function codexTarget(o: Required<PluginOptions>): Target {
 
 Version ${o.version}. The Kages MCP server (\`${o.mcpUrl}\`) and skills: one authoring guide per design system (\`kages-core\`, \`kages-ledger\`, \`kages-atelier\`), \`kages-decision-guide\` and \`kages-login\`.
 
+Conversion skills: kages-markdown-to-kage, kages-data-to-kage (CSV/TSV/JSON/spreadsheets), kages-document-to-kage (PDF/DOCX/text) and kages-web-to-kage. Retrieve any recipe through get_authoring_guide with its name.
+
 ## Install
+
+Complete https://app.getkages.com/onboarding. Browser/CLI login does not authenticate this HTTP MCP endpoint; configure its Bearer credential or use signed-in stdio. Verify get_setup from the agent, then get_context and get_authoring_guide.
 
 \`\`\`
 codex plugin marketplace add focks/kages
 \`\`\`
 
 Then install **Kages** from the plugin directory in Codex. The repository's \`.agents/plugins/marketplace.json\` lists it.
+
+## First-time setup
+
+Open https://app.getkages.com/onboarding. Browser login, CLI login and an HTTP MCP credential are separate. The plugin’s HTTP connection is anonymous until its Bearer credential is configured. For managed token refresh use signed-in stdio instead. From the agent call \`get_setup\` to verify its actual workspace, then \`get_context\` for the authoring skill. \`get_authoring_guide\` retrieves references as a tool; MCP prompts need not be supported.
 
 ## Access level
 

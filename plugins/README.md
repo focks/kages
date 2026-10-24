@@ -1,6 +1,6 @@
 # Kages plugins
 
-Generated from one source (`src/plugin/generate.ts`); regenerate with `npm run build:plugins` and verify with `npm run check:plugins`. Version 0.1.0.
+Generated from one source (`src/plugin/generate.ts`); regenerate with `npm run build:plugins` and verify with `npm run check:plugins`. Version 0.1.1.
 
 | Harness | Directory | Install |
 | --- | --- | --- |

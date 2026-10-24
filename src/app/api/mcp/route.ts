@@ -13,7 +13,7 @@ import { resolveIdentity } from "@/server/identity.ts";
 
 export async function POST(req: Request) {
   const { author, workspace } = await resolveIdentity(req, true); // bearer-only
-  const exec = (op: string, params: Record<string, unknown>) => executeOp(workspace, author, op, params, "mcp");
+  const exec = (op: string, params: Record<string, unknown>) => executeOp(workspace, author, op, params, "mcp", new URL(req.url).origin);
 
   let body: unknown;
   try { body = await req.json(); } catch {

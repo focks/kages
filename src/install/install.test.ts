@@ -128,17 +128,20 @@ test("uninstall removes exactly the manifest files, keeps edits, restores hook c
   assert.match((await uninstall({ scope: "project", base: b, yes: true })).lines[0], /nothing recorded/);
 });
 
-test("codex: global prompts only; project scope says why nothing is installed", async () => {
+test("codex installs discoverable skills and references at project and user scope", async () => {
   const e = env();
   mkdirSync(join(e.project, ".codex"));
   const p = await install(e.o({ hooks: false }));
-  assert.match(p.lines.join("\n"), /prompts are only read from your home directory/);
+  assert.equal(p.exit, 0);
+  assert.ok(existsSync(join(e.project, ".agents/skills/kages-core/SKILL.md")));
+  assert.ok(existsSync(join(e.project, ".agents/skills/kages-core/reference/examples.md")));
+  assert.ok(existsSync(join(e.project, ".agents/skills/kages-login/SKILL.md")));
   assert.equal(existsSync(join(e.project, ".codex/prompts")), false);
   mkdirSync(join(e.home, ".codex"));
   const g = await install({ ...e.o({ scope: "global", hooks: false }) });
   assert.equal(g.exit, 0);
-  assert.ok(existsSync(join(e.home, ".codex/prompts/kages-core.md")));
-  assert.ok(existsSync(join(e.home, ".kages/install.json")), "the global manifest lives under the home directory");
+  assert.ok(existsSync(join(e.home, ".agents/skills/kages-core/SKILL.md")));
+  assert.ok(existsSync(join(e.home, ".kages/install.json")));
 });
 
 test("--mcp write adds the server to .mcp.json without disturbing others, and only once", async () => {

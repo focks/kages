@@ -1,3 +1,4 @@
+import { mcpDestination } from "./mcp-routing.ts";
 // `kages` — the command-line adapter. Like every adapter it is a thin
 // translation of the one operation set (plus the pure engine for offline work);
 // it holds no business logic. Commands are grouped into toolsets:
@@ -146,7 +147,8 @@ install  (put Kages into the coding harnesses you use)
                                 keep the installed files current; check exits 1 when stale
 
 dev
-  mcp                           run the MCP server (stdio): operations as tools,
+  setup                         report destination, workspace and next steps
+  mcp [--local]                 run the MCP server (stdio): operations as tools,
                                 skill packs as prompts, catalogs as resources
   mcp login [--url <depl>]      sign in so the server acts on your cloud workspace
   mcp info                      what the server exposes + current auth mode
@@ -218,13 +220,15 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
   });
   const op = async (name: string, params: Record<string, unknown>, mutates = false): Promise<OpResult> => {
     if (mutates && ADVICE_OPS.has(name) && params.advice === undefined) params = { ...advicePolicy(), ...params };
-    if (useRemote) {
+    const destination = cmd === "mcp" ? mcpDestination(!!status(), !!flags.local) : useRemote ? "cloud" : "local";
+    if (destination === "setup" && mutates) return { ok: false, error: { code: "unauthorized", msg: "Cloud login is required. Call get_setup, then run kages auth login on the agent’s machine. For intentional local work restart with kages mcp --local. No local Kage was created." } };
+    if (destination === "cloud") {
       try { return { ok: true, data: await remoteCall(name, params) }; }
       catch (e) { return { ok: false, error: { code: "remote", msg: (e as Error).message } }; }
     }
     const store = loadStore(ctx.dir);
     const chosen = chooseSink({ setting: cfg.value.advice?.auditLog, env: process.env.KAGES_ADVICE_LOG, workspaceDir: ctx.dir });
-    const opCtx: OpContext = { store, author: owner(), repo: flag(flags, "repo"), adapter: "cli", adviceLog: chosen.sink, deprecations: cfg.value.lint?.deprecations, logBlockIds: cfg.value.advice?.logBlockIds === true };
+    const opCtx: OpContext = { store, author: destination === "setup" ? { principal: "anon" } : owner(), connection: { mode: destination }, repo: flag(flags, "repo"), adapter: cmd === "mcp" ? "mcp" : "cli", adviceLog: chosen.sink, deprecations: cfg.value.lint?.deprecations, logBlockIds: cfg.value.advice?.logBlockIds === true };
     const r = dispatch(opCtx, name, params);
     if (r.ok && mutates) saveStore(ctx.dir, store);
     return r;
@@ -518,6 +522,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
 
     // --- setup (wire Kages into a harness) ---
     case "setup": {
+      if (!rest.length || rest[0] === "check") return report(await op("get_setup", {}), printJson);
       const raw = flags.harness;
       const harnesses = (raw === undefined ? [] : Array.isArray(raw) ? raw : [raw]) as string[];
       return setupCmd(rest, harnesses, flags, ctx.dir);
@@ -730,18 +735,23 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     case "mcp": {
       const sub = rest[0];
       if (sub === "login") { const email = await login(flag<string>(flags, "url")); out(`signed in as ${email} — the MCP server now acts on your cloud workspace`); return 0; }
-      if (sub === "info") return mcpInfo(useRemote ? status() : null, ctx);
+      if (sub === "info") return mcpInfo(useRemote ? status() : null, ctx, !!flags.local);
       // stdio MCP server: NOTHING may go to stdout but protocol messages, so this
       // case prints only to stderr. Operations run through the same op() path as
-      // every other command (cloud when signed in, else the local workspace).
+      // every other command; unsigned cloud work remains in setup mode.
       const s = status();
       process.stderr.write(useRemote && s
         ? `kages mcp: serving your cloud workspace (signed in as ${s.email})\n`
-        : `kages mcp: serving the local workspace (${ctx.dir}) — run \`kages mcp login\` to use your cloud workspace\n`);
+        : flags.local ? `kages mcp: serving the explicit local workspace (${ctx.dir})\n` : `kages mcp: login required for cloud creation; call get_setup. Use --local only for intentional offline work.\n`);
       const { createMcpServer } = await import("../adapters/mcp.ts");
       const { renderTool } = await import("./render-tool.ts");
       const { StdioServerTransport } = await import("@modelcontextprotocol/sdk/server/stdio.js");
-      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name, params)), renderTool((name) => resolveDoc(name)));
+      const server = createMcpServer((name, params) => op(name, params, isWriteOp(name, params)), renderTool(async (name) => {
+        if (/\.kage\.json$/i.test(name) && isFile(name)) return resolveDoc(name);
+        const result = await op("get_kage", { name });
+        if (!result.ok) throw new Error(result.error.msg);
+        return result.data as KageDoc;
+      }));
       await server.connect(new StdioServerTransport());
       await new Promise(() => {}); // run until the client closes stdin
       return 0;
@@ -799,13 +809,13 @@ function writeOut(flags: ParsedArgs["flags"], text: string): void {
   else out(text);
 }
 
-function mcpInfo(remote: { email: string; apiUrl: string } | null, ctx: Ctx): number {
+function mcpInfo(remote: { email: string; apiUrl: string } | null, ctx: Ctx, local = false): number {
   const skills = Object.keys(systems).map((id) => "kages-" + id).join(", ");
   out("Kages MCP server");
-  out(`  mode:      ${remote ? `cloud — signed in as ${remote.email} @ ${remote.apiUrl}` : `local — ${ctx.dir} (run \`kages mcp login\` for your cloud workspace)`}`);
+  out(`  mode:      ${remote ? `cloud — signed in as ${remote.email} @ ${remote.apiUrl}` : local ? `local — ${ctx.dir} (explicit --local)` : "setup required — run kages auth login; no cloud writes until signed in"}`);
   out(`  tools:     ${mcpTools().length} (the full operation set)`);
-  out(`  skills:    ${skills} (served as MCP prompts)`);
-  out("  resources: per-system catalogs + the agent card");
+  out(`  skills:    ${skills} (loaded by get_context / get_authoring_guide; prompts also available)`);
+  out("  resources: start guide, skills, per-system references, examples and the agent card");
   out("  run:       kages mcp");
   out("  register:  claude mcp add kages -- kages mcp   |   codex mcp add kages -- kages mcp");
   return 0;

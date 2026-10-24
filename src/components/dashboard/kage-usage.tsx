@@ -23,22 +23,24 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export function KageUsage({ name, uuid, className }: { name: string; uuid?: string; className?: string }) {
+export function KageUsage({ name, uuid, className, placement = "inline" }: { name: string; uuid?: string; className?: string; placement?: "inline" | "header" }) {
   // The origin is known only in the browser; render nothing until then so server and client agree.
   const [origin, setOrigin] = useState("");
   useEffect(() => setOrigin(window.location.origin), []);
   if (!origin) return null;
   const groups = usageGroups({ origin, name, uuid });
   return (
-    <details className={`group w-full border-t bg-background text-sm ${className ?? ""}`}>
-      <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 px-4 py-1.5 text-xs text-muted-foreground/70 hover:text-foreground [&::-webkit-details-marker]:hidden">
+    <details onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.removeAttribute("open"); event.currentTarget.querySelector("summary")?.focus(); } }} className={`group ${placement === "header" ? "relative shrink-0 text-sm" : "w-full border-t bg-background text-sm"} ${className ?? ""}`}>
+      <summary className={`flex w-fit cursor-pointer list-none items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden ${placement === "header" ? "rounded-md border border-input px-2 py-1" : "px-4 py-1.5"}`}>
         <Terminal className="size-3" aria-hidden />
         <span>Are you an agent?</span>
         <span className="transition-transform group-open:rotate-90" aria-hidden>›</span>
       </summary>
-      <div className="mx-auto max-h-[45svh] max-w-3xl space-y-5 overflow-auto px-4 pb-16 pt-2">
+      <div className={placement === "header" ? "absolute left-0 top-full z-40 mt-2 max-h-[70svh] w-[min(38rem,calc(100vw-2rem))] space-y-5 overflow-auto rounded-xl border bg-popover p-4 text-popover-foreground shadow-pop sm:left-auto sm:right-0" : "mx-auto max-h-[45svh] max-w-3xl space-y-5 overflow-auto px-4 pb-16 pt-2"}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <p><span className="font-semibold text-foreground">Agent instructions for Kages.</span> Install the CLI, fetch this Kage, or connect over MCP or REST.</p>
+          <p><span className="font-semibold text-foreground">Agent instructions for Kages.</span> Verify login and workspace with get_setup, then load the skill with get_context or get_authoring_guide.</p>
+          <a href="/onboarding" className="text-wire underline">Login, workspace and agent setup</a>
+          <button type="button" className="rounded-md border border-input px-2 py-1" onClick={event => { const details = event.currentTarget.closest("details"); details?.removeAttribute("open"); details?.querySelector("summary")?.focus(); }}>Close agent instructions</button>
           <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-foreground">Copy a prompt for your agent<CopyButton text={agentPrompt({ origin, name, uuid })} /></span>
           {uuid && <a className="underline underline-offset-2 hover:text-foreground" href={`/k/${uuid}.md`}>View as markdown</a>}
         </div>

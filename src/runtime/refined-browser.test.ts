@@ -25,7 +25,24 @@ test('refined mobile viewer leads with data, restores controls and exposes impor
  await ev("[...document.querySelectorAll('button')].find(x=>x.textContent==='Import data').click()");await wait("document.body.innerText.includes('CSV imported by reader')");
  assert.ok(await ev("document.documentElement.scrollWidth<=innerWidth"));
  assert.equal(await ev("[...document.querySelectorAll('button')].some(x=>x.textContent.includes('Give feedback')&&x.checkVisibility())",sessionId),false);
+ assert.ok(await ev("[...document.querySelectorAll('summary')].some(x=>x.textContent.includes('Are you an agent?')&&x.checkVisibility())",sessionId));
+ await ev("[...document.querySelectorAll('summary')].find(x=>x.textContent.includes('Are you an agent?')).click()",sessionId);
+ assert.ok(await ev("[...document.querySelectorAll('a')].some(x=>x.getAttribute('href')==='/onboarding'&&x.checkVisibility())",sessionId));
+ await ev("[...document.querySelectorAll('button')].find(x=>x.textContent==='Close agent instructions').click()",sessionId);
  await ev("[...document.querySelectorAll('summary')].find(x=>x.textContent==='Use this Kage').click()",sessionId);
+ // Clipboard interception checks the real UI export after a reader imports data.
+ await ev("Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedMarkdown=text}}})",sessionId);
+ assert.deepEqual(await ev("[...document.querySelectorAll('button,a')].filter(x=>['Copy as Markdown','Download Kage JSON','Print / save PDF'].includes(x.textContent)).map(x=>x.textContent)",sessionId),['Copy as Markdown','Download Kage JSON','Print / save PDF']);
+ await ev("[...document.querySelectorAll('button')].find(x=>x.textContent==='Copy as Markdown').click()",sessionId);
+ await wait("!!window.copiedMarkdown",sessionId);
+ const copied=await ev("window.copiedMarkdown",sessionId);
+ assert.match(copied,/CSV imported by reader/);assert.match(copied,/\| ---/);assert.doesNotMatch(copied,/get_setup|Are you an agent|\$state/);
+ await ev("navigator.clipboard.writeText=async()=>{throw Error('clipboard denied')}",sessionId);
+ await ev("[...document.querySelectorAll('button')].find(x=>x.textContent==='Copy as Markdown').click()",sessionId);
+ await wait("!!document.querySelector('textarea[readonly]')",sessionId);
+ assert.equal(await ev("document.querySelector('textarea[readonly]').value",sessionId),copied);
+ await ev("document.querySelector('textarea[readonly]').focus()",sessionId);
+ assert.ok(await ev("document.querySelector('textarea[readonly]').selectionEnd===document.querySelector('textarea[readonly]').value.length",sessionId));
  await ev("[...document.querySelectorAll('button')].find(x=>x.textContent==='Presentation mode').click()",sessionId);
  await wait("document.querySelector('header').hidden",sessionId);
  assert.ok(await ev("document.querySelector('.kg-chart-frame').textContent.includes('CSV imported by reader')"),'presentation mode preserves session data');

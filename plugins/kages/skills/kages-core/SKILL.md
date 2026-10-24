@@ -9,7 +9,7 @@ Neutral lattice system. The base every other system extends.
 
 ## Design before choosing blocks
 
-1. Call get_context and use the workspace's real audience, evidence and constraints. Search existing Kages for reusable work.
+1. Call get_setup and verify the intended cloud workspace (or explicitly requested local mode). If not ready, complete login before creating. Then call get_context and use the workspace's real audience, evidence and constraints. Search existing Kages for reusable work.
 2. Choose a concept: the reader's task, the main takeaway, and the visual or interaction that makes it easier. Put these in brief.job, brief.primaryAction and brief.notes; set brief.mode to read, operate, persuade or experience.
 3. Choose a visual direction from the content and any supplied reference. Infer a sensible default; ask only if a missing preference materially changes the result. Use the workspace design when provided. For a polished report, choose canvas with one personality: analytical, editorial, exploratory, teaching or showcase. Keep ordinary sections inherited; use local palettes only for meaningful emphasis. Declare the same chart colorDomain across related views so filtering and ranking do not change category colors. Labels must also convey the meaning.
 4. Compose a clear opening, a dominant visual or interaction, and supporting detail. Vary the rhythm with page, section, grid and split. Navigation is optional. A hero can use section scale:hero, level:1, palette and backdrop:wash; ordinary chapters stay smaller. Avoid equal emphasis, repetitive cards, and diagrams added merely to fill space.
@@ -42,7 +42,9 @@ Use installed types and declared props only; Kages are data, never HTML, CSS or 
 - [Examples index](reference/examples.md): choose one close example, then open its JSON; do not load the whole collection.
 - [System card](reference/system.md): fonts, tokens and contrast.
 
-When this skill arrives as an MCP prompt without local files, read the equivalent resources under `kages://guide/core/` (catalog.md, authoring.md, examples.md, system.md, examples/<id>.kage.json). The CLI also exports everything with `kages pack core -o <directory>`.
+If local files or MCP prompts/resources are unavailable, call get_authoring_guide with system:"core" and path:"SKILL.md" or a listed reference path such as "reference/examples.md". get_context also includes this skill. Never assume a listed MCP prompt was automatically loaded.
+
+When using MCP resources, read the equivalent resources under `kages://guide/core/` (catalog.md, authoring.md, examples.md, system.md, examples/<id>.kage.json). The CLI also exports everything with `kages pack core -o <directory>`.
 
 ## Named rules
 

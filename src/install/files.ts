@@ -1,3 +1,4 @@
+import { conversionSkills } from "../packs/conversion-skills.ts";
 // The files `kages install` writes, as a pure list: path, content, and what kind of thing
 // it is. Everything is generated from the same sources the packs and the plugin use, so
 // an installed skill can never say something the CLI does not do. Providers without a
@@ -27,12 +28,15 @@ export function filesFor(provider: ProviderId, scope: "project" | "global", base
     files.push({ path: join(skills, DECISION_SKILL_NAME, "SKILL.md"), content: stamp(decisionSkillMd()), kind: "skill", provider });
     files.push({ path: join(skills, LOGIN_SKILL_NAME, "SKILL.md"), content: stamp(loginSkillMd()), kind: "skill", provider });
   } else if (provider === "codex") {
-    if (scope === "project") notes.push("codex: prompts are only read from your home directory, so nothing is installed at project scope");
-    else for (const id of Object.keys(systems)) for (const [path, content] of Object.entries(skillFiles(id, `kages-${id}-reference`))) files.push({ path: join(base.home, ".codex", "prompts", path === "SKILL.md" ? `kages-${id}.md` : path), content: path === "SKILL.md" ? stamp(content) : content, kind: path === "SKILL.md" ? "skill" : "reference", provider });
+    const skills = join(root, ".agents", "skills");
+    for (const id of Object.keys(systems)) for (const [path, content] of Object.entries(skillFiles(id))) files.push({ path: join(skills, `kages-${id}`, path), content: path === "SKILL.md" ? stamp(content) : content, kind: path === "SKILL.md" ? "skill" : "reference", provider });
+    files.push({ path: join(skills, DECISION_SKILL_NAME, "SKILL.md"), content: stamp(decisionSkillMd()), kind: "skill", provider });
+    files.push({ path: join(skills, LOGIN_SKILL_NAME, "SKILL.md"), content: stamp(loginSkillMd({shellEscape:false})), kind: "skill", provider });
   }
+  for (const skill of conversionSkills()) files.push({path:join(root,provider === "codex" ? ".agents" : ".claude","skills",skill.name,"SKILL.md"),content:stamp(skill.markdown),kind:"skill",provider});
   return { files, notes };
 }
 
 /** What to run to wire the tools, per provider. Printed, never executed. */
 export const MCP_ADD: Record<string, string> = { claude: "claude mcp add kages -- kages mcp", codex: "codex mcp add kages -- kages mcp" };
-export const HOSTED_MCP = "https://kages-focks-projects.vercel.app/api/mcp";
+export const HOSTED_MCP = "https://app.getkages.com/api/mcp";

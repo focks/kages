@@ -116,7 +116,7 @@ export async function install(o: InstallOpts, existing: Manifest | null = readMa
   atomic(manifestFile(o.scope, o.base), JSON.stringify(manifest, null, 2) + "\n");
   lines.push(`installed Kages ${VERSION}: ${changed.length} file(s) written`);
   if (o.mcp !== "write") for (const p of chosen.filter((c) => MCP_ADD[c])) lines.push(`wire the tools: ${MCP_ADD[p]}   (or the hosted server: ${HOSTED_MCP})`);
-  lines.push("next: kages init   ·   kages doctor");
+  lines.push("next: kages auth login --url https://app.getkages.com   ·   kages remote get_setup   ·   reconnect MCP and call get_context. For offline work use kages mcp --local; kages init configures a local workspace, not a cloud account.");
   return { lines, exit: 0, changed };
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "kages",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Author interactive Kages from an agent: authoring guides per design system, improvement playbooks, MCP tools and an edit hook.",
   "author": {
     "name": "Kages"

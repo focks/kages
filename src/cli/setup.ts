@@ -1,9 +1,10 @@
+import { conversionSkills } from "../packs/conversion-skills.ts";
 // `kages setup skills` — install the Kages authoring skills (the same packs the
 // MCP server exposes as prompts) into a coding harness, so an agent there can
 // author Kages. One skill per design system. MCP has no skill primitive, so
 // each harness loads these from its own filesystem convention:
 //   claude → ~/.claude/skills/kages-<system>/SKILL.md   (Claude Code skills)
-//   codex  → ~/.codex/prompts/kages-<system>.md         (Codex prompts)
+//   codex  → ~/.agents/skills/kages-<system>/SKILL.md (Codex skills)
 // We only ever write skill files; wiring the MCP *server* is one documented
 // command per harness (printed at the end) — safer than editing their configs.
 
@@ -33,12 +34,11 @@ const HARNESSES: Record<string, Harness> = {
     },
     mcpAdd: "claude mcp add kages -- kages mcp",
   },
-  // ponytail: Codex prompts dir — stable and simple today. Codex's newer Skills
-  // location isn't a documented stable path yet; move here when it is.
+  // Skills are discoverable by task; legacy prompts required manual invocation.
   codex: {
     file: (id) => {
-      const dir = join(homedir(), ".codex", "prompts");
-      return { dir, path: join(dir, `kages-${id}.md`) };
+      const dir = join(homedir(), ".agents", "skills", `kages-${id}`);
+      return { dir, path: join(dir, "SKILL.md") };
     },
     mcpAdd: "codex mcp add kages -- kages mcp",
   },
@@ -47,15 +47,17 @@ const HARNESSES: Record<string, Harness> = {
 function installSkills(harnessId: string): string[] {
   const h = HARNESSES[harnessId];
   if (!h) throw new Error(`unknown harness '${harnessId}' (known: ${Object.keys(HARNESSES).join(", ")})`);
-  return Object.keys(systems).map((id) => {
+  const paths = Object.keys(systems).map((id) => {
     const { dir, path } = h.file(id);
-    for (const [file, content] of Object.entries(skillFiles(id, harnessId === "codex" ? `kages-${id}-reference` : "reference"))) {
+    for (const [file, content] of Object.entries(skillFiles(id))) {
       const target = file === "SKILL.md" ? path : join(dir, file);
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, content);
     }
     return path;
   });
+  for (const skill of conversionSkills()) { const {path} = h.file(skill.name.replace(/^kages-/, "")); mkdirSync(dirname(path), {recursive:true}); writeFileSync(path, skill.markdown); paths.push(path); }
+  return paths;
 }
 
 /** `kages setup skills --harness claude --harness codex`. */

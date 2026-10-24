@@ -1,3 +1,4 @@
+import { CLI_RUN, CLI_INSTALL } from "@/distribution";
 import Link from "next/link";
 
 // The docs: one page, how to install, nothing else. A plain static page (no
@@ -27,21 +28,25 @@ export default function DocsPage() {
       <article className="mx-auto w-full max-w-2xl px-6 py-14">
         <h1 className="font-display text-[32px] font-[680] tracking-[-0.02em]">Install Kages</h1>
         <p className="mt-4 text-muted-foreground">
-          Install the CLI from npm (Node 18 or newer). The command is <code className="font-mono text-[0.9em]">kages</code>:
+          Install the tested CLI release with npm (Node 18 or newer). The command is <code className="font-mono text-[0.9em]">kages</code>:
         </p>
-        <div className="mt-5"><Code>{`npm install -g @ifocksh/kages
+        <div className="mt-5"><Code>{`${CLI_INSTALL}
 kages --version`}</Code></div>
         <p className="mt-3 text-sm text-muted-foreground">
-          Or run it without installing: <code className="font-mono text-[0.9em]">npx @ifocksh/kages --version</code>.
+          Or run it without installing: <code className="font-mono text-[0.9em]">{CLI_RUN} --version</code>.
         </p>
 
+        <h2 className="mt-10 font-display text-[22px] font-[650] tracking-[-0.01em]">Sign in and verify your workspace</h2>
+        <p className="mt-3 text-muted-foreground">Follow the <Link href="/onboarding" className="text-wire underline">setup guide</Link>. Sign in to the same account in your browser and the agent’s terminal. Your cloud workspace is provisioned automatically; kages init is for local setup.</p>
+        <div className="mt-5"><Code>{`kages auth login --url https://app.getkages.com
+kages remote get_setup`}</Code></div>
         <h2 className="mt-10 font-display text-[22px] font-[650] tracking-[-0.01em]">Connect your agent</h2>
         <p className="mt-3 text-muted-foreground">
           Register the Kages MCP server so your agent can build and publish Kages (for Codex, use <code className="font-mono text-[0.9em]">codex mcp add</code>):
         </p>
         <div className="mt-5"><Code>claude mcp add kages -- kages mcp</Code></div>
         <p className="mt-3 text-muted-foreground">
-          Or let <code className="font-mono text-[0.9em]">kages install</code> wire every coding tool it finds (Claude Code, Cursor, Codex, Copilot) — it shows each file first and writes nothing until you agree:
+          Or let <code className="font-mono text-[0.9em]">kages install</code> install authoring skills for supported coding tools — it shows each file first and writes nothing until you agree:
         </p>
         <div className="mt-5"><Code>kages install</Code></div>
 
@@ -55,7 +60,7 @@ kages --version`}</Code></div>
         <div className="mt-5"><Code>{`codex plugin marketplace add focks/kages
 codex plugin add kages@kages`}</Code></div>
         <p className="mt-3 text-sm text-muted-foreground">
-          The hosted server needs a sign-in. Run <code className="font-mono text-[0.9em]">kages auth login</code> once in your own terminal.
+          Hosted HTTP MCP needs a Bearer credential configured in the client; browser or terminal login does not attach it. Use signed-in stdio when possible. Call get_setup from the agent, then get_context; get_authoring_guide loads the skill and references even without MCP prompts.
         </p>
 
         <p className="mt-10 text-sm text-muted-foreground">

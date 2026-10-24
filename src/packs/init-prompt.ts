@@ -8,6 +8,7 @@ export const INIT_PROMPT = `# Set up the Kages workspace brief
 
 Goal: give every later Kages task the same grounding, without a questionnaire.
 
+0. Call get_setup. Verify cloud authentication and the intended workspace; follow its next steps if not ready. Cloud workspaces are provisioned automatically on authenticated access. kages init creates local files, not a cloud account.
 1. Explore first. Read package.json, the README and any docs the project has, and call get_brief and list_kages. Do not ask what the repository already answers.
 2. Treat what you found as a hypothesis, not approval. Anything you infer goes in the brief's \`inferred\` list until a person confirms it.
 3. Ask the person at most three questions in the first round, and only for gaps:

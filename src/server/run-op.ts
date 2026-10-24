@@ -1,3 +1,4 @@
+import { authMode } from "./auth-mode.ts";
 // Run one operation in a workspace with the full server-side lifecycle. Reads hit
 // the latest committed store. Writes go through mutateStore: anonymous callers are
 // rejected (read-only when auth is on), then the op is applied under optimistic
@@ -22,18 +23,20 @@ export async function executeOp(
   op: string,
   params: Record<string, unknown>,
   adapter: "rest" | "mcp" = "rest",
+  origin?: string,
 ): Promise<OpResult> {
   try {
+    const connection = { mode: authMode() === "local" ? "local" as const : "cloud" as const, origin };
     const write = isWriteOp(op, params);
     if (anonWriteBlocked(author, write))
-      return { ok: false, error: { code: "unauthorized", msg: "sign in to write — anonymous access is read-only" } };
+      return { ok: false, error: { code: "unauthorized", msg: "Sign in to write. Call get_setup for login, workspace and MCP authentication instructions; anonymous access is read-only" } };
 
     if (!write) {
       const store = await getStore(workspace);
-      return dispatch({ store, author, adapter, adviceLog: sink }, op, params);
+      return dispatch({ store, author, adapter, connection, adviceLog: sink }, op, params);
     }
 
-    return await mutateStore(workspace, (store) => ({ result: dispatch({ store, author, adapter, adviceLog: sink }, op, params) }));
+    return await mutateStore(workspace, (store) => ({ result: dispatch({ store, author, adapter, connection, adviceLog: sink }, op, params) }));
   } catch (e) {
     console.error("workspace operation failed:", e);
     return { ok: false, error: { code: "unavailable", msg: "workspace storage unavailable; retry later" } };

@@ -11,6 +11,7 @@ import { use, useEffect, useState, useRef } from "react";
 import { CommentStage } from "@/components/dashboard/comments/comment-stage";
 import { useGuestComments } from "@/components/dashboard/comments/use-guest-comments";
 import type { KageDoc, Json } from "@/engine/types";
+import { KageUsage } from "@/components/dashboard/kage-usage";
 import { PublishedActions } from "@/components/dashboard/published-actions";
 import { KageRenderer } from "@/runtime/SandboxedKage";
 
@@ -63,10 +64,11 @@ export default function SharedKagePage({ params }: { params: Promise<{ id: strin
     <div className="relative flex h-dvh flex-col overflow-hidden bg-background">
       <link rel="alternate" type="text/markdown" href={`/k/${id}.md`} />
       {/* One bar: the title on the left, the comment toggle on the right. The design system and version are machine detail, so they live in the tooltip, not the chrome. */}
-      <header hidden={present} className={present ? "hidden" : "flex h-12 shrink-0 items-center gap-3 border-b px-4"}>
+      <header hidden={present} className={present ? "hidden" : "flex min-h-12 shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2"}>
         <span title={doc.system} className="min-w-0 flex-1 truncate font-display text-[15px] font-[650] tracking-[-0.01em]">{doc.title}</span>
         <PublishedActions doc={doc} uuid={id} readerState={() => readerState.current} onPresent={() => setPresent(true)} />
         <div ref={setSlot} className="flex shrink-0 items-center gap-1" />
+        <KageUsage name={doc.id} uuid={id} placement="header" className="basis-full sm:basis-auto" />
       </header>
       {/* Comment mode for visitors: click anything and a comment window opens there. They can only add notes. */}
       <div className="flex min-h-0 flex-1 flex-col">

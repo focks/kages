@@ -1,3 +1,5 @@
+import { conversionSkills } from "../packs/conversion-skills.ts";
+import { MCP_INSTRUCTIONS } from "./onboarding.ts";
 // MCP adapter. Like every other surface it is a thin translation of the one
 // operation set — here onto the Model Context Protocol:
 //   • tools     — every operation (served from the generated mcpTools() schema)
@@ -23,7 +25,7 @@ import { mcpTools, a2aCard } from "./surfaces.ts";
 import { formatDetails, type OpResult } from "./operations.ts";
 import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
-import { pack, skillFiles } from "../packs/packs.ts";
+import { skillMd, skillFiles } from "../packs/packs.ts";
 import { INIT_PROMPT, INIT_PROMPT_NAME } from "../packs/init-prompt.ts";
 
 export type Exec = (op: string, params: Record<string, unknown>) => Promise<OpResult>;
@@ -37,10 +39,11 @@ const CAPABILITIES = { tools: {}, prompts: {}, resources: {} };
 
 const systemOf = (name: string) => {
   const id = name.replace(/^kages-/, "");
-  return systems[id] ? id : undefined;
+  return Object.hasOwn(systems, id) ? id : undefined;
 };
 
 const promptList = () => [
+  ...conversionSkills().map(({name,description})=>({name,description})),
   ...Object.values(systems).map((s) => ({
     name: `kages-${s.id}`,
     description: `Author Kages in the ${s.name} design system (${s.id}@${s.version}).`,
@@ -49,16 +52,21 @@ const promptList = () => [
 ];
 
 function getPromptResult(name: string) {
+  const workflow = conversionSkills().find(s => s.name === name);
+  if (workflow) return { description: workflow.description, messages: [{ role: "user", content: { type: "text", text: workflow.markdown } }] };
   if (name === INIT_PROMPT_NAME) return { description: "Set up the Kages workspace brief", messages: [{ role: "user", content: { type: "text", text: INIT_PROMPT } }] };
   const id = systemOf(name);
   if (!id) throw new Error(`unknown skill '${name}'`);
   return {
     description: `Kages authoring skill — ${systems[id].name}`,
-    messages: [{ role: "user", content: { type: "text", text: pack(id)["SKILL.md"] } }],
+    messages: [{ role: "user", content: { type: "text", text: skillMd(id) } }],
   };
 }
 
 const resourceList = () => [
+  ...conversionSkills().map(({name,description})=>({uri:`kages://workflow/${name}`,name,description,mimeType:"text/markdown"})),
+  { uri: "kages://start", name: "Start here: login, workspace and authoring", mimeType: "text/markdown" },
+  ...Object.keys(systems).map(id => ({ uri: `kages://skill/${id}`, name: `${systems[id].name} authoring skill`, mimeType: "text/markdown" })),
   ...Object.values(systems).map((s) => ({
     uri: `kages://catalog/${s.id}`,
     name: `${s.name} catalog`,
@@ -74,6 +82,11 @@ const resourceList = () => [
 ];
 
 function readResourceResult(uri: string) {
+  const workflow = conversionSkills().find(s => uri === `kages://workflow/${s.name}`);
+  if (workflow) return { contents: [{ uri, mimeType: "text/markdown", text: workflow.markdown }] };
+  if (uri === "kages://start") return { contents: [{ uri, mimeType: "text/markdown", text: MCP_INSTRUCTIONS }] };
+  const skill = /^kages:\/\/skill\/([a-z]+)$/.exec(uri);
+  if (skill && Object.hasOwn(systems, skill[1])) return { contents: [{ uri, mimeType: "text/markdown", text: skillMd(skill[1]) }] };
   if (uri === "kages://agent-card") {
     return { contents: [{ uri, mimeType: "application/json", text: JSON.stringify(a2aCard(), null, 2) }] };
   }
@@ -107,7 +120,7 @@ export interface LocalTools {
 }
 
 export function createMcpServer(exec: Exec, local?: LocalTools): Server {
-  const server = new Server(SERVER_INFO, { capabilities: CAPABILITIES });
+  const server = new Server(SERVER_INFO, { capabilities: CAPABILITIES, instructions: MCP_INSTRUCTIONS });
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [...mcpTools(), ...(local?.tools ?? [])] }));
   server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const args = (req.params.arguments ?? {}) as Record<string, unknown>;
@@ -150,6 +163,7 @@ export async function handleMcpMessage(exec: Exec, msg: JsonRpc): Promise<object
           protocolVersion: requested && PROTOCOL_VERSIONS.has(requested) ? requested : PROTOCOL_VERSION,
           capabilities: CAPABILITIES,
           serverInfo: SERVER_INFO,
+          instructions: MCP_INSTRUCTIONS,
         });
       }
       case "ping":
