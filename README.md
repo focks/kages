@@ -15,7 +15,7 @@ provenance — rendered live in the browser and shareable by link.
 
 ## Quick start
 
-Install the CLI and wire it to your agent (the command is `kages`):
+Install the CLI from the hosted release and wire it to your agent (the command is `kages`):
 
 ```bash
 npm install -g https://app.getkages.com/downloads/ifocksh-kages-0.2.0.tgz
@@ -38,6 +38,10 @@ Then drive it from the terminal:
 node bin/kages.mjs help
 node bin/kages.mjs validate public/ds/ops-console.kage.json
 ```
+
+The CLI also builds from source with no hosted service involved:
+`npm run build:cli` produces `dist/kages.mjs`. To run your own instance, see
+[Deploying](#deploying).
 
 ---
 
@@ -129,19 +133,27 @@ available. Additive component sources live in `src/design-system/` and compile
 into the reference oracle before inheritance; existing contract refs remain
 unchanged. See `.claude/skills/free-flow-composition/SKILL.md`.
 
-With **no environment variables set**, the app runs fully in-memory with no
-login and a seeded demo — ideal for development.
+With **no environment variables set**, `npm run dev` runs fully in-memory with
+no login and a seeded demo — ideal for development. A production build with no
+auth configured is read-only instead (see below).
 
 ## Persistence & auth (optional)
 
-Both are **env-gated**: absent → the in-memory/no-login defaults above.
+Both are **env-gated** and independent: a database does not provide login, and
+login does not provide a database.
 
 | Variable | Purpose |
 |----------|---------|
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Durable store (a JSON snapshot per workspace in Supabase). |
-| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Enable Google sign-in + per-user workspaces. |
+| `DATABASE_URL` | Durable store on plain Postgres (wins over Supabase). Create it with `npm run db:setup`. |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Durable store through Supabase (server-only; the key bypasses RLS). |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Google sign-in + per-user workspaces. Inlined at build time. |
+| `KAGES_LOCAL_MODE=1` | Treat a built app like `npm run dev` (every caller is admin). Never on a shared host. |
 
-See `.env.example`. Database schema is versioned under `supabase/migrations/`.
+Without auth, `npm run dev` is open and a built app is **read-only**: anonymous
+writes get `401`, so a deployment that loses a variable fails closed. Data lives
+in normalized `workspaces`, `kages` and `kage_versions` tables; the schema is
+versioned under `supabase/migrations/`. Every variable is listed with
+placeholders in `.env.example`.
 
 ## MCP & skills
 
@@ -161,7 +173,7 @@ kages setup skills --harness claude --harness codex
 `setup skills` installs the same skill packs where each harness loads them
 (`~/.claude/skills/kages-<system>/SKILL.md`, `~/.agents/skills/kages-<system>/SKILL.md`)
 and prints the one-liner to register the server (`claude mcp add kages -- kages mcp`).
-Start with `/onboarding`: sign in, then run `kages auth login --url https://app.getkages.com` and `kages remote get_setup`. Workspace provisioning is automatic. From the connected agent call `get_setup`, then `get_context`; the latter includes the authoring skill and `get_authoring_guide` retrieves references without relying on prompts.
+Start with `/onboarding`: sign in, then run `kages auth login --url https://app.getkages.com` (or your own instance's URL) and `kages remote get_setup`. Workspace provisioning is automatic. From the connected agent call `get_setup`, then `get_context`; the latter includes the authoring skill and `get_authoring_guide` retrieves references without relying on prompts.
 
 Signed in (`kages auth login`) the server acts on your cloud workspace; without login cloud creation is blocked. For intentional offline work use `kages mcp --local`. Local publishing has no hosted URL.
 
@@ -202,8 +214,10 @@ src/store/      artifactory: signed versions, provenance, RBAC
 src/adapters/   one operation table → REST/MCP/A2A/OpenAPI
 src/runtime/    React renderer + design-system bundle loader
 src/app/        Next.js app: dashboard, library, /k share, /api, auth
-src/server/     process store, Supabase persistence, identity
+src/server/     process store, Postgres/Supabase persistence, identity
+supabase/       database migrations (shared by Postgres and Supabase)
 oracle/         BDD feature files — the behavioural spec
+docs/           self-hosting guide and design notes
 .claude/skills/ load-bearing patterns, captured as skills
 ```
 
@@ -213,7 +227,7 @@ Saved critiques require `fingerprint` from the reviewed `critique_kage` packet's
 
 Artifact code runs inside an opaque-origin sandbox. Host integrations cross a checked message port, and direct fetch is denied. New stored versions pin the renderer and design-system asset hashes; builds retain those immutable files. Legacy versions without asset pins use current assets. Google Fonts remain external resources.
 
-Persistent storage fails closed on outages, initializes through compare-and-swap, and reloads committed state for reads. Public links check committed visibility, so an old public-share mirror cannot undo revocation. Apply the latest database migrations with `npm run db:setup`.
+Persistent storage fails closed on outages, initializes through compare-and-swap, and reloads committed state for reads. Public links check committed visibility, so an old public-share mirror cannot undo revocation. Apply the latest database migrations before starting a new release (`npm run db:setup` on plain Postgres, or `supabase db push`).
 
 ## Contributing
 
