@@ -15,23 +15,26 @@ import { KageSession } from "../engine/session.ts";
 
 const ds = fileURLToPath(new URL("../../public/ds/", import.meta.url));
 const chrome = findChrome();
+// These cascade checks need the compiled CSS, not hosted fonts. Block external
+// imports so a font outage cannot hold Chrome open until the probe times out.
+const offline = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' file:; script-src 'unsafe-inline'">`;
 
 test("browser: a repeated card may be skipped off screen, a plain card never is", { skip: !chrome && "Chrome is not installed" }, () => {
   const file = join(tmpDir("kages-lists-"), "probe.html");
-  writeFileSync(file, `<!doctype html><meta charset=utf-8><link rel=stylesheet href="file://${ds}tokens.css"><link rel=stylesheet href="file://${ds}bundle.css"><body>
+  writeFileSync(file, `<!doctype html><meta charset=utf-8>${offline}<link rel=stylesheet href="file://${ds}tokens.css"><link rel=stylesheet href="file://${ds}bundle.css"><body>
 <div class="kg-kage kg-sys-core"><div class="kg-block" data-block="list~/r1" style="display:contents"><div class="kg-card" id=rep></div></div>
 <div class="kg-block" data-block="plain" style="display:contents"><div class="kg-card" id=one></div></div></div><pre id=out></pre>
 <script>const cs = (id) => getComputedStyle(document.getElementById(id)).contentVisibility; document.getElementById("out").textContent = cs("rep") + "|" + cs("one");</script>`);
-  const dom = execFileSync(chrome!, ["--headless=new", "--no-sandbox", "--disable-gpu", "--virtual-time-budget=3000", "--dump-dom", "file://" + file], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "ignore"] });
+  const dom = execFileSync(chrome!, ["--headless=new", "--no-sandbox", "--disable-gpu", `--user-data-dir=${tmpDir("kages-list-profile-")}`, "--virtual-time-budget=3000", "--dump-dom", "file://" + file], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "ignore"] });
   assert.match(dom, /<pre id="out">auto\|visible<\/pre>/);
 });
 
 test("browser: a sticky contents rail stays in view while the page scrolls", { skip: !chrome && "Chrome is not installed" }, () => {
   const file = join(tmpDir("kages-sticky-"), "probe.html");
-  writeFileSync(file, `<!doctype html><meta charset=utf-8><link rel=stylesheet href="file://${ds}tokens.css"><link rel=stylesheet href="file://${ds}bundle.css"><body style="margin:0">
+  writeFileSync(file, `<!doctype html><meta charset=utf-8>${offline}<link rel=stylesheet href="file://${ds}tokens.css"><link rel=stylesheet href="file://${ds}bundle.css"><body style="margin:0">
 <div class="kg-kage kg-sys-core"><div style="display:grid;grid-template-columns:200px 1fr"><div><nav class="kg-toc kg-toc--sticky" id=toc>rail</nav></div><div style="height:4000px">long</div></div></div><pre id=out></pre>
 <script>scrollTo(0, 2000); document.getElementById("out").textContent = "top=" + Math.round(document.getElementById("toc").getBoundingClientRect().top);</script>`);
-  const dom = execFileSync(chrome!, ["--headless=new", "--no-sandbox", "--disable-gpu", "--window-size=1000,700", "--virtual-time-budget=3000", "--dump-dom", "file://" + file], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "ignore"] });
+  const dom = execFileSync(chrome!, ["--headless=new", "--no-sandbox", "--disable-gpu", `--user-data-dir=${tmpDir("kages-list-profile-")}`, "--window-size=1000,700", "--virtual-time-budget=3000", "--dump-dom", "file://" + file], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "ignore"] });
   const top = Number(/top=(-?\d+)/.exec(dom)?.[1]);
   assert.ok(top >= 0 && top < 100, `the rail scrolled away (top=${top}); .kg-kage must not be a scroll container`);
 });

@@ -78,3 +78,12 @@ Import these instead of re-implementing them in a test file (they are not
 
 `runCli` swaps `process.stdout.write` and `process.chdir`s: tests in one file run
 sequentially so this is safe, but never `await`-interleave two `runCli` calls.
+
+## Static CSS browser probes
+
+For file-based cascade/layout checks, allow local CSS and inline test scripts
+with a CSP that blocks network imports. The compiled bundle imports Google
+Fonts; an unavailable font host must not stall a test that only checks tokens
+or content visibility. Give every Chrome invocation a fresh `--user-data-dir`
+from `tmpDir` so parallel tests cannot share profiles. Keep real font loading
+for visual typography tests, where it is part of the behavior being checked.

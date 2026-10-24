@@ -16,7 +16,10 @@ const ds = fileURLToPath(new URL("../../public/ds/", import.meta.url));
 
 function probe(extraFlags: string[]): Record<string, string> {
   const dir = tmpDir("kages-surfaces-");
+  // Network fonts are irrelevant to these token assertions; the CSP keeps a
+  // slow font host from blocking the real CSS cascade probe.
   const html = `<!doctype html><meta charset=utf-8>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' file:; script-src 'unsafe-inline'">
 <link rel=stylesheet href="file://${ds}tokens.css"><link rel=stylesheet href="file://${ds}bundle.css">
 <body>
 <div id=light class="kg-kage kg-sys-core"><p id=p1>text</p><input id=in1 placeholder="x"><div class="kg-tabs" id=tabs1></div><aside class="kg-side" id=side></aside></div>
@@ -40,7 +43,7 @@ document.getElementById("out").textContent = JSON.stringify(r);
 </script>`;
   const file = join(dir, "probe.html");
   writeFileSync(file, html);
-  const dom = execFileSync(chrome!, ["--headless=new", "--no-sandbox", "--disable-gpu", "--virtual-time-budget=3000", "--dump-dom", ...extraFlags, "file://" + file], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "ignore"] });
+  const dom = execFileSync(chrome!, ["--headless=new", "--no-sandbox", "--disable-gpu", `--user-data-dir=${tmpDir("kages-surface-profile-")}`, "--virtual-time-budget=3000", "--dump-dom", ...extraFlags, "file://" + file], { encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "ignore"] });
   const m = /<pre id="out">(.*?)<\/pre>/s.exec(dom);
   assert.ok(m, "the probe page did not run");
   return JSON.parse(m![1].replace(/&quot;/g, '"').replace(/&amp;/g, "&"));
