@@ -7,6 +7,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { chmodSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { findChrome, launch, parseWidths, shotFiles, resolveBase, screenshotDoc, summarize, DEFAULTS, type PageMetrics } from "./screenshot.ts";
@@ -92,7 +93,10 @@ test("launch: timeout, early exit and spawn error each kill the child and remove
     const alive = (pid: number) => { try { process.kill(pid, 0); return true; } catch { return false; } };
 
     const pidFile = join(root, "pid");
-    const hang = fake("hang.sh", `echo $$ > ${pidFile}\nexec sleep 30`);
+    const hang = fake("hang.sh", `[ "$1" = warm ] && exit 0\necho $$ > ${pidFile}\nexec sleep 30`);
+    // macOS scans a freshly written executable on its first exec (~500ms), longer than
+    // the 300ms timeout below, so the child died before writing its pid. Exec it once first.
+    execFileSync(hang, ["warm"]);
     await assert.rejects(launch(hang, false, 300), /did not start/);
     const pid = Number(readFileSync(pidFile, "utf8"));
     for (let i = 0; i < 50 && alive(pid); i++) await new Promise((r) => setTimeout(r, 20)); // SIGKILL is delivered asynchronously
