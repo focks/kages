@@ -5,14 +5,18 @@ versioned interactive artifacts by assembling **blocks** from a **design
 system** against published **contracts**. Agents never write HTML.
 
 This repo is **AI-native**: every load-bearing pattern and convention lives as a
-skill under `.claude/skills/`. Read the relevant skill before touching code —
-the pattern is captured so you inherit it instead of rediscovering it. When you
-find a new reusable pattern, add it as a skill.
+skill under `.claude/skills/` or `.codex/skills/`. The open-source readiness and
+deployment boundary skills are maintained in `.codex/skills/`; their matching
+`.claude/skills/` entrypoints refer to that shared source. Read the relevant
+skill before touching code — the pattern is captured so you inherit it instead
+of rediscovering it. When you find a new reusable pattern, add it as a skill.
 
 ## Start here
 
 | Skill | When |
 | --- | --- |
+| [`kages-open-source-readiness`](.codex/skills/kages-open-source-readiness/SKILL.md) | Reviewing public-release readiness or changing contributor setup, packaging, release checks, or repository publication hygiene. |
+| [`kages-deployment-boundaries`](.codex/skills/kages-deployment-boundaries/SKILL.md) | Changing self-hosting, deployment configuration or docs, hosted-service defaults, or the boundary between reusable source and private operations. |
 | `kages-architecture` | Before changing engine, store, adapters, or runtime — the layer map, the oracle-as-truth rule, the golden-test pattern, the invariants. |
 | `how-to-extend-kages` | Adding a design system, component/role override, or protocol adapter. |
 | `free-flow-composition` | Artifact layouts, content blocks, or agent authoring guidance — additive oracle compilation and responsive composition. |
