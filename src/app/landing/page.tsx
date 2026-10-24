@@ -56,14 +56,15 @@ export default function LandingPage() {
     <main className="min-h-dvh bg-background text-foreground">
       {/* Nav */}
       <header className="border-b border-border">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
           <div className="flex items-center gap-2">
             <div aria-hidden className="flex size-7 items-center justify-center rounded-sm bg-primary font-display text-[13px] font-bold tracking-[-0.03em] text-primary-foreground">Kg</div>
             <span className="font-mono text-[15px] font-medium">kages</span>
           </div>
-          <nav className="flex items-center gap-1">
+          <nav className="flex flex-wrap items-center gap-1">
             <Button render={<a href="/docs" />} nativeButton={false} variant="ghost" size="sm" className="font-mono">docs</Button>
             <Button render={<Link href="/gallery" />} nativeButton={false} variant="ghost" size="sm" className="font-mono">gallery</Button>
+            <Button render={<a href={GITHUB} target="_blank" rel="noopener noreferrer" />} nativeButton={false} variant="ghost" size="sm" className="font-mono">GitHub</Button>
             <Button render={<Link href={APP_URL} />} nativeButton={false} size="sm" className="font-mono">open app</Button>
           </nav>
         </div>
@@ -90,6 +91,7 @@ export default function LandingPage() {
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Button render={<Link href={APP_URL} />} nativeButton={false} size="lg" className="font-mono">open the app <ArrowRight className="size-4" /></Button>
               <Button render={<Link href="/gallery" />} nativeButton={false} size="lg" variant="outline" className="font-mono">explore the gallery</Button>
+              <Button render={<a href={GITHUB} target="_blank" rel="noopener noreferrer" />} nativeButton={false} size="lg" variant="outline" className="font-mono">star on GitHub</Button>
             </div>
           </div>
 
