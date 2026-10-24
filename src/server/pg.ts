@@ -1,7 +1,7 @@
-// Plain-Postgres backend, selected by DATABASE_URL. It serves the same two
-// tables the Supabase REST backend uses (kages_state, public_shares) so the
-// store, CAS retry loop and public-share registry behave identically against
-// either. The pool lives on globalThis because Next dev re-evaluates modules on
+// Plain-Postgres backend, selected by DATABASE_URL. It serves the same tables
+// and SQL functions the Supabase REST backend uses (workspaces, kages,
+// kage_versions) so the store, CAS retry loop and public-link reads behave
+// identically against either. The pool lives on globalThis because Next dev re-evaluates modules on
 // every route compile; a module-level pool would leak a new set of connections
 // each time and eventually exhaust the server's max_connections.
 

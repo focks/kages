@@ -843,8 +843,8 @@ export class Store {
     this.kages.delete(name);
     this.gallery.delete(head.uuid);
     // Drop everything else keyed by this name, so a later Kage reusing it can't
-    // inherit a stale lease or someone else's old comments. (public_shares is
-    // purged by the server layer via the returned uuid — it lives in Supabase.)
+    // inherit a stale lease or someone else's old comments. (Public /k/ links
+    // die with the committed write: they resolve from the version log itself.)
     this.claims.releaseAll(name);
     this.comments.purge(name);
     this.memberships.delete(name); // a later Kage reusing this name must not inherit stale project tags

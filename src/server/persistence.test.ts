@@ -1,13 +1,13 @@
-// Postgres persistence: compare-and-swap semantics and the public-share
-// registry against a real database. Skipped unless KAGES_TEST_DATABASE_URL is
-// set (run `DATABASE_URL=<url> npm run db:setup` first), so the default
-// `npm test` stays hermetic. Never point this at a database you care about: it
-// deletes the rows it uses.
+// Postgres persistence: compare-and-swap semantics, delta writes and public-link
+// reads against a real database with the normalized model. Skipped unless
+// KAGES_TEST_DATABASE_URL is set (run `DATABASE_URL=<url> npm run db:setup`
+// first), so the default `npm test` stays hermetic. Never point this at a
+// database you care about: it deletes the rows it uses.
 
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { loadSnapshotRev, saveSnapshot, casSave } from "./persistence.ts";
-import { putPublicShare, getPublicShare, getPublicShareWorkspace, delPublicShare } from "./public-shares.ts";
+import { loadSnapshotRev, saveSnapshot, casSave, baselineOf } from "./persistence.ts";
+import { getPublicShare, getPublicShareWorkspace } from "./public-shares.ts";
 import { closePool, pool } from "./pg.ts";
 import { Store } from "../store/store.ts";
 import type { KageDoc } from "../engine/types.ts";
@@ -19,7 +19,7 @@ const snap = (title: string) => { const s = new Store({ workspace: WS }); (s as 
 
 before(() => { if (url) process.env.DATABASE_URL = url; });
 after(async () => {
-  if (url) { await pool().query("delete from kages_state where id like 'test-ws-%'"); await pool().query("delete from public_shares where uuid like 'test-%'"); }
+  if (url) await pool().query("delete from workspaces where id like 'test-ws-%'"); // cascades to kages/kage_versions
   await closePool();
 });
 
@@ -39,20 +39,11 @@ test("casSave commits only against the revision the caller read", { skip }, asyn
   assert.equal((await loadSnapshotRev(WS))?.rev, 3);
 });
 
-test("inserting over an existing row is a conflict, and a new row starts at revision 1", { skip }, async () => {
+test("inserting over an existing workspace is a conflict, and a new one starts at revision 1", { skip }, async () => {
   assert.equal(await casSave(WS, snap("dup"), null), false, "another instance created it first");
   const other = WS + "-new";
   assert.equal(await casSave(other, snap("fresh"), null), true);
   assert.equal((await loadSnapshotRev(other))?.rev, 1);
-});
-
-test("a legacy row without _rev is revision 0 and is updated by an expectedRev of 0", { skip }, async () => {
-  const legacy = WS + "-legacy";
-  await pool().query("insert into kages_state (id, snapshot) values ($1, $2::jsonb)", [legacy, JSON.stringify({ marker: "old" })]);
-  assert.equal((await loadSnapshotRev(legacy))?.rev, 0);
-  assert.equal(await casSave(legacy, snap("new"), 5), false, "wrong rev refused");
-  assert.equal(await casSave(legacy, snap("new"), 0), true);
-  assert.equal((await loadSnapshotRev(legacy))?.rev, 1);
 });
 
 test("concurrent writers from the same revision: exactly one wins", { skip }, async () => {
@@ -62,7 +53,7 @@ test("concurrent writers from the same revision: exactly one wins", { skip }, as
   assert.equal((await loadSnapshotRev(ws))?.rev, 2);
 });
 
-test("a full store snapshot survives a round trip through jsonb", { skip }, async () => {
+test("a full store snapshot survives a round trip through the normalized tables", { skip }, async () => {
   const ws = WS + "-store"; const store = new Store({ workspace: ws });
   const doc: KageDoc = { kages: "1.0", id: "k", title: "Café — 日本語", system: "core@1", root: "t", blocks: { t: { type: "text", props: { text: "héllo 🌍" } } } };
   store.grant("agent:a", "r", ["write", "publish", "review", "admin"]);
@@ -73,7 +64,63 @@ test("a full store snapshot survives a round trip through jsonb", { skip }, asyn
   assert.equal(back.head("k")?.digest, store.head("k")?.digest);
 });
 
-test("public links use committed heads, ignoring stale or resurrected mirrors", { skip }, async () => {
+test("a delta write with a baseline appends only the new tail and round-trips", { skip }, async () => {
+  const ws = WS + "-delta"; const store = new Store({ workspace: ws });
+  const author = { principal: "agent:a" };
+  const doc: KageDoc = { kages: "1.0", id: "k", title: "V1", system: "core@1", root: "t", blocks: { t: { type: "text", props: { text: "one" } } } };
+  assert.ok(store.create("r", doc, author).ok);
+  await saveSnapshot(ws, store.snapshot());
+  const loaded = (await loadSnapshotRev(ws))!;
+  const baseline = baselineOf(loaded.snapshot);
+  const next = Store.restore(loaded.snapshot);
+  next.patch("k", [{ op: "replace", path: "/title", value: "V2" }], author);
+  assert.ok(await casSave(ws, next.snapshot(), loaded.rev, baseline));
+  const back = Store.restore((await loadSnapshotRev(ws))!.snapshot);
+  assert.equal(back.head("k")?.doc.title, "V2");
+  assert.equal(back.versions("k").length, 2, "both versions survive the delta write");
+  const count = await pool().query("select count(*)::int as n from kage_versions where workspace_id = $1", [ws]);
+  assert.equal(count.rows[0].n, 2);
+});
+
+test("an in-place head transition under a baseline persists (publish, then revoke)", { skip }, async () => {
+  const ws = WS + "-transition"; const store = new Store({ workspace: ws });
+  const author = { principal: "agent:a" };
+  const doc: KageDoc = { kages: "1.0", id: "k", title: "K", system: "core@1", root: "t", blocks: { t: { type: "text", props: { text: "x" } } } };
+  assert.ok(store.create("r", doc, author).ok);
+  await saveSnapshot(ws, store.snapshot());
+  // publish mutates head.state/visibility in place — no version is appended.
+  let loaded = (await loadSnapshotRev(ws))!;
+  let baseline = baselineOf(loaded.snapshot);
+  let next = Store.restore(loaded.snapshot);
+  assert.ok(next.publish("k", author, "link").ok);
+  assert.ok(await casSave(ws, next.snapshot(), loaded.rev, baseline));
+  const uuid = next.head("k")!.uuid;
+  assert.equal((await getPublicShare(uuid))?.title, "K", "the delta write carried the state change");
+  loaded = (await loadSnapshotRev(ws))!;
+  baseline = baselineOf(loaded.snapshot);
+  next = Store.restore(loaded.snapshot);
+  assert.ok(next.unpublish("k", author).ok);
+  assert.ok(await casSave(ws, next.snapshot(), loaded.rev, baseline));
+  assert.equal(await getPublicShare(uuid), null, "revocation persisted through the delta write");
+});
+
+test("a kage deleted under a baseline disappears from storage and cannot resurrect", { skip }, async () => {
+  const ws = WS + "-del"; const store = new Store({ workspace: ws });
+  const author = { principal: "agent:a" };
+  assert.ok(store.create("r", { kages: "1.0", id: "k", title: "K", system: "core@1", root: "t", blocks: { t: { type: "text", props: { text: "x" } } } }, author).ok);
+  await saveSnapshot(ws, store.snapshot());
+  const loaded = (await loadSnapshotRev(ws))!;
+  const baseline = baselineOf(loaded.snapshot);
+  const next = Store.restore(loaded.snapshot);
+  assert.ok(next.remove("k", author).ok);
+  assert.ok(await casSave(ws, next.snapshot(), loaded.rev, baseline));
+  const back = Store.restore((await loadSnapshotRev(ws))!.snapshot);
+  assert.equal(back.head("k"), undefined);
+  const count = await pool().query("select count(*)::int as n from kage_versions where workspace_id = $1", [ws]);
+  assert.equal(count.rows[0].n, 0);
+});
+
+test("public links use committed heads and die with revocation", { skip }, async () => {
   const ws = WS + "-shares";
   const store = new Store({ workspace: ws });
   const author = { principal: "agent:a" };
@@ -85,9 +132,7 @@ test("public links use committed heads, ignoring stale or resurrected mirrors", 
   assert.equal((await getPublicShare(uuid))?.title, "Public");
   assert.ok(store.unpublish("share", author).ok);
   assert.ok(await casSave(ws, store.snapshot(), 1));
-  await putPublicShare(uuid, doc); // a delayed older publish finishes after revocation
-  assert.equal(await getPublicShare(uuid), null);
-  await delPublicShare(uuid);
+  assert.equal(await getPublicShare(uuid), null, "the committed head is no longer open");
 });
 
 test("initialization cannot overwrite an existing workspace or reset its revision", { skip }, async () => {
@@ -110,7 +155,7 @@ test("restoring the persistent store preserves active leases and their original 
   assert.equal(restored.claims.canWrite("k", "t", "agent:b", 61000), true);
 });
 
- test("persistent reads observe another instance and storage errors never trigger seeding", { skip }, async () => {
+test("persistent reads observe another instance and storage errors never trigger seeding", { skip }, async () => {
   const { getStore } = await import("./store-instance.ts");
   const ws = WS + "-reads";
   const s = new Store({ workspace: ws });
@@ -119,9 +164,10 @@ test("restoring the persistent store preserves active leases and their original 
   await saveSnapshot(ws, s.snapshot());
   const first = await getStore(ws);
   const loaded = (await loadSnapshotRev(ws))!;
+  const baseline = baselineOf(loaded.snapshot);
   const other = Store.restore(loaded.snapshot);
   other.patch("k", [{ op: "replace", path: "/title", value: "After" }], author);
-  assert.ok(await casSave(ws, other.snapshot(), loaded.rev));
+  assert.ok(await casSave(ws, other.snapshot(), loaded.rev, baseline));
   assert.equal(first.head("k")?.doc.title, "Before");
   assert.equal((await getStore(ws)).head("k")?.doc.title, "After");
   const db = pool(); const query = db.query;
@@ -147,14 +193,14 @@ test("a lease committed by one executor blocks the next persistent writer", { sk
   assert.equal(Store.restore((await loadSnapshotRev(ws))!.snapshot).head("k")!.doc.blocks.t.props!.text, "Hi");
 });
 
-test("a public link read transfers the head Kage, not the whole workspace snapshot", { skip }, async () => {
+test("a public link read transfers the head Kage, not the whole workspace", { skip }, async () => {
   const ws = WS + "-payload";
   const store = new Store({ workspace: ws });
   const author = { principal: "agent:a" };
   const doc: KageDoc = { kages: "1.0", id: "small", title: "Small", system: "core@1", root: "t", blocks: { t: { type: "text", props: { text: "hello" } } } };
   assert.ok(store.create("r", doc, author).ok);
   assert.ok(store.publish("small", author, "link").ok);
-  // History, comments and audit live in the same row; stand in for them with 300 KB of unrelated data.
+  // Comments, audit and events live in the meta blob; stand in for them with 300 KB of unrelated data.
   await saveSnapshot(ws, { ...store.snapshot(), history: "x".repeat(300_000) } as any);
   const uuid = store.head("small")!.uuid;
   const p = pool() as any, original = p.query.bind(p);

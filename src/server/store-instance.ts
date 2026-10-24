@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
-import { loadSnapshotRev, casSave, persistenceEnabled } from "./persistence.ts";
+import { loadSnapshotRev, casSave, baselineOf, persistenceEnabled } from "./persistence.ts";
 import { introKages } from "./intro-kages.ts";
 import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../packs/examples.ts";
 import type { OpResult } from "../adapters/operations.ts";
@@ -65,10 +65,13 @@ export async function mutateStore(
   }
   for (let attempt = 0; attempt < 5; attempt++) {
     const loaded = await loadSnapshotRev(workspace);
+    // Fingerprint BEFORE applying: Store.restore shares the loaded versions
+    // arrays by reference, and the op appends to them in place.
+    const baseline = loaded ? baselineOf(loaded.snapshot) : null;
     const store = loaded ? Store.restore(loaded.snapshot) : buildSeeded(workspace);
     const { result, after } = apply(store);
     if (!result.ok) return result; // a failed op changed nothing → nothing to commit
-    const committed = await casSave(workspace, store.snapshot(), loaded ? loaded.rev : null);
+    const committed = await casSave(workspace, store.snapshot(), loaded ? loaded.rev : null, baseline);
     if (committed) {
       if (after) await after();
       return result;
@@ -95,9 +98,10 @@ async function initStore(workspace: string): Promise<Store> {
   }
   for (let attempt = 0; attempt < 5; attempt++) {
     const loaded = await loadSnapshotRev(workspace);
+    const baseline = loaded ? baselineOf(loaded.snapshot) : null;
     const store = loaded ? Store.restore(loaded.snapshot) : buildSeeded(workspace);
     if (loaded && !backfillExamples(store, workspace)) return store;
-    if (await casSave(workspace, store.snapshot(), loaded?.rev ?? null)) return store;
+    if (await casSave(workspace, store.snapshot(), loaded?.rev ?? null, baseline)) return store;
     // A competing seed or backfill won. Reload its committed data, never our candidate.
   }
   throw new Error("workspace initialization changed concurrently; please retry");

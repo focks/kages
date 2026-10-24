@@ -13,7 +13,7 @@ import { galleryPage } from '../store/gallery.ts';
 import { pool, closePool } from './pg.ts';
 const url=process.env.KAGES_TEST_DATABASE_URL,ws='gallery-pg-'+process.pid;
 if(url)process.env.DATABASE_URL=url;
-after(async()=>{if(url){await pool().query('delete from kages_state where id = $1',[ws]);await closePool();}});
+after(async()=>{if(url){await pool().query('delete from workspaces where id = $1',[ws]);await closePool();}});
 test('JSONB gallery discovery and concurrent account votes survive reload and revoke immediately',{skip:!url},async()=>{
  const owner={principal:'user:publisher'},s=new Store({workspace:ws});s.create('r',sampleKage({id:'public-doc'}),owner);s.publishToGallery('public-doc',owner);await saveSnapshot(ws,s.snapshot());
  const uuid=s.head('public-doc')!.uuid;assert.equal(await galleryWorkspace(uuid),ws);

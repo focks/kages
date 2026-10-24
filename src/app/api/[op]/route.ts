@@ -1,8 +1,9 @@
 // Next.js REST adapter route. Resolves WHO the request is and WHICH workspace it
 // acts in (resolveIdentity), parses params from the request, then runs the op
 // through executeOp — the one server-side executor shared with the MCP route. It
-// enforces the anon-write guard, applies writes under optimistic concurrency, and
-// reconciles the public_shares registry. The route only parses the request and
+// enforces the anon-write guard and applies writes under optimistic concurrency
+// (public /k/ links resolve from the committed version log, no registry to
+// reconcile). The route only parses the request and
 // maps the OpResult to an HTTP status. A no-op without Supabase env, so local/dev
 // is unchanged.
 

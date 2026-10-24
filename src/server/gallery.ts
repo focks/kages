@@ -12,14 +12,14 @@ import { memoryGalleryStores } from './store-instance.ts';
 export async function readGalleryEntries(): Promise<GallerySnapshot[]> {
   if (!sharesEnabled()) return (await memoryGalleryStores()).flatMap(s => s.galleryEntries());
   if (pgEnabled()) {
-    const result = await pool().query("select snapshot->'gallery' as gallery from kages_state where snapshot @> $1::jsonb", [JSON.stringify({ gallery: [{ listed: true }] })]);
+    const result = await pool().query("select meta->'gallery' as gallery from workspaces where meta @> $1::jsonb", [JSON.stringify({ gallery: [{ listed: true }] })]);
     return result.rows.flatMap((r: { gallery: GallerySnapshot[] }) => r.gallery ?? []);
   }
   const base = process.env.SUPABASE_URL!, key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   const filter = encodeURIComponent(JSON.stringify({ gallery: [{ listed: true }] }));
   const entries: GallerySnapshot[] = [];
   for (let offset = 0; ; ) {
-    const res = await fetch(`${base}/rest/v1/kages_state?snapshot=cs.${filter}&select=gallery:snapshot->gallery&order=id.asc&offset=${offset}&limit=100`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: 'no-store', signal: AbortSignal.timeout(10000) });
+    const res = await fetch(`${base}/rest/v1/workspaces?meta=cs.${filter}&select=gallery:meta->gallery&order=id.asc&offset=${offset}&limit=100`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: 'no-store', signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw Error(`gallery storage returned ${res.status}`);
     const rows = await res.json() as { gallery: GallerySnapshot[] }[];
     if (!rows.length) return entries;
