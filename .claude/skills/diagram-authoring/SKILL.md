@@ -38,7 +38,11 @@ fake a chart with shapes: chart blocks carry the accessible data table for free.
   (`ocean`/`mint`/`violet`/`amber`/`rose`) per *role*, reuse the same palette in
   the section that discusses that role, and name each `group` — grouped,
   palette-coded nodes are most of what makes a diagram read at a glance.
-  `explore:true` adds search, zoom and collapsible groups for big graphs.
+- **Static is the default.** Most diagrams are read, not operated: put the
+  takeaway in the `caption` and stop. Add `interactive:true` only when the
+  selection drives another block, and `explore:true` only for big or grouped
+  graphs — the ladder, and the lint rules that enforce it, live in
+  `graph-interaction-levels`.
 - **One dominant direction.** The main journey is one chain of edges; side
   concerns branch off rather than weaving through it.
 - **Edge labels name the action or payload** ("signs", "snapshot JSON"), three
@@ -60,8 +64,9 @@ fake a chart with shapes: chart blocks carry the accessible data table for free.
 
 ## Steps beside the picture
 
-For "how it works" sections, pair an interactive `stepper` with the diagram it
-describes — and wire it *both ways through one state key*: the stepper's
+When a page *walks through* a flow (not for every diagram), pair an
+interactive `stepper` with the diagram it describes — and wire it *both ways
+through one state key*: the stepper's
 `value` and the diagram's `selected` both bind to the same state, and each
 one's event sets it. Walking the steps highlights the node; clicking a node
 moves the steps. Drive a per-step detail block from the same key (`visible` on

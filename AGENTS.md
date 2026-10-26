@@ -44,6 +44,7 @@ of rediscovering it. When you find a new reusable pattern, add it as a skill.
 | `agent-onboarding` | First-run setup, authentication guidance and skill discovery for agents. |
 | `artifact-sandbox` | Opaque artifact frames, immutable runtime assets, host integration. |
 | `diagram-authoring` | Before putting a diagram, scene or flow illustration in a Kage: block choice, density, the render gate. |
+| `graph-interaction-levels` | Before setting `interactive`/`explore` on a diagram or chart, or pinning a contract version: static is the default; each level must earn itself. |
 | `answer-pages` | The short answer-first page form for Kages that answer a question or support a decision. |
 
 ## Layout

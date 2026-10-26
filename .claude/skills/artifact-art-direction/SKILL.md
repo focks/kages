@@ -22,7 +22,10 @@ complex graphs can scroll. Explicit x/y retains legacy geometry and does not
 support the new palette/selection presentation. Avoid a giant architecture map
 when several small diagrams would explain the relationships better.
 
-For exploration, set `interactive:true`, bind `selected` to state, and handle
+Most diagrams should stay static with the takeaway in the caption; the
+static → interactive → explore ladder is `graph-interaction-levels`, and lint
+(`selection-unused`, `needless-explore`) holds the floor. When a graph does
+earn interaction, set `interactive:true`, bind `selected` to state, and handle
 `select` (`$event:id`) to update a detail panel. The entire node supports click,
 Enter, and Space. Give controls a consequence, an alternate state, and reset.
 Use the `reader-account-explorer` starter as the complete reference.
