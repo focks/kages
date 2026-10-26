@@ -15,9 +15,12 @@ or raw command output gets no Kage.
 
 ## The shape
 
-1. **The short answer first.** A visually distinct card directly under the
-   title: the verdict in two or three sentences, plain words, no hedging that
-   the body doesn't justify. A reader who stops here leaves correctly informed.
+1. **The short answer first, inside a hero.** Open with a `section` at
+   `scale:hero`, `level:1`, a meaningful `palette` and `backdrop:wash`, and put
+   the verdict card *inside it*: two or three sentences, plain words, no
+   hedging the body doesn't justify. A reader who stops here leaves correctly
+   informed. Reuse that palette only for sections that carry the same role, so
+   color keeps meaning down the page.
 2. **A facts row** under it: three to five label-value pairs of load-bearing
    context (who, scale, today's state) as `stat` or `badge` rows.
 3. **One section per sub-question**, each heading phrased as the question it
@@ -42,8 +45,9 @@ or raw command output gets no Kage.
 - Audience toggles (a `choice`/`tabs` bound to state) may re-emphasise sections
   — highlight, reorder, change the verdict text — but never silently hide the
   evidence for the unchosen audience.
-- Computed figures (`$computation`) over hand-typed totals, so a changed row
-  cannot leave a stale sum.
+- Computed figures over hand-typed ones — `$count`/`$sum`/`$add` over `data`
+  — so a changed row cannot leave a stale sum. A numeric `delta` on `stat`
+  renders as a percentage; pass a string ("-3") for an absolute change.
 - At 390 px everything still reads: matrices scroll inside their block rather
   than forcing page scroll; diagrams follow `diagram-authoring`.
 - Revise panel by panel: a follow-up about one section patches that section's
