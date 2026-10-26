@@ -22,14 +22,18 @@ export const emptyChart: Rule = {
 
 export const selectionUnused: Rule = {
   id: "selection-unused", category: "wiring", severity: "P2", tier: "immediate",
-  summary: "An interactive chart whose selection nothing reads.",
-  rationale: "Clicking it changes nothing visible, which invites readers to think the page is broken.",
+  summary: "An interactive graph whose selection nothing reads.",
+  rationale: "Clicking it changes nothing visible, which invites readers to think the page is broken. A graph only needs interactivity when the selection drives something; static is the default, not a downgrade.",
   check({ blocks, handled, reads }) {
     const out: Finding[] = [];
     for (const [id, b] of Object.entries(blocks)) {
       const p = (b.props ?? {}) as Record<string, unknown>;
-      if (CHARTS.has(b.type) && SELECTABLE.has(b.type) && p.interactive === true && !handled.has(id + ":select") && ![...reads].some((r) => r.split(".")[0] === id))
-        out.push({ at: "/blocks/" + id, msg: `\`${id}\` is interactive but nothing reads its selection, so clicking it changes nothing visible.`, fix: `Read {"$block":"${id}.selected"} in another block's bind, or add on.select.` });
+      // Diagrams join the selectable charts here: `explore` implies `interactive`,
+      // so an unwired explorer is the same broken promise with more chrome.
+      const selectable = (CHARTS.has(b.type) && SELECTABLE.has(b.type) && p.interactive === true)
+        || (b.type === "diagram" && (p.interactive === true || p.explore === true));
+      if (selectable && !handled.has(id + ":select") && ![...reads].some((r) => r.split(".")[0] === id))
+        out.push({ at: "/blocks/" + id, msg: `\`${id}\` is interactive but nothing reads its selection, so clicking it changes nothing visible.`, fix: `Make it static (drop interactive/explore), or wire the selection: read {"$block":"${id}.selected"} in another block's bind, or add on.select.` });
     }
     return out;
   },

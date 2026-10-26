@@ -11,6 +11,7 @@ import { tabPanelExtraSlot, tabPanelEmpty } from "./tab-panel.ts";
 import { duplicateItemId } from "./duplicate-item-id.ts";
 import { insecureMedia } from "./insecure-media.ts";
 import { emptyChart, selectionUnused } from "./charts.ts";
+import { needlessExplore } from "./needless-explore.ts";
 import { calendarMonth } from "./calendar-month.ts";
 import { tplMissingBlock, tplPrivateRead, tplUndeclaredState } from "./templates.ts";
 import { unreachableBlock } from "./unreachable-block.ts";
@@ -22,7 +23,7 @@ import { unsourcedClaim, statLiteralUnsourced } from "./unsourced-claim.ts";
 export const RULES: readonly Rule[] = [
   tplMissingBlock, tplPrivateRead, tplUndeclaredState,
   deadButton, formUnwired, modalUnreachable, tocMissingAnchor, danglingCite, tabPanelExtraSlot, tabPanelEmpty,
-  duplicateItemId, insecureMedia, emptyChart, selectionUnused, calendarMonth, unreachableBlock, briefInvalid, nestedSections, deprecatedUsage, unsourcedClaim, statLiteralUnsourced,
+  duplicateItemId, insecureMedia, emptyChart, selectionUnused, needlessExplore, calendarMonth, unreachableBlock, briefInvalid, nestedSections, deprecatedUsage, unsourcedClaim, statLiteralUnsourced,
 ];
 
 export const ruleById = (id: string): Rule | undefined => RULES.find((r) => r.id === id);
