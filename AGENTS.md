@@ -36,6 +36,15 @@ of rediscovering it. When you find a new reusable pattern, add it as a skill.
 | `testing-conventions` | Adding a test or a testable module (node --test, native TS, injected clocks). |
 | `kages-app-design-system` | Before adding or changing any UI: tokens, type, states, the Kage boundary. |
 | `workspace-designs` | Workspace colour/type/radius designs: the closed token shape, per-version pinning, the default, the editor. |
+| `kages-distribution` | Packaging: the single-file CLI bundle, `kages install`, and the generated Claude/Cursor/Codex plugins. |
+| `kages-doctor` | Adding a drift check or changing what `kages doctor --fix` repairs. |
+| `kages-hooks` | The edit hook (`kages hook`), its installer, and adding a harness adapter. |
+| `workspace-brief` | The workspace brief record, its ops and Markdown codec. |
+| `shadcn-conventions` | Base UI (not Radix) shadcn gotchas before editing UI components. |
+| `agent-onboarding` | First-run setup, authentication guidance and skill discovery for agents. |
+| `artifact-sandbox` | Opaque artifact frames, immutable runtime assets, host integration. |
+| `diagram-authoring` | Before putting a diagram, scene or flow illustration in a Kage: block choice, density, the render gate. |
+| `answer-pages` | The short answer-first page form for Kages that answer a question or support a decision. |
 
 ## Layout
 

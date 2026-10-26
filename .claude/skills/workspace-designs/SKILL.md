@@ -9,7 +9,7 @@ A design is a **skin on a base system** (core, ledger or atelier), not a new sys
 contract for every block, a skin needs only the ~20 `--kg-*` variables components already read. Pure code is
 `src/engine/design.ts`; storage is `src/store/designs.ts` + the `Store` methods; the ops are `list_designs`,
 `get_design`, `set_design`, `delete_design`, `set_kage_design`; UI is `src/components/dashboard/designs` and
-`/designs`; CLI is `kages designs`. User docs: `docs/designs.md`.
+`/designs`; CLI is `kages designs`.
 
 ## The rules that keep it safe
 
