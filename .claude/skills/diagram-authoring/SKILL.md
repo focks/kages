@@ -31,8 +31,14 @@ fake a chart with shapes: chart blocks carry the accessible data table for free.
 
 - **Let auto layout place nodes.** It layers DAGs by edges and goes vertical on
   narrow containers. Explicit `x`/`y` is legacy geometry — it loses the
-  palette/selection presentation — so shape the picture through edge structure
-  and `group`, not coordinates.
+  palette/selection presentation — so shape the picture through edge structure,
+  `group` and the `layout` prop (`horizontal`, `vertical`, `tree`, `swimlane`,
+  `sequence`), not coordinates.
+- **Color by role, not decoration.** Give nodes and edges a `palette`
+  (`ocean`/`mint`/`violet`/`amber`/`rose`) per *role*, reuse the same palette in
+  the section that discusses that role, and name each `group` — grouped,
+  palette-coded nodes are most of what makes a diagram read at a glance.
+  `explore:true` adds search, zoom and collapsible groups for big graphs.
 - **One dominant direction.** The main journey is one chain of edges; side
   concerns branch off rather than weaving through it.
 - **Edge labels name the action or payload** ("signs", "snapshot JSON"), three
@@ -55,10 +61,17 @@ fake a chart with shapes: chart blocks carry the accessible data table for free.
 ## Steps beside the picture
 
 For "how it works" sections, pair an interactive `stepper` with the diagram it
-describes: bind the stepper's `value` to declared state and drive the detail
-text (and, where used, the diagram's `selected`) from it. The reader walks the
-steps while watching the same picture instead of scrolling between prose and a
-figure. Give the pairing a reset.
+describes — and wire it *both ways through one state key*: the stepper's
+`value` and the diagram's `selected` both bind to the same state, and each
+one's event sets it. Walking the steps highlights the node; clicking a node
+moves the steps. Drive a per-step detail block from the same key (`visible` on
+`$eq`). A stepper that only changes text while the picture sits still is the
+single most common way this pattern goes flat.
+
+Give every chart near a diagram its context props too: `takeaway` (the
+sentence the reader should leave with), `source`, `updatedAt`, and a
+`colorDomain` listing category labels in one fixed order so colors stay stable
+across every chart on the page.
 
 ## The gate: render before you hand off
 
