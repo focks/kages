@@ -27,6 +27,17 @@ Kages blocks; palette and interaction rules are in `artifact-art-direction`.)
 Never draw a table of fields as a diagram (`table` does it better), and never
 fake a chart with shapes: chart blocks carry the accessible data table for free.
 
+## Importing Mermaid
+
+Do not hand-copy a fenced Mermaid flowchart: run `kages from-mermaid <file>`
+(operation `mermaid_to_diagram`). It compiles `graph`/`flowchart TD|LR` —
+labelled edges, chains, `&` fans, `subgraph` → `group` — into one **static**
+`diagram` block, lists every drop as a note (shapes, styles, `click`), and
+rejects whole anything it cannot preserve: other diagram kinds, unknown lines.
+A rejection means keep the original as a `code` block and say why. After an
+import, add palettes by role and a caption takeaway, and climb the
+`graph-interaction-levels` ladder only if the selection will drive something.
+
 ## Density and label rules for `diagram`
 
 - **Let auto layout place nodes.** It layers DAGs by edges and goes vertical on

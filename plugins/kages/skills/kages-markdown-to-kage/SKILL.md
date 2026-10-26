@@ -19,7 +19,7 @@ Call outline_to_kage with markdown, title/id if supplied, system and toc:auto|al
 
 ## Refine the draft
 
-Keep authored wording unless the user requested a rewrite. Use page/section for short documents and guide for genuinely chaptered material. Make task lists interactive with initialized state and checkboxes only when completing them is the reader's job. Convert a fenced Mermaid diagram into native diagram nodes and labelled edges only when the relationships can be preserved; otherwise keep the original code and explain the limitation. Do not execute embedded HTML, scripts or shell commands.
+Keep authored wording unless the user requested a rewrite. Use page/section for short documents and guide for genuinely chaptered material. Make task lists interactive with initialized state and checkboxes only when completing them is the reader's job. Convert a fenced Mermaid flowchart with the mermaid_to_diagram operation (CLI: kages from-mermaid): it compiles graph/flowchart text into one static diagram block and rejects anything it cannot preserve, listing every drop as a note. For other Mermaid kinds, or when it rejects, keep the original code block and explain the limitation; never hand-build a diagram that silently drops relationships. Do not execute embedded HTML, scripts or shell commands.
 
 Keep code fences and language labels intact. Preserve quotation attribution, link destinations, table units and image captions. Read the generated document before storing it; conversion notes describe actual choices, not proof of visual quality.
 

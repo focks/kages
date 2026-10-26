@@ -26,6 +26,7 @@ import { diffFindings, blockDiff, adviceOnSuccess, parsePolicy, type AdvicePolic
 import { briefIssues } from "../engine/brief.ts";
 import { modeOf } from "../engine/mode.ts";
 import { outlineToKage } from "../engine/outline.ts";
+import { mermaidToDiagram } from "../engine/mermaid.ts";
 import { buildDecisionGuide, type Intake } from "../packs/decision-guide.ts";
 import { applyPatch, type PatchOp } from "../collab/patch.ts";
 import { FONTS, designContrast, designCss, paletteFromBrand, resolveDesign, type DesignDef } from "../engine/design.ts";
@@ -491,6 +492,13 @@ export const OPERATIONS: OpSpec[] = [
     // Only a declared mode is recorded; guessing one would be fake certainty.
     if (b.brief) built = { ...built, doc: { ...built.doc, brief: b.brief } };
     return ok({ doc: built.doc, notes: built.notes, stats: built.stats, ...(({ ok: valid, errors, warnings, advice }) => ({ validation: { ok: valid, errors, warnings }, advice }))(review(built.doc, p.system && String(p.system).split("@")[0])) });
+  } },
+
+  { name: "mermaid_to_diagram", summary: "Compile Mermaid flowchart text (graph/flowchart TD|LR, labelled edges, chains, & fans, subgraphs → groups) into one static diagram block plus notes on everything dropped. Other diagram kinds and unsupported syntax are rejected whole, never silently trimmed. Insert the block into a Kage and validate; imports start static — read graph-interaction-levels before adding interactivity", params: ["text", "label?"], run: (_c, p) => {
+    let built;
+    try { built = mermaidToDiagram(String(p.text ?? ""), { label: p.label !== undefined ? String(p.label) : undefined }); }
+    catch (e) { return fail("invalid_input", (e as Error).message); }
+    return ok({ block: built.block, notes: built.notes, stats: built.stats });
   } },
 
   { name: "decision_guide_to_kage", summary: "Build an interactive technical decision guide (explanation with sources, a question-driven recommendation, a calculator with editable assumptions, setup steps and a checklist) from an intake. Returns the document and its validation, or `problems` naming what the intake lacks (no sources, an unanswered combination, an unknown assumption). Does not store it; pass the doc to create_kage. Author must verify the facts: pass `verified` {by,on} only once a person has", params: ["intake"], run: (_c, p) => {

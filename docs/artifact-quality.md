@@ -39,7 +39,9 @@ node bin/kages.mjs screenshot public/ds/reader-account-explorer.kage.json --widt
 Artifacts remain validated data, with no arbitrary HTML or executable code.
 Diagram layout is deliberately bounded (200 nodes / 400 edges); cycles use a
 grid, and large branched graphs may scroll. This is not a graph editor: dragging,
-pan/zoom, Mermaid syntax and automatic edge-crossing minimization are not added.
+pan/zoom and automatic edge-crossing minimization are not added. Mermaid is
+never rendered; the `mermaid_to_diagram` operation compiles the flowchart
+subset into validated diagram blocks at authoring time and rejects the rest.
 Explicit coordinate diagrams keep the legacy renderer. Existing signed artifacts
 retain their pinned assets; they need a new revision to adopt new presentation.
 
