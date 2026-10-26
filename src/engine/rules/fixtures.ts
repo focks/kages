@@ -63,6 +63,10 @@ export const FIXTURES: Record<string, { pos: KageDoc; neg: KageDoc }> = {
     pos: mk({ c: { type: "donut-chart", props: { label: "C", interactive: true, items: [{ label: "a", value: 1 }] } } }),
     neg: mk({ c: { type: "donut-chart", props: { label: "C", interactive: true, items: [{ label: "a", value: 1 }] } }, t: { type: "text", props: {}, bind: { text: { $block: "c.selected" } as never } } }),
   },
+  "needless-explore": {
+    pos: mk({ g: { type: "diagram", props: { label: "G", explore: true, nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }], edges: [{ from: "a", to: "b" }] }, on: { select: [{ do: "set", path: "s", value: { $event: "id" } }] } as never } }, { state: { s: "" } }),
+    neg: mk({ g: { type: "diagram", props: { label: "G", explore: true, nodes: [{ id: "a", label: "A", group: "Left" }, { id: "b", label: "B", group: "Right" }], edges: [{ from: "a", to: "b" }] }, on: { select: [{ do: "set", path: "s", value: { $event: "id" } }] } as never } }, { state: { s: "" } }),
+  },
   "calendar-month": {
     pos: mk({ c: { type: "calendar", props: { label: "C", month: "March" } } }),
     neg: mk({ c: { type: "calendar", props: { label: "C", month: "2026-03" } } }),

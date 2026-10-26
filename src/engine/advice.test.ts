@@ -127,6 +127,26 @@ test("lint: an interactive chart nobody reads, and blocks that can never render"
   assert.deepEqual(lint(target), [], "a block that is only a command target is not 'unreachable'");
 });
 
+test("lint: a diagram is a graph too — unwired interactivity and needless explorer chrome", () => {
+  const wire = { select: [{ do: "set", path: "s", value: { $event: "id" } }] } as never;
+  const nodes = [{ id: "a", label: "A" }, { id: "b", label: "B" }], edges = [{ from: "a", to: "b" }];
+  const lonely = doc({ g: { type: "diagram", props: { label: "G", interactive: true, nodes, edges } } });
+  assert.deepEqual(codes(lint(lonely)), ["selection-unused"]);
+  assert.match(one(lint(lonely), "selection-unused").fix!, /static/i, "the first suggestion is to make it static");
+  const unwiredExplore = doc({ g: { type: "diagram", props: { label: "G", explore: true, nodes, edges } } });
+  assert.ok(codes(lint(unwiredExplore)).includes("selection-unused"), "explore implies interactive");
+  const wired = doc({ g: { type: "diagram", props: { label: "G", interactive: true, nodes, edges }, on: wire } }, { state: { s: "" } });
+  assert.deepEqual(lint(wired), [], "a wired interactive diagram is fine");
+  const still = doc({ g: { type: "diagram", props: { label: "G", nodes, edges } } });
+  assert.deepEqual(lint(still), [], "a static diagram needs no wiring at all");
+  const chrome = doc({ g: { type: "diagram", props: { label: "G", explore: true, nodes, edges }, on: wire } }, { state: { s: "" } });
+  assert.deepEqual(codes(lint(chrome)), ["needless-explore"], "explorer chrome on a small ungrouped graph");
+  const grouped = doc({ g: { type: "diagram", props: { label: "G", explore: true, nodes: nodes.map((n, i) => ({ ...n, group: i ? "Right" : "Left" })), edges }, on: wire } }, { state: { s: "" } });
+  assert.deepEqual(lint(grouped), [], "groups give the chrome something to collapse");
+  const big = doc({ g: { type: "diagram", props: { label: "G", explore: true, nodes: Array.from({ length: 9 }, (_, i) => ({ id: "n" + i, label: "N" + i })), edges: [] }, on: wire } }, { state: { s: "" } });
+  assert.deepEqual(lint(big), [], "nine nodes are worth exploring");
+});
+
 test("every document the project ships is lint-clean and its hints add nothing to valid documents", () => {
   const shipped = [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples(), JSON.parse(readFileSync(new URL("../../public/ds/ops-console.kage.json", import.meta.url), "utf8"))] as KageDoc[];
   for (const d of shipped) { const r = review(d); assert.deepEqual(r.advice, [], `${d.id}: ${JSON.stringify(r.advice.map((x) => x.code + "@" + x.at))}`); }
