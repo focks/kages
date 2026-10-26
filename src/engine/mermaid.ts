@@ -181,7 +181,7 @@ export function mermaidToDiagram(text: string, opts: MermaidOptions = {}): Merma
     const cosmetic = /^(style|classDef|linkStyle)\b/.exec(line) ?? /^(class)\s/.exec(line);
     if (cosmetic) { styleKinds.add(cosmetic[1]); droppedLines++; continue; }
     if (/^click\s/.test(line)) { notes.push("click bindings dropped: interaction in a Kage is wired through state, not URL handlers."); droppedLines++; continue; }
-    if (/^direction\s/.test(line)) { droppedLines++; continue; }
+    if (/^direction\s/.test(line)) { notes.push("subgraph 'direction' lines are ignored: the whole diagram lays out one way, from its header."); droppedLines++; continue; }
     const sub = /^subgraph\s+(.+)$/.exec(line);
     if (sub) {
       const titled = /^([A-Za-z0-9_.-]+)\s*\[(.+)\]$/.exec(sub[1]);

@@ -165,6 +165,12 @@ test("an edge to or from a subgraph boundary rejects the import in both declarat
   assert.deepEqual(ok.block.props.edges, [{ from: "A", to: "B" }]);
 });
 
+test("a subgraph direction is dropped with a note, never silently", () => {
+  const r = mermaidToDiagram("graph TD\n  subgraph S\n    direction LR\n    A --> B\n  end");
+  assert.equal(r.stats.droppedLines, 1);
+  assert.ok(r.notes.some((n) => n.includes("'direction' lines are ignored")));
+});
+
 test("comparison text in labels survives; only recognised markup is stripped", () => {
   const r = mermaidToDiagram(`graph LR\n  A["0 < x > 0"] --> B["<b>bold</b><br/>line"]`);
   const byId = Object.fromEntries(r.block.props.nodes.map((n) => [n.id, n.label]));
