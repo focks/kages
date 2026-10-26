@@ -16,7 +16,7 @@ so each level must earn itself.
 | --- | --- | --- |
 | **static** (the default) | The picture explains itself; the `caption` carries the takeaway. | Nothing. This is most diagrams. |
 | `interactive:true` | The selection *drives another block*: a detail panel, a filtered grid, a recolored section. | Bind `selected` to state, handle `select`, and make the consequence visible next to the graph. |
-| `explore:true` | Nine or more nodes, or named `group`s worth collapsing; readers will genuinely search, zoom and trace. | Everything above, plus groups that mean something. |
+| `explore:true` | Nine or more nodes, or named `group`s worth collapsing; readers will genuinely search, zoom and trace. | Everything above, plus meaningful groups when grouping applies. |
 
 Two rules of thumb:
 
@@ -47,7 +47,7 @@ A block `type` accepts `name`, `name@major[.minor]` and `system/name@major`
   Pin majors on documents meant to outlive the system, so drift surfaces as a
   validation error instead of a silent re-render. You cannot reach an older
   implementation this way — new saves always resolve to the head, and only
-  already-published versions keep their pinned bundle.
+  existing signed versions keep their pinned bundle.
 - **A cross-system pin selects an implementation.** `core/dropdown@1` inside a
   Ledger Kage lands on core's own dropdown with core's limits (the 40-option
   listbox instead of Ledger's 6-segment control). Use it when the host system's
