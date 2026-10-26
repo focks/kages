@@ -56,7 +56,7 @@ three systems and both themes.
 `src/packs/use-case-examples.ts` holds one complete document per everyday use case (quiz, flashcards, architecture
 explainer, game, pricing proposal, trip plan, runbook, meeting notes, portfolio); `contentExamples()` returns them, so
 packs, starters, templates and goldens pick them up with no further registration. Add a case by writing the document there,
-giving it a mode in `USE_CASE_MODES`, a row in `docs/use-cases.md`, and a behaviour test in `src/packs/use-cases.test.ts`
+giving it a mode in `USE_CASE_MODES` and a behaviour test in `src/packs/use-cases.test.ts`
 that plays it (a score, a winner, a filter), because rendering alone does not show that its logic works. Rules that kept
 these lint-clean: put figures in `data`/`state` and compute them (a typed-in `stat` value is flagged in operate mode), give
 every button a handler, label made-up figures illustrative on the page, keep one level of containers, and let a

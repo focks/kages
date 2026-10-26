@@ -7,7 +7,7 @@ description: "Author a long, evidence-backed page (research brief, explainer, re
 
 A brief earns trust by letting the reader check it. The blocks below make that cheap; the
 order and the rules make it honest. The complete example is `research-brief` in
-`contentExamples()` (`src/packs/examples.ts`); the user-facing page is `docs/research-briefs.md`.
+`contentExamples()` (`src/packs/examples.ts`).
 For a chaptered handbook with a responsive rail and searchable evidence, read `field-guides` and use the `artifact-field-guide` starter.
 For a page that ends in a calculator and a recommendation, use `decision-guide` instead.
 
