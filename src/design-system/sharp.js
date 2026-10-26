@@ -42,8 +42,26 @@
     if (nodes.some(function (n) { return typeof n.x === "number" || typeof n.y === "number"; })) return h(CoreDiagramV2, Object.assign({}, p, { __sharp: false }));
     var vertical = size[0] < 500 || p.layout === "vertical" || p.__layout === "tree", positions = Object.create(null), boxes = [], groups = [];
     var columns = vertical ? 1 : 2, height = 100, width = vertical ? 280 : 560;
+    // Rank-based flow when it fits: a DAG whose layers fit the measured container
+    // reads left-to-right in one pass, like a hand-drawn pipeline. The serpentine
+    // two-column grid is the fallback for cycles and graphs wider than the box,
+    // not the default — wrapping a four-step chain into 2×2 is what made these
+    // diagrams read as a maze of rails instead of a flow.
+    var edgeList = (Array.isArray(p.edges) ? p.edges : []).filter(function (e) { return e && e.from !== e.to; });
+    var flowRanks = null, flowLanes = Object.create(null);
+    if (!vertical && (!p.__layout || p.__layout === "auto" || p.__layout === "horizontal")) {
+      var ranks = diagramLayers(nodes, edgeList.filter(function (e) { var ok = Object.create(null); nodes.forEach(function (n) { ok[n.id] = true; }); return ok[e.from] && ok[e.to]; }));
+      if (ranks) {
+        var layerCount = 0, laneCounts = Object.create(null);
+        nodes.forEach(function (n) { layerCount = Math.max(layerCount, ranks[n.id] + 1); laneCounts[ranks[n.id]] = (laneCounts[ranks[n.id]] || 0) + 1; });
+        // 260 is the node pitch; the measured width decides how many layers fit.
+        var fits = layerCount <= Math.max(2, Math.floor((size[0] - 16) / 260));
+        if (fits && layerCount > 1) { flowRanks = ranks; }
+      }
+    }
     nodes.forEach(function (n, i) {
       var row = Math.floor(i / columns), col = i % columns;
+      if (flowRanks) { col = flowRanks[n.id]; row = flowLanes[col] || 0; flowLanes[col] = row + 1; }
       if (p.__layout === "sequence") { col = i; row = 0; }
       if (p.__layout === "swimlane" && !vertical) { if (groups.indexOf(n.group) < 0) groups.push(n.group); row = groups.indexOf(n.group); col = nodes.slice(0, i).filter(function (other) { return other.group === n.group; }).length; }
       var at = { x: 16 + col * 260, y: 16 + row * 132, w: 176, h: 64 };
