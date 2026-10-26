@@ -25,7 +25,10 @@
   function CoreRichText(p) {
     return h("div", { className: "kg-rich-text" }, (Array.isArray(p.nodes) ? p.nodes : []).map(function (node, i) {
       if (!node) return null;
-      if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, String(item)); }));
+      // A list item carries the same prose as a paragraph: a string, or an
+      // array of runs. String() on a runs array would render "[object Object]"
+      // and silently flatten links the contract promises will work.
+      if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, Array.isArray(item) ? richRuns(item) : String(item)); }));
       if (node.kind === "code") return h("pre", { key: i }, h("code", null, String(node.text || "")));
       var tag = node.kind === "heading" ? "h" + choice(node.level, [2, 3, 4], 2) : node.kind === "quote" ? "blockquote" : "p";
       var body = node.runs ? richRuns(node.runs) : String(node.text || "");

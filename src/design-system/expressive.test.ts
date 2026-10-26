@@ -43,6 +43,18 @@ test("rich text escapes HTML and links reject executable schemes", () => {
   assert.match(render("CoreLink", { href: "/guide", label: "Guide", newTab: true }), /rel="noopener noreferrer"/);
 });
 
+test("rich-text list items accept runs like any other prose, never stringifying them", () => {
+  const html = render("CoreRichText", { nodes: [{ kind: "list", items: [
+    [{ text: "MAST paper", href: "https://arxiv.org/abs/2503.13657" }],
+    [{ text: "bold claim", bold: true }, { text: " with context" }],
+    "a plain string item",
+  ] }] });
+  assert.doesNotMatch(html, /\[object Object\]/);
+  assert.match(html, /<a href="https:\/\/arxiv\.org\/abs\/2503\.13657">MAST paper<\/a>/);
+  assert.match(html, /<strong>bold claim<\/strong>/);
+  assert.match(html, /a plain string item/);
+});
+
 test("charts preserve negative/zero values in accessible tables and finite geometry", () => {
   for (const name of ["CoreLineChart", "CoreScatterChart"]) {
     const html = render(name, { label: "Points", items: [{ x: -1e308, y: -10 }, { x: 0, y: 0 }, { x: 1e308, y: 20 }, { x: NaN, y: Infinity }] });
