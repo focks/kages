@@ -27,7 +27,7 @@ const shared: Record<string, InputSchema> = {
   sort: choice("top", "newest"), offset: integer,
   origins: strings, toc: choice("auto", "always", "never"),
   density: choice("comfortable", "compact"), appearance: choice("inherit", "light", "dark"),
-  ...Object.fromEntries(["path", "system", "design", "brand", "ref", "text", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
+  ...Object.fromEntries(["path", "system", "design", "brand", "ref", "text", "label", "author", "name", "uuid", "intent", "repo", "command", "title", "markdown", "id", "kage", "reason", "body", "degradedReason", "fingerprint", "block", "parent"].map(k => [k, str])),
   ...Object.fromEntries(["apply", "all", "full", "merge", "resolved", "default", "keepSystem", "publish_all"].map(k => [k, bool])),
   ...Object.fromEntries(["version", "baseVersion", "baseRevision", "index", "limit", "since"].map(k => [k, integer])),
   doc: obj, definition: obj, intake: obj, spec: obj, envelope: obj, brief, ops: patch, suggestedPatch: patch,

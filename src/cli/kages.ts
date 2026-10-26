@@ -19,6 +19,7 @@ import { catalog } from "../engine/catalog.ts";
 import { validate } from "../engine/validate.ts";
 import { review } from "../engine/advice.ts";
 import { outlineToKage } from "../engine/outline.ts";
+import { mermaidToDiagram } from "../engine/mermaid.ts";
 import { screenshotDoc, parseWidths, shotFiles, DEFAULTS as SHOT_DEFAULTS } from "./screenshot.ts";
 import { describe } from "../engine/describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
@@ -79,6 +80,9 @@ author  (operate on a .kage.json file, or a stored name; offline)
   from-markdown <file.md> [-o out.kage.json] [--title t] [--id i] [-s sys] [--toc auto|always|never] [--mode read|operate|persuade|experience] [--create]
                                 write prose, get a Kage: headings → sections, > Note → alerts,
                                 tables, adjacent code → tabs, FAQ → accordion, 3+ sections → contents
+  from-mermaid <file.mmd> [-o out.json] [--label text]
+                                compile a Mermaid flowchart into one static diagram block;
+                                unsupported syntax is rejected whole, drops are listed as notes
 
 manage  (your CLOUD workspace when signed in, else the local ./.kages; --local forces local)
   create <file> [--repo r]      store a new Kage (validated + signed)
@@ -378,6 +382,17 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
         for (const issue of r.issues) out(`    • ${issue}`);
       }
       return flags.strict && shots.some((r) => r.issues.length) ? 1 : 0;
+    }
+    case "from-mermaid": {
+      need(1, "from-mermaid <file.mmd> [-o out.json] [--label text]");
+      let built;
+      try { built = mermaidToDiagram(readFileSync(rest[0], "utf8"), { label: flag<string>(flags, "label") }); }
+      catch (e) { err(`error invalid_input: ${(e as Error).message}`); return 1; }
+      if (ctx.json) { printJson(built); return 0; }
+      for (const n of built.notes) process.stderr.write(`  • ${n}\n`);
+      writeOut(flags, JSON.stringify(built.block, null, 2));
+      out(`${built.stats.nodes} node(s) · ${built.stats.edges} edge(s) · ${built.stats.groups} group(s)${built.stats.droppedLines ? ` · ${built.stats.droppedLines} line(s) dropped` : ""}`);
+      return 0;
     }
     case "from-markdown": {
       need(1, "from-markdown <file.md> [-o out.kage.json] [--title t] [--id i] [-s sys] [--toc auto|always|never] [--mode read|operate|persuade|experience] [--create]");
