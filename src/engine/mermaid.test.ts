@@ -123,6 +123,55 @@ test("the renderer's bounds are enforced", () => {
   assert.throws(() => mermaidToDiagram(big), /exceed the diagram bound of 200/);
 });
 
+test("graph limits are priced before fan expansion, not measured after it", () => {
+  const ids = (p: string, n: number) => Array.from({ length: n }, (_, i) => `${p}${i}`).join(" & ");
+  assert.throws(() => mermaidToDiagram(`graph LR\n  ${ids("a", 30)} --> ${ids("b", 30)}`), /900 edges exceed the diagram bound of 400/);
+  // the pathological shape: ~12KB of text, two unique nodes, millions of
+  // would-be edges — must reject without constructing any of them
+  const bomb = `graph LR\n  ${Array.from({ length: 1500 }, () => "A").join(" & ")} --> ${Array.from({ length: 1500 }, () => "B").join(" & ")}`;
+  assert.throws(() => mermaidToDiagram(bomb), /exceed the diagram bound of 400/);
+});
+
+test("a hyphenated inline edge label stays a label, never an invented node", () => {
+  const r = mermaidToDiagram("graph LR\n  A -- read-only --> B");
+  assert.deepEqual(r.block.props.nodes.map((n) => n.id), ["A", "B"]);
+  assert.deepEqual(r.block.props.edges, [{ from: "A", to: "B", label: "read-only" }]);
+  // three link characters are a chain through a node, not a label opener
+  const chain = mermaidToDiagram("graph LR\n  A --- B --> C");
+  assert.deepEqual(chain.block.props.edges, [{ from: "A", to: "B" }, { from: "B", to: "C" }]);
+  // a label the pipe form cannot carry rejects whole instead of becoming topology
+  assert.throws(() => mermaidToDiagram("graph LR\n  A -- read|only --> B"), /cannot compile/);
+});
+
+test("semicolons separate statements instead of being swallowed into labels", () => {
+  const r = mermaidToDiagram("graph LR\n  A[First]; B[Second]\n  C --> D[Third]; E[Fourth]");
+  const byId = Object.fromEntries(r.block.props.nodes.map((n) => [n.id, n.label]));
+  assert.deepEqual(byId, { A: "First", B: "Second", C: "C", D: "Third", E: "Fourth" });
+  // a dropped cosmetic statement no longer takes its line-mates with it
+  const s = mermaidToDiagram("graph TD\n  A --> B\n  style A fill:red; B --> C");
+  assert.deepEqual(s.block.props.edges, [{ from: "A", to: "B" }, { from: "B", to: "C" }]);
+  assert.equal(s.stats.droppedLines, 1);
+  // quoted semicolons stay label text; trailing junk after a shape rejects
+  assert.equal(mermaidToDiagram('graph LR\n  A["a;b"] --> B').block.props.nodes[0].label, "a;b");
+  assert.throws(() => mermaidToDiagram("graph LR\n  A[x] B[y]"), /cannot compile/);
+});
+
+test("an edge to or from a subgraph boundary rejects the import in both declaration orders", () => {
+  assert.throws(() => mermaidToDiagram("graph LR\n  subgraph S[Service]\n    A[Worker]\n  end\n  S --> B[Client]"), /'S' is a subgraph boundary/);
+  assert.throws(() => mermaidToDiagram("graph LR\n  B --> S\n  subgraph S\n    A\n  end"), /'S' is a subgraph boundary/);
+  // nodes inside the group are unaffected endpoints
+  const ok = mermaidToDiagram("graph LR\n  subgraph S[Service]\n    A\n  end\n  A --> B");
+  assert.equal(ok.stats.groups, 1);
+  assert.deepEqual(ok.block.props.edges, [{ from: "A", to: "B" }]);
+});
+
+test("comparison text in labels survives; only recognised markup is stripped", () => {
+  const r = mermaidToDiagram(`graph LR\n  A["0 < x > 0"] --> B["<b>bold</b><br/>line"]`);
+  const byId = Object.fromEntries(r.block.props.nodes.map((n) => [n.id, n.label]));
+  assert.equal(byId.A, "0 < x > 0");
+  assert.equal(byId.B, "bold line");
+});
+
 test("same text, same block — and the static-first note always closes the notes", () => {
   const text = "graph LR\n  A[One] --> B[Two]\n  B --> C";
   const a = mermaidToDiagram(text), b = mermaidToDiagram(text);

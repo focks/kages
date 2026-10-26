@@ -8,9 +8,11 @@
 //   id[Label] id(L) id((L)) id{L} …  → node (shape dropped, said in notes)
 //   A --> B, A -->|label| B, A -- label --> B, chains, A & B --> C
 //   subgraph Title … end             → group
+//   a; b on one line                 → two statements (quotes/brackets kept)
 //   %% comments, blank lines         → ignored
 //   style/classDef/class/linkStyle   → dropped with a note (cosmetic)
 //   click                            → dropped with a note (interaction is state)
+//   edge to/from a subgraph id       → thrown (a group has no edge endpoint)
 //   any other diagram kind or line   → thrown Error naming the line
 //
 // Pure and deterministic: same text, same block. The input is untrusted, so
@@ -50,11 +52,41 @@ const SHAPED = new Set(SHAPES.map(([open]) => open).filter((o) => o !== "["));
 
 const ID_RE = /^[A-Za-z0-9_.-]+/;
 
-/** Strip quotes, break tags and any other markup a Mermaid label may carry; blocks take plain text only. */
+/** Strip quotes, break tags and known inline markup from a Mermaid label; blocks take plain text only. */
 function cleanLabel(raw: string): string {
   let s = raw.trim();
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) s = s.slice(1, -1);
-  return s.replace(/<br\s*\/?>/gi, " ").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  // Only tags Mermaid labels actually use count as markup. Deleting every
+  // <…> span would also eat ordinary comparison text like "0 < x > 0" and
+  // silently change the condition being described.
+  return s.replace(/<br\s*\/?>/gi, " ").replace(/<\/?(?:b|i|u|s|em|strong|small|sub|sup|span|code|font|a)(?:\s[^<>]*)?>/gi, "").replace(/\s+/g, " ").trim();
+}
+
+/** Find where `close` ends the shape opened at the start of `rest`, skipping quoted spans; -1 when absent. */
+function findClose(rest: string, open: string, close: string): number {
+  let quote = "";
+  for (let i = open.length; i + close.length <= rest.length; i++) {
+    const ch = rest[i];
+    if (quote) { if (ch === quote) quote = ""; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (rest.startsWith(close, i)) return i;
+  }
+  return -1;
+}
+
+/** Split one physical line into `;`-separated statements; quotes and bracket depth keep label semicolons intact. */
+function splitStatements(line: string): string[] {
+  const out: string[] = []; let cur = ""; let quote = ""; let depth = 0;
+  for (const ch of line) {
+    if (quote) { cur += ch; if (ch === quote) quote = ""; continue; }
+    if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === "(" || ch === "[" || ch === "{") depth++;
+    else if (ch === ")" || ch === "]" || ch === "}") depth = Math.max(0, depth - 1);
+    else if (ch === ";" && depth === 0) { out.push(cur); cur = ""; continue; }
+    cur += ch;
+  }
+  out.push(cur);
+  return out.map((s) => s.trim()).filter(Boolean);
 }
 
 /** One endpoint token → id plus optional bracketed label. Throws on a token that is not a node. */
@@ -65,8 +97,13 @@ function parseNode(token: string): { id: string; label?: string; shaped: boolean
   const id = m[0], rest = t.slice(id.length).trim();
   if (!rest) return { id, shaped: false };
   for (const [open, close] of SHAPES) {
-    if (rest.startsWith(open) && rest.endsWith(close) && rest.length >= open.length + close.length)
-      return { id, label: cleanLabel(rest.slice(open.length, rest.length - close.length)), shaped: SHAPED.has(open) };
+    if (!rest.startsWith(open)) continue;
+    const at = findClose(rest, open, close);
+    if (at === -1) continue;
+    // Text after the closing delimiter is a statement the author forgot to
+    // separate; folding it into the label would hide the node it declares.
+    if (at + close.length !== rest.length) throw new Error(`cannot read a node from '${t}'`);
+    return { id, label: cleanLabel(rest.slice(open.length, at)), shaped: SHAPED.has(open) };
   }
   throw new Error(`cannot read a node from '${t}'`);
 }
@@ -76,9 +113,12 @@ type Segment = { connector: string; label?: string };
 /** Split one statement line into endpoint groups and the connectors between them. */
 function splitEdges(line: string): { endpoints: string[][]; segments: Segment[] } {
   // Normalise the `-- label -->` spelling into `-->|label|` first, so one
-  // tokenizer handles both. The inline form is the only place a label sits
-  // between dashes instead of pipes.
-  const norm = line.replace(/(^|\s)([-=.]{2,})\s+([^-=|<>]+?)\s+([-=.]{2,}[xo>]?)/g, (_a, pre: string, _b, label: string, post: string) => `${pre}${post}|${label.trim()}|`);
+  // tokenizer handles both. The opener must be exactly two link characters:
+  // `A --- B --> C` is a chain through node B, and a looser opener would
+  // swallow B as a label. The label may hold anything but `|` (hyphens,
+  // comparisons, dots); a label the pipe form cannot carry falls through to
+  // the tokenizer, whose endpoint parse rejects it whole.
+  const norm = line.replace(/(^|\s)([-=.]{2})\s+([^|]+?)\s+([-=.]{2,}[xo>]?)/g, (_a, pre: string, _b, label: string, post: string) => `${pre}${post}|${label.trim()}|`);
   const parts: string[] = []; const segments: Segment[] = [];
   let rest = norm;
   const conn = /([-=.]{2,}[xo>]?)(\|([^|]*)\|)?/;
@@ -103,7 +143,10 @@ export function mermaidToDiagram(text: string, opts: MermaidOptions = {}): Merma
   if (typeof text !== "string" || !text.trim()) throw new Error("empty input: expected Mermaid flowchart text");
   if (text.length > MAX_CHARS) throw new Error(`input too large (${text.length} chars; limit ${MAX_CHARS})`);
 
-  const lines = text.split(/\r?\n/).map((l) => l.replace(/;\s*$/, "").trim()).filter((l) => l && !l.startsWith("%%"));
+  // A `;` is a statement boundary in Mermaid, not line decoration: splitting
+  // on newlines alone would hand `A[First]; B[Second]` to the node parser as
+  // one token and lose B. Comments are whole-line, so they filter first.
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("%%")).flatMap(splitStatements);
   const errors: string[] = []; const notes: string[] = [];
   const header = /^(graph|flowchart)\s*(TD|TB|LR|RL|BT)?$/i.exec(lines[0] ?? "");
   if (!header) {
@@ -117,15 +160,20 @@ export function mermaidToDiagram(text: string, opts: MermaidOptions = {}): Merma
   if (dir === "RL" || dir === "BT") notes.push(`direction ${dir} is not supported; edges keep their stated from→to and the diagram lays out ${layout === "horizontal" ? "left to right" : "top down"}.`);
 
   const nodes = new Map<string, MermaidNode>(); const edges: MermaidEdge[] = [];
-  const groups: string[] = []; let droppedLines = 0; const flags = { shape: false, soft: false }; const styleKinds = new Set<string>();
+  const groups: string[] = []; const subgraphIds = new Set<string>();
+  let droppedLines = 0; const flags = { shape: false, soft: false }; const styleKinds = new Set<string>();
 
   const touch = (token: string): string => {
     const { id, label, shaped } = parseNode(token);
     if (shaped) flags.shape = true;
     const existing = nodes.get(id);
     const group = groups.length ? groups[groups.length - 1] : undefined;
-    if (!existing) nodes.set(id, { id, label: label ?? id, ...(group ? { group } : {}) });
-    else if (label) existing.label = label;
+    if (!existing) {
+      nodes.set(id, { id, label: label ?? id, ...(group ? { group } : {}) });
+      // Bounds are enforced as collections grow, never measured afterwards:
+      // untrusted input must not allocate first and be rejected later.
+      if (nodes.size > MAX_NODES) throw new Error(`${nodes.size} nodes exceed the diagram bound of ${MAX_NODES}`);
+    } else if (label) existing.label = label;
     return id;
   };
 
@@ -136,9 +184,13 @@ export function mermaidToDiagram(text: string, opts: MermaidOptions = {}): Merma
     if (/^direction\s/.test(line)) { droppedLines++; continue; }
     const sub = /^subgraph\s+(.+)$/.exec(line);
     if (sub) {
-      const titled = /^[A-Za-z0-9_.-]+\s*\[(.+)\]$/.exec(sub[1]);
+      const titled = /^([A-Za-z0-9_.-]+)\s*\[(.+)\]$/.exec(sub[1]);
       if (groups.length) notes.push("nested subgraphs flatten to the innermost group; a diagram node has one group.");
-      groups.push(cleanLabel(titled ? titled[1] : sub[1]));
+      // Remember the id (bare titles are their own id): Mermaid lets edges
+      // start or end at a subgraph boundary, which a diagram cannot draw, so
+      // any later node reference to this id must reject the import.
+      subgraphIds.add(titled ? titled[1] : sub[1].trim());
+      groups.push(cleanLabel(titled ? titled[2] : sub[1]));
       continue;
     }
     if (line === "end") { if (groups.length) groups.pop(); else errors.push("'end' without a subgraph"); continue; }
@@ -152,18 +204,27 @@ export function mermaidToDiagram(text: string, opts: MermaidOptions = {}): Merma
         if (/[.=]/.test(seg.connector)) flags.soft = true;
         if (/[xo]$/.test(seg.connector)) notes.push("cross/circle arrowheads dropped: edges render with a plain arrow.");
         else if (!/>$/.test(seg.connector)) notes.push("undirected links render as arrows in their written order.");
+        // Price the fan before building it: `&` lists cross-multiply, so a
+        // few kilobytes of text can describe millions of edges and exhaust
+        // the serving process's heap long before a post-hoc count runs.
+        const fan = from.length * to.length;
+        if (edges.length + fan > MAX_EDGES) throw new Error(`${edges.length + fan} edges exceed the diagram bound of ${MAX_EDGES}`);
         for (const f of from) for (const t of to) edges.push({ from: f, to: t, ...(seg.label ? { label: seg.label } : {}) });
       }
     } catch (e) {
       const msg = (e as Error).message;
+      // A bound overrun is terminal, not a per-line syntax problem: carrying
+      // on would keep pricing oversized statements against a full budget.
+      if (msg.includes("exceed the diagram bound")) throw e;
       errors.push(msg.includes(line) ? msg : `unsupported syntax: '${line}'`);
     }
   }
   if (groups.length) errors.push(`subgraph '${groups[groups.length - 1]}' is never closed with 'end'`);
+  // Checked after the loop so both declaration orders are caught: the edge
+  // may name the subgraph before the `subgraph` line declares it.
+  for (const id of subgraphIds) if (nodes.has(id)) errors.push(`'${id}' is a subgraph boundary, not a node: a diagram edge cannot start or end at a group — connect specific nodes inside it instead`);
   if (errors.length) throw new Error(`cannot compile this Mermaid:\n- ${errors.join("\n- ")}`);
   if (nodes.size === 0) throw new Error("no nodes found after the header");
-  if (nodes.size > MAX_NODES) throw new Error(`${nodes.size} nodes exceed the diagram bound of ${MAX_NODES}`);
-  if (edges.length > MAX_EDGES) throw new Error(`${edges.length} edges exceed the diagram bound of ${MAX_EDGES}`);
 
   if (flags.shape) notes.push("node shapes (rounded, circle, diamond, …) are presentation in Mermaid and have no diagram equivalent; the labels were kept.");
   if (flags.soft) notes.push("dotted and thick line styles dropped: a diagram edge has one weight.");
