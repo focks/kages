@@ -49,13 +49,16 @@ test("analytical report supports selection, scenario/reset, mobile bars and whee
     assert.ok(shared.includes("~view="), "sharing includes the allowed scenario and selection");
     child = undefined;
     await cdp.send("Page.navigate", { url: shared }, sessionId);
+    // A same-document navigation returns before it commits; reloading first would reload the old URL.
+    for (let i = 0; i < 50 && !await evaluate("location.hash.includes('~view=')", sessionId); i++) await delay(100);
+    child = undefined;
     await cdp.send("Page.reload", {}, sessionId);
     ready = false;
     for (let i = 0; i < 100; i++) {
       if (child && await evaluate("document.querySelector('.kg-analytical-bars__value')?.textContent.includes('90K')")) { ready = true; break; }
       await delay(100);
     }
-    assert.ok(ready, "the shared view never rendered: " + shared + " → " + (child ? await evaluate("document.querySelector('.kg-analytical-bars__value')?.textContent ?? document.body.innerText.slice(0,200)") : "no frame attached"));
+    assert.ok(ready, "the shared view never rendered: " + shared + " at " + await evaluate("location.href", sessionId) + " → " + (child ? await evaluate("document.querySelector('.kg-analytical-bars__value')?.textContent ?? document.body.innerText.slice(0,200)") : "no frame attached"));
     assert.ok(await evaluate("document.querySelector('.kg-analytical-bars__value').textContent.includes('90K')"), "a fresh view restores the scenario: " + shared + " → " + await evaluate("document.querySelector('.kg-analytical-bars__value').textContent"));
     assert.equal(await evaluate("document.querySelector('.kg-analytical-bars__row').getAttribute('aria-pressed')"), "true", "a fresh view restores selection");
     await evaluate("[...document.querySelectorAll('button')].find(b=>b.textContent==='Reset exploration').click()"); await delay(100);
