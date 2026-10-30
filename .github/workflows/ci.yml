@@ -48,7 +48,8 @@ jobs:
       - run: curl -s -o /dev/null --retry 30 --retry-connrefused --retry-delay 2 "$KAGES_TEST_URL/render"
       # The dev server compiles a route on first request, which outlasts the tests' wait for the page.
       - run: curl -s -o /dev/null "$KAGES_TEST_URL/k/warm-up"
-      - run: npm test
+      # One file at a time: parallel Chrome launches on a small runner time out before the page does.
+      - run: node --test --test-concurrency=1 "src/**/*.test.ts"
   cli-bundle:
     runs-on: ubuntu-latest
     strategy:
