@@ -22,3 +22,18 @@ dist/
 # patterns: Playwright MCP drops page snapshots here, and they can show live keys.
 /backups/
 /*.yml
+
+# kages-ignore-start v1
+# Managed by `kages gitignore`. Shared artifacts stay tracked:
+#   config.json, brief.md, critique/*.md
+**/.kages/store.json
+**/.kages/config.local.json
+**/.kages/screenshots/
+**/.kages/cache/
+**/.kages/review/
+**/.kages/report/
+**/.kages/advice.log.ndjson*
+**/.kages/hook.cache.json
+**/.kages/hook.pending.json
+**/.kages/install.json
+# kages-ignore-end

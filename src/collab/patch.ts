@@ -128,6 +128,10 @@ export function applyPatch<T>(doc: T, ops: PatchOp[]): T {
 }
 
 function applyOne(root: Json, op: PatchOp, budget: { copied: number }): Json {
+  // RFC 6902 requires these. Without the check, a `replace` with a misnested value
+  // clones undefined and quietly deletes the target, then succeeds as a new version.
+  if ((op.op === "add" || op.op === "replace" || op.op === "test") && !Object.prototype.hasOwnProperty.call(op, "value")) throw new PatchError(`\`${op.op}\` needs a \`value\``);
+  if ((op.op === "move" || op.op === "copy") && typeof op.from !== "string") throw new PatchError(`\`${op.op}\` needs a \`from\` pointer`);
   const tokens = parsePointer(op.path);
   switch (op.op) {
     case "add": return addAt(root, tokens, clone(op.value));

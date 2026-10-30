@@ -49,7 +49,10 @@ whole job, the interaction budget was spent right.
 3. **One section per topic**, level 2, heading phrased as what the section
    establishes. Inside: the claim in prose, then its evidence — `table`,
    chart, `diagram`, `code` — *beside* the claim, never three screens away.
-   Caption every evidence block with what it shows and where it came from.
+   Say what each evidence block shows and where it came from. `code`,
+   `diagram` and `image` have a `caption` prop; charts use `takeaway` and
+   `source`; a `table` has neither, so follow it with `text` at
+   `variant:"caption"`.
 4. **Closed vocabularies in cells.** A comparison or status matrix uses a
    small fixed vocabulary (yes / partly / no, ok / degraded / down) plus a
    legend line, with conditions spelled out — an honest "partly — needs an
@@ -64,7 +67,7 @@ whole job, the interaction budget was spent right.
    a timestamp typed into the page is not freshness.
 7. **Sources last, honesty in the footer.** Pin code claims `file:line` at
    a commit in a `references` block (mechanics in `research-briefs`). Close
-   with a caption stating what was abstracted away, what is illustrative,
+   with `text` at `variant:"caption"` stating what was abstracted away, what is illustrative,
    and what evidence is missing. A report that hides its gaps is wrong even
    where its findings are right.
 

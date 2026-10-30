@@ -22,6 +22,26 @@ export const FIXTURE_OPTIONS: Record<string, import("../advice.ts").LintOptions>
 };
 
 export const FIXTURES: Record<string, { pos: KageDoc; neg: KageDoc }> = {
+  "diagram-dangling-edge": {
+    pos: mk({ d: { type: "diagram", props: { label: "D", nodes: [{ id: "a", label: "A" }], edges: [{ from: "a", to: "zz" }] } } }),
+    neg: mk({ d: { type: "diagram", props: { label: "D", nodes: [{ id: "a", label: "A" }, { id: "b", label: "B" }], edges: [{ from: "a", to: "b" }] } } }),
+  },
+  "table-column-no-data": {
+    pos: mk({ t: { type: "table", props: { columns: [{ key: "a", label: "A" }], rows: [{ b: 1 }] } } }),
+    neg: mk({ t: { type: "table", props: { columns: [{ key: "a", label: "A" }], rows: [{ a: 1 }] } } }),
+  },
+  "chart-nonnumeric-value": {
+    pos: mk({ c: { type: "bar-chart", props: { label: "C", items: [{ label: "x", value: "12%" }] } } }),
+    neg: mk({ c: { type: "bar-chart", props: { label: "C", items: [{ label: "x", value: 12 }] } } }),
+  },
+  "sum-missing-field": {
+    pos: mk({ s: { type: "stat", props: { label: "S" }, bind: { value: { $sum: [{ $data: "rows" }, "nope"] } } } }, { data: { rows: [{ n: 1 }] } }),
+    neg: mk({ s: { type: "stat", props: { label: "S" }, bind: { value: { $sum: [{ $data: "rows" }, "n"] } } } }, { data: { rows: [{ n: 1 }] } }),
+  },
+  "markdown-in-text": {
+    pos: mk({ t: { type: "text", props: { text: "**Bold** claim\n- a list line" } } }),
+    neg: mk({ t: { type: "text", props: { text: "Plain prose with 2 * 3 = 6." } } }),
+  },
   "dead-button": { pos: mk(btn()), neg: mk(btn(click), { state: { x: 0 } }) },
   "form-unwired": {
     pos: mk({ f: { type: "form", props: { label: "F" } } }),

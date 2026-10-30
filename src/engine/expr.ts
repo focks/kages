@@ -51,7 +51,9 @@ export function setPath(obj: Any, path: Any, val: Any): void {
   if (ps.some((k) => FORBIDDEN.has(k))) return;
   let o = obj;
   for (let i = 0; i < ps.length - 1; i++) {
-    if (o[ps[i]] == null || typeof o[ps[i]] !== "object") o[ps[i]] = {};
+    // Own keys only: an inherited object such as `toString` is not part of the
+    // state tree, and walking into one would write onto a shared builtin.
+    if (!Object.prototype.hasOwnProperty.call(o, ps[i]) || o[ps[i]] == null || typeof o[ps[i]] !== "object") o[ps[i]] = {};
     o = o[ps[i]];
   }
   o[ps[ps.length - 1]] = val;
@@ -77,18 +79,71 @@ export function operatorOf(x: Expr): Operator | null {
   return isExpr(x) ? (Object.keys(x as object)[0] as Operator) : null;
 }
 
-/** Evaluate an expression against a context. Pure. */
+/** Thrown when one evaluation does too much work. A document is untrusted and nested
+ *  `$map`s multiply: four levels over 1,000 items is 10^12 evaluations from a few KB. */
+export class EvalBudgetError extends Error {}
+
+/** Work allowed per top-level evaluate call, roughly 200ms. */
+export const MAX_EVAL_STEPS = 2_000_000;
+/** Work allowed across a whole document or operation. Without it a 1 MB document could
+ *  repeat a just-under-budget expression in every block. */
+export const MAX_DOCUMENT_EVAL_STEPS = 20_000_000;
+
+// Module state, not a context field: every internal call site, including
+// computeExpression and output(), must share one count, and evaluation is synchronous.
+let left = 0;
+let evaluating = false;
+let shared = false;
+
+function charge(cost: number): void {
+  left -= cost;
+  if (left < 0) throw new EvalBudgetError("expression does too much work: simplify nested $map or filter fewer rows");
+}
+
+/** Run fn with one budget shared by every evaluate inside it. A nested call joins the
+ *  outer budget, so a validate inside an operation cannot refill it. */
+export function withEvalBudget<T>(steps: number, fn: () => T): T {
+  if (shared) return fn();
+  shared = true;
+  left = steps;
+  try { return fn(); } finally { shared = false; }
+}
+
+/** Evaluate an expression against a context. Pure, apart from the work count.
+ *  Throws EvalBudgetError when the budget runs out; callers treat it like any other
+ *  per-block failure, so the worst case stays an error box rather than a hang. */
 export function evaluate(x: Any, ctx: EvalContext): Any {
-  if (Array.isArray(x)) return x.map((v) => evaluate(v, ctx));
   if (!x || typeof x !== "object") return x;
+  if (evaluating) return step(x, ctx);
+  if (!shared) left = MAX_EVAL_STEPS;
+  evaluating = true;
+  try { return step(x, ctx); } finally { evaluating = false; }
+}
+
+function step(x: Any, ctx: EvalContext): Any {
+  if (!x || typeof x !== "object") return x;
+  charge(1);
+  if (Array.isArray(x)) return x.map((v) => step(v, ctx));
   if (!isExpr(x)) {
     const o: Record<string, Json> = {};
-    for (const k in x) o[k] = evaluate(x[k], ctx);
+    for (const k in x) o[k] = step(x[k], ctx);
     return o;
   }
+  const out = operate(x, ctx);
+  // Results can be far larger than the work that made them: $join and $tpl stringify
+  // whole lists, so size counts too, at one step per 64 characters.
+  if (typeof out === "string") charge(out.length >> 6);
+  else if (Array.isArray(out)) charge(out.length);
+  return out;
+}
+
+const seq = (l: Any) => { if (Array.isArray(l)) charge(l.length); return l; };
+
+function operate(x: Any, ctx: EvalContext): Any {
+  const evaluate = step;
   const op = Object.keys(x)[0];
   const a = x[op];
-  if (COMPUTE_OPERATORS.includes(op)) return computeExpression(op, a, ctx, evaluate, getPath);
+  if (COMPUTE_OPERATORS.includes(op)) return computeExpression(op, a, ctx, step, getPath);
   switch (op) {
     case "$state": return getPath(ctx.state, a);
     case "$block": {
@@ -132,7 +187,7 @@ export function evaluate(x: Any, ctx: EvalContext): Any {
       // the agent special-casing it. `eq != null` likewise treats an absent
       // filter value as "no filter", so an uninitialised $state never empties
       // the table.
-      const list = evaluate(a.list, ctx) || [];
+      const list = seq(evaluate(a.list, ctx)) || [];
       const eq = evaluate(a.equals, ctx);
       const skip = a.skipIf !== undefined ? evaluate(a.skipIf, ctx) : undefined;
       const q = a.contains !== undefined ? String(evaluate(a.contains, ctx) || "").toLowerCase() : null;
@@ -150,11 +205,11 @@ export function evaluate(x: Any, ctx: EvalContext): Any {
       return Array.isArray(l) ? l.length : 0;
     }
     case "$sum": {
-      const l2 = evaluate(a[0], ctx) || [];
+      const l2 = seq(evaluate(a[0], ctx)) || [];
       return l2.reduce((s: number, r: Any) => s + (Number(getPath(r, a[1])) || 0), 0);
     }
     case "$find": {
-      const l3 = evaluate(a.list, ctx) || [];
+      const l3 = seq(evaluate(a.list, ctx)) || [];
       const v3 = evaluate(a.equals, ctx);
       for (let i = 0; i < l3.length; i++) if (getPath(l3[i], a.field) === v3) return l3[i];
       return null;

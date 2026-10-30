@@ -229,7 +229,7 @@ export function mermaidToDiagram(text: string, opts: MermaidOptions = {}): Merma
   if (flags.shape) notes.push("node shapes (rounded, circle, diamond, …) are presentation in Mermaid and have no diagram equivalent; the labels were kept.");
   if (flags.soft) notes.push("dotted and thick line styles dropped: a diagram edge has one weight.");
   for (const kw of [...styleKinds].sort()) notes.push(`'${kw}' lines dropped: color in a Kage comes from node palettes, assigned by role.`);
-  notes.push("the block is static; add palettes by role and a caption with the takeaway, and climb to interactive only if the selection will drive another block (graph-interaction-levels).");
+  notes.push("the block is static; add palettes by role and a caption with the takeaway, and climb to interactive only if the selection will drive another block (the kages-graph-interaction-levels skill).");
 
   const groupCount = new Set([...nodes.values()].map((n) => n.group).filter(Boolean)).size;
   return {

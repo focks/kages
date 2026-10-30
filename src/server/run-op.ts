@@ -7,7 +7,8 @@ import { authMode } from "./auth-mode.ts";
 // route and the MCP route call this, so the two behave identically.
 
 import { dispatch, isWriteOp, type OpResult } from "../adapters/operations.ts";
-import { getStore, mutateStore } from "./store-instance.ts";
+import { getStore, getHeadsStore, mutateStore } from "./store-instance.ts";
+import { headsSuffice } from "./persistence.ts";
 import { anonWriteBlocked } from "./identity.ts";
 import type { Provenance } from "../store/types.ts";
 import { chooseSink } from "../cli/advice-sinks.ts";
@@ -41,7 +42,7 @@ export async function executeOp(
     }
     if (!write) {
       const galleryEntries = op === "list_gallery" ? await readGalleryEntries() : undefined;
-      const store = await getStore(workspace);
+      const store = await (headsSuffice(op, params) ? getHeadsStore(workspace) : getStore(workspace));
       return dispatch({ store, author, adapter, connection, galleryEntries, adviceLog: sink }, op, params);
     }
 

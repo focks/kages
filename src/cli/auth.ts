@@ -102,6 +102,21 @@ export async function remoteCall(op: string, params: Record<string, unknown>): P
     body: JSON.stringify(params),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error((data as { error?: { msg?: string } })?.error?.msg || res.statusText);
+  if (!res.ok) {
+    const e = (data as { error?: { code?: string; msg?: string; details?: unknown } })?.error;
+    throw new RemoteError(e?.msg || res.statusText, e?.code ?? "remote", e?.details);
+  }
   return data;
+}
+
+/** A refused remote call, keeping what the server said. Reducing it to the message left
+ *  signed-in agents with "3 validation errors" and no way to tell conflict from forbidden. */
+export class RemoteError extends Error {
+  code: string;
+  details: unknown;
+  constructor(msg: string, code: string, details?: unknown) {
+    super(msg);
+    this.code = code;
+    this.details = details;
+  }
 }

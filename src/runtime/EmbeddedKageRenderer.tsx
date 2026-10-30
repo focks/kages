@@ -6,7 +6,7 @@ import * as React from "react";
 import { resolve } from "@/engine/resolve.ts";
 import { contracts } from "@/engine/data.ts";
 import { evaluate, clone, merge, setPath, getPath } from "@/engine/expr.ts";
-import { initLocals, makeCtx, materialize, runActions, systemOf, type Draft, type LogEntry, type HostTask } from "@/engine/runtime-core.ts";
+import { initLocals, makeCtx, materialize, runActions, runWatchers, systemOf, type Draft, type LogEntry, type HostTask } from "@/engine/runtime-core.ts";
 import { HostBridge, type BridgeConfig } from "@/host/bridge.ts";
 import type { KageDoc, Json, Contract, Block } from "@/engine/types.ts";
 import { useDsBundle } from "./useDsBundle.ts";
@@ -84,7 +84,7 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
   // so their capability gates (billing, registered agents, allowlist, rate limit)
   // apply. The viewer auto-permits the first model call for the demo; a real host
   // would prompt. Created once per document.
-  const localBridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer", ...host }); b.permitAsk(); return b; }, [doc, host]);
+  const localBridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer", ...host }); if (!host?.model) b.permitAsk(); return b; }, [doc, host]); // The built-in stub costs nothing; a real gateway bills the viewer, so it waits for their consent.
 
   const bridge = remoteBridge ?? localBridge;
 
@@ -119,10 +119,12 @@ export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, o
     const log: LogEntry[] = [];
     const hostTasks: HostTask[] = [];
     const opts = { onHost: (t: HostTask) => hostTasks.push(t) };
+    const before = clone(state);
     // Sync actions commit as one transaction; host actions were deferred with
     // pendingInto set, and now run through the bridge after the commit.
     runActions(doc, sysId, r.contract.defaults[evName], draft, id, payload, log, 0, opts);
     runActions(doc, sysId, (b.on || {})[evName], draft, id, payload, log, 0, opts);
+    runWatchers(doc, sysId, draft, before, log, opts);
     setState(draft.state);
     setLocals(draft.locals);
     for (const t of hostTasks) void runHost(t);

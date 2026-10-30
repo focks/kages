@@ -47,13 +47,15 @@ export function makeCtx(
   state: Record<string, Json>,
   locals: Record<string, Record<string, Json>>,
 ): RuntimeCtx {
-  const cache: Record<string, Any> = {};
-  const busy: Record<string, boolean> = {};
+  // No prototype: on a plain object, {$block:"__proto__"} hit cache["__proto__"] and
+  // handed the document Object.prototype, which a later `set` could then write through.
+  const cache: Record<string, Any> = Object.create(null);
+  const busy: Record<string, boolean> = Object.create(null);
   const ctx = { state, data: doc.data || {}, locals } as RuntimeCtx;
   ctx.output = function (id: string) {
     if (cache[id]) return cache[id];
     if (busy[id]) throw new Error("Reference cycle through block '" + id + "'");
-    const b = (doc.blocks || {})[id];
+    const b = doc.blocks && Object.prototype.hasOwnProperty.call(doc.blocks, id) ? doc.blocks[id] : undefined;
     if (!b) return undefined;
     const r = resolve(sysId, b.type);
     if (!r.contract) return undefined;

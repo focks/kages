@@ -1,6 +1,7 @@
 // Task-specific entry points make conversion discoverable without loading every
 // system catalog. They describe real tool paths and name extraction limits.
 import { yamlStr } from './frontmatter.ts';
+import formSkills from './form-skills.json' with { type: 'json' };
 
 const START = `## Before conversion
 
@@ -90,6 +91,6 @@ ${FINISH}` },
 ] as const;
 
 /** Fresh recipes share exact content across MCP, plugins and installed skills. */
-export const conversionSkills = () => recipes.map(({name,description,body})=>({name,description,markdown:`---\nname: ${name}\ndescription: ${yamlStr(description)}\n---\n\n${body}`}));
+export const conversionSkills = () => [...recipes,...formSkills].map(({name,description,body})=>({name,description,markdown:`---\nname: ${name}\ndescription: ${yamlStr(description)}\n---\n\n${body}`}));
 /** Discovery stays compact; agents load only the recipe matching their source. */
 export const conversionIndex = () => conversionSkills().map(({name,description})=>({name,description}));

@@ -15,7 +15,7 @@ export function KageRenderer({ doc, system, className, onState, host, onLayout, 
   const livePort = React.useRef<MessagePort | undefined>(undefined);
   const [origin, setOrigin] = React.useState("");
   const [height, setHeight] = React.useState(48);
-  const bridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer", ...host }); b.permitAsk(); return b; }, [doc, host]);
+  const bridge = React.useMemo(() => { const b = new HostBridge(doc, { billing: "viewer", ...host }); if (!host?.model) b.permitAsk(); return b; }, [doc, host]); // The built-in stub costs nothing; a real gateway bills the viewer, so it waits for their consent.
   const current = React.useRef({ onState, bridge, onLayout, onMetrics, onReady });
   current.current = { onState, bridge, onLayout, onMetrics, onReady };
   const assets = doc.resolved?.assets ?? currentAssets;

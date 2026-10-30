@@ -24,14 +24,25 @@ export interface MergeResult {
 /** The ids whose block definition differs between two documents. Top-level
  *  non-block fields (state/data/root/system/compositions) are compared as the pseudo-block
  *  "/root" so a structural change is attributable too. */
+type Any = any;
+const STRUCTURAL = ["state", "data", "root", "system", "compositions"] as const;
+// `resolved` is rebuilt on every write and `blocks` merges by block.
+const FIELD_EXEMPT = new Set<string>([...STRUCTURAL, "blocks", "resolved"]);
+
 function changedBlocks(base: KageDoc, next: KageDoc): Set<string> {
   const changed = new Set<string>();
   const ids = new Set([...Object.keys(base.blocks || {}), ...Object.keys(next.blocks || {})]);
   for (const id of ids) {
     if (JSON.stringify(base.blocks?.[id]) !== JSON.stringify(next.blocks?.[id])) changed.add(id);
   }
-  for (const key of ["state", "data", "root", "system", "compositions"] as const) {
+  for (const key of STRUCTURAL) {
     if (JSON.stringify(base[key]) !== JSON.stringify(next[key])) changed.add("/root");
+  }
+  // Everything else (title, design, brief, meta, sources, …) merges field by field.
+  // Listing only the fields above lost the rest: a stale patch to /title reported
+  // success, wrote a version, and dropped the edit because the merge starts from theirs.
+  for (const key of new Set([...Object.keys(base), ...Object.keys(next)])) {
+    if (!FIELD_EXEMPT.has(key) && JSON.stringify((base as Any)[key]) !== JSON.stringify((next as Any)[key])) changed.add("/" + key);
   }
   return changed;
 }
@@ -49,12 +60,18 @@ export function mergeThreeWay(base: KageDoc, theirs: KageDoc, yours: KageDoc): M
   const merged: KageDoc = JSON.parse(JSON.stringify(theirs));
 
   for (const id of yourChanges) {
+    const field = id.startsWith("/") && id !== "/root" ? id.slice(1) : undefined;
     if (theirChanges.has(id)) {
-      const t = id === "/root" ? pickStructural(theirs) : theirs.blocks?.[id];
-      const y = id === "/root" ? pickStructural(yours) : yours.blocks?.[id];
+      const t = id === "/root" ? pickStructural(theirs) : field ? (theirs as Any)[field] : theirs.blocks?.[id];
+      const y = id === "/root" ? pickStructural(yours) : field ? (yours as Any)[field] : yours.blocks?.[id];
       if (JSON.stringify(t) !== JSON.stringify(y)) { conflicts.push({ blockId: id, theirs: t, yours: y }); continue; }
     }
     if (id === "/root") { Object.assign(merged, pickStructural(yours)); continue; }
+    if (field) {
+      if ((yours as Any)[field] === undefined) delete (merged as Any)[field];
+      else (merged as Any)[field] = (yours as Any)[field];
+      continue;
+    }
     if (yours.blocks?.[id] === undefined) delete merged.blocks[id];
     else merged.blocks[id] = yours.blocks[id];
   }

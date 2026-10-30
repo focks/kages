@@ -19,11 +19,13 @@ import { briefInvalid } from "./brief-invalid.ts";
 import { nestedSections } from "./nested-sections.ts";
 import { deprecatedUsage } from "./deprecated-usage.ts";
 import { unsourcedClaim, statLiteralUnsourced } from "./unsourced-claim.ts";
+import { diagramDanglingEdge, tableColumnNoData, chartNonNumericValue, sumMissingField, markdownInText } from "./silent-data.ts";
 
 export const RULES: readonly Rule[] = [
   tplMissingBlock, tplPrivateRead, tplUndeclaredState,
   deadButton, formUnwired, modalUnreachable, tocMissingAnchor, danglingCite, tabPanelExtraSlot, tabPanelEmpty,
   duplicateItemId, insecureMedia, emptyChart, selectionUnused, needlessExplore, calendarMonth, unreachableBlock, briefInvalid, nestedSections, deprecatedUsage, unsourcedClaim, statLiteralUnsourced,
+  diagramDanglingEdge, tableColumnNoData, chartNonNumericValue, sumMissingField, markdownInText,
 ];
 
 export const ruleById = (id: string): Rule | undefined => RULES.find((r) => r.id === id);
