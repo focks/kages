@@ -17,7 +17,7 @@
 import { ACTIONS } from "./runtime-core.ts";
 import { resolve } from "./resolve.ts";
 import { systems } from "./data.ts";
-import { validate } from "./validate.ts";
+import { validate, validateDocument } from "./validate.ts";
 import { buildContext } from "./rules/context.ts";
 import type { Deprecation } from "./deprecations.ts";
 import { RULES, ruleById } from "./rules/index.ts";
@@ -43,7 +43,8 @@ export interface Advice {
 
 const blockOf = (doc: KageDoc, at: string): { id: string; block: Block } | undefined => {
   const id = /^\/blocks\/([^/]+)/.exec(at)?.[1];
-  return id && doc.blocks[id] ? { id, block: doc.blocks[id] } : undefined;
+  const block = id && doc.blocks && Object.prototype.hasOwnProperty.call(doc.blocks, id) ? doc.blocks[id] : undefined;
+  return id && block && typeof block === "object" ? { id, block } : undefined;
 };
 
 /** One fix per validator finding, from the document and the installed contracts. */
@@ -52,7 +53,7 @@ export function advise(doc: KageDoc, result: ValidateResult): Advice[] {
   const system = result.system;
   const roles = Object.keys(systems[system]?.components ?? {});
   const stateKeys = Object.keys(doc.state ?? {});
-  const blockIds = Object.keys(doc.blocks);
+  const blockIds = Object.keys(doc.blocks && typeof doc.blocks === "object" ? doc.blocks : {});
   const hint = (f: { at: string; code: string }, msg: string, fix?: string) => out.push({ level: "hint", at: f.at, code: f.code, msg, ...(fix ? { fix } : {}) });
 
   for (const f of [...result.errors, ...result.warnings]) {
@@ -139,6 +140,66 @@ export function advise(doc: KageDoc, result: ValidateResult): Advice[] {
       case "slot-cycle":
       case "ref-cycle":
         hint(f, "The document loops back on itself.", "Break the cycle: a block cannot contain itself, and two expressions cannot read each other.");
+        break;
+      case "missing-key": {
+        const need = /`([^`]+)`/.exec(f.msg)?.[1] ?? "";
+        hint(f, f.msg, `Add "${need}" to this item, or run \`kages contract ${contract?.ref ?? "<ref>"}\` to see the item shape.`);
+        break;
+      }
+      case "type":
+      case "enum":
+        hint(f, f.msg, `Change ${f.at} to match, or bind it with bind.${key} if the value is computed.`);
+        break;
+      case "bad-id":
+        hint(f, f.msg, "Rename the block: start with a lowercase letter, then use letters, digits, - or _ (48 characters at most).");
+        break;
+      case "bad-kage-id":
+        hint(f, f.msg, `Set /id to a slug such as "quarterly-report".`);
+        break;
+      case "missing-root":
+        hint(f, f.msg, blockIds.length ? `Set /root to the outermost block, one of: ${list(blockIds.slice(0, 12))}.` : "Add at least one block under `blocks`, then set /root to its id.");
+        break;
+      case "unknown-system":
+        hint(f, f.msg, `Use one of: ${list(Object.keys(systems))}.`);
+        break;
+      case "bad-expr":
+        hint(f, f.msg, "Reshape the operator's argument as the message says; see `kages schema <system>`.");
+        break;
+      case "missing-data": {
+        const k = /'([^'.]+)/.exec(f.msg)?.[1] ?? "", guess = nearest(k, Object.keys(doc.data ?? {}));
+        hint(f, f.msg, guess ? `Did you mean \`${guess}\`?` : `Add "${k}" under \`data\`.`);
+        break;
+      }
+      case "bad-path":
+      case "missing-field":
+      case "foreign-local":
+      case "bad-watch":
+      case "bad-shape":
+        hint(f, f.msg, `Correct ${f.at} as described.`);
+        break;
+      case "orphan":
+        hint(f, f.msg, "Place it in a parent's slot, or delete it.");
+        break;
+      case "bad-expansion":
+        hint(f, f.msg, "Check `repeat.each` yields a list with unique keys, and that compositions do not include themselves.");
+        break;
+      case "eval-budget":
+        hint(f, f.msg, "Reduce nested $map, or compute the result ahead of time and store it under `data`.");
+        break;
+      case "unknown-key": {
+        const allowed = f.at.startsWith("/blocks/") ? ["type", "props", "bind", "slots", "on", "watch", "visible", "repeat", "meta"] : ["title", "system", "root", "blocks", "state", "data", "sources", "compositions", "design", "brief", "meta"];
+        const guess = nearest(key, allowed);
+        hint(f, f.msg, key === "children" ? "Put child block ids under `slots.children`." : guess ? `Rename it to \`${guess}\`.` : "Remove it.");
+        break;
+      }
+      case "unknown-operator":
+        hint(f, f.msg, `Use a real operator; see \`kages schema ${system}\`.`);
+        break;
+      case "item-shape":
+        hint(f, f.msg, `Run \`kages contract ${contract?.ref ?? "<ref>"}\` to see the item shape.`);
+        break;
+      case "set-without-value":
+        hint(f, f.msg, "Add `value` to the action.");
         break;
       default:
         break; // the validator's own message is already the whole story
@@ -227,5 +288,12 @@ export function lintDetailed(doc: KageDoc, opts: LintOptions = {}): LintReport {
 /** Validation plus advice and lint in one call: what adapters return. */
 export function review(doc: KageDoc, override?: string): ValidateResult & { advice: Advice[] } {
   const result = validate(doc, override);
+  return { ...result, advice: [...advise(doc, result), ...lint(doc, override)] };
+}
+
+/** review(), judged the way a write will be: what validate_kage and `kages validate` report,
+ *  so a document they pass is one create_kage accepts. review() itself stays pinned to the oracle. */
+export function reviewDocument(doc: KageDoc, override?: string): ValidateResult & { advice: Advice[] } {
+  const result = validateDocument(doc, override);
   return { ...result, advice: [...advise(doc, result), ...lint(doc, override)] };
 }

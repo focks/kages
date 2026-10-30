@@ -50,7 +50,7 @@ test("rich-text list items accept runs like any other prose, never stringifying 
     "a plain string item",
   ] }] });
   assert.doesNotMatch(html, /\[object Object\]/);
-  assert.match(html, /<a href="https:\/\/arxiv\.org\/abs\/2503\.13657">MAST paper<\/a>/);
+  assert.match(html, /<a href="https:\/\/arxiv\.org\/abs\/2503\.13657" target="_blank" rel="noopener noreferrer">MAST paper<\/a>/);
   assert.match(html, /<strong>bold claim<\/strong>/);
   assert.match(html, /a plain string item/);
 });

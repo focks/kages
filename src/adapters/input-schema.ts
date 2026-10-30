@@ -42,6 +42,37 @@ const shared: Record<string, InputSchema> = {
   blocks: strings, projects: strings, types: strings, ttl: { type: "number", minimum: 1, maximum: 3600 }, x: { type: "number", minimum: 0, maximum: 1 }, y: { type: "number", minimum: 0, maximum: 1 }, value: { type: "integer", enum: [-1, 0, 1] },
 };
 
+// What an agent cannot infer from the name. `doc` and friends are bare objects in the
+// schema, so their description is the only place the expected shape is visible.
+const DESCRIPTIONS: Record<string, string> = {
+  fingerprint: "The digest from the reviewed critique packet target.digest; never substitute a newer head.",
+  doc: "A full Kage: {kages:\"1.0\", id, title, system, root, blocks:{<id>:{type, props, slots, on}}, state?, data?, brief?}",
+  envelope: "The generation envelope that get_generation_schema describes",
+  definition: "A workspace design definition: colours, type and radius; see get_design",
+  intake: "Answers from a decision guide intake",
+  spec: "The specification this operation reads; see the operation summary",
+  ops: "RFC 6902 operations. add, replace and test need `value`; move and copy need `from`.",
+  suggestedPatch: "RFC 6902 operations that would fix the finding",
+  name: "The Kage's name, which is its document id",
+  kage: "The Kage's name, which is its document id",
+  uuid: "The Kage's stable share id",
+  repo: "The home project: lowercase letters, digits and dashes",
+  ref: "A contract ref (core/stat@1.0.0, core/stat) or block type (stat)",
+  system: "A design system id such as core, ledger or atelier",
+  version: "A version number; omit for the latest",
+  baseVersion: "The version your edit started from. Behind head, the edit is merged and overlapping changes are reported as conflicts.",
+  advice: "How much lint to return after a successful write: full, quiet or off",
+  minSeverity: "The lowest finding severity to return",
+  all: "Include everything rather than only new findings",
+  visibility: "Who can open it: private, workspace, link or public",
+  apply: "Write the result; omit to get the plan only",
+  since: "The cursor returned by the previous call",
+  path: "A path inside the skill pack, such as reference/examples/evidence-workbench.kage.json",
+  text: "The text to search or parse",
+  blocks: "Block ids; `root` claims the document's structure",
+  ttl: "Lease length in seconds",
+};
+
 /** Every declared parameter must have a type; newly added operations cannot silently publish empty schemas. */
 export function operationSchema(op: string, params: string[]): InputSchema {
   const properties: Record<string, InputSchema> = {};
@@ -55,7 +86,7 @@ export function operationSchema(op: string, params: string[]): InputSchema {
     if (op === "vote_gallery_kage" && key === "value") actual = { type: "integer", enum: [0, 1] };
     if (op === "list_gallery" && key === "limit") actual = { type: "integer", minimum: 1, maximum: 48 };
     if (op === "list_gallery" && key === "text") actual = { type: "string" };
-    properties[key] = { ...actual, description: key === "fingerprint" ? "The digest from the reviewed critique packet target.digest; never substitute a newer head." : `${key} parameter` };
+    properties[key] = { ...actual, description: DESCRIPTIONS[key] ?? key.replace(/[A-Z_]/g, (c) => " " + c.replace("_", "").toLowerCase()) };
   }
   return { type: "object", properties, required: params.filter(p => !p.endsWith("?")), additionalProperties: true };
 }

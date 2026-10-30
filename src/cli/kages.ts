@@ -17,14 +17,14 @@ import { join, dirname, resolve as resolvePath } from "node:path";
 import { systems, contracts } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { validate } from "../engine/validate.ts";
-import { review } from "../engine/advice.ts";
+import { review, reviewDocument } from "../engine/advice.ts";
 import { outlineToKage } from "../engine/outline.ts";
 import { mermaidToDiagram } from "../engine/mermaid.ts";
 import { screenshotDoc, parseWidths, shotFiles, DEFAULTS as SHOT_DEFAULTS } from "./screenshot.ts";
 import { describe } from "../engine/describe.ts";
 import { generationSchema, fromGenerated, toGenerated } from "../engine/generate.ts";
 import { KageSession } from "../engine/session.ts";
-import { dispatch, isWriteOp, type OpContext, type OpResult } from "../adapters/operations.ts";
+import { dispatch, formatDetails, isWriteOp, type OpContext, type OpResult } from "../adapters/operations.ts";
 import { openapi, a2aCard, mcpTools } from "../adapters/surfaces.ts";
 import { setupCmd } from "./setup.ts";
 import { configCmd } from "./config-cmd.ts";
@@ -45,7 +45,7 @@ import { modeOf } from "../engine/mode.ts";
 import { RULES, ruleById } from "../engine/rules/index.ts";
 import { pack } from "../packs/packs.ts";
 import { loadStore, saveStore, owner, workspaceDir, initWorkspace } from "./workspace.ts";
-import { login, logout, status, remoteCall } from "./auth.ts";
+import { login, logout, status, remoteCall, RemoteError } from "./auth.ts";
 import { parseArgs, flag, type ParsedArgs } from "./args.ts";
 import { printJson, table, out, err } from "./format.ts";
 import type { KageBrief, KageDoc } from "../engine/types.ts";
@@ -86,8 +86,10 @@ author  (operate on a .kage.json file, or a stored name; offline)
 
 manage  (your CLOUD workspace when signed in, else the local ./.kages; --local forces local)
   create <file> [--repo r]      store a new Kage (validated + signed)
-  patch  <name> <patch.json> [--dry-run] [--advice full|quiet|off]
+  patch  <name> <patch.json> [--dry-run] [--base-version n] [--advice full|quiet|off]
                                 apply RFC 6902 ops, new version; --dry-run reports what would happen
+  share <name> --visibility private|workspace|link|public
+                                change who can open a published Kage
   ls [-s sys] [--state st]      list stored Kages
   search <query> [-s sys]       full-text search
   get <name> [-v n] [-o file]   print a stored Kage document
@@ -201,14 +203,23 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
   const need = (n: number, usage: string) => { if (rest.length < n) throw new Error(`usage: kages ${usage}`); };
 
   // Resolve a Kage from a file path, or (failing that) a stored name.
-  const resolveDoc = (target: string): KageDoc => {
+  const resolveDoc = async (target: string): Promise<KageDoc> => {
     // Only a regular *.kage.json is read as a path. The MCP render tool passes an agent's `name` straight
     // here, so reading any existing path let it probe local files through the JSON parse error's snippet,
     // and a directory named like a stored Kage made readFileSync throw EISDIR instead of falling through.
     if (target && /\.kage\.json$/i.test(target) && isFile(target)) return JSON.parse(readFileSync(target, "utf8")) as KageDoc;
+    // Signed in, `kages create` stores in the cloud, so a name must resolve there too. Reading
+    // only the local store said a Kage created a moment ago did not exist, or checked a
+    // same-named local one instead.
+    if (useRemote) {
+      const r = await op("get_kage", { name: target });
+      if (r.ok) return r.data as KageDoc;
+      if (r.error.code !== "not_found") throw new Error(r.error.msg);
+    }
     const head = loadStore(ctx.dir).head(target);
     if (head) return head.doc;
-    throw new Error(`no file or stored Kage '${target}'`);
+    // Worded the same whether or not the path exists, so a Kage name cannot probe for local files.
+    throw new Error(`no file or stored Kage '${target}' (a file must be named *.kage.json)`);
   };
 
   // Run an operation. Signed in (and not --local) → against your CLOUD workspace
@@ -231,7 +242,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     if (destination === "setup" && mutates) return { ok: false, error: { code: "unauthorized", msg: "Cloud login is required. Call get_setup, then run kages auth login on the agent’s machine. For intentional local work restart with kages mcp --local. No local Kage was created." } };
     if (destination === "cloud") {
       try { return { ok: true, data: await remoteCall(name, params) }; }
-      catch (e) { return { ok: false, error: { code: "remote", msg: (e as Error).message } }; }
+      catch (e) { return { ok: false, error: { code: e instanceof RemoteError ? e.code : "remote", msg: (e as Error).message, ...(e instanceof RemoteError && e.details !== undefined ? { details: e.details } : {}) } } as OpResult; }
     }
     const store = loadStore(ctx.dir);
     const chosen = chooseSink({ setting: cfg.value.advice?.auditLog, env: process.env.KAGES_ADVICE_LOG, workspaceDir: ctx.dir });
@@ -246,8 +257,13 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     if (r.ack === "clean") out(`  ✓ no new findings${r.resolved ? `, ${r.resolved} fixed` : ""}${r.existing ? `, ${r.existing} existing not repeated (kages lint ${"<name>"} lists them)` : ""}`);
   };
   const report = (r: OpResult, onOk: (data: unknown) => void): number => {
-    if (!r.ok) { err(`error ${r.error.code}: ${r.error.msg}`); return 1; }
-    if (ctx.json) printJson(r.data); else onOk(r.data);
+    if (!r.ok) {
+      if (ctx.json) printJson({ error: r.error });
+      else err(`error ${r.error.code}: ${r.error.msg}${formatDetails((r.error as { details?: unknown }).details)}`);
+      return 1;
+    }
+    // With -o the caller asked for a file; onOk writes it.
+    if (ctx.json && !flags.out) printJson(r.data); else onOk(r.data);
     return 0;
   };
 
@@ -284,8 +300,8 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     // --- author (offline, file or stored) ---
     case "validate": {
       need(1, "validate <file|name> [-s system]");
-      const doc = resolveDoc(rest[0]);
-      const r = review(doc, sys);
+      const doc = await resolveDoc(rest[0]);
+      const r = reviewDocument(doc, sys);
       if (ctx.json) { printJson(r); return r.ok ? 0 : 1; }
       for (const e of r.errors) out(`  ✗ ${e.at}  ${e.code}  ${e.msg}`);
       for (const w of r.warnings) out(`  ⚠ ${w.at}  ${w.code}  ${w.msg}`);
@@ -312,7 +328,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       const tier = flags.tier === "immediate" || flags.tier === "deep" ? flags.tier : undefined;
       const cfg = loadConfig({ readFile: (p) => (existsSync(p) ? readFileSync(p, "utf8") : null), userFile: join(kagesHome(), "config.json"), workspaceDir: ctx.dir, env: process.env });
       const brief = loadStore(ctx.dir).getBrief(owner());
-      const r = lintDetailed(resolveDoc(rest[0]), { system: sys, tier, ignoreRules: cfg.value.lint?.ignoreRules, absent: brief.ok ? brief.value.record?.brief.absent ?? [] : [] });
+      const r = lintDetailed(await resolveDoc(rest[0]), { system: sys, tier, ignoreRules: cfg.value.lint?.ignoreRules, absent: brief.ok ? brief.value.record?.brief.absent ?? [] : [] });
       if (ctx.json) printJson(r);
       else {
         for (const f of r.findings) { out(`  ${f.severity}  ${f.at}  ${f.code}  ${f.msg}`); if (f.fix) out(`        → ${f.fix}`); }
@@ -323,14 +339,14 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     }
     case "describe": {
       need(1, "describe <file|name> [-s system]");
-      const doc = resolveDoc(rest[0]), m = modeOf(doc);
+      const doc = await resolveDoc(rest[0]), m = modeOf(doc);
       out(m.source === "declared" ? `mode: ${m.mode} (declared)` : `mode: ${m.mode} (inferred, ${m.confidence} confidence)`);
       out(describe(doc, sys));
       return 0;
     }
     case "preview": {
       need(1, "preview <file|name> [-s system]");
-      const doc = resolveDoc(rest[0]);
+      const doc = await resolveDoc(rest[0]);
       const s = new KageSession(doc, sys);
       const blocks = Object.keys(doc.blocks).map((id) => ({ id, visible: s.visible(id), output: s.read(id) }));
       if (ctx.json) { printJson({ system: s.sysId, blocks }); return 0; }
@@ -371,7 +387,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     }
     case "screenshot": {
       need(1, "screenshot <file|name> [-o out.png|dir/] [--width 390,1200] [--dark] [--url u] [--no-sandbox] [--strict]");
-      const doc = resolveDoc(rest[0]);
+      const doc = await resolveDoc(rest[0]);
       const widths = parseWidths(flag(flags, "width"));
       const files = shotFiles(flag<string>(flags, "out"), widths, doc.id); // before launching Chrome: a bad -o fails fast
       const shots = await screenshotDoc(doc, { ...SHOT_DEFAULTS, widths, height: Number(flag(flags, "height", SHOT_DEFAULTS.height)) || SHOT_DEFAULTS.height, dark: !!flags.dark, scale: Math.min(3, Math.max(1, Number(flag(flags, "scale", 1)) || 1)), system: sys, url: flag<string>(flags, "url"), noSandbox: !!flags["no-sandbox"] });
@@ -388,7 +404,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       let built;
       try { built = mermaidToDiagram(readFileSync(rest[0], "utf8"), { label: flag<string>(flags, "label") }); }
       catch (e) { err(`error invalid_input: ${(e as Error).message}`); return 1; }
-      if (ctx.json) { printJson(built); return 0; }
+      if (ctx.json) { if (flags.out) writeFileSync(String(flags.out), JSON.stringify(built.block, null, 2) + "\n"); printJson(built); return 0; }
       for (const n of built.notes) process.stderr.write(`  • ${n}\n`);
       writeOut(flags, JSON.stringify(built.block, null, 2));
       out(`${built.stats.nodes} node(s) · ${built.stats.edges} edge(s) · ${built.stats.groups} group(s)${built.stats.droppedLines ? ` · ${built.stats.droppedLines} line(s) dropped` : ""}`);
@@ -427,14 +443,21 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
     case "create": {
       need(1, "create <file> [--repo r]");
       const doc = JSON.parse(readFileSync(rest[0], "utf8"));
-      return report(await op("create_kage", { doc }, true), (d) => { out(`created ${(d as any).version.ref}`); adviceLines(d); });
+      // Sent as a param: the local context's repo never reaches a cloud workspace.
+      const repo = flag<string>(flags, "repo");
+      return report(await op("create_kage", { doc, ...(repo ? { repo } : {}) }, true), (d) => { out(`created ${(d as any).version.ref}`); adviceLines(d); });
     }
+    case "share":
+      need(1, "share <name> --visibility private|workspace|link|public");
+      return report(await op("share_kage", { name: rest[0], visibility: flag(flags, "visibility") }, true), (d) => out(`${(d as any).ref} is now ${(d as any).visibility}`));
     case "patch": {
-      need(2, "patch <name> <patch.json> [--dry-run]");
+      need(2, "patch <name> <patch.json> [--dry-run] [--base-version n]");
       const ops = JSON.parse(readFileSync(rest[1], "utf8"));
+      const baseVersion = flag<number>(flags, "base-version");
+      const base = baseVersion === undefined ? {} : { baseVersion };
       if (flags["dry-run"]) {
         // Same verdict the real patch would give, with nothing written or counted.
-        const r = await op("validate_patch", { name: rest[0], ops });
+        const r = await op("validate_patch", { name: rest[0], ops, ...base });
         if (!r.ok) { err(`error ${r.error.code}: ${r.error.msg}`); return 1; }
         const d = r.data as { ok: boolean; wouldCreate?: number; validation?: { errors: unknown[]; warnings: unknown[] }; diff?: { added: string[]; removed: string[]; changed: string[]; opsApplied: number }; regressions?: { severity?: string; code: string; at: string; msg: string; fix?: string }[]; error?: { code: string; msg: string; opIndex?: number } };
         if (ctx.json) { printJson(d); return d.ok ? 0 : 1; }
@@ -444,10 +467,15 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
         for (const f of d.regressions ?? []) { out(`  new ${f.severity ?? ""} ${f.at}  ${f.code}  ${f.msg}`); if (f.fix) out(`        → ${f.fix}`); }
         return d.ok ? 0 : 1;
       }
-      return report(await op("patch_kage", { name: rest[0], ops }, true), (d) => { out(`patched → ${(d as any).version.ref}`); adviceLines(d); });
+      return report(await op("patch_kage", { name: rest[0], ops, ...base }, true), (d) => { out(`patched → ${(d as any).version.ref}`); adviceLines(d); });
     }
-    case "ls": case "list":
-      return report(await op("list_kages", {}), (d) => out(kageTable(d as KageSummary[])));
+    case "ls": case "list": {
+      const r = await op("list_kages", {});
+      const state = flag<string>(flags, "state");
+      // The operation takes no filters, and output that merely looks filtered is worse than none.
+      const shown = r.ok ? { ...r, data: (r.data as KageSummary[]).filter((k) => (!sys || String(k.system).split("@")[0] === sys.split("@")[0]) && (!state || k.state === state)) } : r;
+      return report(shown, (d) => out(kageTable(d as KageSummary[])));
+    }
     case "search": {
       need(1, "search <query> [-s system]");
       return report(await op("search_kages", { text: rest[0], system: sys, state: flag(flags, "state") }), (d) => out(kageTable(((d as any[]).map(fromVersion))))); }
@@ -471,7 +499,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       const { push, pushCmd, httpCall } = await import("./push-cmd.ts");
       const server = flag<string>(flags, "server") ?? process.env.KAGES_SERVER ?? "http://localhost:3000";
       const token = flag<string>(flags, "token") ?? process.env.KAGES_TOKEN;
-      return pushCmd(await push(resolveDoc(rest[0]), server, httpCall(server, token), { replace: flags.replace === true, publish: flags.publish === true, visibility: flag<string>(flags, "visibility") }));
+      return pushCmd(await push(await resolveDoc(rest[0]), server, httpCall(server, token), { replace: flags.replace === true, publish: flags.publish === true, visibility: flag<string>(flags, "visibility") }));
     }
     case "publish":
       need(1, "publish <name> [--gallery | --visibility v]");

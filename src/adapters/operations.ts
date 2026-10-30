@@ -13,8 +13,10 @@ import { operationSchema, inputErrors } from "./input-schema.ts";
 import { planPolish } from "../authoring/polish.ts";
 import { embedOrigins } from "../store/embed-policy.ts";
 import { systems, contracts } from "../engine/data.ts";
+import { withEvalBudget, EvalBudgetError, MAX_DOCUMENT_EVAL_STEPS } from "../engine/expr.ts";
+import { resolve } from "../engine/resolve.ts";
 import { validate } from "../engine/validate.ts";
-import { advise, review, lintDetailed, type Advice } from "../engine/advice.ts";
+import { advise, review, reviewDocument, lintDetailed, type Advice } from "../engine/advice.ts";
 import { RULES } from "../engine/rules/index.ts";
 import { systemCard, cardDigest } from "../packs/system-card.ts";
 import { rulesFor } from "../packs/system-rules.ts";
@@ -183,15 +185,21 @@ export const OPERATIONS: OpSpec[] = [
   { name: "get_catalog", summary: "Compact text catalog of a system's components for an agent prompt", params: ["system"], run: (_c, p) =>
     systems[p.system] ? ok(catalog(p.system)) : fail("not_found", `no system '${p.system}'`) },
 
-  { name: "get_contract", summary: "Fetch one component contract by ref", params: ["ref"], run: (_c, p) =>
-    contracts[p.ref] ? ok(contracts[p.ref]) : fail("not_found", `no contract '${p.ref}'`) },
+  { name: "get_contract", summary: "Fetch one component contract by ref (core/stat@1.0.0, core/stat) or block type (stat)", params: ["ref"], run: (_c, p) => {
+    if (contracts[p.ref]) return ok(contracts[p.ref]);
+    // Agents read `stat` in the catalog and ask for it; only the versioned key used to work.
+    const [system, role] = String(p.ref).includes("/") ? String(p.ref).split("/") : ["core", String(p.ref)];
+    const found = systems[system] ? resolve(system, role).contract : undefined;
+    return found ? ok(found) : fail("not_found", `no contract '${p.ref}'; get_catalog lists the block types of each system`);
+  } },
 
   { name: "get_generation_schema", summary: "The strict JSON Schema envelope a model fills (tier B)", params: ["system"], run: (_c, p) =>
     systems[p.system] ? ok(generationSchema(p.system)) : fail("not_found", `no system '${p.system}'`) },
 
   // --- find & read (visibility-gated: a caller only sees what it may read) ---
   { name: "search_kages", summary: "Full-text + filtered search over stored Kages", params: ["text?", "system?", "author?", "state?"], run: (c, p) =>
-    ok(c.store.search(p).filter((v) => c.store.canAccess(v, c.author))) },
+    // A mistyped system would otherwise read as "nothing matched".
+    p.system && !systems[String(p.system).split("@")[0]] ? fail("not_found", `no system '${p.system}'`) : ok(c.store.search(p).filter((v) => c.store.canAccess(v, c.author))) },
 
 
   { name: "get_kage", summary: "Fetch a Kage document by name or uuid (latest or a version)", params: ["name?", "uuid?", "version?"], run: (c, p) => {
@@ -366,7 +374,7 @@ export const OPERATIONS: OpSpec[] = [
 
   // --- check ---
   { name: "validate_kage", summary: "Validate a document; returns findings with JSON pointers, a fix for each, and pitfall lint", params: ["doc", "system?"], run: (c, p) => {
-    const t0 = performance.now(), r = review(p.doc as KageDoc, p.system);
+    const t0 = performance.now(), r = reviewDocument(p.doc as KageDoc, p.system);
     if (c.adviceLog) logAdvice(c, "validate_kage", { mode: "full", minSeverity: "P3", ms: performance.now() - t0, after: r.advice, before: null, doc: p.doc as KageDoc, returned: r.advice.length, tier: "all" });
     return ok(r);
   } },
@@ -494,7 +502,7 @@ export const OPERATIONS: OpSpec[] = [
     return ok({ doc: built.doc, notes: built.notes, stats: built.stats, ...(({ ok: valid, errors, warnings, advice }) => ({ validation: { ok: valid, errors, warnings }, advice }))(review(built.doc, p.system && String(p.system).split("@")[0])) });
   } },
 
-  { name: "mermaid_to_diagram", summary: "Compile Mermaid flowchart text (graph/flowchart TD|LR, labelled edges, chains, & fans, subgraphs → groups) into one static diagram block plus notes on everything dropped. Other diagram kinds and unsupported syntax are rejected whole, never silently trimmed. Insert the block into a Kage and validate; imports start static — read graph-interaction-levels before adding interactivity", params: ["text", "label?"], run: (_c, p) => {
+  { name: "mermaid_to_diagram", summary: "Compile Mermaid flowchart text (graph/flowchart TD|LR, labelled edges, chains, & fans, subgraphs → groups) into one static diagram block plus notes on everything dropped. Other diagram kinds and unsupported syntax are rejected whole, never silently trimmed. Insert the block into a Kage and validate; imports start static — read the kages-graph-interaction-levels skill before adding interactivity", params: ["text", "label?"], run: (_c, p) => {
     let built;
     try { built = mermaidToDiagram(String(p.text ?? ""), { label: p.label !== undefined ? String(p.label) : undefined }); }
     catch (e) { return fail("invalid_input", (e as Error).message); }
@@ -512,6 +520,7 @@ export const OPERATIONS: OpSpec[] = [
   { name: "preview_kage", summary: "Headless render snapshot: resolved outputs + visibility per block", params: ["name", "system?"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
     if (!r.ok) return fail(r.code, r.msg);
+    if (p.system && !systems[systemOf({}, p.system)]) return fail("not_found", `no system '${p.system}'`);
     const s = new KageSession(r.record.doc, p.system);
     const snapshot: Record<string, unknown> = {};
     for (const id of Object.keys(s.instances().blocks)) snapshot[id] = { visible: s.visible(id), output: s.read(id) };
@@ -531,7 +540,7 @@ export const OPERATIONS: OpSpec[] = [
   { name: "publish_kage", summary: "Publish the head version (requires publish grant, clean validation)", params: ["name", "visibility?"], write: true, run: (c, p) =>
     toResult(c.store.publish(p.name, c.author, p.visibility ?? "private")) },
 
-  { name: "share_kage", summary: "Widen visibility of a published Kage (requires publish)", params: ["name", "visibility"], write: true, run: (c, p) => {
+  { name: "share_kage", summary: "Change who can open a published Kage: private, workspace, link or public (requires publish)", params: ["name", "visibility"], write: true, run: (c, p) => {
     const r = c.store.share(p.name, c.author, p.visibility);
     return r.ok ? ok({ ref: r.version!.ref, visibility: r.version!.visibility }) : fail(r.error!.code, r.error!.msg);
   } },
@@ -583,16 +592,22 @@ export const OPERATIONS: OpSpec[] = [
     // real streaming transport (SSE/websocket) to build on.
     const wanted: string[] | undefined = p.types;
     const events = c.store.eventLog();
-    const since = Number(p.since ?? 0);
+    const offset = c.store.eventLogOffset();
+    const since = Math.max(0, Number(p.since ?? 0) - offset);
     // The cursor counts the whole log so a caller who sees only some events still advances; each event
     // is shown only if the caller could read the Kage it is about (see Store.canSeeEvent).
     const slice = events.slice(since).filter((e) => (!wanted || wanted.includes(e.type)) && c.store.canSeeEvent(e, c.author));
-    return ok({ events: slice, cursor: events.length });
+    return ok({ events: slice, cursor: offset + events.length });
   } },
 
   // --- collaborate ---
-  { name: "claim_blocks", summary: "Lease a block subtree for longer work", params: ["kage", "blocks", "ttl?"], write: true, run: (c, p) =>
-    cres(c.store.claimBlocks(p.kage, p.blocks, c.author, p.ttl ?? 300)) },
+  { name: "claim_blocks", summary: "Lease a block subtree for longer work", params: ["kage", "blocks", "ttl?"], write: true, run: (c, p) => {
+    // `root` is the structural claim and is valid even when no block has that id.
+    const head = c.store.head(p.kage);
+    const missing = head && c.store.canAccess(head, c.author) ? (p.blocks as string[]).filter((id) => id !== "root" && !Object.prototype.hasOwnProperty.call(head.doc.blocks, id)) : [];
+    if (missing.length) return fail("not_found", `no block ${missing.map((id) => `'${id}'`).join(", ")} in '${p.kage}'`);
+    return cres(c.store.claimBlocks(p.kage, p.blocks, c.author, p.ttl ?? 300));
+  } },
 
   { name: "release_blocks", summary: "Release your claims on a Kage", params: ["kage"], write: true, run: (c, p) => {
     c.store.claims.release(p.kage, c.author.principal);
@@ -741,8 +756,10 @@ export function dispatch(ctx: OpContext, op: string, params: Params = {}): OpRes
   try {
     const errors = inputErrors(operationSchema(spec.name, spec.params), params);
     if (errors.length) return fail("invalid_params", errors.map(e => `${e.at}: ${e.msg}`).join("; "), { errors });
-    return concealPrivate(ctx, spec.name, params, spec.run(ctx, params));
+    if (isWriteOp(spec.name, params) && !ctx.store.spendOperation(ctx.author.principal)) return fail("rate_limited", `${ctx.author.principal} exceeded the hourly limit on write operations`);
+    return withEvalBudget(MAX_DOCUMENT_EVAL_STEPS, () => concealPrivate(ctx, spec.name, params, spec.run(ctx, params)));
   } catch (e) {
+    if (e instanceof EvalBudgetError) return fail("invalid_content", e.message);
     return fail("internal", (e as Error).message);
   }
 }
