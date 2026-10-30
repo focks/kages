@@ -2,19 +2,26 @@
 // document as text. Pure, so the shape agents depend on is tested rather than hoped for.
 import type { KageDoc } from "../engine/types.ts";
 import { describe } from "../engine/describe.ts";
+import { withEvalBudget, MAX_DOCUMENT_EVAL_STEPS } from "../engine/expr.ts";
 import { modeOf } from "../engine/mode.ts";
 import type { RepoListing } from "../store/repo-share.ts";
 import { usageGroups } from "../components/dashboard/kage-usage-model.ts";
+
+// Titles are authored by someone else: collapse them to one line and keep them out of markdown syntax.
+const line = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/[[\]`<>]/g, "").trim() || "Untitled";
 
 export function agentMarkdown({ doc, origin, uuid }: { doc: KageDoc; origin: string; uuid: string }): string {
   const m = modeOf(doc);
   const groups = usageGroups({ origin, name: doc.id, uuid });
   const how = groups.map((g) => `### ${g.title}\n\n${g.steps.map((s) => `- ${s.label}${s.note ? ` (${s.note})` : ""}\n\n  \`\`\`sh\n  ${s.command}\n  \`\`\``).join("\n\n")}`).join("\n\n");
   // The text of a Kage is authored by someone else: say so before it appears, and fence it so it cannot read as ours.
-  const text = describe(doc).replace(/```/g, "'''");
+  let text: string;
+  try { text = withEvalBudget(MAX_DOCUMENT_EVAL_STEPS, () => describe(doc)).replace(/```/g, "'''"); }
+  catch { text = "(This Kage's expressions are too expensive to evaluate here. Open the interactive page instead.)"; }
   return [
-    `# ${doc.title}`,
-    `Kage \`${doc.id}\` · design system \`${doc.system}\` · mode \`${m.mode}\` (${m.source === "declared" ? "declared" : "inferred"})`,
+    // These sit above the fence below, so unsanitized they could read as instructions from this host.
+    `# ${line(String(doc.title ?? ""))}`,
+    `Kage \`${line(String(doc.id ?? ""))}\` · design system \`${line(String(doc.system ?? ""))}\` · mode \`${m.mode}\` (${m.source === "declared" ? "declared" : "inferred"})`,
     "## Agent instructions",
     `Kages is an artifactory for agents: versioned interactive pages assembled from blocks, never HTML. Start with \`get_setup\` to verify login and workspace, then \`get_context\` for the authoring skill. The full guide for this host is ${origin}/agents.md.`,
     how,
@@ -27,8 +34,6 @@ export function agentMarkdown({ doc, origin, uuid }: { doc: KageDoc; origin: str
 
 /** A shared project as one markdown page: each Kage is a line with its text link, so an agent can open them in turn. */
 export function repoMarkdown({ listing, origin }: { listing: RepoListing; origin: string }): string {
-  // Titles are authored by someone else: collapse them to one line and keep them out of markdown syntax.
-  const line = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/[[\]`<>]/g, "").trim() || "Untitled";
   const items = listing.items.map((i) => `- [${line(i.title)}](${origin}/k/${i.uuid}.md) · \`${i.system}\`${i.mode ? ` · ${i.mode}` : ""}`);
   return [
     `# ${line(listing.title)}`,

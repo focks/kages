@@ -20,6 +20,36 @@ jobs:
       - run: git diff --exit-code
       - run: npm run check:plugins
       - run: npm audit --omit=dev --audit-level=high
+  # The browser tests skip without KAGES_TEST_URL, and they need real storage: the in-memory
+  # store is not shared between routes under Next, so a Kage created by one is missing in the next.
+  browser:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: kages, POSTGRES_DB: kages }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:kages@localhost:5432/kages
+      KAGES_TEST_DATABASE_URL: postgres://postgres:kages@localhost:5432/kages
+      KAGES_TEST_URL: http://localhost:3000
+      KAGES_CHROME_NO_SANDBOX: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22.18, cache: npm }
+      - run: npm ci
+      - run: npm run db:setup
+      - run: sudo apt-get install -y poppler-utils
+      # A dev server, not `next start`: production mode refuses the anonymous writes these tests make.
+      - run: npx next dev -p 3000 &
+      - run: curl -s -o /dev/null --retry 30 --retry-connrefused --retry-delay 2 "$KAGES_TEST_URL/render"
+      # The dev server compiles a route on first request, which outlasts the tests' wait for the page.
+      - run: curl -s -o /dev/null "$KAGES_TEST_URL/k/warm-up"
+      # One file at a time: parallel Chrome launches on a small runner time out before the page does.
+      - run: node --test --test-concurrency=1 "src/**/*.test.ts"
   cli-bundle:
     runs-on: ubuntu-latest
     strategy:

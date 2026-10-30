@@ -7,7 +7,7 @@ import { projectGallery, galleryCard, canVoteGallery, galleryVoter, type Gallery
 // implementation; the interface is what the adapters translate. See
 // oracle/artifactory.feature.
 
-import { validate } from "../engine/validate.ts";
+import { validateDocument } from "../engine/validate.ts";
 import type { ValidateResult } from "../engine/types.ts";
 import { resolve, systemOf } from "../engine/resolve.ts";
 import { systems } from "../engine/data.ts";
@@ -54,7 +54,15 @@ export interface StoreOptions {
   clock?: Clock;
   /** Versions per principal per rolling hour before a rate-limit error. */
   versionQuotaPerHour?: number;
+  /** Characters of stored documents one workspace may hold before writes are refused. */
+  maxWorkspaceChars?: number;
 }
+
+// 120 versions an hour at 1 MB each would otherwise grow one workspace without limit,
+// and every request loads the whole workspace.
+const MAX_WORKSPACE_CHARS = 500_000_000;
+const MAX_LOG_ENTRIES = 10_000;
+const MAX_WRITE_OPERATIONS_PER_HOUR = 600;
 
 /** Leases retain absolute expiry times across CAS restores; reloading must not
  * let a competing writer bypass an active claim. */
@@ -65,6 +73,7 @@ export interface StoreSnapshot {
   keys: Array<[string, SerializedKey]>;
   audit: AuditEntry[];
   events: KageEvent[];
+  eventOffset?: number;
   comments: Comment[];
   /** At most one record; optional so snapshots from before briefs existed still load. */
   briefs?: WorkspaceBriefRecord[];
@@ -85,13 +94,16 @@ export interface StoreSnapshot {
   claims?: import("../collab/claims.ts").Claim[];
   /** Rolling hourly counters (version writes and comments, per principal), kept with the data they limit:
    *  a persistent deployment restores a fresh Store per request, so counters held only in memory enforce nothing. */
-  limits?: { writes: Array<[string, number[]]>; comments: Array<[string, number[]]>; discussion?: Array<[string, number[]]> };
+  limits?: { writes: Array<[string, number[]]>; comments: Array<[string, number[]]>; discussion?: Array<[string, number[]]>; operations?: Array<[string, number[]]> };
 }
 
 export class Store {
   readonly workspace: string;
   private clock: Clock;
   private quota: number;
+  private maxChars: number;
+  /** Events trimmed so far. `subscribe` cursors count the whole history, so they stay valid after a trim. */
+  private eventOffset = 0;
   private kages = new Map<string, Kage>();
   private grants = new Map<string, Set<Grant>>(); // `${principal}@${repo}` -> grants
   private keys = new Map<string, SigningKey>(); // principal -> signing key
@@ -99,6 +111,7 @@ export class Store {
   private events: KageEvent[] = [];
   private subscribers: Array<(e: KageEvent) => void> = [];
   private writeTimes = new Map<string, number[]>();
+  private operationTimes = new Map<string, number[]>();
   readonly claims = new ClaimRegistry();
   readonly comments = new CommentThread();
   private brief: WorkspaceBriefRecord | null = null;
@@ -125,6 +138,14 @@ export class Store {
     this.workspace = opts.workspace ?? "acme";
     this.clock = opts.clock ?? (() => Date.now());
     this.quota = opts.versionQuotaPerHour ?? 120;
+    this.maxChars = opts.maxWorkspaceChars ?? MAX_WORKSPACE_CHARS;
+  }
+
+  /** Characters of stored documents. Counted on each write: stores are rebuilt per request, so a running total would have nowhere to live. */
+  private storedChars(): number {
+    let total = 0;
+    for (const k of this.kages.values()) for (const v of k.versions) total += JSON.stringify(v.doc).length;
+    return total;
   }
 
   // --- persistence --------------------------------------------------------
@@ -141,6 +162,7 @@ export class Store {
       keys: [...this.keys.entries()].map(([p, key]) => [p, exportKey(key)]),
       audit: this.audit,
       events: this.events,
+      ...(this.eventOffset ? { eventOffset: this.eventOffset } : {}),
       comments: this.comments.dump(),
       ...(this.comments.sequence ? { commentSequence: this.comments.sequence } : {}),
       briefs: this.brief ? [JSON.parse(JSON.stringify(this.brief))] : [],
@@ -157,8 +179,8 @@ export class Store {
 
   /** Omitted when nothing is inside the window, so an idle workspace's snapshot is unchanged. */
   private limitsSnapshot(): Pick<StoreSnapshot, "limits"> {
-    const writes = this.recentTimes(this.writeTimes), comments = this.recentTimes(this.commentTimes), discussion = this.recentTimes(this.discussionTimes);
-    return writes.length || comments.length || discussion.length ? { limits: { writes, comments, ...(discussion.length ? { discussion } : {}) } } : {};
+    const writes = this.recentTimes(this.writeTimes), comments = this.recentTimes(this.commentTimes), discussion = this.recentTimes(this.discussionTimes), operations = this.recentTimes(this.operationTimes);
+    return writes.length || comments.length || discussion.length || operations.length ? { limits: { writes, comments, ...(discussion.length ? { discussion } : {}), ...(operations.length ? { operations } : {}) } } : {};
   }
 
   /** Timestamps still inside the one-hour window, so a snapshot never carries history it can no longer use. */
@@ -170,6 +192,9 @@ export class Store {
   static restore(snap: StoreSnapshot, opts: Omit<StoreOptions, "workspace"> = {}): Store {
     const store = new Store({ ...opts, workspace: snap.workspace });
     for (const k of snap.kages) {
+      // Legacy corruption: a nameless entry can be neither reached nor keyed in the
+      // normalized tables. Dropped here so casSave can treat one as a bug.
+      if (typeof k.name !== "string") continue;
       // Backfill uuids for snapshots taken before uuids existed: mint one per
       // Kage and stamp every version, so old data gets stable share links and
       // round-trips with the uuid on the next save.
@@ -183,6 +208,7 @@ export class Store {
     for (const [p, sk] of snap.keys) store.keys.set(p, importKey(sk));
     store.audit = snap.audit;
     store.events = snap.events;
+    store.eventOffset = snap.eventOffset ?? 0;
     store.comments.load(snap.comments, snap.commentSequence);
     store.brief = snap.briefs?.[0] ? JSON.parse(JSON.stringify(snap.briefs[0])) : null;
     for (const d of snap.designs ?? []) store.designs.set(d.id, JSON.parse(JSON.stringify(d)));
@@ -194,6 +220,7 @@ export class Store {
     for (const [p, ts] of snap.limits?.writes ?? []) store.writeTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.comments ?? []) store.commentTimes.set(p, [...ts]);
     for (const [p, ts] of snap.limits?.discussion ?? []) store.discussionTimes.set(p, [...ts]);
+    for (const [p, ts] of snap.limits?.operations ?? []) store.operationTimes.set(p, [...ts]);
     return store;
   }
 
@@ -281,7 +308,12 @@ export class Store {
    *  operation goes through, so visibility is enforced in the store, not the UI. */
   authorizeRead(name: string, author: Provenance, version?: number): { ok: true; record: VersionRecord } | { ok: false; code: string; msg: string } {
     const record = version ? this.getVersion(name, version) : this.head(name);
-    if (!record) return { ok: false, code: "not_found", msg: `no kage '${name}'` };
+    if (!record) {
+      const latest = version ? this.head(name) : undefined;
+      // Only a reader learns the Kage exists; everyone else gets the same answer as for no Kage at all.
+      if (latest && this.canAccess(latest, author)) return { ok: false, code: "not_found", msg: `'${name}' has no version ${version}; the latest is v${latest.v}` };
+      return { ok: false, code: "not_found", msg: `no kage '${name}'` };
+    }
     if (!this.canAccess(record, author)) return { ok: false, code: "forbidden", msg: `${author.principal} cannot read '${name}'` };
     // An older version is readable only while the CURRENT sharing decision also allows it. Without this,
     // a version that was public once stayed readable after the head went private or was unpublished (the
@@ -314,11 +346,14 @@ export class Store {
   private emit(type: KageEvent["type"], ref: string, data?: Record<string, unknown>): void {
     const e: KageEvent = { type, ref, at: new Date(this.clock()).toISOString(), data };
     this.events.push(e);
+    if (this.events.length > MAX_LOG_ENTRIES) { const drop = this.events.length - MAX_LOG_ENTRIES; this.events.splice(0, drop); this.eventOffset += drop; }
     for (const fn of this.subscribers) { try { fn(e); } catch { /* a subscriber must not break a write */ } }
   }
 
   auditLog(): readonly AuditEntry[] { return this.audit; }
   eventLog(): readonly KageEvent[] { return this.events; }
+  /** How many events came before eventLog()[0]. */
+  eventLogOffset(): number { return this.eventOffset; }
 
   /** May this caller see this event? An event names a Kage (its ref) and often a block or comment id, so it
    *  is exactly as sensitive as reading that Kage: a caller who is refused `get_kage` must not learn from
@@ -338,6 +373,8 @@ export class Store {
 
   private record(principal: string, action: string, ref: string): void {
     this.audit.push({ at: new Date(this.clock()).toISOString(), principal, action, ref });
+    // The whole log is rewritten on every commit, so an untrimmed one slows each write forever.
+    if (this.audit.length > MAX_LOG_ENTRIES) this.audit.splice(0, this.audit.length - MAX_LOG_ENTRIES);
   }
 
   /** Rows that reference a Kage which no longer exists (a snapshot edited by hand, or a delete that
@@ -578,6 +615,15 @@ export class Store {
 
   // --- quota ---------------------------------------------------------------
 
+  /** Count one write operation of any kind, or refuse it. The version quota misses briefs,
+   *  projects and lifecycle changes, yet each of them rewrites the whole meta blob. */
+  spendOperation(principal: string): boolean {
+    const now = this.clock(), recent = (this.operationTimes.get(principal) ?? []).filter((t) => now - t < 3_600_000);
+    if (recent.length >= MAX_WRITE_OPERATIONS_PER_HOUR) return false;
+    this.operationTimes.set(principal, [...recent, now]);
+    return true;
+  }
+
   private underQuota(principal: string): boolean {
     const now = this.clock();
     const times = (this.writeTimes.get(principal) ?? []).filter((t) => now - t < 3_600_000);
@@ -600,10 +646,14 @@ export class Store {
     // its admin, the way opening a new namespace works elsewhere. A repo that
     // already has grants is governed by them — you can't create into someone
     // else's project. ponytail: open claiming; gate repo creation in production.
+    // The name is checked first: `ops/x` has no grants of its own, so its caller became
+    // an admin of it, yet the stored ref then parses back as repo `ops`.
+    if (typeof repo !== "string" || !PROJECT_NAME.test(repo)) return err("invalid_name", "a repo name is 1–64 chars of a–z, 0–9 and -, starting with a letter or digit");
     if (!this.hasAnyGrant(repo)) this.grant(author.principal, repo, ["write", "review", "publish", "admin"]);
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
     if (this.kages.has(doc.id)) return err("conflict", `kage '${doc.id}' already exists`);
-    return this.writeVersion(repo, doc, author, null, { summary: "create", ops: Object.keys(doc.blocks).length, blocksTouched: Object.keys(doc.blocks) });
+    const blockIds = Object.keys(doc.blocks && typeof doc.blocks === "object" ? doc.blocks : {});
+    return this.writeVersion(repo, doc, author, null, { summary: "create", ops: blockIds.length, blocksTouched: blockIds });
   }
 
   /** Patch the latest version with RFC 6902 ops. The repo is the RESOURCE's own
@@ -690,7 +740,7 @@ export class Store {
       return { ok: false, head: head.v, claims, error };
     }
     const doc = planned.doc;
-    const validation = validate(doc);
+    const validation = validateDocument(doc);
     if (!error && !this.underQuota(author.principal)) error = { code: "rate_limited", msg: `${author.principal} exceeded ${this.quota} versions/hour` };
     if (!error) error = contentError(JSON.stringify(doc));
     if (!error && !validation.ok) error = { code: "invalid_content", msg: `${validation.errors.length} validation errors` };
@@ -704,8 +754,9 @@ export class Store {
     const bad = contentError(JSON.stringify(doc));
     if (bad) return err(bad.code, bad.msg);
 
-    const v = validate(doc);
+    const v = validateDocument(doc);
     if (!v.ok) return { ok: false, validation: v, error: { code: "invalid_content", msg: `${v.errors.length} validation errors` } };
+    if (this.storedChars() + JSON.stringify(doc).length > this.maxChars) return err("rate_limited", `this workspace is full (${Math.round(this.maxChars / 1e6)} MB of stored versions); delete Kages it no longer needs`);
 
     const kage = this.kages.get(doc.id) ?? { name: doc.id, versions: [] };
     if (doc.design !== undefined && (typeof doc.design !== "string" || doc.design.length > 40)) return err("invalid_content", "design is the id of a workspace design (a string of at most 40 characters)");
@@ -762,7 +813,7 @@ export class Store {
     if (!head) return err("not_found", `no kage '${name}'`);
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, needed)) return err("forbidden", `${author.principal} lacks ${needed} on ${repo}`);
-    if (!LIFECYCLE_NEXT[head.state].includes(to)) return err("bad_state", `cannot go ${head.state} -> ${to}`);
+    if (!LIFECYCLE_NEXT[head.state].includes(to)) return err("bad_state", head.state === "published" && to === "published" ? "already published; use share_kage to change its visibility" : `cannot go ${head.state} -> ${to}`);
     // One gate for every path into `published` (publish AND restore): a version
     // with validation errors can never become published, no back door.
     if (to === "published" && !head.validation.ok) return err("invalid_content", "cannot publish a version with validation errors");

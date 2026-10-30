@@ -15,7 +15,7 @@ test('conversion recipes are discoverable and identical through tools, prompts, 
  const rpc=async(method:string,params?:any)=>(await handleMcpMessage(exec,{id:1,method,params}) as any).result;
  const prompts=await rpc('prompts/list'),resources=await rpc('resources/list');
  const context=await exec('get_context',{});assert.ok(context.ok);
- const skills=conversionSkills();assert.deepEqual(skills.map(s=>s.name),['kages-markdown-to-kage','kages-data-to-kage','kages-document-to-kage','kages-web-to-kage']);
+ const skills=conversionSkills();assert.deepEqual(skills.map(s=>s.name),['kages-markdown-to-kage','kages-data-to-kage','kages-document-to-kage','kages-web-to-kage','kages-report','kages-answer-pages','kages-research-briefs','kages-graph-interaction-levels','kages-diagram-authoring','kages-visual-review','kages-coherent-presentation','kages-field-guides','kages-artifact-art-direction']);
  assert.deepEqual((context.data as any).authoring.conversionSkills.map((s:any)=>s.name),skills.map(s=>s.name));
  for(const s of skills){
   const tool=await exec('get_authoring_guide',{name:s.name});assert.ok(tool.ok);assert.equal((tool.data as any).content,s.markdown);

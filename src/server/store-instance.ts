@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
-import { loadSnapshotRev, casSave, baselineOf, persistenceEnabled } from "./persistence.ts";
+import { loadSnapshotRev, loadHeadsSnapshot, casSave, baselineOf, persistenceEnabled } from "./persistence.ts";
 import { introKages } from "./intro-kages.ts";
 import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../packs/examples.ts";
 import type { OpResult } from "../adapters/operations.ts";
@@ -44,6 +44,15 @@ export async function getStore(workspace = "acme"): Promise<Store> {
   if (cached) return cached;
   if (!initPromises.has(workspace)) initPromises.set(workspace, initStore(workspace));
   return initPromises.get(workspace)!;
+}
+
+/** A read-only store holding just each Kage's latest version. Falls back to the full
+ *  store when a shipped example still needs backfilling, because only that path commits it. */
+export async function getHeadsStore(workspace = "acme"): Promise<Store> {
+  const heads = await loadHeadsSnapshot(workspace);
+  if (!heads) return getStore(workspace);
+  const store = Store.restore(heads);
+  return backfillExamples(store, workspace) ? getStore(workspace) : store;
 }
 
 /** Run a write against a workspace with optimistic concurrency. Without Supabase

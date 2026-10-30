@@ -595,7 +595,7 @@
     if (typeof value !== "string" || /[\s\\<>]/.test(value)) return undefined;
     return /^(https?:\/\/[^/]+(?:\/|$)|\/(?!\/)|#|mailto:[^:]+@)/i.test(value) ? value : undefined;
   }
-  function CoreLink(p) { var href = passiveLink(p.href); return href ? h("a", { className: "kg-link", href: href, target: p.newTab ? "_blank" : undefined, rel: p.newTab ? "noopener noreferrer" : undefined }, p.label) : h("span", null, p.label); }
+  function CoreLink(p) { var href = passiveLink(p.href), away = p.newTab || /^https?:/i.test(href || ""); return href ? h("a", { className: "kg-link", href: href, target: away ? "_blank" : undefined, rel: away ? "noopener noreferrer" : undefined }, p.label) : h("span", null, p.label); }
   function richRuns(runs) {
     return (Array.isArray(runs) ? runs : []).map(function (run, i) {
       if (!run || typeof run.text !== "string") return null;
@@ -609,13 +609,17 @@
       var cite = typeof run.cite === "string" && anchorId(run.cite) ? anchorId("ref-" + run.cite) : undefined;
       if (cite) return h("sup", { key: i, className: "kg-cite" }, h("a", { href: "#" + cite, "aria-label": "Source " + run.text }, child));
       var href = passiveLink(run.href);
-      return h(href ? "a" : "span", { key: i, href: href }, child);
+      // An external page must not replace the frame: it would appear under the host's own header.
+      return h(href ? "a" : "span", { key: i, href: href, target: /^https?:/i.test(href || "") ? "_blank" : undefined, rel: /^https?:/i.test(href || "") ? "noopener noreferrer" : undefined }, child);
     });
   }
   function CoreRichText(p) {
     return h("div", { className: "kg-rich-text" }, (Array.isArray(p.nodes) ? p.nodes : []).map(function (node, i) {
       if (!node) return null;
-      if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, String(item)); }));
+      // A list item carries the same prose as a paragraph: a string, or an
+      // array of runs. String() on a runs array would render "[object Object]"
+      // and silently flatten links the contract promises will work.
+      if (node.kind === "list") return h(node.ordered ? "ol" : "ul", { key: i }, (Array.isArray(node.items) ? node.items : []).map(function (item, j) { return h("li", { key: j }, Array.isArray(item) ? richRuns(item) : String(item)); }));
       if (node.kind === "code") return h("pre", { key: i }, h("code", null, String(node.text || "")));
       var tag = node.kind === "heading" ? "h" + choice(node.level, [2, 3, 4], 2) : node.kind === "quote" ? "blockquote" : "p";
       var body = node.runs ? richRuns(node.runs) : String(node.text || "");

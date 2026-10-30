@@ -79,6 +79,28 @@ export async function loadSnapshotRev(workspace: string): Promise<{ snapshot: St
   return { snapshot: { ...row.meta, kages: row.kages } as StoreSnapshot, rev: row.rev };
 }
 
+// The hottest reads, none of which look behind a Kage's latest version.
+const HEADS_ONLY = new Set(["list_kages", "list_repos", "list_projects", "search_kages", "get_kage", "describe_kage", "preview_kage", "get_state", "lint_kage", "export_kage"]);
+export const headsSuffice = (op: string, params: Record<string, unknown>) => HEADS_ONLY.has(op) && !params?.version && !(op === "export_kage" && params?.format === "card");
+
+/** The snapshot with only each Kage's latest version, for reads that never look further
+ *  back. Loading every version of every Kage on each request grows with history, not with
+ *  what the caller asked for. Null means use the full load: persistence is off, the
+ *  workspace is absent, or this database has not had the migration yet. Never commit a
+ *  store built from this; it has no history to carry forward. */
+export async function loadHeadsSnapshot(workspace: string): Promise<StoreSnapshot | null> {
+  if (!persistenceEnabled()) return null;
+  let row: LoadedRow;
+  try {
+    row = pgEnabled()
+      ? ((await pool().query("select public.kages_load_heads($1) as row", [workspace])).rows[0]?.row as LoadedRow) ?? null
+      : await rpc<LoadedRow>("kages_load_heads", { p_ws: workspace });
+  } catch {
+    return null;
+  }
+  return row ? ({ ...row.meta, kages: row.kages } as StoreSnapshot) : null;
+}
+
 /** Initialization never overwrites a workspace created by another instance. */
 export async function saveSnapshot(workspace: string, snap: StoreSnapshot): Promise<void> {
   await casSave(workspace, snap, null);
@@ -99,9 +121,9 @@ export async function casSave(
   const upserts: { name: string; base: number; versions: VersionRecord[] }[] = [];
   const deletions: string[] = [];
   for (const k of kages as StoreSnapshot["kages"]) {
-    // Observed legacy corruption: a kage entry without a name. It cannot be
-    // keyed in the normalized tables; skip it rather than fail the whole save.
-    if (typeof k.name !== "string") continue;
+    // Store.restore drops legacy nameless entries and writes now refuse a bad id, so
+    // one here is a new bug. Skipping it would report a commit while losing the document.
+    if (typeof k.name !== "string") throw new Error("refusing to save a Kage with no name");
     const old = prev?.get(k.name);
     let from = 0;
     // Non-head versions are immutable (signed); only the head's lifecycle
