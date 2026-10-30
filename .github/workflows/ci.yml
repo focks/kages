@@ -33,6 +33,7 @@ jobs:
           --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgres://postgres:kages@localhost:5432/kages
+      KAGES_TEST_DATABASE_URL: postgres://postgres:kages@localhost:5432/kages
       KAGES_TEST_URL: http://localhost:3000
       KAGES_CHROME_NO_SANDBOX: "1"
     steps:
@@ -45,6 +46,8 @@ jobs:
       # A dev server, not `next start`: production mode refuses the anonymous writes these tests make.
       - run: npx next dev -p 3000 &
       - run: curl -s -o /dev/null --retry 30 --retry-connrefused --retry-delay 2 "$KAGES_TEST_URL/render"
+      # The dev server compiles a route on first request, which outlasts the tests' wait for the page.
+      - run: curl -s -o /dev/null "$KAGES_TEST_URL/k/warm-up"
       - run: npm test
   cli-bundle:
     runs-on: ubuntu-latest
