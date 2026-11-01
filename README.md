@@ -98,9 +98,12 @@ npm run typecheck
 
 ### Authoring notes
 
-The Library's **New Kage** offers a blank canvas and complete starters, including
-a searchable collection of reusable cards, a visual growth calculator and a
-validated event form. A new Kage is created through `create_kage`; changes go
+The Library's **New Kage** starts with a compact review brief: verdict, facts,
+findings with evidence and fixes, next action, verified checks and an order of
+work. Four curated alternatives cover sourced research, a visual calculator, a
+validated form and a chaptered guide. A blank reading page is also available.
+The agent skills recommend the same shortlist; the full capability library
+remains available through the advanced examples index. A new Kage is created through `create_kage`; changes go
 through `patch_kage` from the CLI, MCP or REST.
 
 Complete examples live in `src/packs/examples.ts`; generated catalogs and packs

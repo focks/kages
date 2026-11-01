@@ -1,9 +1,8 @@
-// The New Kage picker: starting shapes a person can create in one click, independent of the product's navigation.
-// Every picker entry is a complete portable document, also available to agents.
-import type { KageDoc } from "../engine/types.ts";
-import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "./examples.ts";
+// The same curated shortlist is shown to people and recommended to agents.
+import type { KageDoc } from '../engine/types.ts';
+import { recommendedExamples } from './curated-examples.ts';
 
-/** Fresh documents on every call, so creating one starter never mutates another. */
+/** Fresh recommended documents come first; a blank page remains an explicit choice. */
 export function starterDocs(): KageDoc[] {
-  return [{ kages: "1.0", id: "blank", title: "Blank canvas", system: "core@1", root: "root", blocks: { root: { type: "page", props: { width: "wide" } } } }, ...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()];
+  return [...recommendedExamples(), { kages: '1.0', id: 'blank', title: 'Blank reading page', system: 'core@1', root: 'root', blocks: { root: { type: 'page', props: { width: 'reading' } } } }];
 }

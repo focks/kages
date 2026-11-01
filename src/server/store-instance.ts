@@ -8,7 +8,7 @@ import { Store } from "../store/store.ts";
 import { toGenerated, fromGenerated } from "../engine/generate.ts";
 import { loadSnapshotRev, loadHeadsSnapshot, casSave, baselineOf, persistenceEnabled } from "./persistence.ts";
 import { introKages } from "./intro-kages.ts";
-import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "../packs/examples.ts";
+import { recommendedExamples } from "../packs/curated-examples.ts";
 import type { OpResult } from "../adapters/operations.ts";
 import type { Provenance } from "../store/types.ts";
 import type { KageDoc } from "../engine/types.ts";
@@ -123,7 +123,7 @@ async function initStore(workspace: string): Promise<Store> {
 function backfillExamples(store: Store, workspace: string): boolean {
   const owner: Provenance = workspace === "acme" ? DEMO_PRINCIPAL : { principal: "user:" + workspace.replace(/^ws-/, ""), runtime: { framework: "next", adapter: "rest" } };
   let added = false;
-  for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()]) {
+  for (const doc of recommendedExamples()) {
     if (store.head(doc.id)) continue;
     try { added = store.create("examples", doc, owner).ok || added; } catch { /* best-effort, like seeding */ }
   }
@@ -141,7 +141,7 @@ function seedStarters(store: Store, workspace: string): void {
   store.grant(principal, "examples", ["write", "publish", "review", "admin"]);
   try {
     // The shipped examples live in their own `examples` project, so the intro Kages stay a short list.
-    const exampleIds = new Set([...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()].map((doc) => doc.id));
+    const exampleIds = new Set(recommendedExamples().map((doc) => doc.id));
     for (const t of introKages()) store.create(exampleIds.has(t.id) ? "examples" : "getting-started", t, owner);
   } catch {
     /* best-effort: an empty workspace is still valid */
@@ -157,7 +157,7 @@ function seed(store: Store): Store {
     for (const repo of ["ops", "finance", "growth", "examples"]) store.grant(p, repo, ["write", "publish", "review", "admin"]);
 
   try {
-    for (const doc of [...freeFlowExamples(), ...expressiveExamples(), ...richExamples(), ...appExamples(), ...connectedExamples(), ...chartExamples(), ...contentExamples()]) store.create("examples", doc, DEMO_PRINCIPAL);
+    for (const doc of recommendedExamples()) store.create("examples", doc, DEMO_PRINCIPAL);
     const base = JSON.parse(readFileSync(join(process.cwd(), "public/ds/ops-console.kage.json"), "utf8")) as KageDoc;
 
     // ops · the reference console: a second version + published to the workspace.

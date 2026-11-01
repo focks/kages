@@ -1,11 +1,13 @@
 ---
 name: coherent-presentation
-description: Native canvas personalities, consistent data colors and analytical charts. Use when authoring polished reports or extending chart presentation.
+description: Native canvas personalities, consistent data colors and analytical charts. Use when authoring analytical workspaces or extending chart presentation.
 ---
 
 # Coherent presentation
 
-Use `canvas` for a designed report or tool. Choose one personality: analytical,
+For a general Kage, start with the `review-brief` reading-page default in
+`report-kages`. Use `canvas` when the task needs an analytical workspace with
+primary charts and supporting controls. Choose one personality: analytical,
 editorial, exploratory, teaching or showcase. `appearance: inherit` follows the
 reader; light/dark is an intentional artifact choice. Put primary charts or figures in `lead`, controls in `actions`, and secondary
 metrics or provenance in `support`. The supporting pane collapses on phones;

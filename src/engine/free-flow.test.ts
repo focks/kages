@@ -78,9 +78,9 @@ test("free-flow: intro Kages validate and create/clone/publish through the opera
     assert.deepEqual(validate(doc).warnings, [], doc.id);
     assert.equal(dispatch(ctx, "create_kage", { doc, repo: "getting-started" }).ok, true);
   }
-  assert.equal(dispatch(ctx, "clone_kage", { name: "idea-lab", title: "My lab" }).ok, true);
-  assert.equal(dispatch(ctx, "publish_kage", { name: "idea-lab" }).ok, true);
+  assert.equal(dispatch(ctx, "clone_kage", { name: "review-brief", title: "My review" }).ok, true);
+  assert.equal(dispatch(ctx, "publish_kage", { name: "review-brief" }).ok, true);
   assert.equal((dispatch(ctx, "search_templates", {}) as any).ok, false, "there is no template search any more");
-  const found = dispatch(ctx, "search_kages", { text: "My lab" }) as any;
-  assert.ok(found.data.some((v: any) => v.name === "my-lab"), "the clone is an ordinary searchable Kage");
+  const found = dispatch(ctx, "search_kages", { text: "My review" }) as any;
+  assert.ok(found.data.some((v: any) => v.name === "my-review"), "the clone is an ordinary searchable Kage");
 });
