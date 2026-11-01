@@ -133,3 +133,19 @@ Read `artifact-sandbox` before changing the runtime, asset pinning, screenshots,
   In a store method, check existence/readability before identity (`addComment`).
 - Comment mode is one component, `CommentStage`, over a `CommentsApi`: owners use `useComments`, visitors `useGuestComments`
   (add-only; `api.guest` hides replies, votes and the resolved toggle). Do not fork the stage for a new audience; give it another api.
+
+## Version ownership and attestation
+
+Public Store reads, write results and snapshots are detached values. Use the
+private mutable-head accessor only for internal lifecycle changes. Never mutate
+a public read to commit a transition. Both merged and direct patch candidates
+must keep the requested identity; preparation is shared with dry runs, including
+resolved design and workspace capacity checks. Failed namespace creation rolls
+back its tentative grant.
+
+New versions carry a separate provenance signature alongside their legacy
+content signature. Production snapshots require `KAGES_SIGNING_KEY_SECRET` to
+encrypt signer private keys; keep it outside the database and preserve it across
+restarts. Legacy versions have no provenance attestation. The cached
+`documentChars` total travels with snapshots; append and delete must update it,
+and old snapshots reconstruct it once. See docs/deployment.md before rollout.

@@ -40,6 +40,8 @@ export interface VersionRecord {
   v: number;
   digest: string;
   signature: Signature;
+  /** New versions attest immutable provenance as well as document bytes. */
+  provenanceSignature?: Signature;
   createdAt: string;
   author: Provenance;
   /** `kind` marks changes made by a tool rather than an author (e.g. "migration"). */

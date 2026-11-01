@@ -4,6 +4,7 @@ name: ci
 on:
   push: { branches: [main] }
   pull_request:
+  workflow_call:
 permissions: { contents: read }
 jobs:
   test:
@@ -13,6 +14,18 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22.18, cache: npm }
       - run: npm ci
+      - run: npm run build
+      - name: Smoke-test the production server in closed mode
+        run: |
+          npm start > /tmp/kages-production.log 2>&1 &
+          curl --fail --silent --retry 30 --retry-connrefused --retry-delay 2 http://localhost:3000/render > /dev/null
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const setup = await fetch('http://localhost:3000/api/get_setup').then(r => r.json());
+          assert.equal(setup.ready, false);
+          const write = await fetch('http://localhost:3000/api/create_kage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+          assert.equal(write.status, 401);
+          NODE
       - run: npm run typecheck
       - run: npm test
       # The design-system build is deterministic: a dirty tree afterwards means a generated file was not committed.

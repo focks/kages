@@ -132,3 +132,38 @@ KAGES_PLUGIN_MCP_URL=https://<your-host>/api/mcp npm run build:plugins
 Populated `.env` files, service keys, database backups and exports, and
 screenshots of admin consoles belong outside the checkout, not merely in an
 ignored file inside it. `.env.example` lists every variable with placeholders.
+
+## Signing keys and version attestations
+
+Before upgrading a production instance, configure `KAGES_SIGNING_KEY_SECRET`
+with 64 random hexadecimal characters (32 bytes). Generate it once with
+`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` and
+store it in the deployment secret manager. Production snapshot exports fail
+closed without it. Development without it retains the legacy local PEM format.
+
+Snapshots encrypt private signer PEMs with AES-256-GCM. The wrapping secret
+stays outside workspace data. Legacy plaintext snapshots remain readable and
+are encrypted on their next committed write; old backups still contain plaintext
+keys. Back up the wrapping secret separately: encrypted snapshots cannot be
+restored without it. To rotate it, decrypt and re-export every workspace with the
+new secret in a controlled migration before switching live instances. Do not
+simply replace it on a running deployment.
+
+New versions retain the original content signature and also carry
+`provenanceSignature`, covering identity, ancestry, content digest, author,
+creation time and change metadata. `verifyVersion` verifies both signatures;
+legacy versions cannot retrospectively attest their provenance. Publication
+state and visibility intentionally remain mutable. These are server-issued
+attestations, not signatures made with agent-owned private keys. Database reads
+still trust the backend; this is not protection against a compromised app server.
+
+Workspace capacity totals now persist with snapshots, avoiding repeated history
+serialization for quota checks. Writes still restore full workspace history and
+CAS the workspace revision. Per-Kage database transactions and paginated reads
+remain a separate persistence redesign; benchmark that path before changing its
+shared quota and collaboration semantics.
+
+Run `npm run bench:store` for a local history-growth probe at 1, 100 and
+1,000 versions. It reports serialized snapshot bytes, restore time and candidate
+write time. It does not measure database round trips or concurrent CAS retries;
+use those deployment measurements before selecting a new transaction model.

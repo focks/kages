@@ -62,6 +62,7 @@ test("a legacy snapshot restores and round-trips, gaining only empty new collect
   // A collection added after the fixture was captured appears as an empty list;
   // anything else differing means restore lost or altered legacy data.
   for (const k of Object.keys(again)) if (!(k in snap) && Array.isArray(again[k]) && (again[k] as unknown[]).length === 0) delete again[k];
+  delete again.documentChars; // Legacy snapshots gain a cached total, never altered version data.
   assert.deepEqual(again, JSON.parse(JSON.stringify(snap)));
 });
 
