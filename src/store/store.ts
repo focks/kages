@@ -14,7 +14,7 @@ import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
 import { clone } from "../engine/expr.ts";
 import { randomUUID } from "node:crypto";
-import { digest, signDigest, newSigningKey, exportKey, importKey, type SigningKey, type SerializedKey } from "./crypto.ts";
+import { provenanceDigest, digest, signDigest, newSigningKey, exportKey, importKey, type SigningKey, type SerializedKey } from "./crypto.ts";
 import { applyPatch, checkPatchOps, type PatchOp } from "../collab/patch.ts";
 import { mergeThreeWay } from "../collab/merge.ts";
 import { ClaimRegistry } from "../collab/claims.ts";
@@ -68,6 +68,8 @@ const MAX_WRITE_OPERATIONS_PER_HOUR = 600;
  * let a competing writer bypass an active claim. */
 export interface StoreSnapshot {
   workspace: string;
+  /** Cached document total avoids rescanning history on every restored write. */
+  documentChars?: number;
   kages: Array<{ name: string; versions: VersionRecord[] }>;
   grants: Array<[string, Grant[]]>;
   keys: Array<[string, SerializedKey]>;
@@ -102,6 +104,7 @@ export class Store {
   private clock: Clock;
   private quota: number;
   private maxChars: number;
+  private documentChars = 0;
   /** Events trimmed so far. `subscribe` cursors count the whole history, so they stay valid after a trim. */
   private eventOffset = 0;
   private kages = new Map<string, Kage>();
@@ -141,11 +144,9 @@ export class Store {
     this.maxChars = opts.maxWorkspaceChars ?? MAX_WORKSPACE_CHARS;
   }
 
-  /** Characters of stored documents. Counted on each write: stores are rebuilt per request, so a running total would have nowhere to live. */
+  /** The total travels with snapshots so capacity checks do not serialize all historical documents. */
   private storedChars(): number {
-    let total = 0;
-    for (const k of this.kages.values()) for (const v of k.versions) total += JSON.stringify(v.doc).length;
-    return total;
+    return this.documentChars;
   }
 
   // --- persistence --------------------------------------------------------
@@ -155,8 +156,9 @@ export class Store {
    *  writes this to disk and restores it, keeping digests verifiable across
    *  runs (the keys travel with it). */
   snapshot(): StoreSnapshot {
-    return {
+    return clone({
       workspace: this.workspace,
+      documentChars: this.documentChars,
       kages: [...this.kages.values()].map((k) => ({ name: k.name, versions: k.versions })),
       grants: [...this.grants.entries()].map(([k, set]) => [k, [...set]]),
       keys: [...this.keys.entries()].map(([p, key]) => [p, exportKey(key)]),
@@ -174,7 +176,7 @@ export class Store {
       ...(this.gallery.size ? { gallery: this.galleryEntries() } : {}),
       claims: this.claims.dump(),
       ...this.limitsSnapshot(),
-    };
+    });
   }
 
   /** Omitted when nothing is inside the window, so an idle workspace's snapshot is unchanged. */
@@ -190,6 +192,7 @@ export class Store {
   }
 
   static restore(snap: StoreSnapshot, opts: Omit<StoreOptions, "workspace"> = {}): Store {
+    snap = clone(snap);
     const store = new Store({ ...opts, workspace: snap.workspace });
     for (const k of snap.kages) {
       // Legacy corruption: a nameless entry can be neither reached nor keyed in the
@@ -204,6 +207,9 @@ export class Store {
       }
       store.kages.set(k.name, { name: k.name, versions: k.versions });
     }
+    const cachedChars = snap.documentChars;
+    store.documentChars = Number.isSafeInteger(cachedChars) && cachedChars! >= 0 ? cachedChars!
+      : [...store.kages.values()].reduce((n, k) => n + k.versions.reduce((m, v) => m + JSON.stringify(v.doc).length, 0), 0);
     for (const [key, grants] of snap.grants) store.grants.set(key, new Set(grants));
     for (const [p, sk] of snap.keys) store.keys.set(p, importKey(sk));
     store.audit = snap.audit;
@@ -307,9 +313,9 @@ export class Store {
   /** Resolve a readable version or a structured denial — the gate every read
    *  operation goes through, so visibility is enforced in the store, not the UI. */
   authorizeRead(name: string, author: Provenance, version?: number): { ok: true; record: VersionRecord } | { ok: false; code: string; msg: string } {
-    const record = version ? this.getVersion(name, version) : this.head(name);
+    const record = version ? this.getVersion(name, version) : this.mutableHead(name);
     if (!record) {
-      const latest = version ? this.head(name) : undefined;
+      const latest = version ? this.mutableHead(name) : undefined;
       // Only a reader learns the Kage exists; everyone else gets the same answer as for no Kage at all.
       if (latest && this.canAccess(latest, author)) return { ok: false, code: "not_found", msg: `'${name}' has no version ${version}; the latest is v${latest.v}` };
       return { ok: false, code: "not_found", msg: `no kage '${name}'` };
@@ -320,10 +326,10 @@ export class Store {
     // share link follows the head, so should this), and a draft kept private is not exposed by a later
     // version being published. Readers with a grant on the repo pass both checks.
     if (version) {
-      const head = this.head(name)!;
+      const head = this.mutableHead(name)!;
       if (head !== record && !this.canAccess(head, author)) return { ok: false, code: "forbidden", msg: `${author.principal} cannot read '${name}'` };
     }
-    return { ok: true, record };
+    return { ok: true, record: clone(record) };
   }
 
   private signerFor(principal: string): SigningKey {
@@ -485,7 +491,7 @@ export class Store {
   /** A Kage's home repo — its signed identity, parsed from the head ref. The one
    *  project it is always in, implicit and unremovable. */
   private homeRepoOf(name: string): string | undefined {
-    const head = this.head(name);
+    const head = this.mutableHead(name);
     return head ? Store.repoOfRef(head.ref) : undefined;
   }
 
@@ -648,12 +654,23 @@ export class Store {
     // else's project. ponytail: open claiming; gate repo creation in production.
     // The name is checked first: `ops/x` has no grants of its own, so its caller became
     // an admin of it, yet the stored ref then parses back as repo `ops`.
+    if (!doc || typeof doc !== "object") return err("invalid_content", "a Kage must be an object");
     if (typeof repo !== "string" || !PROJECT_NAME.test(repo)) return err("invalid_name", "a repo name is 1–64 chars of a–z, 0–9 and -, starting with a letter or digit");
-    if (!this.hasAnyGrant(repo)) this.grant(author.principal, repo, ["write", "review", "publish", "admin"]);
+    const claiming = !this.hasAnyGrant(repo);
+    if (claiming) this.grant(author.principal, repo, ["write", "review", "publish", "admin"]);
     if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
-    if (this.kages.has(doc.id)) return err("conflict", `kage '${doc.id}' already exists`);
+    if (this.kages.has(doc.id)) {
+      if (claiming) this.grants.delete(`${author.principal}@${repo}`);
+      return err("conflict", `kage '${doc.id}' already exists`);
+    }
     const blockIds = Object.keys(doc.blocks && typeof doc.blocks === "object" ? doc.blocks : {});
-    return this.writeVersion(repo, doc, author, null, { summary: "create", ops: blockIds.length, blocksTouched: blockIds });
+    // Roll back namespace claiming on every failure, including thrown validation errors.
+    let committed = false;
+    try {
+      const result = this.writeVersion(repo, doc, author, null, { summary: "create", ops: blockIds.length, blocksTouched: blockIds });
+      committed = result.ok;
+      return result;
+    } finally { if (claiming && !committed) this.grants.delete(`${author.principal}@${repo}`); }
   }
 
   /** Patch the latest version with RFC 6902 ops. The repo is the RESOURCE's own
@@ -703,9 +720,12 @@ export class Store {
         const yours = applyPatch(baseRec.doc, ops);
         const merged = mergeThreeWay(baseRec.doc, head.doc, yours);
         if (!merged.ok) return { ok: false, code: "conflict", msg: `conflicting blocks: ${merged.conflicts.map((c) => c.blockId).join(", ")}`, conflicts: merged.conflicts.map((c) => c.blockId) };
+        if (merged.doc!.id !== name) return { ok: false, code: "invalid_patch", msg: "a patch cannot change a Kage identity" };
         return { ok: true, doc: merged.doc!, merged: true };
       }
-      return { ok: true, doc: applyPatch(head.doc, ops), merged: false };
+      const doc = applyPatch(head.doc, ops);
+      if (doc?.id !== name) return { ok: false, code: "invalid_patch", msg: "a patch cannot change a Kage identity" };
+      return { ok: true, doc, merged: false };
     } catch (e) { return { ok: false, code: "invalid_patch", msg: (e as Error).message }; }
   }
 
@@ -742,21 +762,17 @@ export class Store {
     const doc = planned.doc;
     const validation = validateDocument(doc);
     if (!error && !this.underQuota(author.principal)) error = { code: "rate_limited", msg: `${author.principal} exceeded ${this.quota} versions/hour` };
-    if (!error) error = contentError(JSON.stringify(doc));
-    if (!error && !validation.ok) error = { code: "invalid_content", msg: `${validation.errors.length} validation errors` };
-    return { ok: !error, head: head.v, ...(error ? {} : { wouldCreate: head.v + 1 }), merged: planned.merged, candidate: doc, previous: head.doc, validation, claims, ...(error ? { error } : {}) };
+    if (!error) { const prepared = this.prepareVersion(doc); if (!("doc" in prepared)) error = prepared.error; }
+    return { ok: !error, head: head.v, ...(error ? {} : { wouldCreate: head.v + 1 }), merged: planned.merged, candidate: doc, previous: clone(head.doc), validation, claims, ...(error ? { error } : {}) };
   }
 
-  private writeVersion(repo: string, doc: KageDoc, author: Provenance, parent: string | null, change: VersionRecord["change"]): WriteResult {
-    if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
-    if (!this.underQuota(author.principal)) return err("rate_limited", `${author.principal} exceeded ${this.quota} versions/hour`);
-
+  /** Prepare once so dry runs and committed writes reject the same candidate. */
+  private prepareVersion(doc: KageDoc): { ok: true; doc: KageDoc; design?: DesignSnapshot; validation: ValidateResult } | WriteResult {
     const bad = contentError(JSON.stringify(doc));
     if (bad) return err(bad.code, bad.msg);
 
     const v = validateDocument(doc);
     if (!v.ok) return { ok: false, validation: v, error: { code: "invalid_content", msg: `${v.errors.length} validation errors` } };
-    if (this.storedChars() + JSON.stringify(doc).length > this.maxChars) return err("rate_limited", `this workspace is full (${Math.round(this.maxChars / 1e6)} MB of stored versions); delete Kages it no longer needs`);
 
     const kage = this.kages.get(doc.id) ?? { name: doc.id, versions: [] };
     if (doc.design !== undefined && (typeof doc.design !== "string" || doc.design.length > 40)) return err("invalid_content", "design is the id of a workspace design (a string of at most 40 characters)");
@@ -774,6 +790,20 @@ export class Store {
       else if (prior && prior.id === doc.design) design = prior;
       else return err("not_found", `no design '${doc.design}' in this workspace`);
     }
+    const pinned = { ...doc, resolved: { system: systemOf(doc) + "@" + (systems[systemOf(doc)]?.version ?? ""), blocks: lockfile(doc), assets, ...(design ? { design } : {}) } };
+    if (this.storedChars() + JSON.stringify(pinned).length > this.maxChars) return err("rate_limited", "this workspace is full; delete Kages it no longer needs");
+    return { ok: true, doc, design, validation: v };
+  }
+
+  private writeVersion(repo: string, doc: KageDoc, author: Provenance, parent: string | null, change: VersionRecord["change"]): WriteResult {
+    if (!this.allowed(author, repo, "write")) return err("forbidden", `${author.principal} lacks write on ${repo}`);
+    if (!this.underQuota(author.principal)) return err("rate_limited", `${author.principal} exceeded ${this.quota} versions/hour`);
+
+    const prepared = this.prepareVersion(doc);
+    if (!("doc" in prepared)) return prepared;
+    doc = prepared.doc;
+    const { design, validation: v } = prepared;
+    const kage = this.kages.get(doc.id) ?? { name: doc.id, versions: [] };
     const vn = kage.versions.length + 1;
     // The Kage's uuid is minted once (first version) and carried forward, so the
     // share link is stable across edits and never reveals the name.
@@ -790,17 +820,19 @@ export class Store {
     const record: VersionRecord = {
       ref, parent, name: doc.id, uuid, v: vn, digest: dgst, signature,
       createdAt: new Date(this.clock()).toISOString(),
-      author, change, resolved,
+      author: clone(author), change: clone(change), resolved,
       validation: { ok: v.ok, errors: v.errors.length, warnings: v.warnings.length },
       state: "draft", visibility: "private", doc: stored,
     };
+    record.provenanceSignature = signDigest(this.signerFor(author.principal), provenanceDigest(record));
+    this.documentChars += JSON.stringify(stored).length;
     kage.versions.push(record);
     this.kages.set(doc.id, kage);
     this.withdrawGallery(uuid);
     this.tickQuota(author.principal);
     this.record(author.principal, parent ? "patch" : "create", ref);
     this.emit("kage.version.created", ref);
-    return { ok: true, version: record, validation: v };
+    return { ok: true, version: clone(record), validation: v };
   }
 
   // --- lifecycle -----------------------------------------------------------
@@ -809,7 +841,7 @@ export class Store {
   // resource + the full author, so a lifecycle change can't be done through a
   // repo the caller merely names, nor via an onBehalfOf the user can't authorize.
   private transition(name: string, to: LifecycleState, author: Provenance, needed: Grant): WriteResult {
-    const head = this.head(name);
+    const head = this.mutableHead(name);
     if (!head) return err("not_found", `no kage '${name}'`);
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, needed)) return err("forbidden", `${author.principal} lacks ${needed} on ${repo}`);
@@ -821,17 +853,17 @@ export class Store {
     if (to !== "published") this.withdrawGallery(head.uuid);
     this.record(author.principal, to, head.ref);
     this.emit("kage.state.changed", head.ref, { to });
-    return { ok: true, version: head };
+    return { ok: true, version: clone(head) };
   }
 
   /** Publish the head version: requires `publish` (intersected with onBehalfOf),
    *  and the version must be validation-clean. */
   publish(name: string, author: Provenance, visibility: Visibility = "private"): WriteResult {
-    const head = this.head(name);
+    const head = this.mutableHead(name);
     if (!head) return err("not_found", `no kage '${name}'`);
     if (!head.validation.ok) return err("invalid_content", "cannot publish a version with validation errors");
     const r = this.transition(name, "published", author, "publish");
-    if (r.ok && r.version) { r.version.visibility = visibility; if (visibility !== "public") this.withdrawGallery(r.version.uuid); this.emit("kage.published", r.version.ref); }
+    if (r.ok && r.version) { head!.visibility = visibility; r.version.visibility = visibility; if (visibility !== "public") this.withdrawGallery(r.version.uuid); this.emit("kage.published", r.version.ref); }
     return r;
   }
 
@@ -839,7 +871,7 @@ export class Store {
    *  draft can't be flipped public, and a principal without the grant can't
    *  change who sees it. */
   share(name: string, author: Provenance, visibility: Visibility): WriteResult {
-    const head = this.head(name);
+    const head = this.mutableHead(name);
     if (!head) return err("not_found", `no kage '${name}'`);
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, "publish")) return err("forbidden", `${author.principal} lacks publish on ${repo}`);
@@ -848,7 +880,7 @@ export class Store {
     if (visibility !== "public") this.withdrawGallery(head.uuid);
     this.record(author.principal, "share:" + visibility, head.ref);
     this.emit("kage.state.changed", head.ref, { visibility });
-    return { ok: true, version: head };
+    return { ok: true, version: clone(head) };
   }
 
   submitForReview(name: string, author: Provenance): WriteResult { return this.transition(name, "review", author, "write"); }
@@ -859,11 +891,11 @@ export class Store {
    *  that needs `publish`. Visibility is reset to private so a later restore can't
    *  silently re-expose what was once public — the restorer re-shares explicitly. */
   archive(name: string, author: Provenance): WriteResult {
-    const head = this.head(name);
+    const head = this.mutableHead(name);
     if (!head) return err("not_found", `no kage '${name}'`);
     const needed: Grant = head.state === "published" ? "publish" : "write";
     const r = this.transition(name, "archived", author, needed);
-    if (r.ok && r.version) r.version.visibility = "private";
+    if (r.ok && r.version) { this.mutableHead(name)!.visibility = "private"; r.version.visibility = "private"; }
     return r;
   }
 
@@ -871,7 +903,7 @@ export class Store {
    *  visibility so re-publishing is an explicit, deliberate choice again. */
   unpublish(name: string, author: Provenance): WriteResult {
     const r = this.transition(name, "draft", author, "publish");
-    if (r.ok && r.version) r.version.visibility = "private";
+    if (r.ok && r.version) { this.mutableHead(name)!.visibility = "private"; r.version.visibility = "private"; }
     return r;
   }
 
@@ -885,10 +917,11 @@ export class Store {
    *  deletion itself stays accountable even though the document is gone. Returns
    *  the removed head so the caller can purge its public share by uuid. */
   remove(name: string, author: Provenance): WriteResult {
-    const head = this.head(name);
+    const head = this.mutableHead(name);
     if (!head) return err("not_found", `no kage '${name}'`);
     const repo = Store.repoOfRef(head.ref);
     if (!this.allowed(author, repo, "admin")) return err("forbidden", `${author.principal} lacks admin on ${repo}`);
+    this.documentChars -= this.kages.get(name)!.versions.reduce((n, v) => n + JSON.stringify(v.doc).length, 0);
     this.kages.delete(name);
     this.gallery.delete(head.uuid);
     // Drop everything else keyed by this name, so a later Kage reusing it can't
@@ -899,7 +932,7 @@ export class Store {
     this.memberships.delete(name); // a later Kage reusing this name must not inherit stale project tags
     this.record(author.principal, "delete", head.ref);
     this.emit("kage.deleted", head.ref, { uuid: head.uuid });
-    return { ok: true, version: head };
+    return { ok: true, version: clone(head) };
   }
 
   // --- public gallery -----------------------------------------------------
@@ -912,12 +945,12 @@ export class Store {
   /** Internal snapshot projection; callers must use galleryCard/page before
    * returning anything publicly because this includes private vote identities. */
   galleryEntries(): GallerySnapshot[] {
-    return [...this.gallery.values()].map(entry => projectGallery(entry, this.head(entry.name)));
+    return [...this.gallery.values()].map(entry => projectGallery(entry, this.mutableHead(entry.name)));
   }
 
   /** Constant-time membership check for library cards and public reads. */
   isInGallery(uuid: string): boolean {
-    const entry = this.gallery.get(uuid), head = entry && this.head(entry.name);
+    const entry = this.gallery.get(uuid), head = entry && this.mutableHead(entry.name);
     return !!entry?.listed && head?.uuid === uuid && head.state === "published" && head.visibility === "public";
   }
 
@@ -947,13 +980,13 @@ export class Store {
     this.withdrawGallery(head.uuid);
     this.record(author.principal, "gallery:remove", head.ref);
     this.emit("kage.gallery.changed", head.ref, { listed: false });
-    return { ok: true, version: head };
+    return { ok: true, version: clone(head) };
   }
 
   /** A vote is a desired state, not a toggle: network retries cannot count twice.
    * Recheck visibility on the target store inside CAS, not just at UUID lookup. */
   voteGallery(uuid: string, author: Provenance, value: number): { ok: true; value: GalleryCard } | { ok: false; error: { code: string; msg: string } } {
-    const entry = this.gallery.get(uuid), head = entry && this.head(entry.name);
+    const entry = this.gallery.get(uuid), head = entry && this.mutableHead(entry.name);
     if (!entry || !projectGallery(entry, head).card) return cerr("not_found", "No such gallery Kage.");
     if (!canVoteGallery(author)) return cerr("unauthorized", "Sign in to upvote gallery Kages.");
     if (value !== 0 && value !== 1) return cerr("invalid_params", "A gallery vote is 1 (upvote) or 0 (remove vote).");
@@ -973,47 +1006,50 @@ export class Store {
 
   // --- read / search / export ---------------------------------------------
 
-  head(name: string): VersionRecord | undefined {
+  /** Detached reads prevent callers from changing signed bytes without a write. */
+  head(name: string): VersionRecord | undefined { return clone(this.mutableHead(name)); }
+
+  private mutableHead(name: string): VersionRecord | undefined {
     const k = this.kages.get(name);
     return k ? k.versions[k.versions.length - 1] : undefined;
   }
 
   getVersion(name: string, v: number): VersionRecord | undefined {
-    return this.kages.get(name)?.versions.find((x) => x.v === v);
+    return clone(this.kages.get(name)?.versions.find((x) => x.v === v));
   }
 
   /** Every version of a Kage, oldest first — the revision history a dashboard shows. */
   versions(name: string): readonly VersionRecord[] {
-    return this.kages.get(name)?.versions ?? [];
+    return clone(this.kages.get(name)?.versions ?? []);
   }
 
   /** The head version of every Kage, for a listing/dashboard view. */
   list(): VersionRecord[] {
-    return [...this.kages.values()].map((k) => k.versions[k.versions.length - 1]);
+    return clone([...this.kages.values()].map((k) => k.versions[k.versions.length - 1]));
   }
 
   /** Full-text over title + block text + meta, with structured filters. */
   search(query: { text?: string; system?: string; author?: string; state?: LifecycleState }): VersionRecord[] {
     const hay = (r: VersionRecord) => JSON.stringify(r.doc).toLowerCase() + " " + r.doc.title.toLowerCase();
-    return [...this.kages.values()]
+    return clone([...this.kages.values()]
       .map((k) => k.versions[k.versions.length - 1])
       .filter((r) =>
         (!query.text || hay(r).includes(query.text.toLowerCase())) &&
         (!query.system || systemOf(r.doc) === query.system) &&
         (!query.author || r.author.principal === query.author) &&
-        (!query.state || r.state === query.state));
+        (!query.state || r.state === query.state)));
   }
 
   /** A listing card for a Kage — what a UI or an agent's context shows. */
   card(name: string) {
-    const r = this.head(name);
+    const r = this.mutableHead(name);
     if (!r) return null;
     return { ref: r.ref, title: r.doc.title, system: systemOf(r.doc), blocks: Object.keys(r.doc.blocks).length, lastAuthor: r.author.principal, state: r.state, projects: this.projectsOf(name) };
   }
 
   /** Export the document plus its lockfile as JSON (the re-importable form). */
   exportJSON(name: string): string | null {
-    const r = this.head(name);
+    const r = this.mutableHead(name);
     return r ? JSON.stringify(r.doc, null, 2) : null;
   }
 
@@ -1026,7 +1062,7 @@ export class Store {
 
   /** A lease is a write capability: only writers may reserve blocks, using the store clock. */
   claimBlocks(kage: string, blocks: string[], author: Provenance, ttl = 300): CommentResult<{ claimed: true }> {
-    const head = this.head(kage);
+    const head = this.mutableHead(kage);
     if (!head) return cerr("not_found", `no kage '${kage}'`);
     if (!this.allowed(author, Store.repoOfRef(head.ref), "write")) return cerr("forbidden", "write access required to claim blocks");
     if (!Array.isArray(blocks) || !blocks.length || blocks.length > 100 || blocks.some(b => typeof b !== "string" || !b.length || b.length > 120) || !Number.isFinite(ttl) || ttl < 1 || ttl > 3600) return cerr("invalid_params", "claims need 1 to 100 block patterns and a TTL of 1 to 3600 seconds");

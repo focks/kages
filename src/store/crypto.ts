@@ -5,7 +5,7 @@
 // content, and the signature covers the digest, so tampering with either the
 // bytes or the recorded hash is detectable by anyone holding the public key.
 
-import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign as nodeSign, verify as nodeVerify, type KeyObject } from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes, createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign as nodeSign, verify as nodeVerify, type KeyObject } from "node:crypto";
 
 type Json = unknown;
 
@@ -68,23 +68,61 @@ export function verifyDigest(publicKey: KeyObject, dgst: string, signature: Sign
 }
 
 /** A signer serialized as PEM, so a persistent store keeps the SAME identity
- *  across runs and signatures stay verifiable after a reload. A private key on
- *  disk is a real trust assumption; acceptable for a local workspace, not for a
- *  shared server (which would hold keys in a KMS/HSM). */
+ *  across runs and signatures stay verifiable after a reload. Production exports
+ *  encrypt private material with a separately configured wrapping secret. */
 export interface SerializedKey {
   keyId: string;
   publicPem: string;
-  privatePem: string;
+  privatePem?: string;
+  encryptedPrivatePem?: { iv: string; tag: string; ciphertext: string };
 }
 
 export function exportKey(k: SigningKey): SerializedKey {
   return {
     keyId: k.keyId,
     publicPem: k.publicKey.export({ type: "spki", format: "pem" }) as string,
-    privatePem: k.privateKey.export({ type: "pkcs8", format: "pem" }) as string,
+    ...sealPrivateKey(k.privateKey.export({ type: "pkcs8", format: "pem" }) as string),
   };
 }
 
 export function importKey(s: SerializedKey): SigningKey {
-  return { keyId: s.keyId, publicKey: createPublicKey(s.publicPem), privateKey: createPrivateKey(s.privatePem) };
+  return { keyId: s.keyId, publicKey: createPublicKey(s.publicPem), privateKey: createPrivateKey(openPrivateKey(s)) };
+}
+
+/** A database dump must not contain usable hosted signer keys. The wrapping key lives in operator secrets. */
+function wrappingKey(): Buffer | undefined {
+  const secret = process.env.KAGES_SIGNING_KEY_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") throw new Error("KAGES_SIGNING_KEY_SECRET is required for production signing-key storage");
+    return undefined;
+  }
+  if (!/^[a-fA-F0-9]{64}$/.test(secret)) throw new Error("KAGES_SIGNING_KEY_SECRET must be 64 hexadecimal characters");
+  return Buffer.from(secret, "hex");
+}
+function sealPrivateKey(pem: string): Pick<SerializedKey, "privatePem" | "encryptedPrivatePem"> {
+  const key = wrappingKey();
+  if (!key) return { privatePem: pem };
+  const iv = randomBytes(12), cipher = createCipheriv("aes-256-gcm", key, iv);
+  const ciphertext = Buffer.concat([cipher.update(pem, "utf8"), cipher.final()]);
+  return { encryptedPrivatePem: { iv: iv.toString("base64"), tag: cipher.getAuthTag().toString("base64"), ciphertext: ciphertext.toString("base64") } };
+}
+function openPrivateKey(s: SerializedKey): string {
+  // Legacy plaintext rows can be read and are encrypted on their next committed snapshot.
+  if (!s.encryptedPrivatePem && s.privatePem) return s.privatePem;
+  const key = wrappingKey(), sealed = s.encryptedPrivatePem;
+  if (!key || !sealed) throw new Error("signing-key wrapping secret is required");
+  const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(sealed.iv, "base64"));
+  decipher.setAuthTag(Buffer.from(sealed.tag, "base64"));
+  return Buffer.concat([decipher.update(Buffer.from(sealed.ciphertext, "base64")), decipher.final()]).toString("utf8");
+}
+
+/** Publication state is mutable; identity, authorship and ancestry are immutable evidence. */
+export function provenanceDigest(v: import("./types.ts").VersionRecord): string {
+  return digest({ ref: v.ref, parent: v.parent, name: v.name, uuid: v.uuid, v: v.v, digest: v.digest, createdAt: v.createdAt, author: v.author, change: v.change, resolved: v.resolved, validation: v.validation });
+}
+
+/** Legacy versions have content signatures only and cannot retrospectively attest provenance. */
+export function verifyVersion(publicKey: KeyObject, v: import("./types.ts").VersionRecord): boolean {
+  return digest(v.doc) === v.digest && verifyDigest(publicKey, v.digest, v.signature)
+    && !!v.provenanceSignature && verifyDigest(publicKey, provenanceDigest(v), v.provenanceSignature);
 }

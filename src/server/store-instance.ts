@@ -74,8 +74,8 @@ export async function mutateStore(
   }
   for (let attempt = 0; attempt < 5; attempt++) {
     const loaded = await loadSnapshotRev(workspace);
-    // Fingerprint BEFORE applying: Store.restore shares the loaded versions
-    // arrays by reference, and the op appends to them in place.
+    // Capture the committed baseline before evaluating the candidate; reads
+    // and restored stores are detached so callers cannot mutate signed history.
     const baseline = loaded ? baselineOf(loaded.snapshot) : null;
     const store = loaded ? Store.restore(loaded.snapshot) : buildSeeded(workspace);
     const { result, after } = apply(store);
