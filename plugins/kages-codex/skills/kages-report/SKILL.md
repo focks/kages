@@ -5,15 +5,27 @@ description: "The report form: a Kage that is read, not operated — findings fi
 
 # Report Kages
 
-A report is read top to bottom by someone who wants the findings, not a tour
-of widgets. Treat it the way a design studio treats a client memo: real
-typographic hierarchy, considered spacing, a proper palette — and nothing
-that moves unless moving it answers a question. The form below carries the
-same design philosophy as the web artifacts this repo's proposals ship as;
-where that philosophy says CSS, this skill says blocks.
+The default suggested Kage is a compact reading brief: a plain verdict, a few
+useful facts, findings with evidence and fixes, a concrete next action, verified
+working parts, an ordered work list and an evidence-limits footer. Start from
+`review-brief` through `get_authoring_guide` at
+`reference/examples/review-brief.kage.json`. Adapt and omit regions that do not
+serve the reader; a calculator or a handbook can earn a different shape.
 
-Make one only when asked for a report or write-up; a chat answer or raw
-command output gets no Kage.
+Use `page` at `width:reading`, `gap:8`; sections at `inset:0`, with an ordinary
+level-1 opening and level-2 topics. Tables carry comparisons, not prose spread
+across decorative cards. Use three to five facts only when they carry context.
+An alert marks a real urgent condition. Add code only for an exact, verified
+command or quoted evidence, with its effect explained. Avoid a hero, a tinted
+opening, a diagram or navigation unless the content gives it a specific job.
+
+This follows the maintainer-approved production-review format. The shipped
+example uses synthetic evidence; never copy another workspace's claims,
+identifiers or operator commands into a new artifact.
+
+When the user asks for a Kage without a more specific format, recommend this
+brief. Creating a Kage still requires a request for an artifact; an ordinary
+chat answer or raw command output does not become a Kage automatically.
 
 ## The stance: static first
 
@@ -42,11 +54,11 @@ whole job, the interaction budget was spent right.
    correctly informed. Open with a `section` (level 1) stating what the
    report found in two or three plain sentences — `scale:hero` with a
    `palette` and `backdrop:wash` only when the report carries a verdict
-   worth that weight; most status reports open at standard scale.
-2. **A facts row** under it: three to five `stat` tiles of load-bearing
+   worth that weight; the default is a plain, standard-scale opening.
+2. **An optional facts row** under it: three to five `stat` tiles of load-bearing
    context (period covered, scale, today's state). Big-number tiles only
    when those numbers are the point; captions in sentences.
-3. **One section per topic**, level 2, heading phrased as what the section
+3. **Urgent findings first.** Prefer a table with when / finding / evidence / fix, followed by any concrete next action and a verified-working table. Use one section per topic, level 2, heading phrased as what the section
    establishes. Inside: the claim in prose, then its evidence — `table`,
    chart, `diagram`, `code` — *beside* the claim, never three screens away.
    Say what each evidence block shows and where it came from. `code`,
@@ -65,7 +77,7 @@ whole job, the interaction budget was spent right.
    `$sum` over `data` so a changed row cannot leave a stale sum. Follow
    `kages-coherent-presentation` for chart colors, takeaways and freshness:
    a timestamp typed into the page is not freshness.
-7. **Sources last, honesty in the footer.** Pin code claims `file:line` at
+7. **Order of work, then sources and limits.** Give an ordered list when actions depend on each other; name the actor when known. Pin code claims `file:line` at
    a commit in a `references` block (mechanics in `kages-research-briefs`). Close
    with `text` at `variant:"caption"` stating what was abstracted away, what is illustrative,
    and what evidence is missing. A report that hides its gaps is wrong even
@@ -78,8 +90,9 @@ Reports get the utilitarian treatment: polished, not decorated.
 - **Reading width.** `page` at `width:reading`; wide only when the evidence
   is genuinely wide, and then the wide block scrolls inside its own rail
   (tables and code already do this) rather than stretching the prose.
-- **One palette family, used by role.** Pick one section `palette` and
-  reuse it only for regions carrying the same role (the opening finding and
+- **Plain by default; colour by role.** Inherit the workspace design. If
+  colour carries information, choose one section `palette` and reuse it only
+  for regions carrying the same role (the opening finding and
   the closing recommendation, say), so colour keeps meaning down the page.
   Everything between stays plain or `surface`. Semantic tones are not the
   accent.

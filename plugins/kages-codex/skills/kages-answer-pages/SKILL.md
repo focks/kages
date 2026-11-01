@@ -15,12 +15,10 @@ or raw command output gets no Kage.
 
 ## The shape
 
-1. **The short answer first, inside a hero.** Open with a `section` at
-   `scale:hero`, `level:1`, a meaningful `palette` and `backdrop:wash`, and put
-   the verdict card *inside it*: two or three sentences, plain words, no
-   hedging the body doesn't justify. A reader who stops here leaves correctly
-   informed. Reuse that palette only for sections that carry the same role, so
-   color keeps meaning down the page.
+1. **The short answer first.** Start from the recommended `review-brief` reading
+   page and shorten it to the question. Use an ordinary `section` at `level:1`,
+   `inset:0`, with two or three direct sentences. A hero, palette or wash needs
+   a content-specific purpose; a verdict does not require a card around it.
 2. **A facts row** under it: three to five label-value pairs of load-bearing
    context (who, scale, today's state) as `stat` or `badge` rows.
 3. **One section per sub-question**, each heading phrased as the question it

@@ -1,0 +1,349 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Review brief — findings, evidence and next steps\" · system core@1.18.0 · 13 blocks · 15 instances\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - intro [core/section@1.1.0] title=\"The workflow produces its output. Two safeguards need ch…\n    - facts [core/grid@1.0.0]\n      - fact~/fact%3A%22Checks%20completed%22 [core/stat@1.0.0] label=\"Checks completed\" value=\"8 / 10\"\n          ↳ reads data:findings\n      - fact~/fact%3A%22Open%20findings%22 [core/stat@1.0.0] label=\"Open findings\" value=2\n          ↳ reads data:findings\n      - fact~/fact%3A%22Next%20checkpoint%22 [core/stat@1.0.0] label=\"Next checkpoint\" value=\"Before release\"\n          ↳ reads data:findings\n    - findings [core/section@1.1.0] title=\"Findings, most urgent first\"\n      children:\n        - risk [core/alert@1.0.0] title=\"Resolve the overlapping writes first\" text=\"In this synthetic scenario, two writers share one output…\n        - findings-table [core/table@1.0.0] rows=2\n            ↳ reads data:findings\n    - action [core/section@1.1.0] title=\"Run once in isolation\"\n    - verified [core/section@1.1.0] title=\"What is verified as working\"\n      children:\n        - verified-table [core/table@1.0.0] rows=3\n            ↳ reads data:verified\n    - order [core/section@1.1.0] title=\"Order of work\"\n      children:\n        - steps [core/list@1.0.0] items=||\n    - footer [core/text@1.0.0] text=\"All claims, counts and traces on this page are synthetic…",
+  "envelope": {
+    "title": "Review brief — findings, evidence and next steps",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": "{\"facts\":[{\"label\":\"Checks completed\",\"value\":\"8 / 10\",\"caption\":\"Synthetic review, not a live status\"},{\"label\":\"Open findings\",\"caption\":\"One now; one before the next release\"},{\"label\":\"Next checkpoint\",\"value\":\"Before release\",\"caption\":\"After both findings are rechecked\"}],\"findings\":[{\"when\":\"now\",\"finding\":\"Two jobs can edit the same output.\",\"evidence\":\"Synthetic trace: jobs A and B both entered the write stage.\",\"fix\":\"Keep the jobs sequential until overlap is guarded.\"},{\"when\":\"next\",\"finding\":\"A stalled job has no tested recovery path.\",\"evidence\":\"Configuration defines a timeout; recovery has not been exercised.\",\"fix\":\"Rehearse one timeout and verify that the next job can start.\"}],\"verified\":[{\"part\":\"Input checks\",\"status\":\"ok\",\"evidence\":\"Synthetic fixture: all required inputs were present.\"},{\"part\":\"Output generation\",\"status\":\"ok\",\"evidence\":\"Synthetic trace: one isolated job produced its expected output.\"},{\"part\":\"Timeout recovery\",\"status\":\"no\",\"evidence\":\"Configured, but no recovery rehearsal was observed.\"}]}",
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "reading",
+          "inset": null,
+          "gap": 8
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "intro",
+            "facts",
+            "findings",
+            "action",
+            "verified",
+            "order",
+            "footer"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "intro",
+        "type": "section",
+        "props": {
+          "title": "The workflow produces its output. Two safeguards need checking before unattended use.",
+          "eyebrow": "Review · synthetic worked example",
+          "description": "One isolated run completed. Overlapping writes and timeout recovery still need attention. This example shows how to report a verdict, its evidence and the work it implies.",
+          "level": 1,
+          "tone": null,
+          "inset": 0,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "facts",
+        "type": "grid",
+        "props": {
+          "columns": 3,
+          "minSize": "small",
+          "gap": 2
+        },
+        "slots": {
+          "children": [
+            "fact"
+          ]
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "fact",
+        "type": "stat",
+        "props": {
+          "label": null,
+          "value": null,
+          "format": null,
+          "delta": null,
+          "caption": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "label",
+            "expr_json": "{\"$item\":\"label\"}"
+          },
+          {
+            "prop": "value",
+            "expr_json": "{\"$if\":[{\"$eq\":[{\"$item\":\"label\"},\"Open findings\"]},{\"$count\":{\"$data\":\"findings\"}},{\"$item\":\"value\"}]}"
+          },
+          {
+            "prop": "caption",
+            "expr_json": "{\"$item\":\"caption\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": "{\"each\":{\"$data\":\"facts\"},\"key\":\"label\"}"
+      },
+      {
+        "id": "findings",
+        "type": "section",
+        "props": {
+          "title": "Findings, most urgent first",
+          "eyebrow": null,
+          "description": "When: now = before the next run; next = before release.",
+          "level": 2,
+          "tone": null,
+          "inset": 0,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "risk",
+            "findings-table"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "risk",
+        "type": "alert",
+        "props": {
+          "tone": "danger",
+          "title": "Resolve the overlapping writes first",
+          "text": "In this synthetic scenario, two writers share one output. A successful isolated run does not establish that concurrent runs are safe."
+        },
+        "slots": {
+          "children": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "findings-table",
+        "type": "table",
+        "props": {
+          "columns": [
+            {
+              "key": "when",
+              "label": "When",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "finding",
+              "label": "Finding",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "evidence",
+              "label": "Evidence",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "fix",
+              "label": "Fix",
+              "align": null,
+              "format": null
+            }
+          ],
+          "rows_json": null,
+          "empty": null,
+          "dense": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "rows",
+            "expr_json": "{\"$data\":\"findings\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "action",
+        "type": "section",
+        "props": {
+          "title": "Run once in isolation",
+          "eyebrow": null,
+          "description": "Pause the second job through its existing control, then inspect the first job’s output. Add an exact command here only after verifying its target and effect.",
+          "level": 2,
+          "tone": null,
+          "inset": 0,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "verified",
+        "type": "section",
+        "props": {
+          "title": "What is verified as working",
+          "eyebrow": null,
+          "description": "State: ok = exercised by the cited synthetic check; no = configured but not exercised.",
+          "level": 2,
+          "tone": null,
+          "inset": 0,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "verified-table"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "verified-table",
+        "type": "table",
+        "props": {
+          "columns": [
+            {
+              "key": "part",
+              "label": "Part",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "status",
+              "label": "State",
+              "align": null,
+              "format": null
+            },
+            {
+              "key": "evidence",
+              "label": "How checked",
+              "align": null,
+              "format": null
+            }
+          ],
+          "rows_json": null,
+          "empty": null,
+          "dense": null
+        },
+        "slots": {},
+        "bind": [
+          {
+            "prop": "rows",
+            "expr_json": "{\"$data\":\"verified\"}"
+          }
+        ],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "order",
+        "type": "section",
+        "props": {
+          "title": "Order of work",
+          "eyebrow": null,
+          "description": null,
+          "level": 2,
+          "tone": null,
+          "inset": 0,
+          "gap": null,
+          "palette": null,
+          "scale": null,
+          "backdrop": null
+        },
+        "slots": {
+          "children": [
+            "steps"
+          ],
+          "actions": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "steps",
+        "type": "list",
+        "props": {
+          "items": [
+            "Operator: keep the next run isolated.",
+            "Maintainer: add an overlap guard and rehearse timeout recovery.",
+            "Reviewer: recheck both findings before enabling unattended runs."
+          ],
+          "ordered": true
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "footer",
+        "type": "text",
+        "props": {
+          "text": "All claims, counts and traces on this page are synthetic. No production system was inspected. In a real review, record the sources and observation time here, distinguish configuration from verified behavior, and name the checks that remain untested.",
+          "variant": "caption"
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

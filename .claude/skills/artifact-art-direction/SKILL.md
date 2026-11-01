@@ -5,6 +5,9 @@ description: "Designing expressive, interactive Kages: semantic palettes, respon
 
 # Artifact art direction
 
+Start from `review-brief` in the curated examples index for a general Kage:
+a plain reading page with the verdict, evidence and next steps visible. Choose
+a specialized example only when its reader task earns a different shape.
 Before assembling blocks, choose the audience, the task, the visual hierarchy,
 and the interaction that helps the reader complete the task. A colorful page
 with inert controls is still unfinished.
