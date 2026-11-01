@@ -25,7 +25,8 @@
     "check:plugins": "node scripts/build-plugins.mjs --check",
     "build:frame": "node scripts/build-frame.mjs",
     "bench:render": "NODE_ENV=production node scripts/bench-render.mjs",
-    "build:distribution": "node scripts/build-distribution.mjs"
+    "build:distribution": "node scripts/build-distribution.mjs",
+    "bench:store": "node scripts/bench-store.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

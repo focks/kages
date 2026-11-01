@@ -26,9 +26,8 @@ no-op when none is configured, so tests and plain `npm run dev` stay in-memory:
 ## Rules
 
 - **Writes are compare-and-swap deltas.** `mutateStore` loads the latest snapshot,
-  fingerprints it with `baselineOf` BEFORE applying the op (`Store.restore` shares
-  the versions arrays by reference — the op appends in place, so a late baseline
-  would diff to "unchanged" and lose the write), applies the op, and `casSave`s
+  fingerprints its committed baseline with `baselineOf` before applying the op,
+  applies the op to a detached restored Store, and `casSave`s
   against the `workspaces.rev` it read, retrying on conflict. Only each kage's
   appended version tail plus the meta blob travel; without a baseline `casSave`
   falls back to a full replace (p_replace), which is correct but bigger.

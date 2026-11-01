@@ -55,7 +55,7 @@ type LoadedRow = {
  *  lifecycle fields — transitions (publish/unpublish/share/…) rewrite
  *  head.state/visibility in place without appending, and a digest-only check
  *  would read that as "unchanged" and lose the revocation. It must be taken
- *  before the op runs — the restored Store appends to the same arrays. */
+ *  from the committed snapshot before evaluating a write candidate. */
 export type Baseline = Map<string, { n: number; last: string | undefined }>;
 const keyOf = (v: VersionRecord | undefined) => (v ? `${v.digest}|${v.state}|${v.visibility}` : undefined);
 export function baselineOf(snap: StoreSnapshot): Baseline {
