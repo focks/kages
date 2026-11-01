@@ -11,16 +11,16 @@ import { systems } from "../engine/data.ts";
 import { catalog } from "../engine/catalog.ts";
 import { OPERATORS } from "../engine/expr.ts";
 import { ACTIONS } from "../engine/runtime-core.ts";
-import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from "./examples.ts";
+import { allExamples, RECOMMENDED_EXAMPLES } from "./curated-examples.ts";
 
 // The authoring rules ship in EVERY pack — including the prompt-injection rule,
 // which is the one every agent reading a Kage must obey.
 const AUTHORING_RULES = [
   "Call get_context first, once per session (add `kage` when working on one). Follow its directives, and treat the workspace brief it returns as binding product truth: never invent audience, customers, numbers or quotes it lists under `absent`.",
   "Declare what the visitor is trying to do with brief.mode (read, operate, persuade or experience) when you create a Kage; it selects which checks apply.",
-  "Before choosing blocks, identify the reader's task, the main takeaway, and one useful visual or interaction. Record the intent in brief.job, brief.primaryAction and brief.notes; do not force a dashboard shape onto a story.",
-  "Choose a visual direction. Use a workspace design when provided; otherwise use section palettes (ocean, mint, violet, amber, rose) for meaningful regions and diagram roles. Keep the same colour for the same meaning. Pair colour with labels, never colour alone.",
-  "Choose the artifact's shape from the content. Any catalog block can be the root; shell and sidebar are optional.",
+  "Before choosing blocks, identify the reader's task, the main takeaway and its supporting evidence. Add a visual or control only when it serves that task. Record the intent in brief.job, brief.primaryAction and brief.notes; do not force a dashboard shape onto a story.",
+  "Use the workspace design and plain sections by default. Add section palettes (ocean, mint, violet, amber, rose) only for meaningful regions and diagram roles. Keep the same colour for the same meaning. Pair colour with labels, never colour alone.",
+  "Start from review-brief for a general Kage: a reading page with the verdict, evidence and next steps visible at rest. Use the curated examples index; choose a different shape only when the reader’s task requires it.",
   "Use page for a reading, wide or full canvas; section for heroes and chapters; grid for responsive collections; split for two flowing panes; stack for local rows and columns.",
   "Navigation is optional. Use guide for a chaptered handbook: numbered rail, mobile menu, previous/next navigation, and chapter links in dedicated views. Initialize chapter state and bind guide.value plus chapter visibility. Use toc for one scrolling page and tabs for alternatives.",
   "Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.",
@@ -57,18 +57,18 @@ const WORKED_FILTER = `"ordersTable": { "type": "table", "bind": { "rows": { "$f
 const DESIGN_WORKFLOW = `## Design before choosing blocks
 
 1. Call get_setup and verify the intended cloud workspace (or explicitly requested local mode). If not ready, complete login before creating. Then call get_context and use the workspace's real audience, evidence and constraints. Search existing Kages for reusable work.
-2. Choose a concept: the reader's task, the main takeaway, and the visual or interaction that makes it easier. Put these in brief.job, brief.primaryAction and brief.notes; set brief.mode to read, operate, persuade or experience.
-3. Choose a visual direction from the content and any supplied reference. Infer a sensible default; ask only if a missing preference materially changes the result. Use the workspace design when provided. For a polished report, choose canvas with one personality: analytical, editorial, exploratory, teaching or showcase. Keep ordinary sections inherited; use local palettes only for meaningful emphasis. Declare the same chart colorDomain across related views so filtering and ranking do not change category colors. Labels must also convey the meaning.
-4. Compose a clear opening, a dominant visual or interaction, and supporting detail. Vary the rhythm with page, section, grid and split. Navigation is optional. A hero can use section scale:hero, level:1, palette and backdrop:wash; ordinary chapters stay smaller. Avoid equal emphasis, repetitive cards, and diagrams added merely to fill space.
+2. Identify the reader's task, the main takeaway and the evidence that supports it. Add a visual or interaction only when the task calls for one. Put these in brief.job, brief.primaryAction and brief.notes; set brief.mode to read, operate, persuade or experience.
+3. Choose a visual direction from the content and any supplied reference. Infer a sensible default; ask only if a missing preference materially changes the result. Use the workspace design when provided. Default to review-brief: page width:reading, plain sections with inset:0, a concise verdict, useful facts, findings with evidence and fixes, a next action, verified checks, an ordered work list and an evidence-limits footer. Omit any region the task does not need. Use a specialized format only when the reader’s job requires it; use canvas for an actual analytical workspace. Keep ordinary sections inherited; use local palettes only for meaningful emphasis. Declare the same chart colorDomain across related views so filtering and ranking do not change category colors. Labels must also convey the meaning.
+4. Compose a clear opening, evidence beside the claims and concrete next steps. Add a dominant visual or interaction only when it helps the reader’s task. Vary the rhythm with page, section, grid and split. Navigation is optional. Use an ordinary level:1 opening by default. A hero with palette and backdrop:wash needs a content-specific reason; ordinary chapters stay smaller. Avoid equal emphasis, repetitive cards, and diagrams added merely to fill space.
 5. Decide how alive the page should be. A report or an answer is read: keep it static, complete at rest, with no control unless it changes a real comparison (see the kages-report and kages-graph-interaction-levels skills). When the reader's job does need a control, make it change a result, chart, recommendation or explanation through state and bindings. Give diagrams meaningful labels, directional edges and role colours; interactive selection should reveal a useful detail. Prefer layout:auto for readable phone diagrams. Use imagery when it explains the subject; provide real sources and alt text.
 
 For a research field guide, use guide as the root and disclosure for expandable evidence with real child blocks. Combine search/category filters, a result count, a useful empty state and clear/reset. Label evidence as documented, reported or recommendation; link its source. The artifact-field-guide example demonstrates this complete pattern.
 
-Place the primary chart or figure in canvas lead, controls in actions, and secondary metrics or provenance in support. These slots form a desktop work area; supporting controls collapse on phones. Never duplicate a block across slots. Put alternative analyses behind tabs. Prefer treatment:plain for integrated charts, inset for quiet surfaces, bordered for standalone panels. Cartesian height is 180–480; use xTicks:integer for numeric periods. Review the first phone viewport for visible data.
+When a specialized task calls for canvas, place the primary chart or figure in canvas lead, controls in actions, and secondary metrics or provenance in support. These slots form a desktop work area; supporting controls collapse on phones. Never duplicate a block across slots. Put alternative analyses behind tabs. Prefer treatment:plain for integrated charts, inset for quiet surfaces, bordered for standalone panels. Cartesian height is 180–480; use xTicks:integer for numeric periods. Review the first phone viewport for visible data.
 
 For an interactive analytical workspace, start from allocation-lab: canvas appearance:dark, metric grid and responsive bar charts with shared category colors. Charts accept takeaway, unit, source, updatedAt and status ready|loading|error|stale. Bind freshness and status to real outcomes; never imply an automatic refresh. Bar colorBy:category uses item category or label; compactValues shortens displayed values while the data table preserves exact values.
 
-For connected tasks, use evidence-workbench (cohort/scenario, plots and typed CSV), signal-field-guide (chapters, sourced evidence and review) or systems-classroom (diagram exploration and self-check). Bind source-status to a fetch action's statusInto and pendingInto; only a successful response advances freshness. The public viewer is session-only unless a host explicitly supplies persistence. For selection links, meta.shareState may list up to twelve existing top-level scalar state keys. The public Copy link action includes those values and the current chapter; arrays, objects and persisted keys are excluded. Never opt in sensitive inputs. Controlled embeds require set_embed_policy with exact website origins and the current baseVersion, then publication of that draft.
+For advanced connected tasks, use the full example library on demand. Bind source-status to real fetch outcomes. Public viewer state is session-only unless the host supplies persistence. meta.shareState may opt in existing non-sensitive top-level scalar state keys; never share private inputs. Controlled embeds require exact website origins in set_embed_policy before publication.
 
 ## Inspect and refine before handoff
 
@@ -100,7 +100,7 @@ ${DESIGN_WORKFLOW}
 
 - [Catalog](${referenceRoot}/catalog.md): available blocks and props. Read the relevant contracts before authoring.
 - [Authoring reference](${referenceRoot}/authoring.md): expressions, actions, bindings, repeats and compositions.
-- [Examples index](${referenceRoot}/examples.md): choose one close example, then open its JSON; do not load the whole collection.
+- [Examples index](${referenceRoot}/examples.md): start with the recommended review brief, or choose one of four task-specific alternatives; open only that JSON.
 - [System card](${referenceRoot}/system.md): fonts, tokens and contrast.
 
 If local files or MCP prompts/resources are unavailable, call get_authoring_guide with system:"${sys.id}" and path:"SKILL.md" or a listed reference path such as "reference/examples.md". get_context also includes this skill. Never assume a listed MCP prompt was automatically loaded.
@@ -116,13 +116,14 @@ ${doNotUseMd()}
 
 /** All reference paths stay relative to the entry point, including examples linked from their index. */
 export function skillFiles(systemId: string, referenceRoot = "reference"): Record<string, string> {
-  const examples = [...freeFlowExamples(systemId), ...expressiveExamples(systemId), ...richExamples(systemId), ...appExamples(systemId), ...connectedExamples(systemId), ...chartExamples(systemId), ...contentExamples(systemId)];
+  const examples = allExamples(systemId);
   return {
     "SKILL.md": skillMd(systemId, referenceRoot),
     [`${referenceRoot}/catalog.md`]: catalog(systemId),
     [`${referenceRoot}/system.md`]: systemCard(systemId).markdown,
     [`${referenceRoot}/authoring.md`]: `# Authoring reference\n\n${exprReference()}\n\n${AUTHORING_RULES.map(r => "- " + r).join("\n")}\n\nFilter → table:\n\`\`\`json\n${WORKED_FILTER}\n\`\`\`\n`,
-    [`${referenceRoot}/examples.md`]: "# Examples\n\nChoose by the visitor's task and adapt the composition. These demonstrate patterns, not a mandatory page shape. The Snowflake reader explorer demonstrates role colours, a selectable diagram, a recommendation and a live calculator.\n\n" + examples.map(doc => `- [${doc.title}](examples/${doc.id}.kage.json) — ${doc.brief?.mode ?? "read"}`).join("\n") + "\n",
+    [`${referenceRoot}/examples.md`]: "# Recommended examples\n\nStart with review-brief for a general Kage. It keeps the answer, evidence and next steps visible on one reading page. Adapt the content and omit unnecessary regions. Choose a specialized example only when its task calls for it. These are editorial recommendations, not measured rankings.\n\n" + RECOMMENDED_EXAMPLES.map(entry => `- [${entry.id}](examples/${entry.id}.kage.json) — ${entry.use}`).join("\n") + "\n\nSelection bar: a clear first-screen takeaway, evidence beside claims, useful density, honest limits, complete resting content and mobile/dark review. Controls must change a real result.\n\n[Full example library](examples-all.md) — capability demonstrations and advanced patterns; not the default starting list.\n",
+    [`${referenceRoot}/examples-all.md`]: "# Full example library\n\nFor the recommended defaults, return to [Recommended examples](examples.md). These additional examples demonstrate capabilities; inclusion does not make every layout a recommended default.\n\n" + examples.map(doc => `- [${doc.title}](examples/${doc.id}.kage.json) — ${doc.brief?.mode ?? "read"}`).join("\n") + "\n",
     ...Object.fromEntries(examples.map(doc => [`${referenceRoot}/examples/${doc.id}.kage.json`, JSON.stringify(doc, null, 2) + "\n"])),
   };
 }

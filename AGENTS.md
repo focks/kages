@@ -48,6 +48,15 @@ of rediscovering it. When you find a new reusable pattern, add it as a skill.
 | `answer-pages` | The short answer-first page form for Kages that answer a question or support a decision. |
 | `report-kages` | The static-first report form: findings first, evidence beside claims, interactivity only where a control changes a real comparison. |
 
+## Default authoring format
+
+For a general Kage, start with `review-brief`: a plain reading page with a verdict,
+useful facts, findings beside evidence and fixes, a next action, verified checks,
+an ordered work list and an evidence-limits footer. Read `report-kages` first.
+Use the five-entry curated examples index; choose a specialized shape only when
+the reader’s task requires it. Preserve existing artifacts and load advanced
+capability examples only on demand.
+
 ## Layout
 
 ```

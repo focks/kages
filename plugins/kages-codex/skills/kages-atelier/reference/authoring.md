@@ -6,9 +6,9 @@ An expression is a JSON object whose first key is an operator; anything else is 
 
 - Call get_context first, once per session (add `kage` when working on one). Follow its directives, and treat the workspace brief it returns as binding product truth: never invent audience, customers, numbers or quotes it lists under `absent`.
 - Declare what the visitor is trying to do with brief.mode (read, operate, persuade or experience) when you create a Kage; it selects which checks apply.
-- Before choosing blocks, identify the reader's task, the main takeaway, and one useful visual or interaction. Record the intent in brief.job, brief.primaryAction and brief.notes; do not force a dashboard shape onto a story.
-- Choose a visual direction. Use a workspace design when provided; otherwise use section palettes (ocean, mint, violet, amber, rose) for meaningful regions and diagram roles. Keep the same colour for the same meaning. Pair colour with labels, never colour alone.
-- Choose the artifact's shape from the content. Any catalog block can be the root; shell and sidebar are optional.
+- Before choosing blocks, identify the reader's task, the main takeaway and its supporting evidence. Add a visual or control only when it serves that task. Record the intent in brief.job, brief.primaryAction and brief.notes; do not force a dashboard shape onto a story.
+- Use the workspace design and plain sections by default. Add section palettes (ocean, mint, violet, amber, rose) only for meaningful regions and diagram roles. Keep the same colour for the same meaning. Pair colour with labels, never colour alone.
+- Start from review-brief for a general Kage: a reading page with the verdict, evidence and next steps visible at rest. Use the curated examples index; choose a different shape only when the reader’s task requires it.
 - Use page for a reading, wide or full canvas; section for heroes and chapters; grid for responsive collections; split for two flowing panes; stack for local rows and columns.
 - Navigation is optional. Use guide for a chaptered handbook: numbered rail, mobile menu, previous/next navigation, and chapter links in dedicated views. Initialize chapter state and bind guide.value plus chapter visibility. Use toc for one scrolling page and tabs for alternatives.
 - Use only installed catalog types and declared props. If a capability is missing, name the required contract extension. Do not emit an uninstalled HTML block.
