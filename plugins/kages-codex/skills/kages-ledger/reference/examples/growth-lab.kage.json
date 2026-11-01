@@ -13,8 +13,7 @@
       "slots": {
         "children": [
           "intro",
-          "workspace",
-          "diagram"
+          "workspace"
         ]
       }
     },
@@ -53,7 +52,8 @@
           "principal",
           "rate",
           "result",
-          "explanation"
+          "explanation",
+          "reset-growth"
         ]
       }
     },
@@ -161,10 +161,6 @@
                 "text": "The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration."
               }
             ]
-          },
-          {
-            "kind": "code",
-            "text": "{\"$mul\":[{\"$state\":\"principal\"},{\"$pow\":[1.05,10]}]}"
           }
         ]
       }
@@ -223,32 +219,22 @@
         }
       }
     },
-    "diagram": {
-      "type": "diagram",
+    "reset-growth": {
+      "type": "button",
       "props": {
-        "label": "How the projection works",
-        "nodes": [
+        "label": "Reset assumptions"
+      },
+      "on": {
+        "click": [
           {
-            "id": "start",
-            "label": "Starting amount"
+            "do": "set",
+            "path": "principal",
+            "value": 1000
           },
           {
-            "id": "rate",
-            "label": "Annual growth"
-          },
-          {
-            "id": "result",
-            "label": "Projected amount"
-          }
-        ],
-        "edges": [
-          {
-            "from": "start",
-            "to": "rate"
-          },
-          {
-            "from": "rate",
-            "to": "result"
+            "do": "set",
+            "path": "rate",
+            "value": 5
           }
         ]
       }

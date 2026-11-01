@@ -1,0 +1,272 @@
+{
+  "kages": "1.0",
+  "id": "review-brief",
+  "title": "Review brief — findings, evidence and next steps",
+  "system": "ledger",
+  "root": "root",
+  "brief": {
+    "mode": "read",
+    "audience": "A maintainer deciding what to fix next",
+    "job": "Read the verdict, check the evidence and choose the next action",
+    "primaryAction": "Follow the order of work",
+    "notes": "Synthetic worked example. Replace every claim and figure with observed evidence."
+  },
+  "data": {
+    "facts": [
+      {
+        "label": "Checks completed",
+        "value": "8 / 10",
+        "caption": "Synthetic review, not a live status"
+      },
+      {
+        "label": "Open findings",
+        "caption": "One now; one before the next release"
+      },
+      {
+        "label": "Next checkpoint",
+        "value": "Before release",
+        "caption": "After both findings are rechecked"
+      }
+    ],
+    "findings": [
+      {
+        "when": "now",
+        "finding": "Two jobs can edit the same output.",
+        "evidence": "Synthetic trace: jobs A and B both entered the write stage.",
+        "fix": "Keep the jobs sequential until overlap is guarded."
+      },
+      {
+        "when": "next",
+        "finding": "A stalled job has no tested recovery path.",
+        "evidence": "Configuration defines a timeout; recovery has not been exercised.",
+        "fix": "Rehearse one timeout and verify that the next job can start."
+      }
+    ],
+    "verified": [
+      {
+        "part": "Input checks",
+        "status": "ok",
+        "evidence": "Synthetic fixture: all required inputs were present."
+      },
+      {
+        "part": "Output generation",
+        "status": "ok",
+        "evidence": "Synthetic trace: one isolated job produced its expected output."
+      },
+      {
+        "part": "Timeout recovery",
+        "status": "no",
+        "evidence": "Configured, but no recovery rehearsal was observed."
+      }
+    ]
+  },
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "reading",
+        "gap": 8
+      },
+      "slots": {
+        "children": [
+          "intro",
+          "facts",
+          "findings",
+          "action",
+          "verified",
+          "order",
+          "footer"
+        ]
+      }
+    },
+    "intro": {
+      "type": "section",
+      "props": {
+        "level": 1,
+        "inset": 0,
+        "eyebrow": "Review · synthetic worked example",
+        "title": "The workflow produces its output. Two safeguards need checking before unattended use.",
+        "description": "One isolated run completed. Overlapping writes and timeout recovery still need attention. This example shows how to report a verdict, its evidence and the work it implies."
+      }
+    },
+    "facts": {
+      "type": "grid",
+      "props": {
+        "columns": 3,
+        "minSize": "small",
+        "gap": 2
+      },
+      "slots": {
+        "children": [
+          "fact"
+        ]
+      }
+    },
+    "fact": {
+      "type": "stat",
+      "bind": {
+        "label": {
+          "$item": "label"
+        },
+        "value": {
+          "$if": [
+            {
+              "$eq": [
+                {
+                  "$item": "label"
+                },
+                "Open findings"
+              ]
+            },
+            {
+              "$count": {
+                "$data": "findings"
+              }
+            },
+            {
+              "$item": "value"
+            }
+          ]
+        },
+        "caption": {
+          "$item": "caption"
+        }
+      },
+      "repeat": {
+        "each": {
+          "$data": "facts"
+        },
+        "key": "label"
+      }
+    },
+    "findings": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "inset": 0,
+        "title": "Findings, most urgent first",
+        "description": "When: now = before the next run; next = before release."
+      },
+      "slots": {
+        "children": [
+          "risk",
+          "findings-table"
+        ]
+      }
+    },
+    "risk": {
+      "type": "alert",
+      "props": {
+        "tone": "danger",
+        "title": "Resolve the overlapping writes first",
+        "text": "In this synthetic scenario, two writers share one output. A successful isolated run does not establish that concurrent runs are safe."
+      }
+    },
+    "findings-table": {
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "when",
+            "label": "When"
+          },
+          {
+            "key": "finding",
+            "label": "Finding"
+          },
+          {
+            "key": "evidence",
+            "label": "Evidence"
+          },
+          {
+            "key": "fix",
+            "label": "Fix"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$data": "findings"
+        }
+      }
+    },
+    "action": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "inset": 0,
+        "title": "Run once in isolation",
+        "description": "Pause the second job through its existing control, then inspect the first job’s output. Add an exact command here only after verifying its target and effect."
+      }
+    },
+    "verified": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "inset": 0,
+        "title": "What is verified as working",
+        "description": "State: ok = exercised by the cited synthetic check; no = configured but not exercised."
+      },
+      "slots": {
+        "children": [
+          "verified-table"
+        ]
+      }
+    },
+    "verified-table": {
+      "type": "table",
+      "props": {
+        "columns": [
+          {
+            "key": "part",
+            "label": "Part"
+          },
+          {
+            "key": "status",
+            "label": "State"
+          },
+          {
+            "key": "evidence",
+            "label": "How checked"
+          }
+        ]
+      },
+      "bind": {
+        "rows": {
+          "$data": "verified"
+        }
+      }
+    },
+    "order": {
+      "type": "section",
+      "props": {
+        "level": 2,
+        "inset": 0,
+        "title": "Order of work"
+      },
+      "slots": {
+        "children": [
+          "steps"
+        ]
+      }
+    },
+    "steps": {
+      "type": "list",
+      "props": {
+        "ordered": true,
+        "items": [
+          "Operator: keep the next run isolated.",
+          "Maintainer: add an overlap guard and rehearse timeout recovery.",
+          "Reviewer: recheck both findings before enabling unattended runs."
+        ]
+      }
+    },
+    "footer": {
+      "type": "text",
+      "props": {
+        "variant": "caption",
+        "text": "All claims, counts and traces on this page are synthetic. No production system was inspected. In a real review, record the sources and observation time here, distinguish configuration from verified behavior, and name the checks that remain untested."
+      }
+    }
+  }
+}

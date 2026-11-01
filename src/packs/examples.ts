@@ -1,6 +1,7 @@
 // Complete examples are shared by packs, starter seeding and golden capture.
 // Isolated snippets encouraged agents to repeat the reference console's shape;
 // these documents demonstrate three independent compositions.
+import { reportExample } from "./report-example.ts";
 import type { KageDoc, Expr, Mode } from "../engine/types.ts";
 import { useCaseExamples, USE_CASE_MODES } from "./use-case-examples.ts";
 import { guideExamples } from "./guide-examples.ts";
@@ -28,6 +29,7 @@ export function freeFlowExamples(system = "core"): KageDoc[] {
     kages: "1.0", id, title, system: system + "@" + (system === "ledger" ? "2" : "1"), root: "root", blocks, ...(state ? { state } : {}),
   });
   return declared([
+    // Keep legacy positions stable; the curated index chooses the default independently.
     doc("field-notes", "Field notes — a reading page", {
       root: { type: "page", props: { width: "reading", gap: 8 }, slots: { header: ["title"], children: ["intro", "steps", "rule", "example"], footer: ["footer"] } },
       title: { type: "text", props: { variant: "display", text: "Make room for ideas" } },
@@ -60,6 +62,7 @@ export function freeFlowExamples(system = "core"): KageDoc[] {
       comparison: { type: "bar-chart", props: { label: "Possible directions" }, bind: { items: [{ label: "Story", value: 70 }, { label: "Interactive tool", value: { $state: "confidence" } }, { label: "Visual collection", value: 45 }] } },
       structured: { type: "code", props: { caption: "Your draft as data", wrap: true }, bind: { code: { $tpl: "Draft: {{state.draft}}\nConfidence: {{state.confidence}}" } }, visible: { $block: "details.checked" } },
     }, { draft: "A small tool for a big idea", confidence: 60 }),
+    reportExample(system),
   ]);
 }
 
@@ -91,16 +94,16 @@ export function expressiveExamples(system = "core"): KageDoc[] {
   calculator.data = { years: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
   const growth = (year: Expr): Expr => ({ $round: [{ $mul: [{ $state: "principal" }, { $pow: [{ $add: [1, { $div: [{ $state: "rate" }, 100] }] }, year] }] }, 2] });
   calculator.blocks = {
-    root: { type: "page", props: { width: "wide" }, slots: { children: ["intro", "workspace", "diagram"] } },
+    root: { type: "page", props: { width: "wide" }, slots: { children: ["intro", "workspace"] } },
     intro: { type: "section", props: { title: "Watch an idea compound", eyebrow: "Growth lab", description: "Explore how a starting amount and annual rate change a ten-year projection.", inset: 0 } },
     workspace: { type: "split", props: { ratio: "wide-end" }, slots: { start: ["controls"], end: ["plot"] } },
-    controls: { type: "section", props: { title: "Try a scenario", level: 3, tone: "surface" }, slots: { children: ["principal", "rate", "result", "explanation"] } },
+    controls: { type: "section", props: { title: "Try a scenario", level: 3, tone: "surface" }, slots: { children: ["principal", "rate", "result", "explanation", "reset-growth"] } },
     principal: { type: "number-input", props: { label: "Starting amount", min: 0, max: 1000000, step: 100 }, bind: { value: { $state: "principal" } }, on: { change: [{ do: "set", path: "principal", value: { $event: "value" } }] } },
     rate: { type: "slider", props: { label: "Annual growth (%)", min: 0, max: 20, step: .5 }, bind: { value: { $state: "rate" } }, on: { change: [{ do: "set", path: "rate", value: { $event: "value" } }] } },
     result: { type: "stat", props: { label: "After ten years", format: "currency" }, bind: { value: growth(10) } },
-    explanation: { type: "rich-text", props: { nodes: [{ kind: "paragraph", runs: [{ text: "Explore a hypothetical projection. ", bold: true }, { text: "The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration." }] }, { kind: "code", text: '{"$mul":[{"$state":"principal"},{"$pow":[1.05,10]}]}' }] } },
+    explanation: { type: "rich-text", props: { nodes: [{ kind: "paragraph", runs: [{ text: "Explore a hypothetical projection. ", bold: true }, { text: "The curve uses amount × (1 + rate / 100) ^ year. It is a mathematical illustration." }] }] } },
     plot: { type: "line-chart", props: { label: "Projected growth", xLabel: "Year", yLabel: "Amount" }, bind: { items: { $map: { list: { $data: "years" }, to: { x: { $item: "" }, y: growth({ $item: "" }) } } } } },
-    diagram: { type: "diagram", props: { label: "How the projection works", nodes: [{ id: "start", label: "Starting amount" }, { id: "rate", label: "Annual growth" }, { id: "result", label: "Projected amount" }], edges: [{ from: "start", to: "rate" }, { from: "rate", to: "result" }] } },
+    "reset-growth": { type: "button", props: { label: "Reset assumptions" }, on: { click: [{ do: "set", path: "principal", value: 1000 }, { do: "set", path: "rate", value: 5 }] } },
   };
   const form = base("event-planner", "Event planner — a validated form");
   form.state = { submitted: null };

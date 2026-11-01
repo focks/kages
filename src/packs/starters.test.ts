@@ -1,6 +1,5 @@
-// The New Kage picker offers these as one-click starting points — the blank canvas is the
-// default landing shape and diverges from the worked examples, so pin that EVERY
-// starter (blank included) is a valid document a person can immediately create.
+// The picker leads with a curated review brief and retains an explicit blank page.
+// Every offered document must be valid before a person creates it.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
