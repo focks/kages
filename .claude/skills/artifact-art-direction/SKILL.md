@@ -21,8 +21,9 @@ opening. Keep ordinary chapters quieter. `inherit` preserves workspace branding.
 Use `diagram` nodes `{id,label,group?,palette?}` and edges
 `{from,to,label?,palette?}` for directed relationships. Auto layout layers DAGs
 by edges and switches to vertical on narrow containers. Cycles use a grid;
-complex graphs can scroll. Explicit x/y retains legacy geometry and does not
-support the new palette/selection presentation. Avoid a giant architecture map
+complex graphs can scroll. For automatic `diagram`, explicit x/y retains an older geometry renderer.
+Use `boundary-diagram` for authored zones, rich cards and child endpoints;
+its explicit coordinates are the supported form for that task. Avoid a giant architecture map
 when several small diagrams would explain the relationships better.
 
 Most diagrams should stay static with the takeaway in the caption; the

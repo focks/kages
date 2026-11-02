@@ -297,6 +297,9 @@ export function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFo
       });
       for (const actions of Object.values(b.on || {})) for (const action of Array.isArray(actions) ? actions : []) { if (action.do === "call" && action.target !== "$self" && [...repeats(action.target)].some(r => !scope.has(r))) fail(at, "ambiguous-instance", "Call to a repeated block must be inside the same repeat scope"); }
       const c = contractFor ? contractFor(b.type) : null;
+      if (c?.implements?.includes("kages/boundary-diagram@1")) {
+        for (const finding of boundaryFindings(b.props || {})) fail(at + "/props", finding.code, finding.msg);
+      }
       for (const [slot, children] of Object.entries(b.slots || {})) if (c?.slots?.[slot]?.max && children.some(child => blocks[child]?.repeat)) fail(at + "/slots/" + slot, "repeat-slot-limit", "Place repeated blocks inside an unbounded container to respect slot cardinality");
       if (b.repeat !== undefined) {
         const r = b.repeat;
@@ -350,4 +353,80 @@ export function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFo
  * resolve as well, so a state update cannot bypass a reusable component's type. */
 export function matchesInput(spec, value) {
   return typeof spec.type === "string" && spec.type.split("|").some(type => type === "null" ? value === null : value != null && (type === "array" ? Array.isArray(value) : type === "object" ? object(value) : type === "number" ? finite(value) : typeof value === type)) && (!spec.enum || spec.enum.includes(value));
+}
+
+/** Fail closed on structured drawings: dropping an unknown endpoint would turn
+ * an invalid architecture into a plausible but false picture. Geometry is
+ * bounded before either the oracle or renderer consumes it. */
+export function boundaryFindings(p) {
+  const out = [], ids = new Map(), rectangles = [];
+  let rectangleCount = 0, overBudget = false;
+  const fail = (code, msg) => out.push({ code, msg });
+  const num = v => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 20000;
+  // All drawing records are the content contract too. A misspelled field
+  // otherwise validates as an empty box or drops an edge label without notice.
+  const keys = (value, allowed, at) => { for (const key of Object.keys(value)) if (!allowed.includes(key)) fail('boundary-content', at + ': unknown key ' + key); };
+
+  const list = (v, name, max) => {
+    if (!Array.isArray(v) || v.length > max) { fail('boundary-geometry', name + ' must be an array of at most ' + max); return []; }
+    return v;
+  };
+  if (!object(p) || !num(p.width) || !num(p.height) || p.width < 100 || p.height < 100) return [{ code: 'boundary-geometry', msg: 'Canvas width and height must be finite, from 100 to 20000' }];
+  keys(p, ['label','width','height','zones','cards','edges','caption'], 'drawing');
+  function rect(r, parent, at, depth, ancestors = [], zone = false) {
+    // Pairwise overlap work must be bounded even for deeply nested, tiny boxes.
+    // Excess input is an error, never a silently truncated successful drawing.
+    if (++rectangleCount > 2000) { if (!overBudget) fail('boundary-geometry', 'At most 2000 rectangles per drawing'); overBudget = true; return; }
+    if (!object(r)) { fail('boundary-geometry', at + ' must be an object'); return; }
+    keys(r, ['id','x','y','width','height','label','title','subtitle','lines','rules','children','style','outline','palette'], at);
+    if (typeof r.id !== 'string' || !/^[a-zA-Z][\w-]{0,79}$/.test(r.id) || ids.has(r.id)) fail('boundary-id', at + ' requires a unique safe id');
+    else ids.set(r.id, { x: parent.x + r.x, y: parent.y + r.y, width: r.width, height: r.height });
+    if (!['x', 'y', 'width', 'height'].every(k => num(r[k])) || r.x < 0 || r.y < 0 || r.width <= 0 || r.height <= 0 || r.x + r.width > parent.width || r.y + r.height > parent.height) fail('boundary-geometry', at + ' must fit inside its parent with finite positive dimensions');
+    if (!zone && typeof r.id === 'string' && ['x','y','width','height'].every(k=>num(r[k]))) rectangles.push({id:r.id,x:parent.x+r.x,y:parent.y+r.y,width:r.width,height:r.height,ancestors});
+    for (const k of ['title', 'subtitle', 'label']) if (r[k] !== undefined && typeof r[k] !== 'string') fail('boundary-content', at + '.' + k + ' must be text');
+    if (r.outline !== undefined && !['muted', 'strong'].includes(r.outline)) fail('boundary-content', at + ' has unknown outline token');
+    if (r.style !== undefined && !['solid', 'dashed', 'dotted'].includes(r.style)) fail('boundary-content', at + ' has unknown outline style');
+    if (r.palette !== undefined && !['inherit', 'ocean', 'mint', 'violet', 'amber', 'rose'].includes(r.palette)) fail('boundary-content', at + ' has unknown palette');
+    for (const line of list(r.lines === undefined ? [] : r.lines, at + '.lines', 200)) {
+      if (object(line)) { keys(line, ['text','y','x','font','emphasis'], at + '.lines'); if (line.emphasis !== undefined && !['normal','accent'].includes(line.emphasis)) fail('boundary-content', at + ': unknown line emphasis'); }
+      if (!object(line) || typeof line.text !== 'string' || !line.text.trim() || !num(line.y) || line.y < 0 || line.y > r.height || (line.x !== undefined && (!num(line.x) || line.x < 0 || line.x >= r.width)) || (line.font !== undefined && !['sans', 'mono'].includes(line.font))) fail('boundary-content', at + ' lines need text, a baseline inside the card, and sans/mono font');
+    }
+    for (const y of list(r.rules === undefined ? [] : r.rules, at + '.rules', 100)) if (!num(y) || y < 0 || y > r.height) fail('boundary-geometry', at + ' rule must fit inside card');
+    const children = list(r.children === undefined ? [] : r.children, at + '.children', 200);
+    if (depth >= 4 && children.length) fail('boundary-geometry', 'Child nesting is limited to four levels');
+    else for (const child of children) rect(child, { x: parent.x + r.x, y: parent.y + r.y, width: r.width, height: r.height }, at + '.children', depth + 1, [...ancestors, r.id]);
+  }
+  const zones = list(p.zones === undefined ? [] : p.zones, 'zones', 100), cards = list(p.cards, 'cards', 200);
+  if (!zones.length && !cards.length) fail('boundary-geometry', 'A drawing needs at least one zone or card');
+  for (const zone of zones) rect(zone, { x: 0, y: 0, width: p.width, height: p.height }, 'zone', 0, [], true);
+  for (const card of cards) rect(card, { x: 0, y: 0, width: p.width, height: p.height }, 'card', 0);
+  // Containment is intentional; unrelated opaque cards are not. Zones are
+  // absent from this set because their boundaries deliberately enclose cards.
+  if (!overBudget) overlap: for (let i=0;i<rectangles.length;i++) for (let j=i+1;j<rectangles.length;j++) {
+    const a=rectangles[i], b=rectangles[j];
+    if (a.ancestors.includes(b.id) || b.ancestors.includes(a.id)) continue;
+    if (a.x < b.x+b.width && a.x+a.width > b.x && a.y < b.y+b.height && a.y+a.height > b.y) { fail('boundary-overlap', 'Non-nested rectangles overlap: '+a.id+' and '+b.id); break overlap; }
+  }
+  for (const e of list(p.edges === undefined ? [] : p.edges, 'edges', 400)) {
+    if (!object(e)) { fail('boundary-endpoint', 'Edge must be an object'); continue; }
+    keys(e, ['from','to','fromSide','toSide','fromPort','toPort','via','style','palette','arrows','label','labelX','labelY'], 'edge');
+    if (e.label === undefined && (e.labelX !== undefined || e.labelY !== undefined)) fail('boundary-content', 'Edge label positions require label text');
+    if (!ids.has(e.from) || !ids.has(e.to)) fail('boundary-endpoint', 'Unknown card or child endpoint');
+    for (const key of ['fromSide', 'toSide']) if (!['left', 'right', 'top', 'bottom'].includes(e[key])) fail('boundary-endpoint', key + ' must name a side');
+    for (const key of ['fromPort', 'toPort']) if (e[key] !== undefined && (!num(e[key]) || e[key] < 0 || e[key] > 1)) fail('boundary-geometry', key + ' must be between 0 and 1');
+    for (const pt of list(e.via === undefined ? [] : e.via, 'via', 100)) if (!Array.isArray(pt) || pt.length !== 2 || !pt.every(num) || pt[0] < 0 || pt[1] < 0 || pt[0] > p.width || pt[1] > p.height) fail('boundary-geometry', 'Waypoints must be finite [x,y] within the canvas');
+    if (e.label !== undefined && (typeof e.label !== 'string' || !e.label.trim() || !num(e.labelX) || !num(e.labelY) || e.labelX < 0 || e.labelY < 0 || e.labelX > p.width || e.labelY > p.height)) fail('boundary-geometry', 'Edge labels need text and finite labelX/labelY within the canvas');
+    if (e.style !== undefined && !['solid', 'dashed', 'dotted'].includes(e.style)) fail('boundary-content', 'Unknown edge style');
+    if (e.arrows !== undefined && !['none', 'end', 'both'].includes(e.arrows)) fail('boundary-content', 'Unknown arrow mode');
+    if (e.palette !== undefined && !['inherit', 'ocean', 'mint', 'violet', 'amber', 'rose'].includes(e.palette)) fail('boundary-content', 'Unknown edge palette');
+    // Arrowheads need a direction. Reject repeated adjacent points instead of
+    // letting a zero-length first/last segment silently remove one arrowhead.
+    if (ids.has(e.from) && ids.has(e.to) && Array.isArray(e.via === undefined ? [] : e.via)) {
+      const point = (id, side, port) => { const b=ids.get(id),t=port === undefined ? .5 : port;return side==='left'?[b.x,b.y+b.height*t]:side==='right'?[b.x+b.width,b.y+b.height*t]:side==='top'?[b.x+b.width*t,b.y]:[b.x+b.width*t,b.y+b.height]; };
+      const points=[point(e.from,e.fromSide,e.fromPort),...(e.via || []),point(e.to,e.toSide,e.toPort)];
+      if (points.every(p=>Array.isArray(p)&&p.length===2&&p.every(num))) for (let i=1;i<points.length;i++) if (points[i][0]===points[i-1][0]&&points[i][1]===points[i-1][1]) { fail('boundary-geometry','Route segments must have nonzero length'); break; }
+    }
+
+  }
+  return out;
 }
