@@ -88,3 +88,22 @@ test('a boundary diagram inside a composition validates and renders through the 
  });
  const [shot]=await screenshotDoc(d,{...DEFAULTS,url,widths:[390],noSandbox:process.env.KAGES_CHROME_NO_SANDBOX==='1'});assert.deepEqual(shot.issues,[]);
 });
+
+// Capture colours from painted nodes: palette descendants can shadow a token
+// even when the independently generated design passes its own contrast pairs.
+test('amber cell titles and accent lines retain readable captured text in default and pinned themes', {skip,timeout:180000}, async()=>{
+ for(const brand of [null,'#7c3aed','#4f46e5','#9333ea','#dc2626','#2563eb','#c2410c']) for(const dark of [false,true]){
+  const d=example();
+  const p=d.blocks.architecture.props as any;
+  const cell=p.cards[0].children[0];cell.palette='amber';cell.title='Amber title';
+  cell.lines=[{text:'Accent line',y:60,emphasis:'accent'}];
+  if(brand){d.resolved=pinned().resolved;d.resolved!.design=resolveDesign({id:'amber-study',name:'Amber study',base:'core',colors:paletteFromBrand(brand)!});}
+  await inFrame(d,async ev=>{
+   const painted=await ev(`(()=>{const c=document.querySelector('.kg-boundary__cell.kg-palette-amber'),b=document.querySelector('.kg-boundary');return {title:getComputedStyle(c.querySelector('.kg-boundary__title')).fill,line:getComputedStyle(c.querySelector('.kg-boundary__line--accent')).fill,ground:getComputedStyle(c.querySelector('rect')).fill,captured:getComputedStyle(b).getPropertyValue('--kg-boundary-write-text').trim()}})()`);
+   const hex=(rgb:string)=>'#'+rgb.match(/\d+/g)!.map(n=>Number(n).toString(16).padStart(2,'0')).join('');
+   assert.equal(hex(painted.title),painted.captured,JSON.stringify({brand,dark,painted}));
+   for(const role of ['title','line']) assert.ok(contrast(hex(painted[role]),hex(painted.ground))>=4.5,JSON.stringify({brand,dark,role,painted}));
+   console.log(JSON.stringify({brand:brand??'default',mode:dark?'dark':'light',title:contrast(hex(painted.title),hex(painted.ground)),line:contrast(hex(painted.line),hex(painted.ground)),painted}));
+  },dark);
+ }
+});

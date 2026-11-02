@@ -1,6 +1,6 @@
 /* Preserve authored geometry inside a focusable scroll region. Shrinking the
    SVG on phones would make monospace source lines unreadable. */
-.kg-kage .kg-boundary { margin: 0; min-width: 0; color: var(--kg-ink); --kg-boundary-label: var(--kg-ink-muted); --kg-boundary-request: var(--kg-wire); --kg-boundary-write: var(--kg-accent); --kg-boundary-write-soft: var(--kg-accent-soft); }
+.kg-kage .kg-boundary { margin: 0; min-width: 0; color: var(--kg-ink); --kg-boundary-label: var(--kg-ink-muted); --kg-boundary-request: var(--kg-wire); --kg-boundary-write: var(--kg-accent); --kg-boundary-write-soft: var(--kg-accent-soft); --kg-boundary-write-text: var(--kg-ink-muted); }
 .kg-boundary__viewport { overflow: auto; max-width: 100%; overscroll-behavior-inline: contain; }
 .kg-boundary__viewport:focus-visible { outline: 2px solid var(--kg-focus); outline-offset: -2px; }
 .kg-boundary svg { display: block; max-width: none; user-select: text; }
@@ -27,7 +27,7 @@
 .kg-boundary .kg-boundary__edge-label.kg-palette-ocean { fill: var(--kg-boundary-request); }
 .kg-boundary .kg-boundary__edge-label.kg-palette-amber { fill: var(--kg-boundary-write); }
 .kg-boundary .kg-boundary__cell.kg-palette-amber > rect { fill: var(--kg-boundary-write-soft); stroke: var(--kg-boundary-write); }
-.kg-boundary .kg-boundary__cell.kg-palette-amber text { fill: var(--kg-ink-muted); }
+.kg-boundary .kg-boundary__cell.kg-palette-amber text { fill: var(--kg-boundary-write-text); }
 .kg-boundary .kg-boundary__line--accent { fill: var(--kg-accent); }
 .kg-boundary .kg-boundary__cell.kg-palette-amber .kg-boundary__line--accent { fill: var(--kg-boundary-write); }
 .kg-boundary figcaption { color: var(--kg-ink-muted); margin-top: 12px; }
@@ -43,3 +43,7 @@
 /* Wire is a 3:1 stroke role in workspace designs, not a text role. Keep request
    strokes branded while request labels inherit the design's readable text. */
 .kg-design .kg-boundary .kg-boundary__edge-label.kg-palette-ocean { fill: var(--kg-boundary-label); }
+
+/* A design accent is checked on paper, not on accent-soft. Keep the cell's
+   branded ground and stroke while using its captured readable text token. */
+.kg-design .kg-boundary .kg-boundary__cell.kg-palette-amber .kg-boundary__line--accent { fill: var(--kg-boundary-write-text); }

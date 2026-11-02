@@ -21,6 +21,13 @@ for (const [id, palette] of Object.entries({ ...PRESENTATION_PALETTES, "boundary
     const min = ["focus", "line-control"].includes(role) ? 3 : 4.5;
     if (contrast(palette[mode][role], palette[mode]["accent-soft"]) < min) bad.push({ mode, text: role, on: "accent-soft" });
   }
+  // Amber cells paint captured boundary text and accent on the captured soft
+  // ground, not the amber region's local text. Check these actual paint pairs.
+  if (id === "boundary") for (const mode of ["light", "dark"]) for (const role of ["write-text", "accent"]) {
+    const ratio = contrast(palette[mode][role], palette[mode]["accent-soft"]);
+    console.log(`boundary amber cell ${mode} ${role}: ${ratio.toFixed(3)}:1`);
+    if (ratio < 4.5) bad.push({ mode, text: role, on: "accent-soft (amber cell)" });
+  }
   // Boundary captions and inherited edge labels use the border token as text,
   // so its usual 3:1 control bar is insufficient on this specific ground.
   if (id === "boundary") for (const mode of ["light", "dark"]) if (contrast(palette[mode]["line-control"], palette[mode].paper) < 4.5) bad.push({ mode, text: "line-control", on: "paper (text)" });

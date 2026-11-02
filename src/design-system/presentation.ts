@@ -39,14 +39,15 @@ export function presentationCss(): string {
 
 // Technical drawings share a quiet neutral canvas and two semantic channels:
 // blue for requests, amber for writes. Kept outside the region palette enum so
-// adding this form cannot restyle existing sections or graph nodes.
+// adding this form cannot restyle existing sections or graph nodes. The warm
+// cell text stays separate from the cool neutral text on the main canvas.
 export const BOUNDARY_PALETTE = {
-  light: { ...PRESENTATION_PALETTES.ocean.light, paper: '#f7f8fa', surface: '#ffffff', sunken: '#eceff3', ink: '#202630', 'ink-muted': '#454f5d', line: '#cbd1d9', 'line-control': '#65717f', accent: '#875000', 'accent-soft': '#fff0d9', 'accent-ink': '#ffffff', wire: '#2453a4', 'wire-soft': '#e0eaff', focus: '#2453a4' },
-  dark: { ...PRESENTATION_PALETTES.ocean.dark, paper: '#181b22', surface: '#181b22', sunken: '#20252b', ink: '#e9edf2', 'ink-muted': '#c5cad2', line: '#30363f', 'line-control': '#8d96a2', accent: '#e9ad56', 'accent-soft': '#382710', 'accent-ink': '#181b22', wire: '#84a7ff', 'wire-soft': '#222b45', focus: '#84a7ff' },
+  light: { ...PRESENTATION_PALETTES.ocean.light, 'write-text': '#454f5d', paper: '#f7f8fa', surface: '#ffffff', sunken: '#eceff3', ink: '#202630', 'ink-muted': '#454f5d', line: '#cbd1d9', 'line-control': '#65717f', accent: '#875000', 'accent-soft': '#fff0d9', 'accent-ink': '#ffffff', wire: '#2453a4', 'wire-soft': '#e0eaff', focus: '#2453a4' },
+  dark: { ...PRESENTATION_PALETTES.ocean.dark, 'write-text': '#d2c9c6', paper: '#181b22', surface: '#181b22', sunken: '#20252b', ink: '#e9edf2', 'ink-muted': '#c5cad2', line: '#30363f', 'line-control': '#8d96a2', accent: '#e9ad56', 'accent-soft': '#382710', 'accent-ink': '#181b22', wire: '#84a7ff', 'wire-soft': '#222b45', focus: '#84a7ff' },
 };
 
 /** Scope the technical palette to its new role so old artifacts keep their
  * original colours. Every paint still comes from a checked theme token. */
 export function boundaryCss(): string {
-  return (['light', 'dark'] as const).map(theme => `${theme === 'dark' ? '.dark ' : ''}.kg-kage:not(.kg-design) .kg-boundary {\n${COLOR_ROLES.map(role => `  --kg-${role}: ${BOUNDARY_PALETTE[theme][role]};`).join('\n')}\n}`).join('\n');
+  return (['light', 'dark'] as const).map(theme => `${theme === 'dark' ? '.dark ' : ''}.kg-kage:not(.kg-design) .kg-boundary {\n${COLOR_ROLES.map(role => `  --kg-${role}: ${BOUNDARY_PALETTE[theme][role]};`).join('\n')}\n  --kg-boundary-write-text: ${BOUNDARY_PALETTE[theme]['write-text']};\n}`).join('\n');
 }

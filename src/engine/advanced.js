@@ -363,7 +363,7 @@ export function boundaryFindings(p) {
   let rectangleCount = 0, overBudget = false;
   const fail = (code, msg) => out.push({ code, msg });
   const num = v => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 20000;
-  // Nested drawing records are the content contract too. A misspelled field
+  // All drawing records are the content contract too. A misspelled field
   // otherwise validates as an empty box or drops an edge label without notice.
   const keys = (value, allowed, at) => { for (const key of Object.keys(value)) if (!allowed.includes(key)) fail('boundary-content', at + ': unknown key ' + key); };
 
@@ -372,6 +372,7 @@ export function boundaryFindings(p) {
     return v;
   };
   if (!object(p) || !num(p.width) || !num(p.height) || p.width < 100 || p.height < 100) return [{ code: 'boundary-geometry', msg: 'Canvas width and height must be finite, from 100 to 20000' }];
+  keys(p, ['label','width','height','zones','cards','edges','caption'], 'drawing');
   function rect(r, parent, at, depth, ancestors = [], zone = false) {
     // Pairwise overlap work must be bounded even for deeply nested, tiny boxes.
     // Excess input is an error, never a silently truncated successful drawing.
@@ -388,7 +389,7 @@ export function boundaryFindings(p) {
     if (r.palette !== undefined && !['inherit', 'ocean', 'mint', 'violet', 'amber', 'rose'].includes(r.palette)) fail('boundary-content', at + ' has unknown palette');
     for (const line of list(r.lines === undefined ? [] : r.lines, at + '.lines', 200)) {
       if (object(line)) { keys(line, ['text','y','x','font','emphasis'], at + '.lines'); if (line.emphasis !== undefined && !['normal','accent'].includes(line.emphasis)) fail('boundary-content', at + ': unknown line emphasis'); }
-      if (!object(line) || typeof line.text !== 'string' || !num(line.y) || line.y < 0 || line.y > r.height || (line.x !== undefined && (!num(line.x) || line.x < 0 || line.x >= r.width)) || (line.font !== undefined && !['sans', 'mono'].includes(line.font))) fail('boundary-content', at + ' lines need text, a baseline inside the card, and sans/mono font');
+      if (!object(line) || typeof line.text !== 'string' || !line.text.trim() || !num(line.y) || line.y < 0 || line.y > r.height || (line.x !== undefined && (!num(line.x) || line.x < 0 || line.x >= r.width)) || (line.font !== undefined && !['sans', 'mono'].includes(line.font))) fail('boundary-content', at + ' lines need text, a baseline inside the card, and sans/mono font');
     }
     for (const y of list(r.rules === undefined ? [] : r.rules, at + '.rules', 100)) if (!num(y) || y < 0 || y > r.height) fail('boundary-geometry', at + ' rule must fit inside card');
     const children = list(r.children === undefined ? [] : r.children, at + '.children', 200);
@@ -414,7 +415,7 @@ export function boundaryFindings(p) {
     for (const key of ['fromSide', 'toSide']) if (!['left', 'right', 'top', 'bottom'].includes(e[key])) fail('boundary-endpoint', key + ' must name a side');
     for (const key of ['fromPort', 'toPort']) if (e[key] !== undefined && (!num(e[key]) || e[key] < 0 || e[key] > 1)) fail('boundary-geometry', key + ' must be between 0 and 1');
     for (const pt of list(e.via === undefined ? [] : e.via, 'via', 100)) if (!Array.isArray(pt) || pt.length !== 2 || !pt.every(num) || pt[0] < 0 || pt[1] < 0 || pt[0] > p.width || pt[1] > p.height) fail('boundary-geometry', 'Waypoints must be finite [x,y] within the canvas');
-    if (e.label !== undefined && (typeof e.label !== 'string' || !num(e.labelX) || !num(e.labelY) || e.labelX < 0 || e.labelY < 0 || e.labelX > p.width || e.labelY > p.height)) fail('boundary-geometry', 'Edge labels need text and finite labelX/labelY within the canvas');
+    if (e.label !== undefined && (typeof e.label !== 'string' || !e.label.trim() || !num(e.labelX) || !num(e.labelY) || e.labelX < 0 || e.labelY < 0 || e.labelX > p.width || e.labelY > p.height)) fail('boundary-geometry', 'Edge labels need text and finite labelX/labelY within the canvas');
     if (e.style !== undefined && !['solid', 'dashed', 'dotted'].includes(e.style)) fail('boundary-content', 'Unknown edge style');
     if (e.arrows !== undefined && !['none', 'end', 'both'].includes(e.arrows)) fail('boundary-content', 'Unknown arrow mode');
     if (e.palette !== undefined && !['inherit', 'ocean', 'mint', 'violet', 'amber', 'rose'].includes(e.palette)) fail('boundary-content', 'Unknown edge palette');

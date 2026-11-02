@@ -48,6 +48,9 @@ has no data access of its own, so exposing it exposes nothing.
 | text extends beyond its boundary card or canvas | A boundary label or line exceeds its own rectangle; widen the rectangle, shorten/split text or move the baseline. Contained phone scrolling is not a text-bounds failure. |
 | taller than 12000px | the capture is cut; split the page |
 
+Boundary edge strokes through text and edge labels over other text are not
+detected by these checks. Authors must look at the render for both collisions.
+
 The checks are objective, not taste: still *look* at the image for hierarchy, spacing
 and emptiness. Review at 390 (phone) and 1200 (desktop), and `--dark` once.
 

@@ -63,6 +63,9 @@ test('routes preserve nested parent offsets, every waypoint, line fonts and divi
 });
 test('nested typos, orphan label positions and collapsed route segments are rejected', () => {
   const changes = [
+    (p: any) => { p.edgs = p.edges; delete p.edges; },
+    (p: any) => { p.cards[0].lines[0].text = ''; },
+    (p: any) => { p.edges[0].label = ''; p.edges[0].labelX = 300; p.edges[0].labelY = 130; },
     (p: any) => { p.cards[0].body = 'lost content'; },
     (p: any) => { p.cards[0].children[0].body = 'lost child'; },
     (p: any) => { p.cards[0].lines[0].content = 'lost line'; },

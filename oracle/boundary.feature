@@ -21,7 +21,7 @@ Feature: Authored system-boundary diagrams
       | a malformed route waypoint      |
 
   Scenario: Authored content is not silently lost
-    Given a boundary-diagram with an unknown nested key or zero-length route segment
+    Given a boundary-diagram with an unknown top-level or nested key, empty line text, empty edge label or zero-length route segment
     When it is validated
     Then it reports a boundary finding instead of dropping content or arrowheads
 
