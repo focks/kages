@@ -123,3 +123,14 @@ test("shotFiles: -o file.png needs one width, and a hostile document id cannot l
   assert.ok(shotFiles("/o", [1200], "")[0].startsWith("/o/"));
   assert.equal(dirname(shotFiles(undefined, [1200], "d")[0]), process.cwd());
 });
+
+test('boundary text extending beyond its card is a screenshot finding, including old metrics compatibility', () => {
+  const problems=summarize({...clean, clippedText:['@architecture: CLIPPED-TAIL']},[],false,12000);
+  assert.ok(problems.some(p=>/text extends beyond.*@architecture: CLIPPED-TAIL/.test(p)),JSON.stringify(problems));
+  assert.deepEqual(summarize(clean,[],false,12000),[]);
+});
+
+test('occluded boundary text is a screenshot finding and absent legacy metrics remain compatible', () => {
+  assert.ok(summarize({...clean,occludedText:['@architecture: hidden text']},[],false,12000).some(s=>/hidden by a later rectangle.*@architecture: hidden text/.test(s)));
+  assert.deepEqual(summarize(clean,[],false,12000),[]);
+});

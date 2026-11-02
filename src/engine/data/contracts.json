@@ -12498,6 +12498,1238 @@
     },
     "limits": {}
   },
+  "core/boundary-diagram@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/boundary-diagram",
+    "version": "1.0.0",
+    "ref": "core/boundary-diagram@1.0.0",
+    "system": "core",
+    "name": "boundary-diagram",
+    "implements": [
+      "kages/boundary-diagram@1"
+    ],
+    "role": "boundary-diagram",
+    "summary": "Authored system boundaries with nested cards, selectable text and routed child endpoints.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "width": {
+        "type": "number",
+        "required": true
+      },
+      "height": {
+        "type": "number",
+        "required": true
+      },
+      "zones": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "subtitle": {
+              "type": "string"
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "requiredKeys": [
+                  "text",
+                  "y"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Baseline in parent-relative canvas units"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "font": {
+                    "type": "string",
+                    "enum": [
+                      "mono",
+                      "sans"
+                    ]
+                  },
+                  "emphasis": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "accent"
+                    ],
+                    "description": "Explicit semantic accent; normal text is never inferred from position"
+                  }
+                }
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "style": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            "outline": {
+              "type": "string",
+              "enum": [
+                "muted",
+                "strong"
+              ]
+            },
+            "palette": {
+              "type": "string",
+              "enum": [
+                "inherit",
+                "ocean",
+                "mint",
+                "violet",
+                "amber",
+                "rose"
+              ]
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "requiredKeys": [
+                  "id",
+                  "x",
+                  "y",
+                  "width",
+                  "height"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "height": {
+                    "type": "number"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "subtitle": {
+                    "type": "string"
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "requiredKeys": [
+                        "text",
+                        "y"
+                      ],
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "y": {
+                          "type": "number",
+                          "description": "Baseline in parent-relative canvas units"
+                        },
+                        "x": {
+                          "type": "number"
+                        },
+                        "font": {
+                          "type": "string",
+                          "enum": [
+                            "mono",
+                            "sans"
+                          ]
+                        },
+                        "emphasis": {
+                          "type": "string",
+                          "enum": [
+                            "normal",
+                            "accent"
+                          ],
+                          "description": "Explicit semantic accent; normal text is never inferred from position"
+                        }
+                      }
+                    }
+                  },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "style": {
+                    "type": "string",
+                    "enum": [
+                      "solid",
+                      "dashed",
+                      "dotted"
+                    ]
+                  },
+                  "outline": {
+                    "type": "string",
+                    "enum": [
+                      "muted",
+                      "strong"
+                    ]
+                  },
+                  "palette": {
+                    "type": "string",
+                    "enum": [
+                      "inherit",
+                      "ocean",
+                      "mint",
+                      "violet",
+                      "amber",
+                      "rose"
+                    ]
+                  },
+                  "children": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "requiredKeys": [
+                        "id",
+                        "x",
+                        "y",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        },
+                        "width": {
+                          "type": "number"
+                        },
+                        "height": {
+                          "type": "number"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "subtitle": {
+                          "type": "string"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "requiredKeys": [
+                              "text",
+                              "y"
+                            ],
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "y": {
+                                "type": "number",
+                                "description": "Baseline in parent-relative canvas units"
+                              },
+                              "x": {
+                                "type": "number"
+                              },
+                              "font": {
+                                "type": "string",
+                                "enum": [
+                                  "mono",
+                                  "sans"
+                                ]
+                              },
+                              "emphasis": {
+                                "type": "string",
+                                "enum": [
+                                  "normal",
+                                  "accent"
+                                ],
+                                "description": "Explicit semantic accent; normal text is never inferred from position"
+                              }
+                            }
+                          }
+                        },
+                        "rules": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        "style": {
+                          "type": "string",
+                          "enum": [
+                            "solid",
+                            "dashed",
+                            "dotted"
+                          ]
+                        },
+                        "outline": {
+                          "type": "string",
+                          "enum": [
+                            "muted",
+                            "strong"
+                          ]
+                        },
+                        "palette": {
+                          "type": "string",
+                          "enum": [
+                            "inherit",
+                            "ocean",
+                            "mint",
+                            "violet",
+                            "amber",
+                            "rose"
+                          ]
+                        },
+                        "children": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "requiredKeys": [
+                              "id",
+                              "x",
+                              "y",
+                              "width",
+                              "height"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "x": {
+                                "type": "number"
+                              },
+                              "y": {
+                                "type": "number"
+                              },
+                              "width": {
+                                "type": "number"
+                              },
+                              "height": {
+                                "type": "number"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "subtitle": {
+                                "type": "string"
+                              },
+                              "lines": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "requiredKeys": [
+                                    "text",
+                                    "y"
+                                  ],
+                                  "properties": {
+                                    "text": {
+                                      "type": "string"
+                                    },
+                                    "y": {
+                                      "type": "number",
+                                      "description": "Baseline in parent-relative canvas units"
+                                    },
+                                    "x": {
+                                      "type": "number"
+                                    },
+                                    "font": {
+                                      "type": "string",
+                                      "enum": [
+                                        "mono",
+                                        "sans"
+                                      ]
+                                    },
+                                    "emphasis": {
+                                      "type": "string",
+                                      "enum": [
+                                        "normal",
+                                        "accent"
+                                      ],
+                                      "description": "Explicit semantic accent; normal text is never inferred from position"
+                                    }
+                                  }
+                                }
+                              },
+                              "rules": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              },
+                              "style": {
+                                "type": "string",
+                                "enum": [
+                                  "solid",
+                                  "dashed",
+                                  "dotted"
+                                ]
+                              },
+                              "outline": {
+                                "type": "string",
+                                "enum": [
+                                  "muted",
+                                  "strong"
+                                ]
+                              },
+                              "palette": {
+                                "type": "string",
+                                "enum": [
+                                  "inherit",
+                                  "ocean",
+                                  "mint",
+                                  "violet",
+                                  "amber",
+                                  "rose"
+                                ]
+                              },
+                              "children": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "requiredKeys": [
+                                    "id",
+                                    "x",
+                                    "y",
+                                    "width",
+                                    "height"
+                                  ],
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "x": {
+                                      "type": "number"
+                                    },
+                                    "y": {
+                                      "type": "number"
+                                    },
+                                    "width": {
+                                      "type": "number"
+                                    },
+                                    "height": {
+                                      "type": "number"
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    },
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "subtitle": {
+                                      "type": "string"
+                                    },
+                                    "lines": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "requiredKeys": [
+                                          "text",
+                                          "y"
+                                        ],
+                                        "properties": {
+                                          "text": {
+                                            "type": "string"
+                                          },
+                                          "y": {
+                                            "type": "number",
+                                            "description": "Baseline in parent-relative canvas units"
+                                          },
+                                          "x": {
+                                            "type": "number"
+                                          },
+                                          "font": {
+                                            "type": "string",
+                                            "enum": [
+                                              "mono",
+                                              "sans"
+                                            ]
+                                          },
+                                          "emphasis": {
+                                            "type": "string",
+                                            "enum": [
+                                              "normal",
+                                              "accent"
+                                            ],
+                                            "description": "Explicit semantic accent; normal text is never inferred from position"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "rules": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "style": {
+                                      "type": "string",
+                                      "enum": [
+                                        "solid",
+                                        "dashed",
+                                        "dotted"
+                                      ]
+                                    },
+                                    "outline": {
+                                      "type": "string",
+                                      "enum": [
+                                        "muted",
+                                        "strong"
+                                      ]
+                                    },
+                                    "palette": {
+                                      "type": "string",
+                                      "enum": [
+                                        "inherit",
+                                        "ocean",
+                                        "mint",
+                                        "violet",
+                                        "amber",
+                                        "rose"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "description": "Child rectangles use coordinates relative to this rectangle"
+                              }
+                            }
+                          },
+                          "description": "Child rectangles use coordinates relative to this rectangle"
+                        }
+                      }
+                    },
+                    "description": "Child rectangles use coordinates relative to this rectangle"
+                  }
+                }
+              },
+              "description": "Child rectangles use coordinates relative to this rectangle"
+            }
+          }
+        }
+      },
+      "cards": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "id",
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "subtitle": {
+              "type": "string"
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "requiredKeys": [
+                  "text",
+                  "y"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "y": {
+                    "type": "number",
+                    "description": "Baseline in parent-relative canvas units"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "font": {
+                    "type": "string",
+                    "enum": [
+                      "mono",
+                      "sans"
+                    ]
+                  },
+                  "emphasis": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "accent"
+                    ],
+                    "description": "Explicit semantic accent; normal text is never inferred from position"
+                  }
+                }
+              }
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "style": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            "outline": {
+              "type": "string",
+              "enum": [
+                "muted",
+                "strong"
+              ]
+            },
+            "palette": {
+              "type": "string",
+              "enum": [
+                "inherit",
+                "ocean",
+                "mint",
+                "violet",
+                "amber",
+                "rose"
+              ]
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "requiredKeys": [
+                  "id",
+                  "x",
+                  "y",
+                  "width",
+                  "height"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "height": {
+                    "type": "number"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "subtitle": {
+                    "type": "string"
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "requiredKeys": [
+                        "text",
+                        "y"
+                      ],
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "y": {
+                          "type": "number",
+                          "description": "Baseline in parent-relative canvas units"
+                        },
+                        "x": {
+                          "type": "number"
+                        },
+                        "font": {
+                          "type": "string",
+                          "enum": [
+                            "mono",
+                            "sans"
+                          ]
+                        },
+                        "emphasis": {
+                          "type": "string",
+                          "enum": [
+                            "normal",
+                            "accent"
+                          ],
+                          "description": "Explicit semantic accent; normal text is never inferred from position"
+                        }
+                      }
+                    }
+                  },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "style": {
+                    "type": "string",
+                    "enum": [
+                      "solid",
+                      "dashed",
+                      "dotted"
+                    ]
+                  },
+                  "outline": {
+                    "type": "string",
+                    "enum": [
+                      "muted",
+                      "strong"
+                    ]
+                  },
+                  "palette": {
+                    "type": "string",
+                    "enum": [
+                      "inherit",
+                      "ocean",
+                      "mint",
+                      "violet",
+                      "amber",
+                      "rose"
+                    ]
+                  },
+                  "children": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "requiredKeys": [
+                        "id",
+                        "x",
+                        "y",
+                        "width",
+                        "height"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        },
+                        "width": {
+                          "type": "number"
+                        },
+                        "height": {
+                          "type": "number"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "subtitle": {
+                          "type": "string"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "requiredKeys": [
+                              "text",
+                              "y"
+                            ],
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "y": {
+                                "type": "number",
+                                "description": "Baseline in parent-relative canvas units"
+                              },
+                              "x": {
+                                "type": "number"
+                              },
+                              "font": {
+                                "type": "string",
+                                "enum": [
+                                  "mono",
+                                  "sans"
+                                ]
+                              },
+                              "emphasis": {
+                                "type": "string",
+                                "enum": [
+                                  "normal",
+                                  "accent"
+                                ],
+                                "description": "Explicit semantic accent; normal text is never inferred from position"
+                              }
+                            }
+                          }
+                        },
+                        "rules": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        "style": {
+                          "type": "string",
+                          "enum": [
+                            "solid",
+                            "dashed",
+                            "dotted"
+                          ]
+                        },
+                        "outline": {
+                          "type": "string",
+                          "enum": [
+                            "muted",
+                            "strong"
+                          ]
+                        },
+                        "palette": {
+                          "type": "string",
+                          "enum": [
+                            "inherit",
+                            "ocean",
+                            "mint",
+                            "violet",
+                            "amber",
+                            "rose"
+                          ]
+                        },
+                        "children": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "requiredKeys": [
+                              "id",
+                              "x",
+                              "y",
+                              "width",
+                              "height"
+                            ],
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "x": {
+                                "type": "number"
+                              },
+                              "y": {
+                                "type": "number"
+                              },
+                              "width": {
+                                "type": "number"
+                              },
+                              "height": {
+                                "type": "number"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "subtitle": {
+                                "type": "string"
+                              },
+                              "lines": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "requiredKeys": [
+                                    "text",
+                                    "y"
+                                  ],
+                                  "properties": {
+                                    "text": {
+                                      "type": "string"
+                                    },
+                                    "y": {
+                                      "type": "number",
+                                      "description": "Baseline in parent-relative canvas units"
+                                    },
+                                    "x": {
+                                      "type": "number"
+                                    },
+                                    "font": {
+                                      "type": "string",
+                                      "enum": [
+                                        "mono",
+                                        "sans"
+                                      ]
+                                    },
+                                    "emphasis": {
+                                      "type": "string",
+                                      "enum": [
+                                        "normal",
+                                        "accent"
+                                      ],
+                                      "description": "Explicit semantic accent; normal text is never inferred from position"
+                                    }
+                                  }
+                                }
+                              },
+                              "rules": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                }
+                              },
+                              "style": {
+                                "type": "string",
+                                "enum": [
+                                  "solid",
+                                  "dashed",
+                                  "dotted"
+                                ]
+                              },
+                              "outline": {
+                                "type": "string",
+                                "enum": [
+                                  "muted",
+                                  "strong"
+                                ]
+                              },
+                              "palette": {
+                                "type": "string",
+                                "enum": [
+                                  "inherit",
+                                  "ocean",
+                                  "mint",
+                                  "violet",
+                                  "amber",
+                                  "rose"
+                                ]
+                              },
+                              "children": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "requiredKeys": [
+                                    "id",
+                                    "x",
+                                    "y",
+                                    "width",
+                                    "height"
+                                  ],
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "x": {
+                                      "type": "number"
+                                    },
+                                    "y": {
+                                      "type": "number"
+                                    },
+                                    "width": {
+                                      "type": "number"
+                                    },
+                                    "height": {
+                                      "type": "number"
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    },
+                                    "title": {
+                                      "type": "string"
+                                    },
+                                    "subtitle": {
+                                      "type": "string"
+                                    },
+                                    "lines": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "requiredKeys": [
+                                          "text",
+                                          "y"
+                                        ],
+                                        "properties": {
+                                          "text": {
+                                            "type": "string"
+                                          },
+                                          "y": {
+                                            "type": "number",
+                                            "description": "Baseline in parent-relative canvas units"
+                                          },
+                                          "x": {
+                                            "type": "number"
+                                          },
+                                          "font": {
+                                            "type": "string",
+                                            "enum": [
+                                              "mono",
+                                              "sans"
+                                            ]
+                                          },
+                                          "emphasis": {
+                                            "type": "string",
+                                            "enum": [
+                                              "normal",
+                                              "accent"
+                                            ],
+                                            "description": "Explicit semantic accent; normal text is never inferred from position"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "rules": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "style": {
+                                      "type": "string",
+                                      "enum": [
+                                        "solid",
+                                        "dashed",
+                                        "dotted"
+                                      ]
+                                    },
+                                    "outline": {
+                                      "type": "string",
+                                      "enum": [
+                                        "muted",
+                                        "strong"
+                                      ]
+                                    },
+                                    "palette": {
+                                      "type": "string",
+                                      "enum": [
+                                        "inherit",
+                                        "ocean",
+                                        "mint",
+                                        "violet",
+                                        "amber",
+                                        "rose"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "description": "Child rectangles use coordinates relative to this rectangle"
+                              }
+                            }
+                          },
+                          "description": "Child rectangles use coordinates relative to this rectangle"
+                        }
+                      }
+                    },
+                    "description": "Child rectangles use coordinates relative to this rectangle"
+                  }
+                }
+              },
+              "description": "Child rectangles use coordinates relative to this rectangle"
+            }
+          }
+        }
+      },
+      "edges": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "requiredKeys": [
+            "from",
+            "to",
+            "fromSide",
+            "toSide"
+          ],
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string"
+            },
+            "fromSide": {
+              "type": "string",
+              "enum": [
+                "left",
+                "right",
+                "top",
+                "bottom"
+              ]
+            },
+            "toSide": {
+              "type": "string",
+              "enum": [
+                "left",
+                "right",
+                "top",
+                "bottom"
+              ]
+            },
+            "fromPort": {
+              "type": "number"
+            },
+            "toPort": {
+              "type": "number"
+            },
+            "via": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "description": "Canvas-coordinate [x,y] waypoints; consecutive route points must differ"
+            },
+            "style": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "dashed",
+                "dotted"
+              ]
+            },
+            "palette": {
+              "type": "string",
+              "enum": [
+                "inherit",
+                "ocean",
+                "mint",
+                "violet",
+                "amber",
+                "rose"
+              ]
+            },
+            "arrows": {
+              "type": "string",
+              "enum": [
+                "none",
+                "end",
+                "both"
+              ]
+            },
+            "label": {
+              "type": "string"
+            },
+            "labelX": {
+              "type": "number"
+            },
+            "labelY": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "caption": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {},
+    "events": {},
+    "commands": {},
+    "defaults": {},
+    "outputs": [],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "wire",
+      "accent-soft",
+      "focus"
+    ],
+    "agent": {
+      "use": "Use when spatial boundaries, heterogeneous cards and nested endpoints carry meaning; use diagram for auto layout. Static only. width/height are canvas units (100..20000). zones/cards: {id,x,y,width,height,label?,title?,subtitle?,lines?:[{text,y,x?,font?:mono|sans,emphasis?:normal|accent}],rules?:[y],children?:[same rectangle],style?:solid|dashed|dotted,outline?:muted|strong,palette?:inherit|ocean|mint|violet|amber|rose}. Children use parent-relative coordinates; globally unique IDs, at most four child levels and 2000 rectangles total. At least one zone or card is required. Sibling and non-nested cards/cells must not overlap; zones are exempt. Keep text clear of later child rectangles. Card title baseline 33, subtitle 59, inset 20; cell inset 14. zones default to dashed outlines and uppercase mono labels; style overrides the outline. Unknown nested keys and zero-length route segments are errors. Use per-line emphasis:accent only where meaningful. edges: {from,to,fromSide,toSide,fromPort?,toPort?,via?:[[x,y]],style?,palette?,arrows?:none|end|both,label?,labelX?,labelY?}. Sides left/right/top/bottom, ports 0..1 along the side (default .5); via and label positions are canvas coordinates. Route orthogonally through gutters. Every endpoint must exist, including children. Text is literal, never HTML/SVG markup. Match line baselines and card dimensions to the content; no truncation. Phone uses contained keyboard-accessible horizontal scroll at original text size. Example: reference/examples/system-boundary-example.kage.json in the full example library. The technical palette applies only without a workspace design; pinned workspace colours take precedence."
+    },
+    "limits": {}
+  },
   "ledger/sidebar@2.0.0": {
     "$contract": "kages.contract/1",
     "id": "ledger/sidebar",

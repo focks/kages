@@ -39,11 +39,13 @@ has no data access of its own, so exposing it exposes nothing.
 
 | Finding | Meaning / fix |
 | --- | --- |
-| a block failed to render | an unresolved type or bad block; run `kages validate` for the fix |
+| a block failed to render | an unresolved type, rejected boundary drawing or bad block; run `kages validate` for the fix |
 | the page scrolls sideways | something is wider than the viewport; the overflowing blocks are named |
 | an image did not load | bad or blocked source (only https, local paths and raster data URLs render) |
 | console error | a runtime exception inside the render |
 | text too small to read in @block | an SVG figure is scaled below 8px text; wide figures get a minimum width and scroll, so this means very small text or an extreme drawing width |
+| boundary text is hidden by a later rectangle | Move the text or later card/cell; put a cell’s text in its own lines rather than a parent line behind it. Transparent zone rectangles do not hide text. |
+| text extends beyond its boundary card or canvas | A boundary label or line exceeds its own rectangle; widen the rectangle, shorten/split text or move the baseline. Contained phone scrolling is not a text-bounds failure. |
 | taller than 12000px | the capture is cut; split the page |
 
 The checks are objective, not taste: still *look* at the image for hierarchy, spacing

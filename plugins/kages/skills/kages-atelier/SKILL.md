@@ -1,6 +1,6 @@
 ---
 name: kages-atelier
-description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.14.0).
+description: Build free-flowing pages, reports and interactive tools as Kages in Atelier (atelier@1.15.0).
 ---
 
 # Kages — Atelier

@@ -33,6 +33,10 @@ export interface PageMetrics {
   missing: string[]; brokenImages: string[]; overflowing: string[];
   /** SVG text drawn smaller than MIN_TEXT_PX once the figure is scaled to fit, as "@block 5.7px". */
   tinyText: string[];
+  /** Optional because previously signed runtimes do not report glyph bounds. */
+  clippedText?: string[];
+  /** Optional for immutable runtimes predating occlusion diagnostics. */
+  occludedText?: string[];
 }
 
 /** Below this, text in a chart or diagram stops being legible on a phone. */
@@ -74,6 +78,8 @@ export function summarize(m: PageMetrics, consoleErrors: string[], truncated: bo
   for (const s of m.brokenImages.slice(0, 5)) issues.push(`an image did not load: ${s}`);
   for (const e of consoleErrors.slice(0, 5)) issues.push(`console error: ${e}`);
   if (truncated) issues.push(`the page is taller than ${maxHeight}px; the screenshot stops there`);
+  for (const text of (m.clippedText || []).slice(0, 5)) issues.push(`text extends beyond its boundary card or canvas in ${text}`);
+  for (const text of (m.occludedText || []).slice(0, 5)) issues.push(`boundary text is hidden by a later rectangle in ${text}`);
   if (m.tinyText.length) issues.push(`text is too small to read in ${m.tinyText.slice(0, 4).join(", ")} (under ${MIN_TEXT_PX}px after scaling to fit); the figure needs a larger minimum size or fewer labels`);
   if (m.blocks === 0) issues.push("no blocks were rendered (an empty page)");
   return issues;
@@ -145,7 +151,7 @@ export async function launch(chrome: string, noSandbox: boolean, timeoutMs = 15_
   return { wsUrl: ws, port, stop };
 }
 
-const MEASURE = "window.__kages.metrics || {innerWidth:innerWidth,scrollWidth:innerWidth,scrollHeight:document.body.scrollHeight,blocks:0,missing:[],brokenImages:[],overflowing:[],tinyText:[]}";
+const MEASURE = "window.__kages.metrics || {innerWidth:innerWidth,scrollWidth:innerWidth,scrollHeight:document.body.scrollHeight,blocks:0,missing:[],brokenImages:[],overflowing:[],tinyText:[],clippedText:[],occludedText:[]}";
 
 /** Render one document at each requested width. One browser, one page per width. */
 export async function screenshotDoc(doc: KageDoc, opts: ShotOptions): Promise<ShotResult[]> {

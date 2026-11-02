@@ -108,7 +108,7 @@ export function systemCard(id: string, colorTokens: Tok[] = T.color.tokens): Sys
   if (motion.length) { md.push("", "## Motion", "", "| Token | Value | Use |", "| --- | --- | --- |"); for (const t of motion) md.push(`| \`${t.name}\` | ${str(t.value, ths[0])} | ${usage(t.usage)} |`); }
 
   md.push("", "## Components", "");
-  if (id === "core") md.push(`${overrides.length} roles: ` + overrides.map(([r, ref]) => `${r} → ${ref}`).join(", ") + ".");
+  if (id === "core") md.push(`${overrides.length} roles: ` + overrides.map(([r, ref]) => `${r}→${ref}`).join(", ") + ".");
   else { md.push("Structural overrides:", ""); for (const [r, ref] of overrides) md.push(`- \`${r}\` → \`${ref}\``); md.push("", `Inherited from Core (${inherited.length}): ${inherited.join(", ")}.`); }
 
   if (rules) { md.push("", "## Named rules", ""); for (const r of rules.rules) md.push(`- **${r.name}** — ${r.statement} ${r.why}${r.lint?.length ? ` (lint: ${r.lint.join(", ")})` : ""}`); }

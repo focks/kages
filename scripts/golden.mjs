@@ -53,3 +53,12 @@ for (const s of ["core","ledger","atelier"]) { const v = K.validate(ops, s); con
 const rt = K.validate(back, "core"); console.log("round-trip:", rt.errors.length, "e", rt.warnings.length, "w");
 console.log("catalog core:", K.catalog("core").length, "characters");
 console.log("describe type:", typeof K.describe(ops), (K.describe(ops)+"").slice(0,80).replace(/\n/g," "));
+
+// The neutral document is the portable boundary vocabulary fixture; private
+// replica data stays outside the repository and never enters goldens.
+const boundary = JSON.parse(fs.readFileSync("docs/examples/boundary-diagram.kage.json", "utf8"));
+fs.writeFileSync("public/ds/system-boundary-example.kage.json", JSON.stringify(boundary, null, 2) + "\n");
+w("golden-boundary", ["core", "ledger", "atelier"].map(system => ({ validation: K.validate(boundary, system), envelope: K.toGenerated(boundary, system) })));
+
+const boundaryComposition = { kages: "1.0", id: "composed-boundary", title: "Composed boundary", system: "core", root: "instance", blocks: { instance: { type: "composition", props: { name: "drawing" } } }, compositions: { drawing: { inputs: {}, root: boundary.root, blocks: boundary.blocks } } };
+w("golden-boundary-composition", ["core", "ledger", "atelier"].map(system => ({ validation: K.validate(boundaryComposition, system), envelope: K.toGenerated(boundaryComposition, system) })));

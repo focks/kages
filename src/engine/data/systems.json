@@ -2,7 +2,7 @@
   "core": {
     "id": "core",
     "name": "Kages Core",
-    "version": "1.18.0",
+    "version": "1.19.0",
     "className": "kg-sys-core",
     "extends": null,
     "summary": "Neutral lattice system. The base every other system extends.",
@@ -88,13 +88,14 @@
       "waterfall-chart": "core/waterfall-chart@1.1.0",
       "small-multiples": "core/small-multiples@1.1.0",
       "csv-import": "core/csv-import@1.0.0",
-      "source-status": "core/source-status@1.0.0"
+      "source-status": "core/source-status@1.0.0",
+      "boundary-diagram": "core/boundary-diagram@1.0.0"
     }
   },
   "ledger": {
     "id": "ledger",
     "name": "Ledger",
-    "version": "2.15.0",
+    "version": "2.16.0",
     "className": "kg-sys-ledger",
     "extends": "core@1",
     "summary": "Dense, square, mono-numeral system for data and operations tools.",
@@ -180,13 +181,14 @@
       "waterfall-chart": "core/waterfall-chart@1.1.0",
       "small-multiples": "core/small-multiples@1.1.0",
       "csv-import": "core/csv-import@1.0.0",
-      "source-status": "core/source-status@1.0.0"
+      "source-status": "core/source-status@1.0.0",
+      "boundary-diagram": "core/boundary-diagram@1.0.0"
     }
   },
   "atelier": {
     "id": "atelier",
     "name": "Atelier",
-    "version": "1.14.0",
+    "version": "1.15.0",
     "className": "kg-sys-atelier",
     "extends": "core@1",
     "summary": "Soft, editorial, serif system for consumer and storytelling artifacts.",
@@ -272,7 +274,8 @@
       "waterfall-chart": "core/waterfall-chart@1.1.0",
       "small-multiples": "core/small-multiples@1.1.0",
       "csv-import": "core/csv-import@1.0.0",
-      "source-status": "core/source-status@1.0.0"
+      "source-status": "core/source-status@1.0.0",
+      "boundary-diagram": "core/boundary-diagram@1.0.0"
     }
   }
 }

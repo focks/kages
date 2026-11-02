@@ -1,0 +1,45 @@
+/* Preserve authored geometry inside a focusable scroll region. Shrinking the
+   SVG on phones would make monospace source lines unreadable. */
+.kg-kage .kg-boundary { margin: 0; min-width: 0; color: var(--kg-ink); --kg-boundary-label: var(--kg-ink-muted); --kg-boundary-request: var(--kg-wire); --kg-boundary-write: var(--kg-accent); --kg-boundary-write-soft: var(--kg-accent-soft); }
+.kg-boundary__viewport { overflow: auto; max-width: 100%; overscroll-behavior-inline: contain; }
+.kg-boundary__viewport:focus-visible { outline: 2px solid var(--kg-focus); outline-offset: -2px; }
+.kg-boundary svg { display: block; max-width: none; user-select: text; }
+.kg-boundary text { fill: var(--kg-ink); font-size: 16px; font-weight: 400; }
+.kg-boundary__ground { fill: var(--kg-paper); }
+.kg-boundary__zone > rect { fill: none; stroke: var(--kg-line); stroke-width: 1.5; }
+.kg-boundary__card > rect { fill: var(--kg-paper); stroke: var(--kg-line-control); stroke-width: 1.5; }
+.kg-boundary__cell > rect { fill: var(--kg-sunken); stroke: var(--kg-line); stroke-width: 1.5; }
+.kg-boundary [class*="kg-palette-"]:not(.kg-palette-inherit) > rect { fill: var(--kg-accent-soft); stroke: var(--kg-accent); }
+.kg-boundary__card.kg-boundary__outline-muted > rect { stroke: var(--kg-line); }
+.kg-boundary__outline-strong > rect { stroke: var(--kg-line-control); }
+.kg-boundary__cell > rect[stroke-dasharray] { fill: var(--kg-paper); stroke: var(--kg-line-control); }
+.kg-boundary .kg-boundary__title { font: 700 21px var(--kg-font-body, var(--font-sans)); }
+.kg-boundary .kg-boundary__sans { font: 400 18px var(--kg-font-body, var(--font-sans)); fill: var(--kg-ink-muted); }
+.kg-boundary .kg-boundary__mono { font: 400 15px var(--kg-font-mono); fill: var(--kg-ink-muted); }
+.kg-boundary .kg-boundary__zone-label { font: 400 14px var(--kg-font-mono); letter-spacing: 1.45px; fill: var(--kg-boundary-label); }
+.kg-boundary__rule { stroke: var(--kg-line); stroke-width: 1; }
+.kg-boundary__edge { color: var(--kg-line-control); }
+.kg-boundary__edge:not(.kg-palette-inherit) { color: var(--kg-accent); }
+.kg-boundary .kg-boundary__edge.kg-palette-ocean { color: var(--kg-boundary-request); }
+.kg-boundary .kg-boundary__edge.kg-palette-amber { color: var(--kg-boundary-write); }
+.kg-boundary .kg-boundary__edge-label { font: 400 14px var(--kg-font-mono); fill: var(--kg-boundary-label); }
+.kg-boundary .kg-boundary__edge-label:not(.kg-palette-inherit) { fill: var(--kg-accent); }
+.kg-boundary .kg-boundary__edge-label.kg-palette-ocean { fill: var(--kg-boundary-request); }
+.kg-boundary .kg-boundary__edge-label.kg-palette-amber { fill: var(--kg-boundary-write); }
+.kg-boundary .kg-boundary__cell.kg-palette-amber > rect { fill: var(--kg-boundary-write-soft); stroke: var(--kg-boundary-write); }
+.kg-boundary .kg-boundary__cell.kg-palette-amber text { fill: var(--kg-ink-muted); }
+.kg-boundary .kg-boundary__line--accent { fill: var(--kg-accent); }
+.kg-boundary .kg-boundary__cell.kg-palette-amber .kg-boundary__line--accent { fill: var(--kg-boundary-write); }
+.kg-boundary figcaption { color: var(--kg-ink-muted); margin-top: 12px; }
+/* Only a standalone authored drawing owns square canvas corners. A drawing
+   embedded in an existing page must not change that page's presentation. */
+.kg-kage:has(> .kg-block > .kg-boundary) { border-radius: 0; }
+
+/* Only the technical palette checks its border token at the text contrast bar.
+   Workspace designs reserve that token for controls, so captions inherit their
+   secondary text token instead. The default drawing keeps its quiet captions. */
+.kg-kage:not(.kg-design) .kg-boundary { --kg-boundary-label: var(--kg-line-control); }
+
+/* Wire is a 3:1 stroke role in workspace designs, not a text role. Keep request
+   strokes branded while request labels inherit the design's readable text. */
+.kg-design .kg-boundary .kg-boundary__edge-label.kg-palette-ocean { fill: var(--kg-boundary-label); }
