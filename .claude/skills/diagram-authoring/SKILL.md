@@ -15,7 +15,8 @@ Kages blocks; palette and interaction rules are in `artifact-art-direction`.)
 
 | Subject | Block |
 | --- | --- |
-| Components, services, layers, boundaries | `diagram`; `group` per layer/boundary |
+| Components and services with automatic placement | `diagram`; `group` per layer/boundary |
+| Authored system boundaries, rich cards, nested endpoints | `boundary-diagram`; explicit zones/cards and routed edges |
 | A process with gates and branches | `diagram`; the happy path is the longest chain, branches hang off it |
 | States and transitions, retries, terminal states | `diagram`; terminal nodes get their own palette |
 | Call order between parties | `stepper` beside a `diagram` (pattern below) |
@@ -41,8 +42,9 @@ import, add palettes by role and a caption takeaway, and climb the
 ## Density and label rules for `diagram`
 
 - **Let auto layout place nodes.** It layers DAGs by edges and goes vertical on
-  narrow containers. Explicit `x`/`y` is legacy geometry — it loses the
-  palette/selection presentation — so shape the picture through edge structure,
+  narrow containers. For this auto-layout block, explicit `x`/`y` retains an older renderer. For
+  authored boundaries and heterogeneous cards use `boundary-diagram` instead.
+  Shape auto-layout pictures through edge structure,
   `group` and the `layout` prop (`horizontal`, `vertical`, `tree`, `swimlane`,
   `sequence`), not coordinates.
 - **Color by role, not decoration.** Give nodes and edges a `palette`
@@ -63,6 +65,45 @@ import, add palettes by role and a caption takeaway, and climb the
   diagrams in `tabs` or an `accordion`. Several small diagrams beat a giant map.
 - **A legend when palettes mean something**: a short `badge` row above the
   diagram, same wording as the prose.
+
+## Authored boundaries: `boundary-diagram`
+
+Choose this static form when placement carries meaning: asymmetric deployment
+zones, cards with code and prose, stacked rows or table cells, and connections
+to a particular child. Use `diagram` when graph structure should place nodes.
+Use `scene` for geometry that is not a system of cards and connections.
+
+Read the installed `boundary-diagram` contract. Set canvas `width`/`height`,
+`zones` and `cards` with globally unique `id`, `x`, `y`, `width`, `height`.
+Children use parent-relative coordinates; card text uses literal `title`,
+`subtitle`, `lines:[{text,y,font:"mono"|"sans",x?,emphasis?:"accent"}]` and `rules:[y]`.
+All positions use canvas units; dimensions must fit the parent. Zone `label`
+is monospace; author uppercase words explicitly to preserve case in identifiers.
+
+Edges name a card or child through `from`/`to`, plus `fromSide`/`toSide`
+(`left`, `right`, `top`, `bottom`). Ports are fractions along a side, default .5.
+Use canvas-coordinate `via:[[x,y]]` for orthogonal elbows, and `labelX`/`labelY`
+for literal monospace edge labels. Choose `style:solid|dashed|dotted`,
+`arrows:none|end|both` and semantic `palette:ocean|amber` for request/write
+connections. Dashed or dotted child outlines identify planned components.
+Without a workspace design, the technical theme supplies checked light/dark
+tokens. A pinned workspace design supplies its own colours. No document colours.
+Use per-line `emphasis:"accent"` explicitly; line position never implies emphasis.
+Unknown nested keys, orphan label positions and zero-length route segments fail
+validation. A drawing needs at least one zone or card, with at most 2000
+rectangles total. Sibling and non-nested cards/cells cannot overlap; zones are
+exempt. Put cell text in the cell, not in parent lines behind its rectangle.
+Screenshot findings report rejected drawings, text extending outside a card or
+canvas, and text hidden by later opaque rectangles.
+
+The complete neutral example ships as
+`reference/examples/system-boundary-example.kage.json` in the full example
+library; its source is `docs/examples/boundary-diagram.kage.json`. The installed
+contract schema describes line, rectangle, child and edge properties.
+On a phone the focusable figure scrolls internally at its authored size, keeping
+text readable and the page fixed. Inspect both ends of the scroll region;
+no card may truncate its text. Keyboard focus and arrow scrolling must work.
+This is authored geometry, not the older `diagram` coordinate renderer.
 
 ## Rules for `scene`
 

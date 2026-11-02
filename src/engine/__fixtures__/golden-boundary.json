@@ -1,0 +1,2804 @@
+[
+  {
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "system": "core",
+      "portable": true
+    },
+    "envelope": {
+      "title": "Illustrative system boundaries",
+      "root": "architecture",
+      "state_json": "{}",
+      "data_json": null,
+      "blocks": [
+        {
+          "id": "architecture",
+          "type": "boundary-diagram",
+          "props": {
+            "label": "System boundary architecture",
+            "width": 1600,
+            "height": 820,
+            "zones": [
+              {
+                "id": "laptop",
+                "x": 11,
+                "y": 21,
+                "width": 875,
+                "height": 363,
+                "label": "LOCAL SOURCES · RUNS ON REQUEST",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "pages",
+                "x": 11,
+                "y": 412,
+                "width": 875,
+                "height": 402,
+                "label": "BROWSER REQUESTS",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "plane",
+                "x": 914,
+                "y": 21,
+                "width": 680,
+                "height": 793,
+                "label": "EXAMPLE SERVICE PLANE · REGION NORTH",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              }
+            ],
+            "cards": [
+              {
+                "id": "sources",
+                "x": 34,
+                "y": 65,
+                "width": 277,
+                "height": 297,
+                "label": null,
+                "title": "Sources",
+                "subtitle": "read-only, metadata only",
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": "muted",
+                "palette": null,
+                "children": [
+                  {
+                    "id": "forge-source",
+                    "x": 19,
+                    "y": 75,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Code forge · Example team",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "forge api (queries)",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "tracker-source",
+                    "x": 19,
+                    "y": 147,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Tracker · project SAMPLE",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "tracker issue view --raw",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "future-source",
+                    "x": 19,
+                    "y": 219,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Future chat connector",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "not imported yet",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": "dashed",
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "ingest",
+                "x": 400,
+                "y": 65,
+                "width": 464,
+                "height": 297,
+                "label": null,
+                "title": "Import worker",
+                "subtitle": "jobs/import · Python stdlib",
+                "lines": [
+                  {
+                    "text": "import.py orchestrates one run",
+                    "y": 94,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "forge.py reads scoped batches",
+                    "y": 119,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "tracker.py assigned + linked keys",
+                    "y": 144,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "policy.py joins and labels",
+                    "y": 169,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Several CSV snapshots, each row has",
+                    "y": 216,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "source and pulled_at",
+                    "y": 240,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "sync.sh → sample db load --mode replace",
+                    "y": 275,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": [
+                  189
+                ],
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "database",
+                "x": 958,
+                "y": 65,
+                "width": 616,
+                "height": 308,
+                "label": null,
+                "title": "Example workspace store",
+                "subtitle": "SQL store · owner demo · catalog example.main",
+                "lines": [
+                  {
+                    "text": "Illustrative snapshot · synthetic data",
+                    "y": 294,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": [
+                  {
+                    "id": "job",
+                    "x": 19,
+                    "y": 78,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "120 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "checks-cell",
+                    "x": 216,
+                    "y": 78,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_check",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "640 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "reviews-cell",
+                    "x": 414,
+                    "y": 78,
+                    "width": 186,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_review",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "560 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "work-cell",
+                    "x": 19,
+                    "y": 145,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "work_item",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "80 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "links-cell",
+                    "x": 216,
+                    "y": 145,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_item_link",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "160 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "quality",
+                    "x": 414,
+                    "y": 145,
+                    "width": 186,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "quality",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "12 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "refresh",
+                    "x": 19,
+                    "y": 211,
+                    "width": 187,
+                    "height": 55,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "sync_event",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "6 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "review",
+                    "x": 216,
+                    "y": 211,
+                    "width": 384,
+                    "height": 55,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "review_state",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "the only table the app writes",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": "accent"
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": "amber",
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "console",
+                "x": 34,
+                "y": 470,
+                "width": 383,
+                "height": 322,
+                "label": null,
+                "title": "You, in the example console",
+                "subtitle": "Live Apps frame",
+                "lines": [
+                  {
+                    "text": "/ Overview, top 5",
+                    "y": 94,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/queue Waiting on me",
+                    "y": 119,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/mine My jobs",
+                    "y": 144,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/tickets Ticket ledger",
+                    "y": 169,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/jobs/KEY Job detail",
+                    "y": 194,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/tickets/KEY Ticket detail",
+                    "y": 219,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/quality Unmatched records",
+                    "y": 244,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Copy-only drafts; nothing is sent.",
+                    "y": 286,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "gateway",
+                "x": 511,
+                "y": 470,
+                "width": 328,
+                "height": 208,
+                "label": null,
+                "title": "Service router",
+                "subtitle": null,
+                "lines": [
+                  {
+                    "text": "Signs you in. On every request",
+                    "y": 67,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "it injects your identity and a",
+                    "y": 92,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "short-lived token limited to",
+                    "y": 117,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "install consent ∩ your grants",
+                    "y": 150,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "unauthenticated: 401",
+                    "y": 186,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "app",
+                "x": 936,
+                "y": 459,
+                "width": 244,
+                "height": 328,
+                "label": null,
+                "title": "Example application",
+                "subtitle": "2 pods · 250m · 512 MB",
+                "lines": [
+                  {
+                    "text": "server.py routes",
+                    "y": 92,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "routes.py JSON APIs",
+                    "y": 117,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "database.py SQL",
+                    "y": 142,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "policy.py ranking",
+                    "y": 167,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "review.py validation",
+                    "y": 192,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "assets/ page UI",
+                    "y": 217,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "SDK: SampleClient",
+                    "y": 264,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": ".from_request(headers)",
+                    "y": 289,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "no stored credential",
+                    "y": 314,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": [
+                  236
+                ],
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "engine",
+                "x": 1219,
+                "y": 459,
+                "width": 355,
+                "height": 208,
+                "label": null,
+                "title": "SQL query service",
+                "subtitle": "SQL engine · small",
+                "lines": [
+                  {
+                    "text": "Mounts catalog example.",
+                    "y": 92,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Runs every query as the",
+                    "y": 117,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "viewer, under governance.",
+                    "y": 142,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "scales to zero when idle",
+                    "y": 178,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              }
+            ],
+            "edges": [
+              {
+                "from": "forge-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.35353535353535354,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "tracker-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.5993265993265994,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "future-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.8417508417508418,
+                "via": null,
+                "style": "dotted",
+                "palette": null,
+                "arrows": "none",
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "ingest",
+                "to": "database",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.4882154882154882,
+                "toPort": 0.4707792207792208,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": "load",
+                "labelX": 872,
+                "labelY": 198
+              },
+              {
+                "from": "console",
+                "to": "gateway",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.3198757763975155,
+                "toPort": 0.4951923076923077,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "HTTPS",
+                "labelX": 425,
+                "labelY": 561
+              },
+              {
+                "from": "gateway",
+                "to": "app",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.4951923076923077,
+                "toPort": 0.3475609756097561,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "/api/*",
+                "labelX": 847,
+                "labelY": 561
+              },
+              {
+                "from": "app",
+                "to": "engine",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.21036585365853658,
+                "toPort": 0.3317307692307692,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "SQL",
+                "labelX": 1180,
+                "labelY": 517
+              },
+              {
+                "from": "engine",
+                "to": "database",
+                "fromSide": "top",
+                "toSide": "bottom",
+                "fromPort": 0.6647887323943662,
+                "toPort": 0.8068181818181818,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "catalog mount",
+                "labelX": 1466,
+                "labelY": 423
+              },
+              {
+                "from": "app",
+                "to": "review",
+                "fromSide": "top",
+                "toSide": "bottom",
+                "fromPort": 0.5,
+                "toPort": 0.5,
+                "via": [
+                  [
+                    1058,
+                    418
+                  ],
+                  [
+                    1366,
+                    418
+                  ]
+                ],
+                "style": "dashed",
+                "palette": "amber",
+                "arrows": null,
+                "label": "POST /api/review: DELETE + INSERT, via engine",
+                "labelX": 1076,
+                "labelY": 409
+              }
+            ],
+            "caption": null
+          },
+          "slots": {},
+          "bind": [],
+          "on": [],
+          "visible_json": null,
+          "repeat_json": null
+        }
+      ],
+      "compositions_json": null
+    }
+  },
+  {
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "system": "ledger",
+      "portable": true
+    },
+    "envelope": {
+      "title": "Illustrative system boundaries",
+      "root": "architecture",
+      "state_json": "{}",
+      "data_json": null,
+      "blocks": [
+        {
+          "id": "architecture",
+          "type": "boundary-diagram",
+          "props": {
+            "label": "System boundary architecture",
+            "width": 1600,
+            "height": 820,
+            "zones": [
+              {
+                "id": "laptop",
+                "x": 11,
+                "y": 21,
+                "width": 875,
+                "height": 363,
+                "label": "LOCAL SOURCES · RUNS ON REQUEST",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "pages",
+                "x": 11,
+                "y": 412,
+                "width": 875,
+                "height": 402,
+                "label": "BROWSER REQUESTS",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "plane",
+                "x": 914,
+                "y": 21,
+                "width": 680,
+                "height": 793,
+                "label": "EXAMPLE SERVICE PLANE · REGION NORTH",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              }
+            ],
+            "cards": [
+              {
+                "id": "sources",
+                "x": 34,
+                "y": 65,
+                "width": 277,
+                "height": 297,
+                "label": null,
+                "title": "Sources",
+                "subtitle": "read-only, metadata only",
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": "muted",
+                "palette": null,
+                "children": [
+                  {
+                    "id": "forge-source",
+                    "x": 19,
+                    "y": 75,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Code forge · Example team",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "forge api (queries)",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "tracker-source",
+                    "x": 19,
+                    "y": 147,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Tracker · project SAMPLE",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "tracker issue view --raw",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "future-source",
+                    "x": 19,
+                    "y": 219,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Future chat connector",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "not imported yet",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": "dashed",
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "ingest",
+                "x": 400,
+                "y": 65,
+                "width": 464,
+                "height": 297,
+                "label": null,
+                "title": "Import worker",
+                "subtitle": "jobs/import · Python stdlib",
+                "lines": [
+                  {
+                    "text": "import.py orchestrates one run",
+                    "y": 94,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "forge.py reads scoped batches",
+                    "y": 119,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "tracker.py assigned + linked keys",
+                    "y": 144,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "policy.py joins and labels",
+                    "y": 169,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Several CSV snapshots, each row has",
+                    "y": 216,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "source and pulled_at",
+                    "y": 240,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "sync.sh → sample db load --mode replace",
+                    "y": 275,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": [
+                  189
+                ],
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "database",
+                "x": 958,
+                "y": 65,
+                "width": 616,
+                "height": 308,
+                "label": null,
+                "title": "Example workspace store",
+                "subtitle": "SQL store · owner demo · catalog example.main",
+                "lines": [
+                  {
+                    "text": "Illustrative snapshot · synthetic data",
+                    "y": 294,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": [
+                  {
+                    "id": "job",
+                    "x": 19,
+                    "y": 78,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "120 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "checks-cell",
+                    "x": 216,
+                    "y": 78,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_check",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "640 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "reviews-cell",
+                    "x": 414,
+                    "y": 78,
+                    "width": 186,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_review",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "560 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "work-cell",
+                    "x": 19,
+                    "y": 145,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "work_item",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "80 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "links-cell",
+                    "x": 216,
+                    "y": 145,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_item_link",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "160 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "quality",
+                    "x": 414,
+                    "y": 145,
+                    "width": 186,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "quality",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "12 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "refresh",
+                    "x": 19,
+                    "y": 211,
+                    "width": 187,
+                    "height": 55,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "sync_event",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "6 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "review",
+                    "x": 216,
+                    "y": 211,
+                    "width": 384,
+                    "height": 55,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "review_state",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "the only table the app writes",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": "accent"
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": "amber",
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "console",
+                "x": 34,
+                "y": 470,
+                "width": 383,
+                "height": 322,
+                "label": null,
+                "title": "You, in the example console",
+                "subtitle": "Live Apps frame",
+                "lines": [
+                  {
+                    "text": "/ Overview, top 5",
+                    "y": 94,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/queue Waiting on me",
+                    "y": 119,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/mine My jobs",
+                    "y": 144,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/tickets Ticket ledger",
+                    "y": 169,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/jobs/KEY Job detail",
+                    "y": 194,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/tickets/KEY Ticket detail",
+                    "y": 219,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/quality Unmatched records",
+                    "y": 244,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Copy-only drafts; nothing is sent.",
+                    "y": 286,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "gateway",
+                "x": 511,
+                "y": 470,
+                "width": 328,
+                "height": 208,
+                "label": null,
+                "title": "Service router",
+                "subtitle": null,
+                "lines": [
+                  {
+                    "text": "Signs you in. On every request",
+                    "y": 67,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "it injects your identity and a",
+                    "y": 92,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "short-lived token limited to",
+                    "y": 117,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "install consent ∩ your grants",
+                    "y": 150,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "unauthenticated: 401",
+                    "y": 186,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "app",
+                "x": 936,
+                "y": 459,
+                "width": 244,
+                "height": 328,
+                "label": null,
+                "title": "Example application",
+                "subtitle": "2 pods · 250m · 512 MB",
+                "lines": [
+                  {
+                    "text": "server.py routes",
+                    "y": 92,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "routes.py JSON APIs",
+                    "y": 117,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "database.py SQL",
+                    "y": 142,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "policy.py ranking",
+                    "y": 167,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "review.py validation",
+                    "y": 192,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "assets/ page UI",
+                    "y": 217,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "SDK: SampleClient",
+                    "y": 264,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": ".from_request(headers)",
+                    "y": 289,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "no stored credential",
+                    "y": 314,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": [
+                  236
+                ],
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "engine",
+                "x": 1219,
+                "y": 459,
+                "width": 355,
+                "height": 208,
+                "label": null,
+                "title": "SQL query service",
+                "subtitle": "SQL engine · small",
+                "lines": [
+                  {
+                    "text": "Mounts catalog example.",
+                    "y": 92,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Runs every query as the",
+                    "y": 117,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "viewer, under governance.",
+                    "y": 142,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "scales to zero when idle",
+                    "y": 178,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              }
+            ],
+            "edges": [
+              {
+                "from": "forge-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.35353535353535354,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "tracker-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.5993265993265994,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "future-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.8417508417508418,
+                "via": null,
+                "style": "dotted",
+                "palette": null,
+                "arrows": "none",
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "ingest",
+                "to": "database",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.4882154882154882,
+                "toPort": 0.4707792207792208,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": "load",
+                "labelX": 872,
+                "labelY": 198
+              },
+              {
+                "from": "console",
+                "to": "gateway",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.3198757763975155,
+                "toPort": 0.4951923076923077,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "HTTPS",
+                "labelX": 425,
+                "labelY": 561
+              },
+              {
+                "from": "gateway",
+                "to": "app",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.4951923076923077,
+                "toPort": 0.3475609756097561,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "/api/*",
+                "labelX": 847,
+                "labelY": 561
+              },
+              {
+                "from": "app",
+                "to": "engine",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.21036585365853658,
+                "toPort": 0.3317307692307692,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "SQL",
+                "labelX": 1180,
+                "labelY": 517
+              },
+              {
+                "from": "engine",
+                "to": "database",
+                "fromSide": "top",
+                "toSide": "bottom",
+                "fromPort": 0.6647887323943662,
+                "toPort": 0.8068181818181818,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "catalog mount",
+                "labelX": 1466,
+                "labelY": 423
+              },
+              {
+                "from": "app",
+                "to": "review",
+                "fromSide": "top",
+                "toSide": "bottom",
+                "fromPort": 0.5,
+                "toPort": 0.5,
+                "via": [
+                  [
+                    1058,
+                    418
+                  ],
+                  [
+                    1366,
+                    418
+                  ]
+                ],
+                "style": "dashed",
+                "palette": "amber",
+                "arrows": null,
+                "label": "POST /api/review: DELETE + INSERT, via engine",
+                "labelX": 1076,
+                "labelY": 409
+              }
+            ],
+            "caption": null
+          },
+          "slots": {},
+          "bind": [],
+          "on": [],
+          "visible_json": null,
+          "repeat_json": null
+        }
+      ],
+      "compositions_json": null
+    }
+  },
+  {
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "system": "atelier",
+      "portable": true
+    },
+    "envelope": {
+      "title": "Illustrative system boundaries",
+      "root": "architecture",
+      "state_json": "{}",
+      "data_json": null,
+      "blocks": [
+        {
+          "id": "architecture",
+          "type": "boundary-diagram",
+          "props": {
+            "label": "System boundary architecture",
+            "width": 1600,
+            "height": 820,
+            "zones": [
+              {
+                "id": "laptop",
+                "x": 11,
+                "y": 21,
+                "width": 875,
+                "height": 363,
+                "label": "LOCAL SOURCES · RUNS ON REQUEST",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "pages",
+                "x": 11,
+                "y": 412,
+                "width": 875,
+                "height": 402,
+                "label": "BROWSER REQUESTS",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "plane",
+                "x": 914,
+                "y": 21,
+                "width": 680,
+                "height": 793,
+                "label": "EXAMPLE SERVICE PLANE · REGION NORTH",
+                "title": null,
+                "subtitle": null,
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              }
+            ],
+            "cards": [
+              {
+                "id": "sources",
+                "x": 34,
+                "y": 65,
+                "width": 277,
+                "height": 297,
+                "label": null,
+                "title": "Sources",
+                "subtitle": "read-only, metadata only",
+                "lines": null,
+                "rules": null,
+                "style": null,
+                "outline": "muted",
+                "palette": null,
+                "children": [
+                  {
+                    "id": "forge-source",
+                    "x": 19,
+                    "y": 75,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Code forge · Example team",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "forge api (queries)",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "tracker-source",
+                    "x": 19,
+                    "y": 147,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Tracker · project SAMPLE",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "tracker issue view --raw",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "future-source",
+                    "x": 19,
+                    "y": 219,
+                    "width": 239,
+                    "height": 61,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "Future chat connector",
+                        "y": 26,
+                        "x": 17,
+                        "font": "sans",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "not imported yet",
+                        "y": 49,
+                        "x": 17,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": "dashed",
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "ingest",
+                "x": 400,
+                "y": 65,
+                "width": 464,
+                "height": 297,
+                "label": null,
+                "title": "Import worker",
+                "subtitle": "jobs/import · Python stdlib",
+                "lines": [
+                  {
+                    "text": "import.py orchestrates one run",
+                    "y": 94,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "forge.py reads scoped batches",
+                    "y": 119,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "tracker.py assigned + linked keys",
+                    "y": 144,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "policy.py joins and labels",
+                    "y": 169,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Several CSV snapshots, each row has",
+                    "y": 216,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "source and pulled_at",
+                    "y": 240,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "sync.sh → sample db load --mode replace",
+                    "y": 275,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": [
+                  189
+                ],
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "database",
+                "x": 958,
+                "y": 65,
+                "width": 616,
+                "height": 308,
+                "label": null,
+                "title": "Example workspace store",
+                "subtitle": "SQL store · owner demo · catalog example.main",
+                "lines": [
+                  {
+                    "text": "Illustrative snapshot · synthetic data",
+                    "y": 294,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": [
+                  {
+                    "id": "job",
+                    "x": 19,
+                    "y": 78,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "120 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "checks-cell",
+                    "x": 216,
+                    "y": 78,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_check",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "640 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "reviews-cell",
+                    "x": 414,
+                    "y": 78,
+                    "width": 186,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_review",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "560 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "work-cell",
+                    "x": 19,
+                    "y": 145,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "work_item",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "80 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "links-cell",
+                    "x": 216,
+                    "y": 145,
+                    "width": 187,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "job_item_link",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "160 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "quality",
+                    "x": 414,
+                    "y": 145,
+                    "width": 186,
+                    "height": 56,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "quality",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "12 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "refresh",
+                    "x": 19,
+                    "y": 211,
+                    "width": 187,
+                    "height": 55,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "sync_event",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "6 rows",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": null,
+                    "children": null
+                  },
+                  {
+                    "id": "review",
+                    "x": 216,
+                    "y": 211,
+                    "width": 384,
+                    "height": 55,
+                    "label": null,
+                    "title": null,
+                    "subtitle": null,
+                    "lines": [
+                      {
+                        "text": "review_state",
+                        "y": 24,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": null
+                      },
+                      {
+                        "text": "the only table the app writes",
+                        "y": 45,
+                        "x": null,
+                        "font": "mono",
+                        "emphasis": "accent"
+                      }
+                    ],
+                    "rules": null,
+                    "style": null,
+                    "outline": null,
+                    "palette": "amber",
+                    "children": null
+                  }
+                ]
+              },
+              {
+                "id": "console",
+                "x": 34,
+                "y": 470,
+                "width": 383,
+                "height": 322,
+                "label": null,
+                "title": "You, in the example console",
+                "subtitle": "Live Apps frame",
+                "lines": [
+                  {
+                    "text": "/ Overview, top 5",
+                    "y": 94,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/queue Waiting on me",
+                    "y": 119,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/mine My jobs",
+                    "y": 144,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/tickets Ticket ledger",
+                    "y": 169,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/jobs/KEY Job detail",
+                    "y": 194,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/tickets/KEY Ticket detail",
+                    "y": 219,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "/quality Unmatched records",
+                    "y": 244,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Copy-only drafts; nothing is sent.",
+                    "y": 286,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "gateway",
+                "x": 511,
+                "y": 470,
+                "width": 328,
+                "height": 208,
+                "label": null,
+                "title": "Service router",
+                "subtitle": null,
+                "lines": [
+                  {
+                    "text": "Signs you in. On every request",
+                    "y": 67,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "it injects your identity and a",
+                    "y": 92,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "short-lived token limited to",
+                    "y": 117,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "install consent ∩ your grants",
+                    "y": 150,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "unauthenticated: 401",
+                    "y": 186,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "app",
+                "x": 936,
+                "y": 459,
+                "width": 244,
+                "height": 328,
+                "label": null,
+                "title": "Example application",
+                "subtitle": "2 pods · 250m · 512 MB",
+                "lines": [
+                  {
+                    "text": "server.py routes",
+                    "y": 92,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "routes.py JSON APIs",
+                    "y": 117,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "database.py SQL",
+                    "y": 142,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "policy.py ranking",
+                    "y": 167,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "review.py validation",
+                    "y": 192,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "assets/ page UI",
+                    "y": 217,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "SDK: SampleClient",
+                    "y": 264,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": ".from_request(headers)",
+                    "y": 289,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "no stored credential",
+                    "y": 314,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": [
+                  236
+                ],
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              },
+              {
+                "id": "engine",
+                "x": 1219,
+                "y": 459,
+                "width": 355,
+                "height": 208,
+                "label": null,
+                "title": "SQL query service",
+                "subtitle": "SQL engine · small",
+                "lines": [
+                  {
+                    "text": "Mounts catalog example.",
+                    "y": 92,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "Runs every query as the",
+                    "y": 117,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "viewer, under governance.",
+                    "y": 142,
+                    "x": null,
+                    "font": "sans",
+                    "emphasis": null
+                  },
+                  {
+                    "text": "scales to zero when idle",
+                    "y": 178,
+                    "x": null,
+                    "font": "mono",
+                    "emphasis": null
+                  }
+                ],
+                "rules": null,
+                "style": null,
+                "outline": null,
+                "palette": null,
+                "children": null
+              }
+            ],
+            "edges": [
+              {
+                "from": "forge-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.35353535353535354,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "tracker-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.5993265993265994,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "future-source",
+                "to": "ingest",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": null,
+                "toPort": 0.8417508417508418,
+                "via": null,
+                "style": "dotted",
+                "palette": null,
+                "arrows": "none",
+                "label": null,
+                "labelX": null,
+                "labelY": null
+              },
+              {
+                "from": "ingest",
+                "to": "database",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.4882154882154882,
+                "toPort": 0.4707792207792208,
+                "via": null,
+                "style": null,
+                "palette": null,
+                "arrows": null,
+                "label": "load",
+                "labelX": 872,
+                "labelY": 198
+              },
+              {
+                "from": "console",
+                "to": "gateway",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.3198757763975155,
+                "toPort": 0.4951923076923077,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "HTTPS",
+                "labelX": 425,
+                "labelY": 561
+              },
+              {
+                "from": "gateway",
+                "to": "app",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.4951923076923077,
+                "toPort": 0.3475609756097561,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "/api/*",
+                "labelX": 847,
+                "labelY": 561
+              },
+              {
+                "from": "app",
+                "to": "engine",
+                "fromSide": "right",
+                "toSide": "left",
+                "fromPort": 0.21036585365853658,
+                "toPort": 0.3317307692307692,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "SQL",
+                "labelX": 1180,
+                "labelY": 517
+              },
+              {
+                "from": "engine",
+                "to": "database",
+                "fromSide": "top",
+                "toSide": "bottom",
+                "fromPort": 0.6647887323943662,
+                "toPort": 0.8068181818181818,
+                "via": null,
+                "style": null,
+                "palette": "ocean",
+                "arrows": "both",
+                "label": "catalog mount",
+                "labelX": 1466,
+                "labelY": 423
+              },
+              {
+                "from": "app",
+                "to": "review",
+                "fromSide": "top",
+                "toSide": "bottom",
+                "fromPort": 0.5,
+                "toPort": 0.5,
+                "via": [
+                  [
+                    1058,
+                    418
+                  ],
+                  [
+                    1366,
+                    418
+                  ]
+                ],
+                "style": "dashed",
+                "palette": "amber",
+                "arrows": null,
+                "label": "POST /api/review: DELETE + INSERT, via engine",
+                "labelX": 1076,
+                "labelY": 409
+              }
+            ],
+            "caption": null
+          },
+          "slots": {},
+          "bind": [],
+          "on": [],
+          "visible_json": null,
+          "repeat_json": null
+        }
+      ],
+      "compositions_json": null
+    }
+  }
+]

@@ -54,3 +54,8 @@ First public release candidate.
 - Fail-closed authentication, CSRF checks on cookie-authenticated writes, existence
   concealment for private Kages, persisted rate limits, an allowlisted host `fetch`,
   and baseline security headers. See [SECURITY.md](SECURITY.md).
+
+- Add the static `boundary-diagram` contract: authored zones, rich cards, nested
+  cell endpoints, styled routes and two-way arrows, with checked technical
+  light/dark tokens and contained phone scrolling. Existing diagram rendering
+  is unchanged. See `docs/boundary-diagrams.md` for the neutral authoring example.

@@ -37,6 +37,11 @@ The same bar applies to selectable charts (`donut-chart`, `heatmap`,
 `funnel-chart`, `treemap`, `map`): set `interactive` only when the selection
 filters or drives something, and say so in the caption.
 
+`boundary-diagram` is a separate static form for authored zones, heterogeneous
+cards and child endpoints. Its focusable contained scroll region is navigation,
+not selectable graph state: it has no `interactive` or `explore` prop. Use the
+ordinary `diagram` ladder when selection must drive another block.
+
 ## How version pins really work
 
 A block `type` accepts `name`, `name@major[.minor]` and `system/name@major`

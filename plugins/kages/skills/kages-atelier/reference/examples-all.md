@@ -35,3 +35,4 @@ For the recommended defaults, return to [Recommended examples](examples.md). The
 - [Evidence Workbench — explore, import and compare](examples/evidence-workbench.kage.json) — operate
 - [Signal Field Guide — evidence you can explore](examples/signal-field-guide.kage.json) — read
 - [Systems Classroom — explore a living diagram](examples/systems-classroom.kage.json) — experience
+- [Illustrative system boundaries](examples/system-boundary-example.kage.json) — read

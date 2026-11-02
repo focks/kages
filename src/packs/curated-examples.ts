@@ -1,5 +1,7 @@
 // One editorial shortlist feeds agent recommendations and the New Kage picker.
 // Capability demonstrations stay available separately; they are not all good default page shapes.
+import boundaryExample from '../../docs/examples/boundary-diagram.kage.json' with { type: 'json' };
+import type { KageDoc } from '../engine/types.ts';
 import { freeFlowExamples, expressiveExamples, richExamples, appExamples, connectedExamples, chartExamples, contentExamples } from './examples.ts';
 
 export const RECOMMENDED_EXAMPLES = [
@@ -12,7 +14,7 @@ export const RECOMMENDED_EXAMPLES = [
 
 /** Keep the full library addressable for existing references and focused component work. */
 export function allExamples(system = 'core') {
-  return [...freeFlowExamples(system), ...expressiveExamples(system), ...richExamples(system), ...appExamples(system), ...connectedExamples(system), ...chartExamples(system), ...contentExamples(system)];
+  return [...freeFlowExamples(system), ...expressiveExamples(system), ...richExamples(system), ...appExamples(system), ...connectedExamples(system), ...chartExamples(system), ...contentExamples(system), { ...structuredClone(boundaryExample), system } as unknown as KageDoc];
 }
 
 /** Fail loudly if a curated entry is renamed rather than silently losing a recommendation. */

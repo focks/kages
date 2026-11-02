@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"},{"name":"CoreGuide"},{"name":"CoreDisclosure"},{"name":"CoreCanvas"},{"name":"CoreCartesianPlot"},{"name":"CoreGraphExplorer"},{"name":"CoreGraphExplorerV2"},{"name":"CoreHistogram"},{"name":"CoreBoxPlot"},{"name":"CoreWaterfall"},{"name":"CoreSmallMultiples"},{"name":"CoreCsvImport"},{"name":"CoreSourceStatus"},{"name":"CoreCanvasV2"},{"name":"CoreGuideV2"},{"name":"CorePreciseDiagram"},{"name":"CoreGraphExplorerV3"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Kages","components":[{"name":"CoreShell"},{"name":"CoreSidebar"},{"name":"CoreDropdown"},{"name":"CoreTabs"},{"name":"CoreButton"},{"name":"CoreTextInput"},{"name":"CoreCard"},{"name":"CoreStack"},{"name":"CoreText"},{"name":"CoreBadge"},{"name":"CoreStat"},{"name":"CoreTable"},{"name":"LedgerSidebar"},{"name":"LedgerDropdown"},{"name":"LedgerTabs"},{"name":"LedgerButton"},{"name":"LedgerCard"},{"name":"LedgerStat"},{"name":"AtelierSidebar"},{"name":"AtelierDropdown"},{"name":"AtelierTabs"},{"name":"AtelierButton"},{"name":"AtelierCard"},{"name":"AtelierStat"},{"name":"KageRenderer"},{"name":"CorePage"},{"name":"CoreSection"},{"name":"CoreGrid"},{"name":"CoreSplit"},{"name":"CoreImage"},{"name":"CoreCode"},{"name":"CoreList"},{"name":"CoreDivider"},{"name":"CoreTextarea"},{"name":"CoreSlider"},{"name":"CoreCheckbox"},{"name":"CoreBarChart"},{"name":"CoreSectionV2"},{"name":"CoreComposition"},{"name":"CoreLink"},{"name":"CoreRichText"},{"name":"CoreTextField"},{"name":"CoreNumberInput"},{"name":"CoreDateInput"},{"name":"CoreChoice"},{"name":"CoreMultiselect"},{"name":"CoreForm"},{"name":"CoreScene"},{"name":"CoreDiagram"},{"name":"CoreLineChart"},{"name":"CoreScatterChart"},{"name":"CoreDiagramV2"},{"name":"CoreAreaChart"},{"name":"CoreDonutChart"},{"name":"CoreGauge"},{"name":"CoreSparkline"},{"name":"CoreHeatmap"},{"name":"CoreAlert"},{"name":"CoreAccordion"},{"name":"CoreStepper"},{"name":"CoreTimeline"},{"name":"CoreModal"},{"name":"CoreSwitch"},{"name":"CoreCombobox"},{"name":"CoreTree"},{"name":"CoreDataGrid"},{"name":"CoreKanban"},{"name":"CoreCalendar"},{"name":"CoreCarousel"},{"name":"CoreMarkdown"},{"name":"CoreMath"},{"name":"CoreComboChart"},{"name":"CoreStackedBarChart"},{"name":"CoreFunnelChart"},{"name":"CoreTreemap"},{"name":"CoreSankey"},{"name":"CoreMap"},{"name":"CoreTabPanel"},{"name":"CoreCodeTabs"},{"name":"CoreAnchor"},{"name":"CoreToc"},{"name":"CoreVideo"},{"name":"CoreAudio"},{"name":"CoreGallery"},{"name":"CoreGlossary"},{"name":"CoreReferences"},{"name":"CoreDateRange"},{"name":"CoreFileUpload"},{"name":"CoreGuide"},{"name":"CoreDisclosure"},{"name":"CoreCanvas"},{"name":"CoreCartesianPlot"},{"name":"CoreGraphExplorer"},{"name":"CoreGraphExplorerV2"},{"name":"CoreHistogram"},{"name":"CoreBoxPlot"},{"name":"CoreWaterfall"},{"name":"CoreSmallMultiples"},{"name":"CoreCsvImport"},{"name":"CoreSourceStatus"},{"name":"CoreCanvasV2"},{"name":"CoreGuideV2"},{"name":"CorePreciseDiagram"},{"name":"CoreGraphExplorerV3"},{"name":"CoreBoundaryDiagram"}]} */
 /*
  * Kages reference bundle.
  *   - 3 design systems (core, ledger, atelier) = token scope + component map
@@ -2765,6 +2765,74 @@
   core.diagram = contract("core", "diagram", "1.5.0", preciseBase.implements[0], CoreGraphExplorerV3, { props: preciseBase.props, tokens: preciseBase.tokens, agent: { use: preciseBase.agent.use + " Compact nodes, separated ports and exterior feedback lanes keep the primary flow legible. Adaptive two-column/vertical layout preserves label size. Selection should reveal a concise supporting explanation." } });
   Object.assign(freeFlowExports, { CorePreciseDiagram: CorePreciseDiagram, CoreGraphExplorerV3: CoreGraphExplorerV3 });
 
+/* System boundaries need stable spatial relationships, heterogeneous content and
+ * named child endpoints. A separate role preserves every existing diagram's
+ * placement. Only trusted renderer code builds SVG; document strings stay text.
+ * See oracle/boundary.feature. */
+  function CoreBoundaryDiagram(p) {
+    var errors = boundaryFindings(p);
+    if (errors.length) return h("div", { className: "kg-boundary__error", role: "alert" }, "Invalid boundary diagram: " + errors.map(function (e) { return e.msg; }).join("; "));
+    var boxes = Object.create(null);
+    function index(r, x, y) {
+      boxes[r.id] = { x: x + r.x, y: y + r.y, width: r.width, height: r.height };
+      (r.children || []).forEach(function (c) { index(c, x + r.x, y + r.y); });
+    }
+    (p.zones || []).concat(p.cards).forEach(function (r) { index(r, 0, 0); });
+    function dash(style) { return style === "dashed" ? "8 6" : style === "dotted" ? "3 5" : undefined; }
+    function point(id, side, port) {
+      var b = boxes[id], t = port === undefined ? .5 : port;
+      return side === "left" ? [b.x, b.y + b.height * t] : side === "right" ? [b.x + b.width, b.y + b.height * t] : side === "top" ? [b.x + b.width * t, b.y] : [b.x + b.width * t, b.y + b.height];
+    }
+    function arrow(tip, prev, key) {
+      var dx = tip[0] - prev[0], dy = tip[1] - prev[1], length = Math.sqrt(dx * dx + dy * dy);
+      if (!length) return null;
+      dx /= length; dy /= length;
+      return h("polygon", { key: key, points: tip.join(",") + " " + [tip[0] - dx * 19 - dy * 9, tip[1] - dy * 19 + dx * 9].join(",") + " " + [tip[0] - dx * 19 + dy * 9, tip[1] - dy * 19 - dx * 9].join(","), fill: "currentColor" });
+    }
+    function card(r, nested, zone) {
+      return h("g", { key: r.id, transform: "translate(" + r.x + " " + r.y + ")", className: "kg-boundary__" + (zone ? "zone" : nested ? "cell" : "card") + (r.outline ? " kg-boundary__outline-" + r.outline : "") + " kg-palette-" + regionPalette(r.palette) },
+        h("rect", { width: r.width, height: r.height, strokeDasharray: zone ? ((r.style === undefined || r.style === "dashed") ? "8 7" : dash(r.style)) : r.style === "dashed" ? "4 4" : dash(r.style) }),
+        r.label ? h("text", { x: 16, y: 24, className: "kg-boundary__zone-label" }, r.label) : null,
+        r.title ? h("text", { x: 20, y: 33, className: "kg-boundary__title" }, r.title) : null,
+        r.subtitle ? h("text", { x: 20, y: 59, className: "kg-boundary__mono" }, r.subtitle) : null,
+        (r.rules || []).map(function (y, i) { return h("line", { key: "r" + i, x1: 20, x2: r.width - 20, y1: y, y2: y, className: "kg-boundary__rule" }); }),
+        (r.lines || []).map(function (line, i) { return h("text", { key: "l" + i, x: line.x === undefined ? (nested ? 14 : 20) : line.x, y: line.y, className: (line.font === "sans" ? "kg-boundary__sans" : "kg-boundary__mono") + (line.emphasis === "accent" ? " kg-boundary__line--accent" : "") }, line.text); }),
+        (r.children || []).map(function (child) { return card(child, true, false); }));
+    }
+    var routes = (p.edges || []).map(function (e, i) {
+      var pts = [point(e.from, e.fromSide, e.fromPort)].concat(e.via || [], [point(e.to, e.toSide, e.toPort)]), arrows = e.arrows || "end";
+      return h("g", { key: i, className: "kg-boundary__edge kg-palette-" + regionPalette(e.palette) },
+        h("polyline", { points: pts.map(function (pt) { return pt.join(","); }).join(" "), fill: "none", stroke: "currentColor", strokeWidth: 2.5, strokeDasharray: dash(e.style) }),
+        arrows !== "none" ? arrow(pts[pts.length - 1], pts[pts.length - 2], "end") : null,
+        arrows === "both" ? arrow(pts[0], pts[1], "start") : null);
+    });
+    return h("figure", { className: "kg-boundary", "aria-label": p.label },
+      h("div", { className: "kg-boundary__viewport", tabIndex: 0, role: "region", "aria-label": p.label + "; scroll to inspect the full drawing" },
+        h("svg", { viewBox: "0 0 " + p.width + " " + p.height, style: { width: p.width, minWidth: p.width }, "aria-label": p.label, role: "group" },
+          h("title", null, p.label), h("rect", { width: p.width, height: p.height, className: "kg-boundary__ground" }),
+          (p.zones || []).map(function (z) { return card(z, false, true); }), p.cards.map(function (r) { return card(r, false, false); }), routes,
+          (p.edges || []).map(function (e, i) { return e.label ? h("text", { key: i, x: e.labelX, y: e.labelY, className: "kg-boundary__edge-label kg-palette-" + regionPalette(e.palette) }, e.label) : null; }))),
+      p.caption ? h("figcaption", null, p.caption) : null);
+  }
+  // A bounded recursive schema exposes the same four child levels that the
+  // validator supports, without an unbounded JSON-schema reference or markup.
+  var BOUNDARY_LINE = S("object", { requiredKeys: ["text", "y"], properties: { text: S("string"), y: S("number", { description: "Baseline in parent-relative canvas units" }), x: S("number"), font: S("string", { enum: ["mono", "sans"] }), emphasis: S("string", { enum: ["normal", "accent"], description: "Explicit semantic accent; normal text is never inferred from position" }) } });
+  function boundaryRectangleSpec(depth) {
+    var properties = { id: S("string"), x: S("number"), y: S("number"), width: S("number"), height: S("number"), label: S("string"), title: S("string"), subtitle: S("string"), lines: S("array", { items: BOUNDARY_LINE }), rules: S("array", { items: S("number") }), style: S("string", { enum: ["solid", "dashed", "dotted"] }), outline: S("string", { enum: ["muted", "strong"] }), palette: S("string", { enum: REGION_PALETTES }) };
+    if (depth) properties.children = S("array", { items: boundaryRectangleSpec(depth - 1), description: "Child rectangles use coordinates relative to this rectangle" });
+    return S("object", { requiredKeys: ["id", "x", "y", "width", "height"], properties: properties });
+  }
+  var BOUNDARY_EDGE = S("object", { requiredKeys: ["from", "to", "fromSide", "toSide"], properties: { from: S("string"), to: S("string"), fromSide: S("string", { enum: ["left", "right", "top", "bottom"] }), toSide: S("string", { enum: ["left", "right", "top", "bottom"] }), fromPort: S("number"), toPort: S("number"), via: S("array", { items: S("array", { items: S("number") }), description: "Canvas-coordinate [x,y] waypoints; consecutive route points must differ" }), style: S("string", { enum: ["solid", "dashed", "dotted"] }), palette: S("string", { enum: REGION_PALETTES }), arrows: S("string", { enum: ["none", "end", "both"] }), label: S("string"), labelX: S("number"), labelY: S("number") } });
+  interfaces["kages/boundary-diagram@1"] = {
+    role: "boundary-diagram", summary: "Authored system boundaries with nested cards, selectable text and routed child endpoints.",
+    props: { label: S("string", { required: true }), width: S("number", { required: true }), height: S("number", { required: true }), zones: S("array", { items: boundaryRectangleSpec(4) }), cards: S("array", { required: true, items: boundaryRectangleSpec(4) }), edges: S("array", { items: BOUNDARY_EDGE }), caption: S("string") }, slots: {}, events: {}, outputs: []
+  };
+  core["boundary-diagram"] = contract("core", "boundary-diagram", "1.0.0", "kages/boundary-diagram@1", CoreBoundaryDiagram, {
+    tokens: ["paper", "surface", "sunken", "ink", "ink-muted", "line", "line-control", "accent", "wire", "accent-soft", "focus"],
+    agent: { use: "Use when spatial boundaries, heterogeneous cards and nested endpoints carry meaning; use diagram for auto layout. Static only. width/height are canvas units (100..20000). zones/cards: {id,x,y,width,height,label?,title?,subtitle?,lines?:[{text,y,x?,font?:mono|sans,emphasis?:normal|accent}],rules?:[y],children?:[same rectangle],style?:solid|dashed|dotted,outline?:muted|strong,palette?:inherit|ocean|mint|violet|amber|rose}. Children use parent-relative coordinates; globally unique IDs, at most four child levels and 2000 rectangles total. At least one zone or card is required. Sibling and non-nested cards/cells must not overlap; zones are exempt. Keep text clear of later child rectangles. Card title baseline 33, subtitle 59, inset 20; cell inset 14. zones default to dashed outlines and uppercase mono labels; style overrides the outline. Unknown nested keys and zero-length route segments are errors. Use per-line emphasis:accent only where meaningful. edges: {from,to,fromSide,toSide,fromPort?,toPort?,via?:[[x,y]],style?,palette?,arrows?:none|end|both,label?,labelX?,labelY?}. Sides left/right/top/bottom, ports 0..1 along the side (default .5); via and label positions are canvas coordinates. Route orthogonally through gutters. Every endpoint must exist, including children. Text is literal, never HTML/SVG markup. Match line baselines and card dimensions to the content; no truncation. Phone uses contained keyboard-accessible horizontal scroll at original text size. Example: reference/examples/system-boundary-example.kage.json in the full example library. The technical palette applies only without a workspace design; pinned workspace colours take precedence." }
+  });
+  Object.assign(freeFlowExports, { CoreBoundaryDiagram: CoreBoundaryDiagram });
+
   var ledger = {
     sidebar: contract("ledger", "sidebar", "2.0.0", "kages/nav@1", LedgerSidebar, { tokens: ["ledger-sunken", "ledger-line", "ledger-accent"], agent: { use: "Grouped nav: set `group` on items for section headers, `code` for 2–4 char tickers.", avoid: "Long labels; Ledger truncates at one line." } }),
     dropdown: contract("ledger", "dropdown", "2.0.0", "kages/select@1", LedgerDropdown, { limits: { maxOptions: 6 }, tokens: ["ledger-line-control", "ledger-accent", "ledger-accent-ink"], agent: { use: "Segmented control: every option visible, one tap. Up to 6 short options.", avoid: "Long or dynamic option lists — pin `core/dropdown@1` for those." } }),
@@ -2783,9 +2851,9 @@
   };
   function extend(base, own) { var o = {}, k; for (k in base) o[k] = base[k]; for (k in own) o[k] = own[k]; return o; }
   var systems = {
-    core: { id: "core", name: "Kages Core", version: "1.18.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
-    ledger: { id: "ledger", name: "Ledger", version: "2.15.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
-    atelier: { id: "atelier", name: "Atelier", version: "1.14.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
+    core: { id: "core", name: "Kages Core", version: "1.19.0", className: "kg-sys-core", extends: null, summary: "Neutral lattice system. The base every other system extends.", components: core },
+    ledger: { id: "ledger", name: "Ledger", version: "2.16.0", className: "kg-sys-ledger", extends: "core@1", summary: "Dense, square, mono-numeral system for data and operations tools.", components: extend(core, ledger) },
+    atelier: { id: "atelier", name: "Atelier", version: "1.15.0", className: "kg-sys-atelier", extends: "core@1", summary: "Soft, editorial, serif system for consumer and storytelling artifacts.", components: extend(core, atelier) }
   };
 
   /* resolve a block `type` against a system:
@@ -3487,6 +3555,9 @@ function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFor) {
       });
       for (const actions of Object.values(b.on || {})) for (const action of Array.isArray(actions) ? actions : []) { if (action.do === "call" && action.target !== "$self" && [...repeats(action.target)].some(r => !scope.has(r))) fail(at, "ambiguous-instance", "Call to a repeated block must be inside the same repeat scope"); }
       const c = contractFor ? contractFor(b.type) : null;
+      if (c?.implements?.includes("kages/boundary-diagram@1")) {
+        for (const finding of boundaryFindings(b.props || {})) fail(at + "/props", finding.code, finding.msg);
+      }
       for (const [slot, children] of Object.entries(b.slots || {})) if (c?.slots?.[slot]?.max && children.some(child => blocks[child]?.repeat)) fail(at + "/slots/" + slot, "repeat-slot-limit", "Place repeated blocks inside an unbounded container to respect slot cardinality");
       if (b.repeat !== undefined) {
         const r = b.repeat;
@@ -3540,6 +3611,82 @@ function advancedFindings(doc, baseValidate, isExpr, walkExpr, contractFor) {
  * resolve as well, so a state update cannot bypass a reusable component's type. */
 function matchesInput(spec, value) {
   return typeof spec.type === "string" && spec.type.split("|").some(type => type === "null" ? value === null : value != null && (type === "array" ? Array.isArray(value) : type === "object" ? object(value) : type === "number" ? finite(value) : typeof value === type)) && (!spec.enum || spec.enum.includes(value));
+}
+
+/** Fail closed on structured drawings: dropping an unknown endpoint would turn
+ * an invalid architecture into a plausible but false picture. Geometry is
+ * bounded before either the oracle or renderer consumes it. */
+function boundaryFindings(p) {
+  const out = [], ids = new Map(), rectangles = [];
+  let rectangleCount = 0, overBudget = false;
+  const fail = (code, msg) => out.push({ code, msg });
+  const num = v => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 20000;
+  // All drawing records are the content contract too. A misspelled field
+  // otherwise validates as an empty box or drops an edge label without notice.
+  const keys = (value, allowed, at) => { for (const key of Object.keys(value)) if (!allowed.includes(key)) fail('boundary-content', at + ': unknown key ' + key); };
+
+  const list = (v, name, max) => {
+    if (!Array.isArray(v) || v.length > max) { fail('boundary-geometry', name + ' must be an array of at most ' + max); return []; }
+    return v;
+  };
+  if (!object(p) || !num(p.width) || !num(p.height) || p.width < 100 || p.height < 100) return [{ code: 'boundary-geometry', msg: 'Canvas width and height must be finite, from 100 to 20000' }];
+  keys(p, ['label','width','height','zones','cards','edges','caption'], 'drawing');
+  function rect(r, parent, at, depth, ancestors = [], zone = false) {
+    // Pairwise overlap work must be bounded even for deeply nested, tiny boxes.
+    // Excess input is an error, never a silently truncated successful drawing.
+    if (++rectangleCount > 2000) { if (!overBudget) fail('boundary-geometry', 'At most 2000 rectangles per drawing'); overBudget = true; return; }
+    if (!object(r)) { fail('boundary-geometry', at + ' must be an object'); return; }
+    keys(r, ['id','x','y','width','height','label','title','subtitle','lines','rules','children','style','outline','palette'], at);
+    if (typeof r.id !== 'string' || !/^[a-zA-Z][\w-]{0,79}$/.test(r.id) || ids.has(r.id)) fail('boundary-id', at + ' requires a unique safe id');
+    else ids.set(r.id, { x: parent.x + r.x, y: parent.y + r.y, width: r.width, height: r.height });
+    if (!['x', 'y', 'width', 'height'].every(k => num(r[k])) || r.x < 0 || r.y < 0 || r.width <= 0 || r.height <= 0 || r.x + r.width > parent.width || r.y + r.height > parent.height) fail('boundary-geometry', at + ' must fit inside its parent with finite positive dimensions');
+    if (!zone && typeof r.id === 'string' && ['x','y','width','height'].every(k=>num(r[k]))) rectangles.push({id:r.id,x:parent.x+r.x,y:parent.y+r.y,width:r.width,height:r.height,ancestors});
+    for (const k of ['title', 'subtitle', 'label']) if (r[k] !== undefined && typeof r[k] !== 'string') fail('boundary-content', at + '.' + k + ' must be text');
+    if (r.outline !== undefined && !['muted', 'strong'].includes(r.outline)) fail('boundary-content', at + ' has unknown outline token');
+    if (r.style !== undefined && !['solid', 'dashed', 'dotted'].includes(r.style)) fail('boundary-content', at + ' has unknown outline style');
+    if (r.palette !== undefined && !['inherit', 'ocean', 'mint', 'violet', 'amber', 'rose'].includes(r.palette)) fail('boundary-content', at + ' has unknown palette');
+    for (const line of list(r.lines === undefined ? [] : r.lines, at + '.lines', 200)) {
+      if (object(line)) { keys(line, ['text','y','x','font','emphasis'], at + '.lines'); if (line.emphasis !== undefined && !['normal','accent'].includes(line.emphasis)) fail('boundary-content', at + ': unknown line emphasis'); }
+      if (!object(line) || typeof line.text !== 'string' || !line.text.trim() || !num(line.y) || line.y < 0 || line.y > r.height || (line.x !== undefined && (!num(line.x) || line.x < 0 || line.x >= r.width)) || (line.font !== undefined && !['sans', 'mono'].includes(line.font))) fail('boundary-content', at + ' lines need text, a baseline inside the card, and sans/mono font');
+    }
+    for (const y of list(r.rules === undefined ? [] : r.rules, at + '.rules', 100)) if (!num(y) || y < 0 || y > r.height) fail('boundary-geometry', at + ' rule must fit inside card');
+    const children = list(r.children === undefined ? [] : r.children, at + '.children', 200);
+    if (depth >= 4 && children.length) fail('boundary-geometry', 'Child nesting is limited to four levels');
+    else for (const child of children) rect(child, { x: parent.x + r.x, y: parent.y + r.y, width: r.width, height: r.height }, at + '.children', depth + 1, [...ancestors, r.id]);
+  }
+  const zones = list(p.zones === undefined ? [] : p.zones, 'zones', 100), cards = list(p.cards, 'cards', 200);
+  if (!zones.length && !cards.length) fail('boundary-geometry', 'A drawing needs at least one zone or card');
+  for (const zone of zones) rect(zone, { x: 0, y: 0, width: p.width, height: p.height }, 'zone', 0, [], true);
+  for (const card of cards) rect(card, { x: 0, y: 0, width: p.width, height: p.height }, 'card', 0);
+  // Containment is intentional; unrelated opaque cards are not. Zones are
+  // absent from this set because their boundaries deliberately enclose cards.
+  if (!overBudget) overlap: for (let i=0;i<rectangles.length;i++) for (let j=i+1;j<rectangles.length;j++) {
+    const a=rectangles[i], b=rectangles[j];
+    if (a.ancestors.includes(b.id) || b.ancestors.includes(a.id)) continue;
+    if (a.x < b.x+b.width && a.x+a.width > b.x && a.y < b.y+b.height && a.y+a.height > b.y) { fail('boundary-overlap', 'Non-nested rectangles overlap: '+a.id+' and '+b.id); break overlap; }
+  }
+  for (const e of list(p.edges === undefined ? [] : p.edges, 'edges', 400)) {
+    if (!object(e)) { fail('boundary-endpoint', 'Edge must be an object'); continue; }
+    keys(e, ['from','to','fromSide','toSide','fromPort','toPort','via','style','palette','arrows','label','labelX','labelY'], 'edge');
+    if (e.label === undefined && (e.labelX !== undefined || e.labelY !== undefined)) fail('boundary-content', 'Edge label positions require label text');
+    if (!ids.has(e.from) || !ids.has(e.to)) fail('boundary-endpoint', 'Unknown card or child endpoint');
+    for (const key of ['fromSide', 'toSide']) if (!['left', 'right', 'top', 'bottom'].includes(e[key])) fail('boundary-endpoint', key + ' must name a side');
+    for (const key of ['fromPort', 'toPort']) if (e[key] !== undefined && (!num(e[key]) || e[key] < 0 || e[key] > 1)) fail('boundary-geometry', key + ' must be between 0 and 1');
+    for (const pt of list(e.via === undefined ? [] : e.via, 'via', 100)) if (!Array.isArray(pt) || pt.length !== 2 || !pt.every(num) || pt[0] < 0 || pt[1] < 0 || pt[0] > p.width || pt[1] > p.height) fail('boundary-geometry', 'Waypoints must be finite [x,y] within the canvas');
+    if (e.label !== undefined && (typeof e.label !== 'string' || !e.label.trim() || !num(e.labelX) || !num(e.labelY) || e.labelX < 0 || e.labelY < 0 || e.labelX > p.width || e.labelY > p.height)) fail('boundary-geometry', 'Edge labels need text and finite labelX/labelY within the canvas');
+    if (e.style !== undefined && !['solid', 'dashed', 'dotted'].includes(e.style)) fail('boundary-content', 'Unknown edge style');
+    if (e.arrows !== undefined && !['none', 'end', 'both'].includes(e.arrows)) fail('boundary-content', 'Unknown arrow mode');
+    if (e.palette !== undefined && !['inherit', 'ocean', 'mint', 'violet', 'amber', 'rose'].includes(e.palette)) fail('boundary-content', 'Unknown edge palette');
+    // Arrowheads need a direction. Reject repeated adjacent points instead of
+    // letting a zero-length first/last segment silently remove one arrowhead.
+    if (ids.has(e.from) && ids.has(e.to) && Array.isArray(e.via === undefined ? [] : e.via)) {
+      const point = (id, side, port) => { const b=ids.get(id),t=port === undefined ? .5 : port;return side==='left'?[b.x,b.y+b.height*t]:side==='right'?[b.x+b.width,b.y+b.height*t]:side==='top'?[b.x+b.width*t,b.y]:[b.x+b.width*t,b.y+b.height]; };
+      const points=[point(e.from,e.fromSide,e.fromPort),...(e.via || []),point(e.to,e.toSide,e.toPort)];
+      if (points.every(p=>Array.isArray(p)&&p.length===2&&p.every(num))) for (let i=1;i<points.length;i++) if (points[i][0]===points[i-1][0]&&points[i][1]===points[i-1][1]) { fail('boundary-geometry','Route segments must have nonzero length'); break; }
+    }
+
+  }
+  return out;
 }
 
 /* Extend the reference's public operations together. Old contracts stay intact;
