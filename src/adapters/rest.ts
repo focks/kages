@@ -38,6 +38,7 @@ export async function handleRest(ctx: OpContext, op: string, req: Request): Prom
 export function httpStatus(code: string): number {
   switch (code) {
     case "unavailable": return 503;
+    case "misconfigured": return 500;
     case "unknown_operation": return 404;
     case "not_found": return 404;
     case "unauthorized": return 401;

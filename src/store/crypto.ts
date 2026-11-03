@@ -89,14 +89,20 @@ export function importKey(s: SerializedKey): SigningKey {
   return { keyId: s.keyId, publicKey: createPublicKey(s.publicPem), privateKey: createPrivateKey(openPrivateKey(s)) };
 }
 
+/** An operator setting is missing or malformed. Retrying cannot help, so callers
+ *  report it apart from a storage outage. */
+export class MisconfiguredError extends Error {
+  name = "MisconfiguredError";
+}
+
 /** A database dump must not contain usable hosted signer keys. The wrapping key lives in operator secrets. */
 function wrappingKey(): Buffer | undefined {
   const secret = process.env.KAGES_SIGNING_KEY_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === "production") throw new Error("KAGES_SIGNING_KEY_SECRET is required for production signing-key storage");
+    if (process.env.NODE_ENV === "production") throw new MisconfiguredError("KAGES_SIGNING_KEY_SECRET is required for production signing-key storage");
     return undefined;
   }
-  if (!/^[a-fA-F0-9]{64}$/.test(secret)) throw new Error("KAGES_SIGNING_KEY_SECRET must be 64 hexadecimal characters");
+  if (!/^[a-fA-F0-9]{64}$/.test(secret)) throw new MisconfiguredError("KAGES_SIGNING_KEY_SECRET must be 64 hexadecimal characters");
   return Buffer.from(secret, "hex");
 }
 function sealPrivateKey(pem: string): Pick<SerializedKey, "privatePem" | "encryptedPrivatePem"> {
