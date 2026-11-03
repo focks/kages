@@ -12,6 +12,7 @@ import { headsSuffice } from "./persistence.ts";
 import { anonWriteBlocked } from "./identity.ts";
 import type { Provenance } from "../store/types.ts";
 import { chooseSink } from "../cli/advice-sinks.ts";
+import { failureResult } from "./op-failure.ts";
 
 // Hosted deployments have no durable disk, so only "stdout" is honoured there; anything else is
 // reported once and the log stays off.
@@ -49,6 +50,6 @@ export async function executeOp(
     return await mutateStore(workspace, (store) => ({ result: dispatch({ store, author, adapter, connection, adviceLog: sink }, op, params) }));
   } catch (e) {
     console.error("workspace operation failed:", e);
-    return { ok: false, error: { code: "unavailable", msg: "workspace storage unavailable; retry later" } };
+    return failureResult(e);
   }
 }

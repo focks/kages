@@ -110,7 +110,16 @@ async function initStore(workspace: string): Promise<Store> {
     const baseline = loaded ? baselineOf(loaded.snapshot) : null;
     const store = loaded ? Store.restore(loaded.snapshot) : buildSeeded(workspace);
     if (loaded && !backfillExamples(store, workspace)) return store;
-    if (await casSave(workspace, store.snapshot(), loaded?.rev ?? null, baseline)) return store;
+    try {
+      if (await casSave(workspace, store.snapshot(), loaded?.rev ?? null, baseline)) return store;
+    } catch (e) {
+      // The backfill is optional; the committed data loaded fine. Failing here took every
+      // read down with a write nobody asked for. Serve what is stored, without the uncommitted
+      // examples. A workspace that never loaded still throws: seeding over it could lose data.
+      if (!loaded) throw e;
+      console.error(`[kages] example backfill for ${workspace} was not saved; serving stored data:`, e);
+      return Store.restore(loaded.snapshot);
+    }
     // A competing seed or backfill won. Reload its committed data, never our candidate.
   }
   throw new Error("workspace initialization changed concurrently; please retry");
