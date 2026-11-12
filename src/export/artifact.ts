@@ -5,6 +5,7 @@
 // with no visible error) and the document as inert JSON. Pure: the caller supplies
 // the bundle text, so the function is testable and never reads a disk or network.
 import tokens from "../../public/ds/tokens.json" with { type: "json" };
+import { designCss, readSnapshot } from "../engine/design.ts";
 import type { KageDoc } from "../engine/types.ts";
 
 export interface ArtifactAssets { tokensCss: string; bundleCss: string; bundleJs: string }
@@ -29,6 +30,17 @@ const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 const inertScript = (s: string) => s.replace(/<\/(script)/gi, "<\\/$1");
 const inertStyle = (s: string) => s.replace(/<\/(style)/gi, "<\\/$1");
 
+/** An @import is ignored once any other rule precedes it, and the three stylesheets are concatenated, so
+ *  each leading @import is lifted out. The artifact contract loads web fonts with a <link> to Google Fonts
+ *  and nothing else, so only those are kept; the rest of the sheet is returned untouched. */
+export function hoistFontImports(css: string): { css: string; links: string[] } {
+  const links: string[] = [];
+  // The quoted URL is matched whole: Google Fonts URLs contain ";" (wght@400;500), so stopping at the
+  // first one would leave the tail of the URL behind as stray CSS that swallows the next rule.
+  const rest = css.replace(/@import\s+(?:url\(\s*)?(["'])(.*?)\1\s*\)?[^;]*;/g, (_m, _q: string, url: string) => { if (/^https:\/\/fonts\.googleapis\.com\/css2?\?[^"'\s<>]+$/.test(url)) links.push(url); return ""; });
+  return { css: rest, links };
+}
+
 export function artifactHtml(doc: KageDoc, assets: ArtifactAssets): string {
   const system = String(doc.system ?? "core").split("@")[0];
   const ground = pageGround(system);
@@ -40,11 +52,15 @@ export function artifactHtml(doc: KageDoc, assets: ArtifactAssets): string {
 :root[data-theme="dark"] { --page-bg: ${ground.dark}; color-scheme: dark; }
 body { background: var(--page-bg); }
 #kage { padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }`;
+  // The pinned workspace design restyles the Kage through the same checked stylesheet the app uses.
+  const design = readSnapshot(doc.resolved?.design);
+  const sheets = [assets.tokensCss, assets.bundleCss, design ? designCss(design) : ""].map(hoistFontImports);
+  const links = [...new Set(sheets.flatMap((x) => x.links))].map((u) => `<link rel="stylesheet" href="${escapeHtml(u).replace(/"/g, "&quot;")}">`).join("\n");
   const html = `<title>${title}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+${links}
 <style>
-${inertStyle(assets.tokensCss)}
-${inertStyle(assets.bundleCss)}
+${sheets.map((x) => inertStyle(x.css)).join("\n")}
 ${page}
 </style>
 <div id="kage"></div>
@@ -60,7 +76,7 @@ ${page}
   function sync() { var t = root.getAttribute("data-theme"); root.classList.toggle("dark", t ? t === "dark" : media.matches); }
   sync(); media.addEventListener("change", sync); new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
   var doc = JSON.parse(document.getElementById("kage-doc").textContent);
-  ReactDOM.createRoot(document.getElementById("kage")).render(React.createElement(Kages.KageRenderer, { doc: doc }));
+  ReactDOM.createRoot(document.getElementById("kage")).render(React.createElement(Kages.KageRenderer, { doc: doc, className: ${design ? '"kg-design"' : "undefined"} }));
 })();
 </script>
 `;

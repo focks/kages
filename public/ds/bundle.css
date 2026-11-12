@@ -645,6 +645,7 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
 .kg-deck__cite { font-size: clamp(.75rem, 1.9cqw, 1.2rem); color: var(--kg-ink-muted); padding-inline-start: 3.6cqw; }
 .kg-deck__stat { font-size: clamp(2rem, 14cqw, 9rem); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--kg-accent); }
 .kg-deck__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--kg-space-3); }
+.kg-deck__bar .kg-btn[aria-disabled=true] { opacity: .5; cursor: not-allowed; }
 .kg-deck__count { font-variant-numeric: tabular-nums; color: var(--kg-ink-muted); }
 .kg-deck__rail { display: flex; gap: var(--kg-space-2); margin: 0; padding: 0 0 var(--kg-space-1); list-style: none; overflow-x: auto; }
 .kg-deck__rail li { flex: 0 0 auto; }

@@ -1600,8 +1600,12 @@
   }
   function CoreDeck(p) {
     var slides = deckSlides(p.slides), uid = R().useId();
+    var asked = Math.floor(richNum(p.index, 0)), at = Math.max(0, Math.min(slides.length - 1, asked)), s = slides[at];
+    // The public `index` output is the stored value, so a stale or out-of-range one (index:99, or a
+    // shorter deck than before) must be corrected there too, not only on screen; a block bound to
+    // `index` would otherwise disagree with the slide that is shown. Hooks run before the early return.
+    R().useEffect(function () { if (slides.length && typeof p.index === "number" && asked !== at) fire(p.onChange, { index: at }); }, [asked, at, slides.length]);
     if (!slides.length) return h("p", null, p.empty || "No slides");
-    var at = Math.max(0, Math.min(slides.length - 1, Math.floor(richNum(p.index, 0)))), s = slides[at];
     function go(i) { var to = Math.max(0, Math.min(slides.length - 1, i)); if (to !== at) fire(p.onChange, { index: to }); }
     var keys = { ArrowRight: at + 1, PageDown: at + 1, " ": at + 1, ArrowLeft: at - 1, PageUp: at - 1, Home: 0, End: slides.length - 1 };
     function onKey(e) { if (e.target && e.target.tagName === "BUTTON" && e.key === " ") return; if (Object.prototype.hasOwnProperty.call(keys, e.key)) { e.preventDefault(); go(keys[e.key]); } }
@@ -1613,9 +1617,11 @@
           s.title ? h("h3", { className: "kg-deck__title" }, s.title) : null,
           deckBody(s))),
       h("div", { className: "kg-deck__bar" },
-        h("button", { type: "button", className: "kg-btn", disabled: at === 0, "aria-controls": uid + "-s", onClick: function () { go(at - 1); } }, "Previous"),
+        // aria-disabled, not disabled: a disabled button drops keyboard focus when the last slide is
+        // reached, leaving a keyboard user on nothing. go() already ignores a move past either end.
+        h("button", { type: "button", className: "kg-btn", "aria-disabled": at === 0 ? "true" : undefined, "aria-controls": uid + "-s", onClick: function () { go(at - 1); } }, "Previous"),
         h("span", { className: "kg-deck__count", "aria-hidden": "true" }, (at + 1) + " / " + slides.length),
-        h("button", { type: "button", className: "kg-btn", disabled: at === slides.length - 1, "aria-controls": uid + "-s", onClick: function () { go(at + 1); } }, "Next")),
+        h("button", { type: "button", className: "kg-btn", "aria-disabled": at === slides.length - 1 ? "true" : undefined, "aria-controls": uid + "-s", onClick: function () { go(at + 1); } }, "Next")),
       h("ol", { className: "kg-deck__rail", "aria-label": "Slides" }, slides.map(function (t, i) {
         return h("li", { key: i }, h("button", { type: "button", className: "kg-deck__thumb" + (i === at ? " kg-deck__thumb--on" : ""), "aria-current": i === at ? "true" : undefined, "aria-label": "Slide " + (i + 1) + (t.title ? ": " + t.title : ""), onClick: function () { go(i); } },
           h("span", { className: "kg-deck__thumb-n" }, i + 1), h("span", { className: "kg-deck__thumb-t" }, t.title || t.quote || t.value || "Untitled")));

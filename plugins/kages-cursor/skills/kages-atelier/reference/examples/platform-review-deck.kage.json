@@ -25,18 +25,18 @@
         "slides": [
           {
             "layout": "title",
-            "eyebrow": "Q4 platform review",
+            "eyebrow": "Example deck, illustrative figures",
             "title": "Faster deploys, fewer pages",
             "text": "What changed in the pipeline, what it cost and what we do next.",
-            "notes": "Open with the one-line result: median deploy 31 min to 9 min."
+            "notes": "Replace the figures with your own measurements. Open with the one-line result."
           },
           {
             "layout": "stat",
             "eyebrow": "Deploy time",
             "title": "Median deploy",
             "value": "9 min",
-            "caption": "Down from 31 min in Q3, measured across 1,240 production deploys.",
-            "notes": "Source: the deploy log, production only."
+            "caption": "Illustrative: down from 31 min in Q3. Replace with your own period and deploy count.",
+            "notes": "State the source and the period for a real figure."
           },
           {
             "layout": "content",
@@ -51,9 +51,10 @@
           },
           {
             "layout": "quote",
-            "title": "On-call feedback",
-            "quote": "I slept through a deploy for the first time in two years.",
-            "cite": "Platform on-call engineer, November retro"
+            "title": "A line from the team",
+            "quote": "Replace this with a real quote from someone on your team.",
+            "cite": "Name, role, source and date",
+            "notes": "Use a quote only with the speaker's permission, and attribute it."
           },
           {
             "layout": "section",

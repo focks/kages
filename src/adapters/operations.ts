@@ -576,7 +576,7 @@ export const OPERATIONS: OpSpec[] = [
       case "json": return ok(JSON.stringify(r.record.doc, null, 2));
       case "markdown": return ok(describe(r.record.doc));
       case "card": return ok(c.store.card(p.name));
-      case "artifact": try { return ok(artifactHtml(r.record.doc, loadArtifactAssets())); } catch (e) { return fail("unavailable", (e as Error).message); }
+      case "artifact": try { return ok(artifactHtml(r.record.doc, loadArtifactAssets(undefined, r.record.doc.resolved?.assets))); } catch (e) { return fail("unavailable", (e as Error).message); }
       default: return fail("invalid_content", `unknown format '${p.format}'`);
     }
   } },
