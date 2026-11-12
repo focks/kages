@@ -3171,6 +3171,69 @@
     "events": {},
     "outputs": []
   },
+  "kages/deck@1": {
+    "role": "deck",
+    "summary": "Slide deck: one slide at a time on a fixed-ratio stage with keyboard navigation, a slide rail and optional speaker notes; the slide index is public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "slides": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      "index": {
+        "type": "number"
+      },
+      "ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "4:3"
+        ],
+        "default": "16:9"
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "inherit"
+      },
+      "notes": {
+        "type": "boolean"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "index": {
+        "type": "number",
+        "default": 0
+      }
+    },
+    "events": {
+      "change": {
+        "payload": {
+          "index": "number"
+        }
+      }
+    },
+    "outputs": [
+      "index"
+    ]
+  },
   "kages/combo-chart@1": {
     "summary": "Grouped bars and lines on one shared axis for categories, with a legend and data table.",
     "props": {

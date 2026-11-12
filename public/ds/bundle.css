@@ -615,6 +615,49 @@ button.kg-stepper__btn:focus-visible { outline: 3px solid var(--kg-focus); outli
 .kg-math__matrix--cases .kg-math__cell, .kg-math__cell--l { text-align: start; }
 .kg-math__cell--r { text-align: end; }
 
+/* Slide deck. The ratio sets the stage's minimum height, never a clip: a phone
+ * cannot fit a 16:9 slide that has four lines, so the stage grows to its content
+ * (overflow: clip keeps the rounded corners without making it a scroll container).
+ * The stage is a size container, so every slide scales its type with
+ * the stage's own width (cqw) instead of the viewport, and a narrow embed keeps the
+ * same composition. Colours are tokens only; the accent layouts use the accent/
+ * accent-ink pair that the primary button already guarantees. */
+.kg-deck { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--kg-space-3); min-width: 0; }
+.kg-deck__stage { container-type: inline-size; position: relative; display: grid; width: 100%; overflow: clip; border: 1px solid var(--kg-line); border-radius: var(--kg-r-md); background: var(--kg-surface); color: var(--kg-ink); }
+.kg-deck__stage--wide { aspect-ratio: 16 / 9; }
+.kg-deck__stage--four-three { aspect-ratio: 4 / 3; }
+.kg-deck__stage:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
+.kg-deck__slide { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 2.2cqw; padding: 6cqw 7cqw; overflow-wrap: anywhere; }
+.kg-deck__slide :is(h3, p, ul, blockquote) { margin: 0; }
+.kg-deck__eyebrow { font-size: max(.7rem, 1.6cqw); letter-spacing: .08em; text-transform: uppercase; color: var(--kg-ink-muted); }
+.kg-deck__title { font-size: clamp(1.1rem, 4.4cqw, 3rem); line-height: 1.1; text-wrap: balance; }
+.kg-deck__text { font-size: clamp(.8rem, 2.4cqw, 1.5rem); line-height: 1.4; max-width: 60ch; }
+.kg-deck__list { padding-inline-start: 1.3em; display: grid; gap: 1.2cqw; font-size: clamp(.8rem, 2.4cqw, 1.5rem); line-height: 1.35; }
+.kg-deck__media { max-width: 100%; max-height: 30cqw; min-height: 0; object-fit: contain; border-radius: var(--kg-r-sm); }
+.kg-deck__slide--title .kg-deck__slide, .kg-deck__slide--section .kg-deck__slide { background: var(--kg-accent); color: var(--kg-accent-ink); }
+.kg-deck__slide--title .kg-deck__eyebrow, .kg-deck__slide--section .kg-deck__eyebrow { color: inherit; opacity: .85; }
+.kg-deck__slide--title .kg-deck__title { font-size: clamp(1.5rem, 7cqw, 4.5rem); }
+.kg-deck__slide--section .kg-deck__title { font-size: clamp(1.3rem, 6cqw, 3.5rem); }
+.kg-deck__slide--split .kg-deck__slide { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; align-content: center; column-gap: 4cqw; }
+.kg-deck__slide--split .kg-deck__eyebrow, .kg-deck__slide--split .kg-deck__title { grid-column: 1 / -1; }
+.kg-deck__col { display: grid; gap: 2cqw; align-content: center; min-width: 0; min-height: 0; }
+.kg-deck__slide--quote .kg-deck__quote { font-size: clamp(1rem, 3.6cqw, 2.4rem); line-height: 1.25; text-wrap: balance; border-inline-start: .6cqw solid var(--kg-accent); padding-inline-start: 3cqw; }
+.kg-deck__cite { font-size: clamp(.75rem, 1.9cqw, 1.2rem); color: var(--kg-ink-muted); padding-inline-start: 3.6cqw; }
+.kg-deck__stat { font-size: clamp(2rem, 14cqw, 9rem); line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--kg-accent); }
+.kg-deck__bar { display: flex; align-items: center; justify-content: space-between; gap: var(--kg-space-3); }
+.kg-deck__count { font-variant-numeric: tabular-nums; color: var(--kg-ink-muted); }
+.kg-deck__rail { display: flex; gap: var(--kg-space-2); margin: 0; padding: 0 0 var(--kg-space-1); list-style: none; overflow-x: auto; }
+.kg-deck__rail li { flex: 0 0 auto; }
+.kg-deck__thumb { display: flex; align-items: baseline; gap: var(--kg-space-2); max-width: 11rem; padding: var(--kg-space-2) var(--kg-space-3); border: 1px solid var(--kg-line-control); border-radius: var(--kg-r-sm); background: var(--kg-paper); color: var(--kg-ink); font: inherit; text-align: start; cursor: pointer; }
+.kg-deck__thumb:hover { background: var(--kg-sunken); }
+.kg-deck__thumb--on { border-color: var(--kg-accent); background: var(--kg-accent-soft); }
+.kg-deck__thumb:focus-visible { outline: 3px solid var(--kg-focus); outline-offset: 2px; }
+.kg-deck__thumb-n { font-variant-numeric: tabular-nums; color: var(--kg-ink-muted); }
+.kg-deck__thumb-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kg-deck__notes { padding: var(--kg-space-3) var(--kg-space-4); border: 1px solid var(--kg-line); border-radius: var(--kg-r-md); background: var(--kg-sunken); }
+.kg-deck__notes p { margin: var(--kg-space-1) 0 0; }
+@container (max-width: 34rem) { .kg-deck__slide--split .kg-deck__slide { grid-template-columns: 1fr; } }
+
 /* Batch 4 charts. Colour is token-only; geometry scales with the container. */
 .kg-legend--row { display: flex; flex-wrap: wrap; gap: var(--kg-space-2) var(--kg-space-4); }
 .kg-combo svg, .kg-stacked svg, .kg-funnel svg, .kg-treemap svg, .kg-sankey svg, .kg-map svg { background: transparent; }

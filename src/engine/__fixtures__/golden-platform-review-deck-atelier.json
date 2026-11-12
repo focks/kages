@@ -1,0 +1,57 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "atelier",
+    "portable": true
+  },
+  "description": "Kage \"Platform review deck\" · system atelier@1.16.0 · 2 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - talk [core/deck@1.0.0] label=\"Platform review\"",
+  "envelope": {
+    "title": "Platform review deck",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "talk"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "talk",
+        "type": "deck",
+        "props": {
+          "label": "Platform review",
+          "slides_json": "[{\"layout\":\"title\",\"eyebrow\":\"Q4 platform review\",\"title\":\"Faster deploys, fewer pages\",\"text\":\"What changed in the pipeline, what it cost and what we do next.\",\"notes\":\"Open with the one-line result: median deploy 31 min to 9 min.\"},{\"layout\":\"stat\",\"eyebrow\":\"Deploy time\",\"title\":\"Median deploy\",\"value\":\"9 min\",\"caption\":\"Down from 31 min in Q3, measured across 1,240 production deploys.\",\"notes\":\"Source: the deploy log, production only.\"},{\"layout\":\"content\",\"eyebrow\":\"What changed\",\"title\":\"Three changes did most of the work\",\"items\":[\"Build cache shared across branches\",\"Integration tests split into four parallel shards\",\"Canary stage replaced the manual smoke test\"],\"notes\":\"The cache alone accounts for roughly half of the saving.\"},{\"layout\":\"quote\",\"title\":\"On-call feedback\",\"quote\":\"I slept through a deploy for the first time in two years.\",\"cite\":\"Platform on-call engineer, November retro\"},{\"layout\":\"section\",\"eyebrow\":\"Next quarter\",\"title\":\"Make rollbacks boring\"},{\"layout\":\"content\",\"title\":\"Plan for Q1\",\"items\":[\"One-click rollback for every service\",\"Alert on error budget burn, not on raw errors\",\"Retire the last two hand-run release scripts\"]}]",
+          "index": null,
+          "ratio": null,
+          "palette": null,
+          "notes": true,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

@@ -13,6 +13,7 @@ For the recommended defaults, return to [Recommended examples](examples.md). The
 - [Launch flow — a guided checklist](examples/launch-flow.kage.json) — operate
 - [Team workbench — tasks, schedule and people](examples/team-workbench.kage.json) — operate
 - [Math notes — markdown, math and slides](examples/math-notes.kage.json) — read
+- [Platform review deck](examples/platform-review-deck.kage.json) — experience
 - [Region explorer — click a slice to filter](examples/region-explorer.kage.json) — operate
 - [Live feed — a declared data source](examples/live-feed.kage.json) — operate
 - [Signup rules — conditional behaviour](examples/signup-rules.kage.json) — operate

@@ -3,7 +3,7 @@
 // two differ, so an edit to a skill cannot silently miss the agents outside this repo.
 import { readFileSync, writeFileSync } from "node:fs";
 
-const FORMS = { "report-kages": "kages-report", "answer-pages": "kages-answer-pages", "research-briefs": "kages-research-briefs", "graph-interaction-levels": "kages-graph-interaction-levels", "diagram-authoring": "kages-diagram-authoring", "visual-review": "kages-visual-review", "coherent-presentation": "kages-coherent-presentation", "field-guides": "kages-field-guides", "artifact-art-direction": "kages-artifact-art-direction" };
+const FORMS = { "report-kages": "kages-report", "answer-pages": "kages-answer-pages", "research-briefs": "kages-research-briefs", "graph-interaction-levels": "kages-graph-interaction-levels", "diagram-authoring": "kages-diagram-authoring", "visual-review": "kages-visual-review", "coherent-presentation": "kages-coherent-presentation", "field-guides": "kages-field-guides", "artifact-art-direction": "kages-artifact-art-direction", "artifact-design": "kages-artifact-design", "slide-decks": "kages-slide-decks" };
 
 export function formSkills(root = ".") {
   return Object.entries(FORMS).map(([source, name]) => {

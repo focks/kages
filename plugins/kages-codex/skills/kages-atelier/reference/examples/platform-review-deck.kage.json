@@ -1,0 +1,79 @@
+{
+  "kages": "1.0",
+  "id": "platform-review-deck",
+  "title": "Platform review deck",
+  "system": "atelier@1",
+  "root": "root",
+  "blocks": {
+    "root": {
+      "type": "page",
+      "props": {
+        "width": "wide",
+        "gap": 6
+      },
+      "slots": {
+        "children": [
+          "talk"
+        ]
+      }
+    },
+    "talk": {
+      "type": "deck",
+      "props": {
+        "label": "Platform review",
+        "notes": true,
+        "slides": [
+          {
+            "layout": "title",
+            "eyebrow": "Q4 platform review",
+            "title": "Faster deploys, fewer pages",
+            "text": "What changed in the pipeline, what it cost and what we do next.",
+            "notes": "Open with the one-line result: median deploy 31 min to 9 min."
+          },
+          {
+            "layout": "stat",
+            "eyebrow": "Deploy time",
+            "title": "Median deploy",
+            "value": "9 min",
+            "caption": "Down from 31 min in Q3, measured across 1,240 production deploys.",
+            "notes": "Source: the deploy log, production only."
+          },
+          {
+            "layout": "content",
+            "eyebrow": "What changed",
+            "title": "Three changes did most of the work",
+            "items": [
+              "Build cache shared across branches",
+              "Integration tests split into four parallel shards",
+              "Canary stage replaced the manual smoke test"
+            ],
+            "notes": "The cache alone accounts for roughly half of the saving."
+          },
+          {
+            "layout": "quote",
+            "title": "On-call feedback",
+            "quote": "I slept through a deploy for the first time in two years.",
+            "cite": "Platform on-call engineer, November retro"
+          },
+          {
+            "layout": "section",
+            "eyebrow": "Next quarter",
+            "title": "Make rollbacks boring"
+          },
+          {
+            "layout": "content",
+            "title": "Plan for Q1",
+            "items": [
+              "One-click rollback for every service",
+              "Alert on error budget burn, not on raw errors",
+              "Retire the last two hand-run release scripts"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "brief": {
+    "mode": "experience"
+  }
+}
