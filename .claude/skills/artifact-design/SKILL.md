@@ -9,7 +9,8 @@ A Kage is the same kind of object as a Claude artifact: a page someone opens,
 reads or operates, shares and comes back to. Agents never write HTML here, so
 the craft moves from CSS into choices of blocks, props, design and copy. The
 principles are the ones the Claude `artifact-design` skill applies; this is how
-each one is done in Kages.
+each one is done in Kages. The skill Claude itself provides is included in full at
+the end of this file (Appendix), unchanged.
 
 ## Read the request first
 

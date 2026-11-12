@@ -7,7 +7,9 @@ const FORMS = { "report-kages": "kages-report", "answer-pages": "kages-answer-pa
 
 export function formSkills(root = ".") {
   return Object.entries(FORMS).map(([source, name]) => {
-    const raw = readFileSync(`${root}/.claude/skills/${source}/SKILL.md`, "utf8");
+    let raw = readFileSync(`${root}/.claude/skills/${source}/SKILL.md`, "utf8");
+    // artifact-design keeps Claude's own skill text beside the Kages mapping, so an agent gets the original too.
+    if (source === "artifact-design") raw += "\n## Appendix: Claude's artifact-design skill, unabridged\n\nThe guidance above applies it to Kages. Below is the skill Claude itself provides for HTML artifacts, unchanged, so every principle can be read at source. Where it speaks of HTML, CSS, CSP, `<title>` or the Artifact tool, translate it as above: a Kage is built from blocks, designs and a brief, and `export_kage` with `format:\"artifact\"` produces the page.\n\n" + readFileSync(`${root}/.claude/skills/${source}/reference/claude-artifact-design.md`, "utf8");
     const [, front, body] = /^---\n([\s\S]*?)\n---\n+([\s\S]*)$/.exec(raw);
     const line = /^description:\s*(.*)$/m.exec(front)[1].trim();
     const description = line.startsWith('"') ? JSON.parse(line) : line;
