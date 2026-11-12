@@ -48,10 +48,11 @@ export function hoistFontImports(css: string): { css: string; links: string[] } 
  *  honoured if they still equal what the current system resolves, otherwise refuse to export. */
 export function assertPinsRenderable(doc: KageDoc): void {
   if (doc.resolved?.assets) return;
-  const components = systems[String(doc.system ?? "core").split("@")[0]]?.components as Record<string, string> | undefined;
   for (const [block, ref] of Object.entries(doc.resolved?.blocks ?? {})) {
-    const role = /^[a-z0-9-]+\/([a-z0-9-]+)@/.exec(ref)?.[1];
-    const current = role ? components?.[role] : undefined;
+    // A pin names its own system ("core/button@1.1.0"), which is not always the document's: a Ledger
+    // document may use a core block. Compare against the system the pin names, never the document's.
+    const m = /^([a-z0-9-]+)\/([a-z0-9-]+)@/.exec(ref);
+    const current = m ? (systems[m[1]]?.components as Record<string, string> | undefined)?.[m[2]] : undefined;
     if (current && current !== ref) throw new Error(`block '${block}' pins ${ref} but this build renders ${current}; export needs the design-system build that Kage was signed against`);
   }
 }

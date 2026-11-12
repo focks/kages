@@ -88,8 +88,11 @@ test("a Kage pinned to an older design-system build exports with that build, ver
 });
 
 test("a legacy Kage whose component pins differ from this build is refused, not rendered differently", () => {
-  const pinned = (ref: string, withAssets = false) => ({ ...deck, resolved: { system: "core@1.0.0", blocks: { talk: ref }, ...(withAssets ? { assets: { base: "/ds", integrity: {} } } : {}) } }) as never;
+  const pinned = (ref: string, withAssets = false): any => ({ ...deck, resolved: { system: "core@1.0.0", blocks: { talk: ref }, ...(withAssets ? { assets: { base: "/ds", integrity: {} } } : {}) } });
   assert.doesNotThrow(() => assertPinsRenderable(pinned("core/deck@1.0.0")));
   assert.throws(() => artifactHtml(pinned("core/section@1.0.0"), assets), /pins core\/section@1\.0\.0 but this build renders core\/section@1\.1\.0/);
   assert.doesNotThrow(() => assertPinsRenderable(pinned("core/section@1.0.0", true)), "pinned assets carry their own contracts");
+  // A Ledger document may use a core block; its pin is judged against core, not against Ledger's default.
+  assert.doesNotThrow(() => assertPinsRenderable({ ...pinned("core/button@1.1.0"), system: "ledger@2" } as never));
+  assert.throws(() => assertPinsRenderable({ ...pinned("ledger/button@1.0.0"), system: "ledger@2" } as never), /pins ledger\/button@1\.0\.0/);
 });
