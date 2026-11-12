@@ -6,6 +6,7 @@
 // the bundle text, so the function is testable and never reads a disk or network.
 import tokens from "../../public/ds/tokens.json" with { type: "json" };
 import { designCss, readSnapshot } from "../engine/design.ts";
+import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
 
 export interface ArtifactAssets { tokensCss: string; bundleCss: string; bundleJs: string }
@@ -41,7 +42,22 @@ export function hoistFontImports(css: string): { css: string; links: string[] } 
   return { css: rest, links };
 }
 
+/** The oracle renderer resolves each role to the contract of the build it ships in, so a document whose
+ *  version pinned an older contract would silently render differently. When the version also pinned its
+ *  assets the matching build is loaded instead; when it did not (older records) the pins can only be
+ *  honoured if they still equal what the current system resolves, otherwise refuse to export. */
+export function assertPinsRenderable(doc: KageDoc): void {
+  if (doc.resolved?.assets) return;
+  const components = systems[String(doc.system ?? "core").split("@")[0]]?.components as Record<string, string> | undefined;
+  for (const [block, ref] of Object.entries(doc.resolved?.blocks ?? {})) {
+    const role = /^[a-z0-9-]+\/([a-z0-9-]+)@/.exec(ref)?.[1];
+    const current = role ? components?.[role] : undefined;
+    if (current && current !== ref) throw new Error(`block '${block}' pins ${ref} but this build renders ${current}; export needs the design-system build that Kage was signed against`);
+  }
+}
+
 export function artifactHtml(doc: KageDoc, assets: ArtifactAssets): string {
+  assertPinsRenderable(doc);
   const system = String(doc.system ?? "core").split("@")[0];
   const ground = pageGround(system);
   const title = escapeHtml(String(doc.title ?? doc.id ?? "Kage").slice(0, 120));

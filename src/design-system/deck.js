@@ -32,7 +32,7 @@
     // The public `index` output is the stored value, so a stale or out-of-range one (index:99, or a
     // shorter deck than before) must be corrected there too, not only on screen; a block bound to
     // `index` would otherwise disagree with the slide that is shown. Hooks run before the early return.
-    R().useEffect(function () { if (slides.length && typeof p.index === "number" && asked !== at) fire(p.onChange, { index: at }); }, [asked, at, slides.length]);
+    R().useEffect(function () { if (slides.length && typeof p.index === "number" && p.index !== at) fire(p.onChange, { index: at }); }, [p.index, at, slides.length]);
     if (!slides.length) return h("p", null, p.empty || "No slides");
     function go(i) { var to = Math.max(0, Math.min(slides.length - 1, i)); if (to !== at) fire(p.onChange, { index: to }); }
     var keys = { ArrowRight: at + 1, PageDown: at + 1, " ": at + 1, ArrowLeft: at - 1, PageUp: at - 1, Home: 0, End: slides.length - 1 };

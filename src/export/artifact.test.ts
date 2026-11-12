@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { artifactHtml, hoistFontImports, REACT_CDN, REACT_DOM_CDN, ARTIFACT_MAX_BYTES } from "./artifact.ts";
+import { artifactHtml, assertPinsRenderable, hoistFontImports, REACT_CDN, REACT_DOM_CDN, ARTIFACT_MAX_BYTES } from "./artifact.ts";
 import { resolveDesign, validateDesign } from "../engine/design.ts";
 import { loadArtifactAssets } from "./artifact-assets.ts";
 import { appExamples } from "../packs/examples.ts";
@@ -85,4 +85,11 @@ test("a Kage pinned to an older design-system build exports with that build, ver
   assert.throws(() => loadArtifactAssets(root, { base: "/ds/versions/abc123", integrity: { ...integrity, "bundle.js": sri("tampered") } }), /integrity/);
   assert.throws(() => loadArtifactAssets(root, { base: "/ds/versions/missing" }), /pinned/);
   assert.throws(() => loadArtifactAssets(root, { base: "/ds/../../etc" }), /invalid/);
+});
+
+test("a legacy Kage whose component pins differ from this build is refused, not rendered differently", () => {
+  const pinned = (ref: string, withAssets = false) => ({ ...deck, resolved: { system: "core@1.0.0", blocks: { talk: ref }, ...(withAssets ? { assets: { base: "/ds", integrity: {} } } : {}) } }) as never;
+  assert.doesNotThrow(() => assertPinsRenderable(pinned("core/deck@1.0.0")));
+  assert.throws(() => artifactHtml(pinned("core/section@1.0.0"), assets), /pins core\/section@1\.0\.0 but this build renders core\/section@1\.1\.0/);
+  assert.doesNotThrow(() => assertPinsRenderable(pinned("core/section@1.0.0", true)), "pinned assets carry their own contracts");
 });

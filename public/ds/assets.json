@@ -1,7 +1,7 @@
 {
-  "base": "/ds/versions/7fee5ebaf807cc541228c10a318abd3c4e44db34c0a9d83d3bdf7f48f2fcd13b",
+  "base": "/ds/versions/470092cc84c59c7a0e2dd3cc912fc0ce62903e5e3b86ddb2adc14d3dd9960c1b",
   "integrity": {
-    "bundle.js": "sha384-vikusJlqVBmaywY43hfhb8CJDjQ4iszS8sTEPjQtezC7EJQs3JMzx2TgZuJznTAp",
+    "bundle.js": "sha384-BNTkHsybzSvhTrhowgEPicl/fzbReOeewYO8ihvgJENBvfW+Six+yOmGjps2ei2m",
     "bundle.css": "sha384-+tTG9YDRLqTg8e8gg+ejKbNxZ61Bxydst/z3hQWeTWAYHpxH2HerWznv1/G+L15/",
     "tokens.css": "sha384-si2CvdRmXAHbowURyyaaOwR9xFjb0oziwQd2sDh/X5oJO1M6z7dIkNKYKV/nYBly"
   },
