@@ -17,8 +17,13 @@
   ],
   "mcpServers": {
     "kages": {
-      "type": "http",
-      "url": "https://app.getkages.com/api/mcp"
+      "command": "npx",
+      "args": [
+        "-y",
+        "--package=https://app.getkages.com/downloads/ifocksh-kages-0.2.0.tgz",
+        "kages",
+        "mcp"
+      ]
     }
   }
 }
