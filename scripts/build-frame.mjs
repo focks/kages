@@ -10,4 +10,8 @@ const integrity = "sha384-" + createHash("sha384").update(bytes).digest("base64"
 writeFileSync(`public/runtime/${id}.js`, bytes);
 writeFileSync("public/runtime/frame.json", JSON.stringify({ path: `/runtime/${id}.js`, integrity }, null, 2) + "\n");
 
+// The artifact export inlines this entry, so it is a plain file the exporter reads, not an immutable pinned asset.
+const artifact = await build({ entryPoints: ["src/runtime/artifact-entry.tsx"], bundle: true, platform: "browser", format: "iife", target: "es2022", minify: true, write: false, define: { "process.env.NODE_ENV": '"production"' } });
+writeFileSync("public/runtime/artifact.js", artifact.outputFiles[0].contents);
+
 await import("./pin-ds-assets.mjs");

@@ -104,9 +104,10 @@ your one aesthetic risk in one place and keep everything around it quiet.
 ## Publishing as a Claude artifact
 
 `export_kage` with `format:"artifact"` (CLI: `kages export <name> --format artifact -o page.html`) returns
-one self-contained page for Claude's Artifact tool: a `<title>`, the design-system
-bundle inlined, React from the cdnjs allowlist, both themes through the
-viewer's setting, and the Kage as inert JSON. Publish the file as it is with the
+one self-contained page for Claude's Artifact tool: a `<title>`, the app's
+renderer and the design-system bundle inlined (the frame may load no script from
+anywhere else), both themes through the viewer's setting, and the Kage as inert
+JSON. Publish the file as it is with the
 Artifact tool and pass the Kage's title as the name. Know its limits before you
 promise a result:
 
@@ -118,10 +119,9 @@ promise a result:
   interaction, not for live data.
 - The export needs the design-system files, so it works from a Kages checkout or
   a deployment, not from the single-file CLI.
-- The export renders the Kage once with the same bundle before it writes the page,
-  and refuses one that throws or needs more than 3 seconds (a runaway expression,
-  a bad binding). The page's renderer has no per-block error boundary, so fix the
-  block first; the error names the cause.
+- The page runs the app's own renderer, so it keeps the expression work budget and
+  the per-block error boundaries: a runaway expression or a block that throws
+  becomes an error box on that block, and the rest of the page stays usable.
 - It is a snapshot: later versions of the Kage do not update a published page.
   Re-export and republish to the same artifact URL.
 

@@ -74,16 +74,18 @@ function loadBundle(base: string, integrity?: Record<string, string>): Promise<K
 }
 
 /** Load the DS bundle served under `base` (default /ds). Returns window.Kages or null while loading. */
-export function useDsBundle(base = "/ds", integrity?: Record<string, string>): { kages: KagesGlobal | null; error: string | null } {
+/** `preloaded`: the page already evaluated the bundle (an exported artifact inlines it, since it may load nothing else). */
+export function useDsBundle(base = "/ds", integrity?: Record<string, string>, preloaded = false): { kages: KagesGlobal | null; error: string | null } {
   const [kages, setKages] = useState<KagesGlobal | null>(typeof window !== "undefined" ? window.Kages ?? null : null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
+    if (preloaded) return;
     let live = true;
     loadBundle(base, integrity).then(
       (k) => live && setKages(k),
       (e) => live && setError(String(e.message || e)),
     );
     return () => { live = false; };
-  }, [base, integrity]);
+  }, [base, integrity, preloaded]);
   return { kages, error };
 }

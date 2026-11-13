@@ -26,5 +26,10 @@ export function loadArtifactAssets(root: string = process.cwd(), pinned?: Pinned
       throw new Error(`public${base}/${f} does not match the integrity this Kage pinned; refusing to export a page built from different bytes`);
     return text;
   };
-  return { tokensCss: read("tokens.css"), bundleCss: read("bundle.css"), bundleJs: read("bundle.js") };
+  const tokensCss = read("tokens.css"), bundleCss = read("bundle.css"), bundleJs = read("bundle.js");
+  // The app's own renderer entry (built by build:frame). It is not a pinned, hashed asset, so no integrity applies.
+  let runtimeJs: string;
+  try { runtimeJs = readFileSync(join(root, "public/runtime/artifact.js"), "utf8"); }
+  catch { throw new Error("artifact export needs the runtime entry (public/runtime/artifact.js); run npm run build:frame"); }
+  return { tokensCss, bundleCss, bundleJs, runtimeJs };
 }

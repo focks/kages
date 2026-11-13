@@ -6,7 +6,7 @@ All notable changes are recorded here, newest first. The format follows
 ## [Unreleased]
 
 - Added the `deck` block for slide decks: one slide at a time on a 16:9 or 4:3 stage with title, section, content, split, quote and stat layouts, a slide rail, speaker notes, keyboard navigation and a public `index` output. Core 1.20.0, Ledger 2.17.0 and Atelier 1.16.0 advertise it; existing pinned documents are unaffected.
-- Added `export_kage` format `artifact` (CLI: `kages export <name> --format artifact`): one self-contained page for Claude's Artifact tool with the design-system bundle inlined, React pinned from cdnjs and both themes. It needs the design-system files, so it runs from a checkout or deployment, not the single-file CLI; remote images are blocked in that frame, so use base64 raster images.
+- Added `export_kage` format `artifact` (CLI: `kages export <name> --format artifact`): one self-contained page for Claude's Artifact tool with the app's own renderer and the design-system bundle inlined (so it keeps the expression work budget and per-block error boundaries) and both themes. It needs the design-system files, so it runs from a checkout or deployment, not the single-file CLI; remote images are blocked in that frame, so use base64 raster images.
 - Added the `artifact-design` and `slide-decks` authoring skills. `artifact-design` carries the Claude artifact design principles (read the request, ground it in the subject, both themes, complete at rest, product-style names) in terms of Kages blocks, designs and briefs.
 
 ## [0.1.3] — 2026-10-24
