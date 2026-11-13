@@ -4,7 +4,7 @@ import { readFileSync, mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { artifactHtml, hoistFontImports, ARTIFACT_MAX_BYTES } from "./artifact.ts";
+import { artifactHtml, assertPinsAvailable, hoistFontImports, ARTIFACT_MAX_BYTES } from "./artifact.ts";
 import { loadArtifactAssets } from "./artifact-assets.ts";
 import { resolveDesign, validateDesign } from "../engine/design.ts";
 import { appExamples } from "../packs/examples.ts";
@@ -88,4 +88,11 @@ test("a Kage pinned to an older design-system build exports with that build, ver
   assert.throws(() => loadArtifactAssets(root, { base: "/ds/versions/missing" }), /pinned/);
   assert.throws(() => loadArtifactAssets(root, { base: "/ds/../../etc" }), /invalid/);
   assert.throws(() => loadArtifactAssets(mkdtempSync(join(tmpdir(), "kages-noruntime-"))), /design-system build|runtime entry/);
+});
+
+test("a pinned contract the runtime no longer knows is refused with the block named, not published broken", () => {
+  const pinned = (ref: string): any => ({ ...deck, resolved: { system: "core@1.0.0", blocks: { talk: ref } } });
+  assert.doesNotThrow(() => assertPinsAvailable(pinned("core/deck@1.0.0")));
+  assert.doesNotThrow(() => assertPinsAvailable(pinned("core/section@1.0.0")), "older refs the registry keeps still export");
+  assert.throws(() => artifactHtml(pinned("core/removed-block@9.9.9"), assets), /block 'talk' pins core\/removed-block@9\.9\.9, which this build's runtime no longer includes/);
 });

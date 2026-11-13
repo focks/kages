@@ -8,6 +8,7 @@
 // and never reads a disk or network.
 import tokens from "../../public/ds/tokens.json" with { type: "json" };
 import { designCss, readSnapshot } from "../engine/design.ts";
+import { contracts } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
 
 export interface ArtifactAssets { tokensCss: string; bundleCss: string; bundleJs: string; runtimeJs: string }
@@ -40,7 +41,18 @@ export function hoistFontImports(css: string): { css: string; links: string[] } 
   return { css: rest, links };
 }
 
+/** The inlined runtime resolves each block's pinned contract in its own compiled registry, then draws it with
+ *  the supplied bundle. A contract that only an older bundle still ships is unknown to that registry, so the
+ *  block would render as "Pinned contract unavailable". Say so at export, naming the block, instead of
+ *  publishing a page with a broken block. */
+export function assertPinsAvailable(doc: KageDoc): void {
+  for (const [block, ref] of Object.entries(doc.resolved?.blocks ?? {})) {
+    if (!(contracts as Record<string, unknown>)[ref]) throw new Error(`block '${block}' pins ${ref}, which this build's runtime no longer includes; open the Kage and save a new version, then export again`);
+  }
+}
+
 export function artifactHtml(doc: KageDoc, assets: ArtifactAssets): string {
+  assertPinsAvailable(doc);
   const system = String(doc.system ?? "core").split("@")[0];
   const ground = pageGround(system);
   const title = escapeHtml(String(doc.title ?? doc.id ?? "Kage").slice(0, 120));
