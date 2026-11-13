@@ -34,7 +34,7 @@ const shared: Record<string, InputSchema> = {
   direction: choice("bolder", "quieter"), amount: { type: "number", minimum: 0 }, scope: { type: ["string", "array"], items: str },
   mode: choice("read", "operate", "persuade", "experience"), advice: choice("full", "quiet", "off"), minSeverity: choice("P0", "P1", "P2", "P3"),
   state: choice("draft", "review", "published", "deprecated", "archived"), visibility: choice("private", "workspace", "link", "public"),
-  method: choice("dual-agent", "degraded", "single"), status: choice("open", "fixed", "wontfix"), format: choice("json", "markdown", "card"), tier: choice("immediate", "deep", "all"),
+  method: choice("dual-agent", "degraded", "single"), status: choice("open", "fixed", "wontfix"), format: choice("json", "markdown", "card", "artifact"), tier: choice("immediate", "deep", "all"),
   scores: { type: "object", properties: Object.fromEntries(Array.from({ length: 10 }, (_, i) => [String(i + 1), { type: ["integer", "null"], minimum: 0, maximum: 4 }])), additionalProperties: false },
   naReasons: { type: "object", additionalProperties: str },
   priorities: { type: "array", items: { type: "object", required: ["sev", "title", "fix"], properties: { sev: choice("P0", "P1", "P2", "P3"), title: str, why: str, fix: str, command: str, block: str, status: choice("open", "fixed", "wontfix") }, additionalProperties: false } },

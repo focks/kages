@@ -14,7 +14,7 @@ import { polishExamples } from "./polish-examples.ts";
  *  envelope does not carry `brief`. */
 const MODES: Record<string, Mode> = {
   "field-notes": "read", "math-notes": "read", "docs-guide": "read", "research-brief": "read",
-  "open-studio": "persuade", "media-gallery": "experience",
+  "open-studio": "persuade", "media-gallery": "experience", "platform-review-deck": "experience",
   "idea-lab": "operate", "collection-lab": "operate", "growth-lab": "operate", "event-planner": "operate",
   "metrics-board": "operate", "launch-flow": "operate", "team-workbench": "operate", "region-explorer": "operate",
   "live-feed": "operate", "signup-rules": "operate", "quarterly-report": "operate",
@@ -188,7 +188,19 @@ export function appExamples(system = "core"): KageDoc[] {
     piecewise: { type: "math", props: { display: true, label: "Absolute value", tex: "|x| = \\begin{cases} x & x \\geq 0 \\\\ -x & x < 0 \\end{cases}" } },
     slides: { type: "carousel", props: { label: "Three habits", slides: [{ title: "Automate", text: "Pay yourself first." }, { title: "Diversify", text: "Spread the risk." }, { title: "Wait", text: "Let time do the work." }] } },
   };
-  return declared([bench, read]);
+  const deck = base("platform-review-deck", "Platform review deck");
+  deck.blocks = {
+    root: { type: "page", props: { width: "wide", gap: 6 }, slots: { children: ["talk"] } },
+    talk: { type: "deck", props: { label: "Platform review", notes: true, slides: [
+      { layout: "title", eyebrow: "Example deck, illustrative figures", title: "Faster deploys, fewer pages", text: "What changed in the pipeline, what it cost and what we do next.", notes: "Replace the figures with your own measurements. Open with the one-line result." },
+      { layout: "stat", eyebrow: "Deploy time", title: "Median deploy", value: "9 min", caption: "Illustrative: down from 31 min in Q3. Replace with your own period and deploy count.", notes: "State the source and the period for a real figure." },
+      { layout: "content", eyebrow: "What changed", title: "Three changes did most of the work", items: ["Build cache shared across branches", "Integration tests split into four parallel shards", "Canary stage replaced the manual smoke test"], notes: "The cache alone accounts for roughly half of the saving." },
+      { layout: "quote", title: "A line from the team", quote: "Replace this with a real quote from someone on your team.", cite: "Name, role, source and date", notes: "Use a quote only with the speaker's permission, and attribute it." },
+      { layout: "section", eyebrow: "Next quarter", title: "Make rollbacks boring" },
+      { layout: "content", title: "Plan for Q1", items: ["One-click rollback for every service", "Alert on error budget burn, not on raw errors", "Retire the last two hand-run release scripts"] }
+    ] } }
+  };
+  return declared([bench, read, deck]);
 }
 
 /** Batch 3: connected blocks. A chart selection filters a table, a declared

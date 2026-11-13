@@ -11,7 +11,7 @@ const INPUTS = new Set(["text-input", "number-input", "text-field", "dropdown", 
 const DATA = new Set(["table", "data-grid", "kanban", "calendar", "tree"]);
 const VIZ = new Set(["bar-chart", "line-chart", "scatter-chart", "area-chart", "donut-chart", "gauge", "sparkline", "heatmap", "combo-chart", "stacked-bar-chart", "funnel-chart", "treemap", "sankey", "stat", "diagram"]);
 const PROSE: Record<string, number> = { markdown: 2, "rich-text": 2, list: 1, code: 1, "code-tabs": 2, math: 1, toc: 3, anchor: 1, accordion: 1, text: 0.5, divider: 0.5, alert: 0.5 };
-const MEDIA: Record<string, number> = { gallery: 3, video: 3, audio: 2, carousel: 2, scene: 2, map: 2, image: 1 };
+const MEDIA: Record<string, number> = { deck: 3, gallery: 3, video: 3, audio: 2, carousel: 2, scene: 2, map: 2, image: 1 };
 
 export function inferMode(doc: KageDoc): ModeGuess {
   const blocks: Block[] = Object.values(doc && typeof doc.blocks === "object" && doc.blocks ? doc.blocks : {}).filter((b): b is Block => !!b && typeof b === "object");

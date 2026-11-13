@@ -41,6 +41,8 @@ import { clone } from "../engine/expr.ts";
 import type { KageBrief, KageDoc } from "../engine/types.ts";
 import type { Store } from "../store/store.ts";
 import type { Provenance } from "../store/types.ts";
+import { artifactHtml } from "../export/artifact.ts";
+import { loadArtifactAssets } from "../export/artifact-assets.ts";
 
 export interface OpContext {
   store: Store;
@@ -567,13 +569,14 @@ export const OPERATIONS: OpSpec[] = [
     return r.ok ? ok({ deleted: p.name, uuid: r.version!.uuid }) : fail(r.error!.code, r.error!.msg);
   } },
 
-  { name: "export_kage", summary: "Export JSON (doc+lockfile), Markdown (describe), or card", params: ["name", "format?"], run: (c, p) => {
+  { name: "export_kage", summary: "Export JSON (doc+lockfile), Markdown (describe), card, or artifact (a single self-contained HTML page for Claude's Artifact tool)", params: ["name", "format?"], run: (c, p) => {
     const r = c.store.authorizeRead(p.name, c.author);
     if (!r.ok) return fail(r.code, r.msg);
     switch (p.format ?? "json") {
       case "json": return ok(JSON.stringify(r.record.doc, null, 2));
       case "markdown": return ok(describe(r.record.doc));
       case "card": return ok(c.store.card(p.name));
+      case "artifact": try { return ok(artifactHtml(r.record.doc, loadArtifactAssets(undefined, r.record.doc.resolved?.assets))); } catch (e) { return fail("unavailable", (e as Error).message); }
       default: return fail("invalid_content", `unknown format '${p.format}'`);
     }
   } },

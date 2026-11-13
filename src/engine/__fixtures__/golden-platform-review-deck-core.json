@@ -1,0 +1,57 @@
+{
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "system": "core",
+    "portable": true
+  },
+  "description": "Kage \"Platform review deck\" · system core@1.20.0 · 2 blocks\nstate {}\n- root [core/page@1.0.0]\n  children:\n    - talk [core/deck@1.0.0] label=\"Platform review\"",
+  "envelope": {
+    "title": "Platform review deck",
+    "root": "root",
+    "state_json": "{}",
+    "data_json": null,
+    "blocks": [
+      {
+        "id": "root",
+        "type": "page",
+        "props": {
+          "width": "wide",
+          "inset": null,
+          "gap": 6
+        },
+        "slots": {
+          "header": [],
+          "children": [
+            "talk"
+          ],
+          "footer": []
+        },
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      },
+      {
+        "id": "talk",
+        "type": "deck",
+        "props": {
+          "label": "Platform review",
+          "slides_json": "[{\"layout\":\"title\",\"eyebrow\":\"Example deck, illustrative figures\",\"title\":\"Faster deploys, fewer pages\",\"text\":\"What changed in the pipeline, what it cost and what we do next.\",\"notes\":\"Replace the figures with your own measurements. Open with the one-line result.\"},{\"layout\":\"stat\",\"eyebrow\":\"Deploy time\",\"title\":\"Median deploy\",\"value\":\"9 min\",\"caption\":\"Illustrative: down from 31 min in Q3. Replace with your own period and deploy count.\",\"notes\":\"State the source and the period for a real figure.\"},{\"layout\":\"content\",\"eyebrow\":\"What changed\",\"title\":\"Three changes did most of the work\",\"items\":[\"Build cache shared across branches\",\"Integration tests split into four parallel shards\",\"Canary stage replaced the manual smoke test\"],\"notes\":\"The cache alone accounts for roughly half of the saving.\"},{\"layout\":\"quote\",\"title\":\"A line from the team\",\"quote\":\"Replace this with a real quote from someone on your team.\",\"cite\":\"Name, role, source and date\",\"notes\":\"Use a quote only with the speaker's permission, and attribute it.\"},{\"layout\":\"section\",\"eyebrow\":\"Next quarter\",\"title\":\"Make rollbacks boring\"},{\"layout\":\"content\",\"title\":\"Plan for Q1\",\"items\":[\"One-click rollback for every service\",\"Alert on error budget burn, not on raw errors\",\"Retire the last two hand-run release scripts\"]}]",
+          "index": null,
+          "ratio": null,
+          "palette": null,
+          "notes": true,
+          "empty": null
+        },
+        "slots": {},
+        "bind": [],
+        "on": [],
+        "visible_json": null,
+        "repeat_json": null
+      }
+    ],
+    "compositions_json": null
+  }
+}

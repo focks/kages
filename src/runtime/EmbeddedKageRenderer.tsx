@@ -63,10 +63,12 @@ export interface KageRendererProps {
   /** Force the frame's theme instead of following the host page (a design editor shows both side by side). */
   dark?: boolean;
   bridge?: Pick<HostBridge, "ask" | "invokeAgent" | "load" | "emit">;
+  /** The page already evaluated the design-system bundle (window.Kages), so never fetch it. */
+  bundleLoaded?: boolean;
 }
 
-export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, onState, host, bridge: remoteBridge, assetIntegrity, design: designOverride }: KageRendererProps) {
-  const { kages, error } = useDsBundle(dsBase, doc.resolved?.assets?.integrity ?? assetIntegrity);
+export function EmbeddedKageRenderer({ doc, system, dsBase = "/ds", className, onState, host, bridge: remoteBridge, assetIntegrity, design: designOverride, bundleLoaded }: KageRendererProps) {
+  const { kages, error } = useDsBundle(dsBase, doc.resolved?.assets?.integrity ?? assetIntegrity, bundleLoaded);
   const sysId = systemOf(doc, system);
   // The pinned snapshot is stored data like the rest of the document, so it is rebuilt through the design checks
   // before it becomes CSS; a tampered one simply renders in the system's own look.

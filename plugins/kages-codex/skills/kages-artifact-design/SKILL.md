@@ -1,0 +1,247 @@
+---
+name: kages-artifact-design
+description: "Design a Kage the way a design lead at a small studio would design a Claude artifact: read the request, ground it in the subject, choose a treatment, keep both themes, make the page complete at rest and name it like a product. Read before creating any Kage, deck or tool page the user will keep or share."
+---
+
+# Artifact design
+
+A Kage is the same kind of object as a Claude artifact: a page someone opens,
+reads or operates, shares and comes back to. Agents never write HTML here, so
+the craft moves from CSS into choices of blocks, props, design and copy. The
+principles are the ones the Claude `kages-artifact-design` skill applies; this is how
+each one is done in Kages. The skill Claude itself provides is included in full, unchanged, in
+`reference/claude-artifact-design.md`; the packed copies (plugin skills and
+`get_authoring_guide`) append it as an Appendix.
+
+## Read the request first
+
+Decide the treatment before opening the catalog. A plan, memo or demo gets a
+plain, polished page: real hierarchy, considered spacing, no flashy opening. A
+landing page, a game, or an app the user will keep gets an editorial treatment
+with one deliberate point of view. If unsure, a well-composed page is always
+acceptable; an over-designed identity sometimes is not. Declare the reader's
+task in `brief.mode` (read, operate, persuade, experience) so mode-gated lint
+checks what you meant.
+
+## Respect what already exists
+
+Precedence is the user's own words, then the workspace, then your choices.
+Call `get_brief` for voice, audience and what must not be invented, and
+`list_designs` for a workspace design. Dress the page with `set_kage_design`
+instead of inventing colours. Do not pass `palette` on a region to look
+different from the workspace; use it when a colour family carries meaning.
+
+## Ground it in the subject
+
+Name one concrete subject, its audience and the page's single job. Include at
+least one detail only this subject has: its real units, document conventions,
+terms of art. Use real content; lorem ipsum, invented customers, figures and
+quotes are never acceptable. A figure you cannot source is labelled as an
+example or removed (see `unsourced-claim` in lint).
+
+## Type, colour and themes come from the system
+
+Typography and neutrals are part of the design system, so choose the system
+(core, ledger, atelier) for the personality you want and pair it with a
+workspace design for brand colour. Every system ships light and dark and the
+viewer's theme decides; never describe a colour as a literal. A custom design must keep text on its surface at 4.5:1 and a control edge at
+3:1 in both themes.
+
+## Complete at rest
+
+Everything meant to be read is visible on first render. No section waits for a
+scroll or a click to exist, and a hero is sized to its content. A tool opens in
+a realistic working state: sample rows or a loaded example, clearly marked as
+examples, never an empty shell. Interaction must change something the reader
+cares about; otherwise leave the block static (see `kages-graph-interaction-levels`).
+
+## Structure is information
+
+Numbering, eyebrows, dividers and labels must encode something true. Number
+steps only when order is the content. One bordered container is a decision; a
+card around every block flattens the hierarchy. Repeated elements share edges,
+baselines and padding; a table carries comparisons, prose carries claims.
+
+## When the page is a UI
+
+It is scanned and operated, so put the summary before the detail, encode state
+in form (a badge, a severity tone) as well as in numbers, and keep semantic
+colour (success, danger) separate from the accent. Charts follow
+`kages-coherent-presentation`: one scale, labels that name values the chart reaches,
+and a takeaway beside each.
+
+## Copy
+
+Write from the reader's side of the screen and name things by what people
+recognise. Active voice; a control says exactly what happens. Errors say what
+went wrong and how to fix it. Prefer specific to clever. Avoid em-dash asides,
+"not X but Y" framing, colon-then-reveal sentences and stock phrases.
+
+## Name it like a product
+
+A title is a short noun phrase of two to four words that identifies this page
+among many, or the question it answers. Never a category label alone and never
+a title with an explanation after a dash. The explanation belongs in the
+description.
+
+## Avoid the generated look
+
+Warm cream with a serif and terracotta, near-black with one acid accent, a
+purple-to-blue gradient hero, emoji as section markers, everything centred.
+When the user names a direction, follow it exactly. When they do not, spend
+your one aesthetic risk in one place and keep everything around it quiet.
+
+## Process
+
+1. `get_setup`, then `get_context` for the system, and `get_brief`.
+2. Settle the plan in the document itself: the mode, the structure of
+   sections, the one detail only this subject has.
+3. Author with declared blocks only, then `validate_kage` and `lint_kage`.
+4. Render once with `render_kage` (see `kages-visual-review`) at phone and desktop
+   widths and fix what it reports. One pass, not a loop.
+5. Publish, and give the user the link and one plain sentence on the direction.
+
+## Publishing as a Claude artifact
+
+`export_kage` with `format:"artifact"` (CLI: `kages export <name> --format artifact -o page.html`) returns
+one self-contained page for Claude's Artifact tool: a `<title>`, the app's
+renderer and the design-system bundle inlined (the frame may load no script from
+anywhere else), both themes through the viewer's setting, and the Kage as inert
+JSON. Publish the file as it is with the
+Artifact tool and pass the Kage's title as the name. Know its limits before you
+promise a result:
+
+- The page renders in the viewer's locked-down frame, so `https:` images are
+  blocked. Use `data:image/png;base64,…` pictures or leave images out; a blocked
+  image otherwise shows as an empty box.
+- No host capabilities exist there (`ask`, `agent`, `connector`, `fetch`), and
+  `load` sources show their `mock` data. Build artifacts for reading and local
+  interaction, not for live data.
+- The export needs the design-system files, so it works from a Kages checkout or
+  a deployment, not from the single-file CLI.
+- The page runs the app's own renderer, so it keeps the expression work budget and
+  the per-block error boundaries: a runaway expression or a block that throws
+  becomes an error box on that block, and the rest of the page stays usable.
+- It is a snapshot: later versions of the Kage do not update a published page.
+  Re-export and republish to the same artifact URL.
+
+The Kage stays the source of truth; the artifact is one way to show it.
+
+For a presentation use `kages-slide-decks`; for a sourced case `kages-research-briefs`; for
+a status page `kages-report`; for one question `kages-answer-pages`.
+
+## Appendix: Claude's artifact-design skill, unabridged
+
+The guidance above applies it to Kages. Below is the skill Claude itself provides for HTML artifacts, unchanged, so every principle can be read at source. Where it speaks of HTML, CSS, CSP, `<title>` or the Artifact tool, translate it as above: a Kage is built from blocks, designs and a brief, and `export_kage` with `format:"artifact"` produces the page.
+
+## Page contract
+
+These are the Artifact tool's own rules for the file you publish; the design guidance below builds on them.
+
+**Format**: Always author the page as `.html`. Publish a `.md` file only when a loaded skill explicitly instructs it. When the user shares a markdown document or asks to turn one into an artifact, author an HTML page based on its content — preserve its substance, and design the page as you would any other artifact rather than transcribing the markdown one-to-one.
+
+**Skeleton**: The file is wrapped in a `<!doctype html>…<head>…</head><body>` skeleton at publish time, so write the page content directly — no `<!DOCTYPE>`, `<html>`, `<head>`, or `<body>` tags of your own. Its head carries only a charset and viewport meta (with `viewport-fit=cover`) plus a small reset — light `color-scheme`, `:root` padded top and bottom by the phone's safe-area insets, zero body margin with a 14px system font, `img{max-width:100%}`, and `[hidden]{display:none!important}` (toggle visibility with `el.hidden`, not `style.display`) — so put your own `<title>` and `<style>` at the top of the file. Keep the `:root` padding. Put `<meta name="claude:viewport-fit-sides" content="cover">` at the top of the file beside your `<title>`: it promises that the side gutter uses the two `max()` paddings given under Responsive, so the tag goes in only together with both paddings, never alone. An edit of an older page that has neither leaves both out, unless the ask redoes the page's layout. With it the page also runs under a system bar at the phone's side, where backgrounds reach that edge while the gutter keeps text and controls clear. Anything fixed to a screen edge stays at `0` and adds that edge's `env(safe-area-inset-*, 0px)` to its own padding (one that spans the width takes the side gutter too), a floating or absolutely placed control adds the nearby edges' insets to its offsets, and a sticky page header uses `top: env(safe-area-inset-top, 0px)`, not `0`, with the band above it painted by a fixed `body::before` (`content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10`) in its background, or in the page's where it starts lower.
+
+**Title**: Put a `<title>` at the top of the HTML; only the first 8KB of the file is scanned for it. It is the artifact's name in the browser tab and the gallery, so write a name, not a summary: a short noun phrase, typically two to four words, specific enough to pick this page out among many, the way an app or a document is named. When the user already has a specific name for the thing, use that name for the title rather than coining a new one. Never use a generic category label alone, and never append an explainer after a dash or colon. If you shorten a title that pairs the name with a generic word, keep the name, not the generic word. A multi-word title that already reads as one specific name is finished; do not shorten it further. The explanation goes in the one-sentence `description` parameter, which becomes the gallery card's subtitle. The `title` parameter fills in only when an HTML file has no `<title>` tag (Markdown pages keep their filename). Keep the title stable across redeploys.
+
+**External resources — CDN allowlist (CSP-enforced)**: external scripts load ONLY from https://cdnjs.cloudflare.com (preferred), https://cdn.jsdelivr.net/npm/, https://unpkg.com, https://cdn.tailwindcss.com (Tailwind's play-CDN script) and https://code.jquery.com; external stylesheets ONLY from https://fonts.googleapis.com, with the font files they pull from https://fonts.gstatic.com (give every face a real fallback stack). Everything else is blocked, with no visible error: every other host (esm.sh included) and, even on those CDNs, anything but a script — stylesheets, images, media, fetch/XHR/WebSocket, a library's runtime fetches. So inline all other CSS and JS and embed assets as data: URIs. **How to load a library**: `<script src="https://cdnjs.cloudflare.com/ajax/libs/<lib>/<exact version>/<file>">` — pick the UMD build, which defines a global (e.g. react/18.3.1/umd/react.production.min.js, then react-dom) — placed BEFORE any inline `<script>` that uses it. Pin every library URL to an exact version (`react@18.3.1` on jsDelivr or unpkg, `react/18.3.1/…` on cdnjs, `cdn.tailwindcss.com/3.4.17`), never a bare name, a range or a tag (`react`, `react@18`, `@latest`). Choose a version at least two weeks old. Any version you knew before this conversation is old enough; if you look versions up, skip any published in the last two weeks. The viewer's sandbox also blocks any download the page starts itself — `<a download>` links (data:/blob: hrefs included) and script-driven saves are inert for viewers — so never offer a file through a plain link. Links to other websites (`https://…`) open in a new tab, but email, phone and app links (`mailto:`, `tel:`, `sms:`, other custom schemes) are unreliable inside an artifact: for many viewers (for example anyone outside the user's organization, or anyone viewing through a public link) following one, by link or by script, often does not work, and the page cannot tell whether it did. So show the address or number itself as selectable text (a copy button helps), treat such a link as a convenience that may do nothing, and never tell the viewer a message was sent or a call placed because the viewer tapped one. Artifacts render mermaid diagrams natively — markdown via ```mermaid fences, HTML via `<pre class="mermaid">` blocks — no library needed, don't load one. The viewer never shows `alert()`, `confirm()` or `prompt()` dialogs — `confirm()` returns false and `prompt()` returns null immediately — so build any confirmation step into the page itself.
+
+**What the viewer's frame allows**: The page runs in a locked-down frame; what it refuses below, it refuses for every viewer (anonymous, signed-in, embedded, desktop and mobile apps), so build around these limits instead of detecting them. The page cannot open the print dialog — `window.print()` does nothing — so never offer a Print or "Save as PDF" button. Forms work as page UI (inputs, validation, submit events), but a real submission has nowhere to go: handle `submit` in script with `preventDefault()` and never point `action` at another site or a mailto: address. Copy buttons work when `navigator.clipboard.writeText` is called inside the click handler — catch its rejection (older desktop apps and some app views refuse it) and fall back to selecting the text; reading the clipboard never works, though the viewer's own Paste (the `paste` event) does. Camera, microphone, screen capture, location, motion, Web Share and similar device APIs are refused without a prompt — build on one only when this user has a runtime capability for that device (the `artifact-capabilities` skill lists them) and the page declares it; otherwise take photos, audio and data as uploaded files instead (file inputs, drag-and-drop of files and `FileReader` work in browsers). A screen wake lock may be granted while the page is visible: request it and tolerate rejection. Fullscreen and pointer lock work from a click in desktop browsers; treat both as optional (handle the rejection) since phones and some app views lack them. Sound plays only after the viewer interacts (muted autoplay is fine), so start audio from a button. Other sites cannot be embedded — no YouTube, map or form iframes, and no `<object>`/`<embed>`; link out instead: links open outside the artifact, normally in a new tab, while `window.open` works only for some signed-in viewers in the artifact's own organization and returns null for everyone else, so use real `<a href>` links. Web Workers work from your own files or `blob:` URLs; service workers and WebRTC do not. `fetch()` of files published alongside the page works with relative URLs; images from your own files, `data:` or `blob:` URLs draw to canvas and export cleanly. Only a plain `#anchor` (letters, digits, `.` `_` `~` `-`) from the artifact's link reaches `location.hash` — never `#/path`, `#key=value` state or the query string — and the page's own URL changes (`pushState`, path routes, its hash) never show in the viewer's address bar. Only where a page has several views worth bookmarking or sending (tabs, sections, records), name each with a bare token (never `settings`, `sidebar`, `customize`, `upgrade`, `downloads` or anything starting `comment-`, which the viewer keeps), open the one in `location.hash` on load, keep all other state in the page, and give the user each view's link (the artifact's link plus `#token`), because the address bar will not follow them from view to view.
+
+**Browser storage**: `localStorage` (also `sessionStorage` and IndexedDB) works, but each artifact has its own origin and the data lives only in that viewer's browser — it survives republishes to the same URL and never reaches other viewers, other devices, or Claude. It can come back empty or the accessor can throw (a private window, cleared or blocked site data, previews or thumbnail capture), so wrap every read and write in try/catch and render the page correctly without it. Use it only for per-viewer conveniences (a remembered tab or filter, a collapsed section, an unsent draft), never for state that must persist reliably, be shared between viewers, or be read back by Claude — state like that belongs in a runtime capability when this user has one: load the `artifact-capabilities` skill before writing the page.
+
+**Size**: The rendered page must be 16MB or smaller, and embedded data: URIs count toward that.
+
+**Responsive**: The page must also work at phone width (about 400px), and the page body must never scroll horizontally. Keep a side gutter of at least 16px at every width, written `padding-left: max(16px, env(safe-area-inset-left, 0px))` and `padding-right: max(16px, env(safe-area-inset-right, 0px))` so that it also clears a system bar at the phone's side: set it once on `body` or one outer wrapper (where colored bands span the width, on each band's inner wrapper), and give that element its vertical padding with `padding-block`, never a `padding` shorthand that zeroes the sides. Use relative units. Let flex and grid rows wrap or stack to one column when narrow, and give any flex or grid child that holds running text, code or a table `min-width: 0`, so long content wraps or scrolls inside it instead of pushing the page wider. Put `max-width: 100%` on images and on any `aspect-ratio` box, and give nothing a `min-width` wider than the screen. Only tables, diagrams and code blocks may be wider, each inside its own `overflow-x: auto` container.
+
+**Theme-aware**: The page renders in the viewer's theme, which has three states: an explicit choice sets `data-theme="dark"` or `data-theme="light"` on the root element, and the default "system" setting sets nothing, so for most viewers only `prefers-color-scheme` tells light from dark. Define every color as a token, in this shape (token names and count are the design's own):
+```css
+:root { --bg: …; --fg: …; --accent: … }  /* every token, light values */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: …; --fg: …; --accent: …; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: …; --fg: …; --accent: …; color-scheme: dark }  /* same dark values, so the toggle wins both ways */
+body { background: var(--bg); color: var(--fg) }
+```
+Every token gets its first definition on bare `:root`; the two dark blocks only redefine tokens, and their `color-scheme: dark` makes form controls and scrollbars follow. No color has its only definition inside a media or `[data-theme]` block, and no component rule uses a literal color that reads in one theme only. `body` keeps that explicit token background: the viewer paints its own ground behind the page, so a transparent body shows the host's theme instead. A dark-first design mirrors the whole shape, selectors included: dark values and `color-scheme: dark` on bare `:root` (the skeleton pins `light` there), light values and `color-scheme: light` under `(prefers-color-scheme: light)` guarded `:root:not([data-theme="dark"])` and again under `:root[data-theme="light"]`. A design that deliberately commits to a single look may drop the two dark blocks but still sets the background and every color explicitly, plus `color-scheme: dark` on `:root` if that look is dark.
+
+**Icon** (on every first publish): Pass one short generic word as `icon` (e.g. `"chart"`, `"calendar"`, `"recipe"`) for the artifact's browser-tab icon — a plain signifier for what the page is, never a product or brand name, and never an emoji or markup. It stays the **same** for the life of an artifact, so on a redeploy (the same file path this session, or `url`) omit `icon` and the artifact keeps the one it has; pass a different one only when the user asks.
+
+Work the way the design lead at a small, versatile studio would: give each client a visual identity at the level of treatment the task calls for. Make deliberate choices about palette, typography, and layout that are specific to this subject, and avoid templated designs.
+
+## Read the request first
+
+Decide the treatment; designing is a given. A doc gets the same craft as a landing page; only the treatment differs. Format is a separate matter: author HTML, and publish Markdown only when a loaded skill explicitly instructs it. A Markdown publish keeps its filename as its title, uses almost none of the craft below, and is never a way to save time.
+
+Many requests call for a more utilitarian treatment: a plan, a memo, a demo. Make it polished, with real typographic hierarchy, considered spacing, and a proper palette, but avoid over-designing. Most pages don't need a flashy, gigantic hero. Keep flourishes tasteful and limited.
+
+Some requests call for an editorial treatment: a landing page, a game, an app or tool they'll keep or share.
+
+If unsure: a well-composed page is always acceptable; an over-designed visual identity sometimes isn't.
+
+Fundamentals below apply to everything. Follow the editorial process after them only when that reading calls for it.
+
+## Fundamentals for every artifact
+
+**Respect what already exists.** Look for an existing design system first: CLAUDE.md, a tokens or theme file, existing component styles. When one exists, apply it; everything below fills gaps and never overrides. Precedence is always the user's own words, then the project's existing system, then your choices.
+
+**Ground it in the subject.** If the subject isn't already clear, define it: one concrete subject, its audience, and the page's single job. Distinctive choices come from the subject's own world: its materials, instruments, and vernacular. Whatever the treatment, include at least one detail only this subject would have (its real units and scales, its document conventions, its terms of art) as content rather than ornament; it costs nothing even on a plain page. Use real content throughout and never lorem ipsum.
+
+**Pair typefaces.** Typography determines how the page reads even when the page isn't about typography. Google Fonts is the only font host the Artifact CSP allows; link it directly (`<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=...&display=swap">`). A face from anywhere else must be inlined as a @font-face data URI, or the browser silently uses a fallback. In both cases, declare a real fallback stack. Keep running text near 65 characters wide. Set a type scale and keep to it. Give headings `text-wrap: balance`, give body text comfortable spacing, and give uppercase labels a little letter-spacing.
+
+**Load libraries instead of inlining them.** When the page really needs a library (React, a charting or highlighting package), load its UMD build from cdnjs with one `<script src="https://cdnjs.cloudflare.com/ajax/libs/...">`, pinned to an exact version at least two weeks old and placed before the inline script that uses its global; don't inline the library's source or hand-write a substitute. Only the script loads this way; a library's stylesheet still has to be inlined, and the page contract above lists the few other script hosts the CSP admits. The page's own CSS and JS, its images, and its data ship with the page. Most pages don't need any library; use one only when it does substantial work for the page.
+
+**Choose neutrals deliberately.** A pure mid-grey looks unconsidered; a grey with a slight hue bias toward the page's accent looks intentional. Pure white and near-black are fine backgrounds when they suit the subject, as long as you chose the neutral deliberately instead of inheriting a default.
+
+**Design both themes.** The page renders in the viewer's theme, and the viewer has three states: an explicit choice sets `data-theme="dark"` or `data-theme="light"` on the root element, and the default "system" setting sets *nothing*. Most viewers see the document with no `data-theme` attribute, where only `prefers-color-scheme` distinguishes light from dark. Structure the CSS at the token level for all three. The bare `:root` block defines the complete light palette (for a deliberately dark-first design, swap light and dark consistently through this whole pattern); `@media (prefers-color-scheme: dark)` redefines only the tokens, guarded as `:root:not([data-theme="light"])` so an explicit light choice overrides a dark OS setting; `:root[data-theme="dark"]` redefines them again so the toggle also overrides in the other direction; wherever the dark palette applies - both dark blocks, or bare `:root` in a dark-first or single-dark design - also set `color-scheme: dark` (the skeleton pins `light` on `:root`), so native form controls and scrollbars follow the palette. Style components through the tokens, never directly inside a media or `[data-theme]` block: a color defined only inside `[data-theme]` never applies when no `data-theme` attribute is set, and the page then shows one theme's text on the other theme's background. Two more rules keep each theme consistent. First, the artifact is composited over a background the viewer paints in *its own* theme, so `body` must set an explicit `background` from a token; a transparent body shows the host's background with no warning. Second, every element that sets a color takes it from the same token set as the surface behind it, never from a literal that works in only one theme. Declare every token in the bare `:root` block before any media or `[data-theme]` block redefines it; a color that exists only inside one of those blocks is the classic unreadable-artifact bug. Give the second theme the same care as the first: don't simply invert it; keep contrast legible and keep the accent working on both backgrounds. A design that deliberately commits to one visual world (a neon arcade screen, a letterpress invitation) may stay single-theme: then omit the media query and `[data-theme]` blocks entirely but still set the background and every color explicitly, so the page looks right on either host background; do this by choice, never by omission.
+
+**Use layout for spacing.** Lay out sibling groups with flex or grid and `gap` instead of per-element margins, which collapse or double without warning. Keep a side gutter of at least 16px at every width, written `padding-left: max(16px, env(safe-area-inset-left, 0px))` and `padding-right: max(16px, env(safe-area-inset-right, 0px))` so that it also clears a system bar at the phone's side: set it once on `body` or one outer wrapper (where colored bands span the width, on each band's inner wrapper), whose vertical padding uses `padding-block` and never a `padding` shorthand that zeroes the sides. Let rows wrap or stack to one column at phone width (about 400px). Give images and any `aspect-ratio` box `max-width: 100%`, and don't give anything a `min-width` wider than the screen. Only wide tables, code, and diagrams may exceed it; give each `overflow-x: auto` on its own container so the page body never scrolls sideways. The publish skeleton pads `:root` top and bottom by the phone's safe-area insets (zero everywhere except a phone app) so the page runs edge to edge while its content stays clear of the system bars; keep that padding. Put `<meta name="claude:viewport-fit-sides" content="cover">` at the top of the file beside your `<title>`: it promises that the side gutter uses those two `max()` paddings, so the tag goes in only together with both paddings, never alone. An edit of an older page that has neither leaves both out, unless the ask redoes the page's layout. With it the page also runs under a system bar at the phone's side. Anything fixed to a screen edge stays at `0` and adds that edge's inset to its own padding (one that spans the width takes the side gutter too); a floating or absolutely placed control adds the nearby edges' insets to its offsets. A sticky page header uses `top: env(safe-area-inset-top, 0px)` and never `0`. So that nothing scrolls into view above it, under the host's controls, paint that band with `body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: ... }`, in the header's own background where the header opens the page and in the page's where the sticky bar starts lower. Size a one-screen app with `height: 100%` on `html` and `body` instead of `100vh`, so it fits inside the `:root` padding. A page that includes its own viewport meta gets the `:root` padding only when that meta declares `viewport-fit=cover`. Use `font-variant-numeric: tabular-nums` wherever digits line up in columns.
+
+**Make repeated elements consistent.** For cards in a row, label/value pairs down a list, or badges on sibling items, use the same edges, baselines, and inner padding on each, and put any recurring element in the same place on each. Let content set a container's height and pick a column count the items fill, so nothing stretches over empty space or sits alone in a row. Make text that can outgrow its track wrap or scroll in its own container; clipped text is a bug.
+
+**Use card styling selectively.** Border, fill, radius, and shadow each mark an element as a separate object. Apply them by role, to set off the one element that needs it; applying the same radius and shadow to every block flattens the hierarchy. Open with big-number tiles only when those figures are the point of the page.
+
+**Draw charts to scale.** Place marks, ticks, and labels with one scale, and make every label name a value the chart actually reaches. Color chart text from the theme tokens so it is readable in both themes. Keep marks, labels, and edges clear of one another and inside the drawing's bounds; in SVG, leave room in the viewBox for the outermost labels and give every drawn shape an explicit fill.
+
+**Make the page complete at rest.** Everything meant to be read is visible once the page has loaded, with no scrolling to trigger it; that first still frame is what a thumbnail, a shared link, and a skimming reader all see. A section may animate in, but from a visible resting state, never left at `opacity: 0` waiting for an observer. Size a hero to its content instead of to the viewport; a `100vh` opener pushes the rest of the page out of that first frame. A tool or app opens in a realistic working state: the user's real data where it exists, otherwise example rows, a loaded sample, or a plausibly filled form, clearly marked as examples and never presented as the user's own figures. The first view shows what the tool does; an empty shell waiting for input shows nothing. When those records live in the `db` capability, keep them out of the page source. Its first frame renders before the store answers, so make that frame a designed empty state that names what will appear and how to add the first entry, then fill it from the store. Seed the store through the `ArtifactData` tool (what type instructions call `write_db`) after the first publish: the user's real data, or marked examples for a tool only the user will use. For a store other people will fill with their own entries, seed only what the user gave you or asked for, never invented people or records.
+
+**Avoid AI-generated design.** AI-generated design currently clusters around a few looks: warm cream (#F4F1EA) with a serif display and terracotta accent; near-black with a lone acid-green or vermilion pop; broadsheet hairline rules with dense columns; a purple-to-blue gradient hero on white; Inter or Space Grotesk as the "safe" face; emoji as section markers; everything centered; `rounded-lg` everywhere; accent bar/rail on rounded cards. When the user specifies a visual direction, follow it exactly; their words always win, including when they ask for one of these looks. When nothing is specified, don't use that freedom on one of these defaults.
+
+**Build cleanly.** Watch for overlapping elements, cascade collisions, and silent font fallbacks. Close every non-void element, double-quote attributes, give keyboard focus a visible state, and respect `prefers-reduced-motion`. Give every form control a stable `id` (the platform preserves form values, focus, and scroll position across a republish). For generative or decorative graphics, use Canvas or WebGL instead of hand-writing long SVG path data.
+
+**CSS rules.** When writing the CSS, watch your selector specificity. It is easy to generate classes that cancel each other out, e.g. a type-based selector like `.section` and an element-based one like `.cta` both setting padding and margins between sections. Structure the cascade so it doesn't undo your spacing unnoticed.
+
+**Writing the copy.** Treat words as design material and never as decoration. Write from the user's side of the screen: name things by what people recognize instead of how the system is built (a person manages *notifications*; they don't manage *webhook config*). Use active voice; a control states exactly what happens ("Publish", then a toast that says "Published"). Errors explain what went wrong and how to fix it, without apologies or vagueness. Prefer specific to clever. Write plainly, the way a knowledgeable person would talk. Avoid mannered devices: asides set off by em-dashes, "not X, but Y" framing, colon-then-reveal sentences, scare quotes around invented labels, and stock phrases such as "worth noting" or "honest caveat". Prefer short, direct sentences over compressed or clever phrasing.
+
+**Name the page like a product; don't caption it.** The `<title>` is the artifact's name in the gallery and the browser tab, and it gives the reader a first impression of the care taken. Give the page a real name: a short noun phrase, typically two to four words, specific to the subject; or, for a page that exists to answer one question, that question itself, which then is the page's name. When the user already has a specific name for the thing, use that name for the title rather than coining a new one. Stop at the name; a title that adds its own explanation after a dash or colon reads as generated filler. The name must also identify the page among many: in the gallery it appears beside dozens of other artifacts, and a generic category label that could apply to any of them fails as a name just as an appended explanation does. When a candidate title combines the name with a generic word (a greeting, a category, a page-type label), keep the name; a trim that drops the identifying part and keeps the generic word produces a title that could apply to any page. This rule removes explanations and doesn't require brevity: a multi-word title that already reads as one specific name is finished, and shortening it further only makes it generic. Put the explanation in the one-sentence publish `description`; the gallery shows it directly under the title.
+
+**Structure is information.** Structural devices (numbering, eyebrows, dividers, labels) should encode something true about the content instead of decorating it. Many generic designs use numbered markers (01 / 02 / 03), but those fit only if the content actually is a sequence, such as a real process or a typed timeline where the order is information the reader needs. Before adding numbered markers or similar devices, check that they actually make sense.
+
+**When the page is a UI (dashboard, tool).** It is scanned and operated instead of read top to bottom, so the craft shifts from typography to information design. Put the summary before the detail. Encode state in form as well as in numbers (a pill, a chip, a severity stripe) so that whatever needs attention is visible at a glance. Semantic color (good / warning / critical) is separate from the accent hue and doesn't count as your accent. Give sparklines and charts the same care as type: an area fill, a faint grid, an emphasized endpoint. Interactive elements should look interactive.
+
+## Process
+
+Start from what the viewer should be able to do on the page, in addition to what they will read. If the page should take input, keep what people change for whoever opens it next, show live data, or ask Claude something, load the `artifact-capabilities` skill now and design around what it makes available to this user. A page that is only read doesn't need that.
+
+Before writing the page, settle a short design plan (a compact token system) and write it into the file itself, as the `:root` block at the top of the page's `<style>`, rather than into your reply:
+- **Color**: the palette as 4-6 named color tokens.
+- **Type**: font tokens for 2+ roles: a characterful display face used with restraint, a complementary body face, and a utility face for captions or data if needed.
+- **Layout**: the layout concept as a one-line comment above the tokens.
+
+Then build the rest of the page from those tokens, deriving every color and type decision from them. The plan is working material, not part of the answer: unless the user asks about the design, one plain sentence on the direction is the most to say about it, with no hex values or font names.
+
+**Write, check once, publish.** Before publishing you may look at the rendered page once, where this session offers a way: one `ArtifactCheck` preview (or the Artifact tool's own `action: "preview"` where there is no separate `ArtifactCheck` tool), or else one screenshot of the local file; if the session offers none of these, skip the look. The preview renders desktop and phone widths in light and dark and lists overflow, colors that ignore the theme, blocked loads and console errors, including a script that fails to parse, so nothing it covers needs a check of your own. The look is optional: if you take it, make one pass of edits for what it shows, without a second look; then publish. For a page that charts real numbers, take the look rather than skip it, and spend it on the chart. A page whose point is logic (dates, money, scoring, parsing) may get one more check before publishing: one run of a pure function on a sample input, or, where no preview ran, one syntax check of its script; nothing more. A page that declares `capabilities` takes the look rather than skipping it, then one functional pass after the first publish, because the preview cannot run that code: read back once what the page stores or serves (one read of its stored data or one read-only route call; where that read alone would prove nothing, as on an empty store, you may first write one probe document yourself and delete it after the read, passing the `version` the write returned as `if_version`; no other test writes unless the user wants one), tell the user in one line what you exercised and what you could not, and stop. None of this becomes a loop, because the user is waiting for a link: no second screenshot, no scripts that probe the DOM, no re-running a check that passed. Review happens on the live page, and further polish is for the user to request; if the user reports something visibly broken (a clipped column, unreadable text, a control that does nothing), fix that, take at most one more look if the session offers a way, and republish once. These checks are for code you wrote into this page, not for content you fill into an Artifact made from an Artifact type (a Slides deck, a Design canvas): there the type's own instructions say whether to check, and if they say nothing, don't.
+
+**Open viewers.** You don't need to do anything for viewers who already have the page open: published changes are delivered to them automatically at their next quiet moment, with state preserved where possible. If your page has state a viewer would miss (a game, a long form), register `window.claude?.hot?.snapshot(...)` and boot through `window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {})`; `hot` is the viewer's own update hook, not a capability behind `claude.use()`, and is absent outside a viewer, hence the `?.`.
+
+## When the request is editorial
+
+The stance changes here: the client has already rejected proposals that felt templated, and is paying for a distinctive point of view. Make opinionated decisions, and take one real aesthetic risk where it serves the work.
+
+Review the design plan against the subject before building: if any part of it reads like the generic default you would produce for any similar page, revise that part in the plan itself, without narrating the revision to the user. Write the code only after the plan is specific to this subject, following the revised plan exactly.
+
+**Principles**
+
+- The hero states the thesis: open with the most characteristic thing in the subject's world (headline, image, live demo, interactive moment).
+- Typography sets the personality of the page. Pair the display and body faces deliberately, avoiding the families you would use on any other project, and set a clear type scale with intentional weights, widths, and spacing. Make the type treatment itself a memorable part of the design instead of a neutral container for the content.
+- Use motion deliberately. Think about whether and where animation can serve the subject: a page-load sequence, hover micro-interactions, ambient atmosphere. One orchestrated moment is usually more effective than scattered effects; choose what the direction calls for. However, sometimes less is more, and extra animation adds to the impression that the design is AI-generated.
+- Match complexity to the vision. Maximalist directions need elaborate execution; minimal directions need precision in spacing, type, and detail. Elegance is executing the chosen vision well.
+- Put your boldness in one place; keep everything around it quiet. If the accent clashes with the background, shift it toward an analogous hue or desaturate it instead of replacing it.

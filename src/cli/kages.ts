@@ -104,7 +104,7 @@ manage  (your CLOUD workspace when signed in, else the local ./.kages; --local f
   archive <name>                archive (hide) a Kage; reversible
   restore <name>                restore an archived Kage to published
   delete <name> --yes           permanently remove a Kage (needs admin)
-  export <name> [--format json|markdown] [-o file]
+  export <name> [--format json|markdown|artifact] [-o file]
   state <name>                  current app state
   comment <name> <block|-> <text> [--at x,y] [--patch file]
                                 add a comment; "-" = about the whole Kage;
@@ -533,7 +533,7 @@ async function run(cmd: string, rest: string[], flags: ParsedArgs["flags"], ctx:
       if (!flags.yes) { err(`delete is permanent. Re-run with --yes to remove '${rest[0]}'.`); return 1; }
       return report(await op("delete_kage", { name: rest[0] }, true), (d) => out(`deleted ${(d as any).deleted}`));
     case "export": {
-      need(1, "export <name> [--format json|markdown] [-o file]");
+      need(1, "export <name> [--format json|markdown|artifact] [-o file]");
       return report(await op("export_kage", { name: rest[0], format: flag(flags, "format") ?? "json" }), (d) => writeOut(flags, typeof d === "string" ? d : JSON.stringify(d, null, 2)));
     }
     case "state":

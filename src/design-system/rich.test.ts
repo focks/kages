@@ -73,3 +73,19 @@ test("stepper, accordion and modal drive public state through the session", () =
   session.dispatch("dialog", "change", { open: true });
   assert.equal(session.read("dialog")?.open, true);
 });
+
+test("deck renders one slide, clamps navigation, escapes text and bounds its input", () => {
+  const slides = [{ layout: "title", title: "Opening", notes: "say hi" }, { layout: "stat", title: "Result", value: "9 min" }, { layout: "quote", quote: "<b>q</b>", cite: "Ada", src: "javascript:alert(1)" }];
+  const first = render("CoreDeck", { label: "Talk", slides, notes: true });
+  assert.match(first, /Slide 1 of 3/); assert.match(first, /kg-deck__slide--title/); assert.match(first, /say hi/); assert.match(first, /aria-disabled="true"[^>]*aria-controls/); assert.doesNotMatch(first, /<button[^>]*\sdisabled/);
+  assert.doesNotMatch(first, /9 min<\/p>/);
+  const last = render("CoreDeck", { label: "Talk", slides, index: 99 });
+  assert.match(last, /Slide 3 of 3/); assert.match(last, /&lt;b&gt;q/); assert.doesNotMatch(last, /<b>q|javascript:|say hi/);
+  assert.match(render("CoreDeck", { label: "Talk", slides, ratio: "4:3" }), /kg-deck__stage--four-three/);
+  assert.match(render("CoreDeck", { label: "Talk", slides: [] }), /No slides/);
+  assert.match(render("CoreDeck", { label: "Talk", slides: [{ layout: "split", title: "T", src: "data:image/svg+xml;utf8,<svg/>" }] }), /role="alert"[^>]*>Image source must be/);
+  const many = render("CoreDeck", { label: "Talk", slides: Array.from({ length: 80 }, (_, i) => ({ title: "S" + i })), index: 500 });
+  assert.match(many, /Slide 60 of 60/);
+  const items = render("CoreDeck", { label: "Talk", slides: [{ items: Array.from({ length: 20 }, (_, i) => "item" + i) }] });
+  assert.equal((items.match(/<li>item/g) || []).length, 8);
+});

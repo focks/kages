@@ -4435,6 +4435,108 @@
     },
     "limits": {}
   },
+  "core/deck@1.0.0": {
+    "$contract": "kages.contract/1",
+    "id": "core/deck",
+    "version": "1.0.0",
+    "ref": "core/deck@1.0.0",
+    "system": "core",
+    "name": "deck",
+    "implements": [
+      "kages/deck@1"
+    ],
+    "role": "deck",
+    "summary": "Slide deck: one slide at a time on a fixed-ratio stage with keyboard navigation, a slide rail and optional speaker notes; the slide index is public.",
+    "props": {
+      "label": {
+        "type": "string",
+        "required": true
+      },
+      "slides": {
+        "type": "array",
+        "required": true,
+        "items": {
+          "type": "object"
+        }
+      },
+      "index": {
+        "type": "number"
+      },
+      "ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "4:3"
+        ],
+        "default": "16:9"
+      },
+      "palette": {
+        "type": "string",
+        "enum": [
+          "inherit",
+          "ocean",
+          "mint",
+          "violet",
+          "amber",
+          "rose"
+        ],
+        "default": "inherit"
+      },
+      "notes": {
+        "type": "boolean"
+      },
+      "empty": {
+        "type": "string"
+      }
+    },
+    "slots": {},
+    "local": {
+      "index": {
+        "type": "number",
+        "default": 0
+      }
+    },
+    "events": {
+      "change": {
+        "handler": "onChange",
+        "payload": {
+          "index": "number"
+        }
+      }
+    },
+    "commands": {},
+    "defaults": {
+      "change": [
+        {
+          "do": "setLocal",
+          "key": "index",
+          "value": {
+            "$event": "index"
+          }
+        }
+      ]
+    },
+    "outputs": [
+      "index"
+    ],
+    "tokens": [
+      "paper",
+      "surface",
+      "sunken",
+      "ink",
+      "ink-muted",
+      "line",
+      "line-control",
+      "accent",
+      "accent-ink",
+      "accent-soft",
+      "focus"
+    ],
+    "agent": {
+      "use": "A presentation: a talk, pitch or walkthrough shown one slide at a time. slides [{layout?:title|section|content|split|quote|stat, eyebrow?, title?, text?, items?:string[<=8], quote?, cite?, value?, caption?, src?, alt?, notes?}], up to 60. Open with a title slide, give every slide one idea and at most 8 short items, and use split with src+alt when a picture carries the point. ratio 16:9 (default) or 4:3; palette tints the stage; notes:true shows each slide's notes under it. change emits {index}; the shown index is the public output `index`, so a progress label or a link can bind to it. Navigation clamps at both ends. Use carousel for an unordered gallery, guide for chaptered reading."
+    },
+    "limits": {}
+  },
   "core/combo-chart@1.0.0": {
     "$contract": "kages.contract/1",
     "id": "core/combo-chart",
