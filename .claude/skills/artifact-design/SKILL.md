@@ -118,6 +118,10 @@ promise a result:
   interaction, not for live data.
 - The export needs the design-system files, so it works from a Kages checkout or
   a deployment, not from the single-file CLI.
+- The export renders the Kage once with the same bundle before it writes the page,
+  and refuses one that throws or needs more than 3 seconds (a runaway expression,
+  a bad binding). The page's renderer has no per-block error boundary, so fix the
+  block first; the error names the cause.
 - It is a snapshot: later versions of the Kage do not update a published page.
   Re-export and republish to the same artifact URL.
 

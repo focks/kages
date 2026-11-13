@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { artifactHtml, assertPinsRenderable, hoistFontImports, REACT_CDN, REACT_DOM_CDN, ARTIFACT_MAX_BYTES } from "./artifact.ts";
+import { artifactHtml, assertPinsRenderable, assertRendersSafely, hoistFontImports, REACT_CDN, REACT_DOM_CDN, ARTIFACT_MAX_BYTES } from "./artifact.ts";
 import { resolveDesign, validateDesign } from "../engine/design.ts";
 import { loadArtifactAssets } from "./artifact-assets.ts";
 import { appExamples } from "../packs/examples.ts";
@@ -95,4 +95,16 @@ test("a legacy Kage whose component pins differ from this build is refused, not 
   // A Ledger document may use a core block; its pin is judged against core, not against Ledger's default.
   assert.doesNotThrow(() => assertPinsRenderable({ ...pinned("core/button@1.1.0"), system: "ledger@2" } as never));
   assert.throws(() => assertPinsRenderable({ ...pinned("ledger/button@1.0.0"), system: "ledger@2" } as never), /pins ledger\/button@1\.0\.0/);
+});
+
+test("a valid Kage that would hang or crash the exported renderer is refused before export", () => {
+  const nest = (d: number, n: number): unknown => d === 0 ? 1 : { $map: { list: { $literal: Array.from({ length: n }, (_, i) => i) }, to: nest(d - 1, n) } };
+  const bad = (props: Record<string, unknown>, bind: Record<string, unknown>) => ({ ...deck, blocks: { root: { type: "page", props: { width: "wide" }, slots: { children: ["t", "ok"] } }, t: { type: "text", props, bind }, ok: { type: "text", props: { text: "healthy sibling" } } } }) as never;
+  // Runaway work: the shared engine stops this with a budget error; the exported renderer has no such budget.
+  assert.throws(() => artifactHtml(bad({ text: "x" }, { text: { $count: nest(4, 1000) } }), assets), /cannot be exported as an artifact page because it needed more than 3s/);
+  // A component that throws would blank the whole page in the exported root.
+  assert.throws(() => artifactHtml(bad({ text: "x" }, { text: { $literal: { oops: "x" } } }), assets), /cannot be exported as an artifact page because/);
+  assert.doesNotThrow(() => assertRendersSafely(deck, assets));
+  // The page also carries a root boundary so a runtime failure shows a notice, not an empty frame.
+  assert.match(artifactHtml(deck, assets), /getDerivedStateFromError/);
 });

@@ -5,6 +5,8 @@
 // with no visible error) and the document as inert JSON. Pure: the caller supplies
 // the bundle text, so the function is testable and never reads a disk or network.
 import tokens from "../../public/ds/tokens.json" with { type: "json" };
+import { createRequire } from "node:module";
+import { runInNewContext } from "node:vm";
 import { designCss, readSnapshot } from "../engine/design.ts";
 import { systems } from "../engine/data.ts";
 import type { KageDoc } from "../engine/types.ts";
@@ -57,8 +59,38 @@ export function assertPinsRenderable(doc: KageDoc): void {
   }
 }
 
+/** The exported page boots the design-system bundle's own renderer, which has neither the shared engine's
+ *  expression work budget nor the per-block error boundaries of the app's runtime. A document that is valid
+ *  can still make that renderer run for ever or throw, taking the viewer's page with it. So render it once
+ *  here, with the very bundle being exported, under a time limit, and refuse to export what does not finish
+ *  cleanly. React comes from the app's own dependencies and is loaded only when exporting, which keeps it out
+ *  of the single-file CLI (which cannot export an artifact anyway). */
+const RENDER_BUDGET_MS = 3000;
+const loaded = new Map<string, { K: { KageRenderer: unknown }; React: unknown; server: { renderToStaticMarkup: (el: unknown) => string } }>();
+export function assertRendersSafely(doc: KageDoc, assets: ArtifactAssets): void {
+  const need = createRequire(import.meta.url);
+  const modules = ["react", "react-dom/server"];
+  let entry = loaded.get(assets.bundleJs);
+  if (!entry) {
+    const React = need(modules[0]), server = need(modules[1]), window: Record<string, unknown> = { React };
+    try { runInNewContext(assets.bundleJs, { window, console: { log() {}, warn() {}, error() {} }, Intl, document: {} }, { timeout: RENDER_BUDGET_MS }); }
+    catch { throw new Error("the design-system bundle could not be loaded to check this Kage before export"); }
+    entry = { K: window.Kages as { KageRenderer: unknown }, React, server };
+    loaded.set(assets.bundleJs, entry);
+  }
+  const e = entry;
+  try {
+    // The render runs inside the VM so the timeout can interrupt a runaway expression.
+    runInNewContext("html = server.renderToStaticMarkup(React.createElement(K.KageRenderer, { doc: doc }))", { server: e.server, React: e.React, K: e.K, doc: JSON.parse(JSON.stringify(doc)), html: "" }, { timeout: RENDER_BUDGET_MS });
+  } catch (err) {
+    const why = /timed out/i.test(String((err as Error).message)) ? `it needed more than ${RENDER_BUDGET_MS / 1000}s to render` : String((err as Error).message).split("\n")[0].slice(0, 160);
+    throw new Error(`this Kage cannot be exported as an artifact page because ${why}; fix the block or expression first`);
+  }
+}
+
 export function artifactHtml(doc: KageDoc, assets: ArtifactAssets): string {
   assertPinsRenderable(doc);
+  assertRendersSafely(doc, assets);
   const system = String(doc.system ?? "core").split("@")[0];
   const ground = pageGround(system);
   const title = escapeHtml(String(doc.title ?? doc.id ?? "Kage").slice(0, 120));
@@ -93,7 +125,12 @@ ${page}
   function sync() { var t = root.getAttribute("data-theme"); root.classList.toggle("dark", t ? t === "dark" : media.matches); }
   sync(); media.addEventListener("change", sync); new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
   var doc = JSON.parse(document.getElementById("kage-doc").textContent);
-  ReactDOM.createRoot(document.getElementById("kage")).render(React.createElement(Kages.KageRenderer, { doc: doc, className: ${design ? '"kg-design"' : "undefined"} }));
+  // One failing block must not blank the page: this boundary shows a notice instead of an empty frame.
+  function Guard(props) { React.Component.call(this, props); this.state = { failed: false }; }
+  Guard.prototype = Object.create(React.Component.prototype);
+  Guard.getDerivedStateFromError = function () { return { failed: true }; };
+  Guard.prototype.render = function () { return this.state.failed ? React.createElement("p", { role: "alert", className: "kg-missing" }, "This page could not be shown.") : this.props.children; };
+  ReactDOM.createRoot(document.getElementById("kage")).render(React.createElement(Guard, null, React.createElement(Kages.KageRenderer, { doc: doc, className: ${design ? '"kg-design"' : "undefined"} })));
 })();
 </script>
 `;
