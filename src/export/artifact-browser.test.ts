@@ -31,8 +31,10 @@ async function inPage(doc: KageDoc, run: (ev: (s: string) => Promise<unknown>, w
 }
 
 test("a Kage pinned to an older design-system build renders with that real bundle", { skip, timeout: 60000 }, async () => {
-  // The oldest archived build in the repo: an immutable folder a signed Kage may still point at.
-  const root = process.cwd(), old = readdirSync(join(root, "public/ds/versions")).sort()[0], base = `/ds/versions/${old}`;
+  // Core 1.12.0, an immutable archived build that a signed Kage may still point at. Pinned by hash on purpose:
+  // content hashes have no chronological order, so "the first folder" would silently change what is covered.
+  const root = process.cwd(), base = "/ds/versions/1e789e32e35f9abef3c5807a56b30737e37662aaee833fac6b7452b4535c9a83";
+  assert.ok(readdirSync(join(root, "public/ds/versions")).includes(base.split("/").pop()!), "the archived build this test pins must stay in the repo");
   const integrity = JSON.parse(readFileSync(join(root, "public", base, "integrity.json"), "utf8"));
   const doc = { ...kage({ root: { type: "text", props: { text: "rendered by an archived bundle" } } }), resolved: { system: "core@1.0.0", blocks: { root: "core/text@1.0.0" }, assets: { base, integrity } } } as unknown as KageDoc;
   const file = join(mkdtempSync(join(tmpdir(), "kages-artifact-old-")), "page.html");
