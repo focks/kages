@@ -24,7 +24,9 @@ async function inPage(doc: KageDoc, run: (ev: (s: string) => Promise<unknown>, w
     const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" }), { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
     await cdp.send("Page.enable", {}, sessionId);
     const ev = async (s: string) => { const r = await cdp.send("Runtime.evaluate", { expression: s, returnByValue: true, awaitPromise: true }, sessionId); assert.equal(r.exceptionDetails, undefined, JSON.stringify(r.exceptionDetails)); return r.result.value; };
-    const wait = async (s: string) => { for (let i = 0; i < 150; i++) { if (await ev(s)) return; await new Promise((r) => setTimeout(r, 100)); } throw new Error("Timed out: " + s); };
+    // The page may not have a body yet on a slow runner, so a failing probe means "not ready", never an error.
+    const ready = (s: string) => ev(`(() => { try { return !!(${s}); } catch (e) { return false; } })()`);
+    const wait = async (s: string) => { for (let i = 0; i < 300; i++) { if (await ready(s)) return; await new Promise((r) => setTimeout(r, 100)); } throw new Error("Timed out: " + s); };
     await cdp.send("Page.navigate", { url: "file://" + file }, sessionId);
     await run(ev, wait);
   } finally { cdp.close(); browser.stop(); }
@@ -43,8 +45,8 @@ test("a Kage pinned to an older design-system build renders with that real bundl
   try {
     const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" }), { sessionId } = await cdp.send("Target.attachToTarget", { targetId, flatten: true });
     await cdp.send("Page.enable", {}, sessionId); await cdp.send("Page.navigate", { url: "file://" + file }, sessionId);
-    const ev = async (s: string) => (await cdp.send("Runtime.evaluate", { expression: s, returnByValue: true }, sessionId)).result.value;
-    for (let i = 0; i < 150 && !(await ev("document.body.innerText.includes('rendered by an archived bundle')")); i++) await new Promise((r) => setTimeout(r, 100));
+    const ev = async (s: string) => (await cdp.send("Runtime.evaluate", { expression: `(() => { try { return ${s}; } catch (e) { return null; } })()`, returnByValue: true }, sessionId)).result.value;
+    for (let i = 0; i < 300 && !(await ev("document.body.innerText.includes('rendered by an archived bundle')")); i++) await new Promise((r) => setTimeout(r, 100));
     assert.equal(await ev("document.body.innerText.includes('rendered by an archived bundle')"), true);
     assert.equal(await ev("!!document.querySelector('[role=alert]')"), false);
   } finally { cdp.close(); browser.stop(); }
